@@ -1,0 +1,15 @@
+{
+  "schema": "jarvis-v2.release-candidate/1",
+  "module": "sda",
+  "artifact": "UNAVAILABLE-NOT-A-RELEASE.tar.gz",
+  "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "previous_healthy_artifact_sha256": "UNVERIFIED",
+  "gates": {
+    "independent_qc": false,
+    "tests": false,
+    "security": false,
+    "rollback_ready": false,
+    "owner_approved": false,
+    "watchdog_ready": false
+  }
+}

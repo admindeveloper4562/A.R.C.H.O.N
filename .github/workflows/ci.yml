@@ -1,0 +1,33 @@
+name: foundation-ci
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run seed unit tests
+        run: PYTHONPATH=src python -m unittest discover -s tests -v
+      - name: PR branch and commit convention
+        if: github.event_name == 'pull_request'
+        run: bash tools/check_pr_policy.sh
+      - name: Validate metadata and folder conventions
+        run: PYTHONPATH=src python tools/verify_foundation.py
+      - name: Verify bundled Astra One Linux bootstrap
+        run: |
+          cd bootstrap/astra-one
+          python3 scripts/verify_manifest.py
+          python3 -m unittest discover -s tests -p 'test_*.py' -q

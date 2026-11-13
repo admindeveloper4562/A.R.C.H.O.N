@@ -1,0 +1,24 @@
+{
+  "schema": "archon-identities/1",
+  "platform": "JARVIS v2",
+  "main_ai": {
+    "name": "ARCHON",
+    "purpose": "Main personal intelligence, user conversation and high-level coordination",
+    "canonical_modules": ["core", "runtime"]
+  },
+  "guardian": {
+    "name": "AEGIS",
+    "purpose": "Independent local AI guardian, integrity analysis, fault recovery and supervised redeployment",
+    "canonical_modules": ["guardian"],
+    "trusted_watchdog": "separate deterministic and independently deployed process"
+  },
+  "infrastructure": {
+    "name": "ATLAS",
+    "purpose": "Infrastructure, event/task orchestration, storage/gateway, cloud coordination, SDA scheduler and terminal monitoring",
+    "canonical_modules": ["core", "backend", "sda", "automation"]
+  },
+  "bootstrap_development_agent": "Astra One",
+  "active_module_count": 10,
+  "business_module_enabled": false,
+  "naming_note": "Display identities overlay existing module IDs and do not change approved API, database or source package identifiers without a migration."
+}

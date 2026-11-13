@@ -1,0 +1,144 @@
+{
+  "schema": "jarvis-v2.legacy-import/1",
+  "source_remote": "admindeveloper4562/personal-jarvis",
+  "entries": [
+    {
+      "area": "core",
+      "ref": "develop",
+      "source": "jarvis/tasks.py",
+      "target": "migration/imported/core/tasks.py"
+    },
+    {
+      "area": "core",
+      "ref": "develop",
+      "source": "jarvis/worker.py",
+      "target": "migration/imported/core/worker.py"
+    },
+    {
+      "area": "backend",
+      "ref": "develop",
+      "source": "jarvis/storage.py",
+      "target": "migration/imported/backend/storage.py"
+    },
+    {
+      "area": "backend",
+      "ref": "develop",
+      "source": "jarvis/permissions.py",
+      "target": "migration/imported/backend/permissions.py"
+    },
+    {
+      "area": "backend",
+      "ref": "develop",
+      "source": "jarvis/router.py",
+      "target": "migration/imported/backend/router.py"
+    },
+    {
+      "area": "backend",
+      "ref": "develop",
+      "source": "jarvis/colibri.py",
+      "target": "migration/imported/backend/colibri.py"
+    },
+    {
+      "area": "runtime",
+      "ref": "develop",
+      "source": "jarvis/server.py",
+      "target": "migration/imported/runtime/server.py"
+    },
+    {
+      "area": "runtime",
+      "ref": "develop",
+      "source": "jarvis/voice.py",
+      "target": "migration/imported/runtime/voice.py"
+    },
+    {
+      "area": "runtime",
+      "ref": "develop",
+      "source": "jarvis/inventory.py",
+      "target": "migration/imported/runtime/inventory.py"
+    },
+    {
+      "area": "runtime",
+      "ref": "develop",
+      "source": "jarvis/email.py",
+      "target": "migration/imported/runtime/email.py"
+    },
+    {
+      "area": "runtime",
+      "ref": "develop",
+      "source": "jarvis/calendar.py",
+      "target": "migration/imported/runtime/calendar.py"
+    },
+    {
+      "area": "sda",
+      "ref": "develop",
+      "source": "scripts/codex_workhorse_v2.py",
+      "target": "migration/imported/sda/codex_workhorse_v2.py"
+    },
+    {
+      "area": "sda",
+      "ref": "feature/jarvis-v2-expanded-architecture-20261113",
+      "source": "scripts/sda_context_handoff.py",
+      "target": "migration/imported/sda/sda_context_handoff.py"
+    },
+    {
+      "area": "guardian",
+      "ref": "feature/jarvis-v2-expanded-architecture-20261113",
+      "source": "scripts/sda_module_integrity.py",
+      "target": "migration/imported/guardian/sda_module_integrity.py"
+    },
+    {
+      "area": "guardian",
+      "ref": "feature/jarvis-v2-expanded-architecture-20261113",
+      "source": "scripts/sda_recovery_triage.py",
+      "target": "migration/imported/guardian/sda_recovery_triage.py"
+    },
+    {
+      "area": "sda",
+      "ref": "feature/workhorse-context-engine-4way-20261109",
+      "source": "scripts/workhorse_context.py",
+      "target": "migration/imported/sda/workhorse_context.py"
+    },
+    {
+      "area": "tws",
+      "ref": "feature/twelve-winged-m001",
+      "source": "extensions/twelve-winged-system/src/tws/engine.py",
+      "target": "migration/imported/tws/engine.py"
+    },
+    {
+      "area": "tws",
+      "ref": "feature/twelve-winged-m001",
+      "source": "extensions/twelve-winged-system/src/tws/evidence.py",
+      "target": "migration/imported/tws/evidence.py"
+    },
+    {
+      "area": "tws",
+      "ref": "feature/twelve-winged-m001",
+      "source": "extensions/twelve-winged-system/assets/aurelia3d/build_portable.py",
+      "target": "migration/imported/tws/aurelia3d/build_portable.py"
+    },
+    {
+      "area": "tws",
+      "ref": "feature/twelve-winged-m001",
+      "source": "extensions/twelve-winged-system/ios/TwelveWinged/Aurelia3DSceneView.swift",
+      "target": "migration/imported/tws/ios/Aurelia3DSceneView.swift"
+    },
+    {
+      "area": "automation",
+      "ref": "feature/cloudflare-overnight-inference-coordinator-20261112",
+      "source": "cloudflare/jarvis-coordinator/src/index.ts",
+      "target": "migration/imported/automation/cloudflare/src/index.ts"
+    },
+    {
+      "area": "automation",
+      "ref": "feature/cloudflare-overnight-inference-coordinator-20261112",
+      "source": "cloudflare/jarvis-coordinator/schema.sql",
+      "target": "migration/imported/automation/cloudflare/schema.sql"
+    },
+    {
+      "area": "automation",
+      "ref": "feature/cloudflare-overnight-inference-coordinator-20261112",
+      "source": "scripts/jarvis_queue_worker.py",
+      "target": "migration/imported/automation/windows/jarvis_queue_worker.py"
+    }
+  ]
+}

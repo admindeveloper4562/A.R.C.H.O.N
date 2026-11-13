@@ -1,0 +1,32 @@
+[
+  {
+    "task_id": "CORE-301",
+    "objective": "Strengthen the existing ATLAS Core TaskQueue with a bounded read-only event-history API and regression tests. Edit only src/jarvis_v2/core/queue.py and a new task-specific tests/test_atlas_core_events.py. Do not change existing API behavior, permissions, schemas, deployment or protected files. Reference the approved architecture and CODING_HANDBOOK.md.",
+    "acceptance": ["Task history returns ordered bounded entries without returning private task payloads.", "New unittest coverage checks ordering, empty results and duplicate completion rejection.", "Existing full foundation test suite continues passing."],
+    "depends_on": [], "area": "core"
+  },
+  {
+    "task_id": "GUARD-301",
+    "objective": "Add deterministic non-preemptive AEGIS model-slot scheduling edge cases to src/jarvis_v2/guardian/priority.py and task-specific tests/test_aegis_slots.py. Guardian receives the next free compatible slot while in-flight work completes. Do not implement process-kill, deployment, new privileges or any runtime service restart.",
+    "acceptance": ["Existing in-flight model operations are never forcibly interrupted.", "Waiting Guardian prevents new lower-priority launches until it receives the next available slot.", "Fuzz-like bounded test sequences do not leak held slots or starve Guardian."],
+    "depends_on": [], "area": "guardian"
+  },
+  {
+    "task_id": "BACK-301",
+    "objective": "Build a read-only typed module-manifest validator for ATLAS Backend in a new src/jarvis_v2/backend/module_manifest.py and new tests/test_backend_manifest.py. Validate module IDs, explicit dependencies, health endpoint labels and permission scopes against the existing ten-module config without creating processes or changing config files.",
+    "acceptance": ["Only valid ten-module manifests pass with stable module IDs and no Business module.", "Malformed manifests, unknown dependencies and permission escalation are rejected.", "No network, database or process mutation occurs during validation."],
+    "depends_on": [], "area": "backend"
+  },
+  {
+    "task_id": "SDA-301",
+    "objective": "Extend the native SDA shadow-mode HandoffEvidence validation in src/jarvis_v2/sda/handoff.py and a new tests/test_sda_shadow_handoff.py. Focus on evidence completeness and explicit owner approval before migration. Do not activate the native SDA, migrate live queues, redeploy Guardian or modify the external Astra One bootstrap.",
+    "acceptance": ["Shadow mode never claims live task ownership or self-promotes.", "Each missing prerequisite is reported with an explicit stable evidence key.", "Existing handoff tests and full foundation test suite pass."],
+    "depends_on": [], "area": "sda"
+  },
+  {
+    "task_id": "MIG-301",
+    "objective": "Improve the create-only legacy source importer in tools/import_legacy.py and add new tests/test_migration_guardrails.py, verifying source commit identity and collision handling on case-insensitive names. Preserve dry-run behavior, never delete or execute imported files, and do not touch the legacy source repo.",
+    "acceptance": ["Dry-run never writes destination files or changes the old repository.", "Case-only path collisions and mismatched expected source commits fail closed.", "Create-only application preserves exact origin SHA and produces verifiable provenance records."],
+    "depends_on": [], "area": "migration"
+  }
+]

@@ -1,0 +1,66 @@
+{
+  "schema": "jarvis-v2.modules/1",
+  "business_module_enabled": false,
+  "modules": [
+    {
+      "id": 1,
+      "key": "core",
+      "name": "ARCHON / ATLAS \u2014 Core",
+      "state": "planned"
+    },
+    {
+      "id": 2,
+      "key": "sda",
+      "name": "ATLAS \u2014 Software Development Agent",
+      "state": "planned"
+    },
+    {
+      "id": 3,
+      "key": "backend",
+      "name": "ATLAS \u2014 Backend and Windows Ollama node",
+      "state": "planned"
+    },
+    {
+      "id": 4,
+      "key": "runtime",
+      "name": "ARCHON \u2014 Runtime Assistant",
+      "state": "planned"
+    },
+    {
+      "id": 5,
+      "key": "research",
+      "name": "Research",
+      "state": "planned"
+    },
+    {
+      "id": 6,
+      "key": "tws",
+      "name": "Twelve-Winged Quest System",
+      "state": "planned"
+    },
+    {
+      "id": 7,
+      "key": "wic",
+      "name": "World Information Center",
+      "state": "planned"
+    },
+    {
+      "id": 8,
+      "key": "finance",
+      "name": "Financial Intelligence",
+      "state": "planned"
+    },
+    {
+      "id": 9,
+      "key": "guardian",
+      "name": "AEGIS \u2014 Guardian and Recovery",
+      "state": "planned"
+    },
+    {
+      "id": 10,
+      "key": "automation",
+      "name": "ATLAS \u2014 Cloudflare Always-On Automation",
+      "state": "planned"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "task_id": "ASTRA-101",
+  "area": "foundation",
+  "objective": "Add an isolated cross-platform read-only host diagnostic helper with explicit failure handling and no filesystem mutation",
+  "acceptance": [
+    "New Python helper parses cleanly and refuses unsupported input",
+    "Tests for missing tools and invalid roots are included for human inspection",
+    "No existing user file is deleted, moved, overwritten or uploaded"
+  ],
+  "depends_on": []
+}

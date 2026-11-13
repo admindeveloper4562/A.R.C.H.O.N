@@ -1,0 +1,23 @@
+[
+  {
+    "task_id": "ASTRA-001",
+    "objective": "Implement an isolated health response module as a small tested vertical slice, without changing host services.",
+    "acceptance": [
+      "Health module exposes a deterministic readiness response",
+      "Unit tests cover healthy and failed responses",
+      "No existing personal files or database state are changed"
+    ],
+    "depends_on": [],
+    "area": "foundation"
+  },
+  {
+    "task_id": "ASTRA-002",
+    "objective": "Implement the health response handler tests and response validation around the accepted health foundation.",
+    "acceptance": [
+      "Existing health responses remain backward-compatible",
+      "Unit tests exercise malformed readiness data"
+    ],
+    "depends_on": ["ASTRA-001"],
+    "area": "foundation"
+  }
+]

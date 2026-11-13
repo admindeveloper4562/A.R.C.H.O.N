@@ -1,0 +1,23 @@
+name: Engineering Task
+description: Reviewed module task with verifiable acceptance
+labels: [task]
+body:
+  - type: input
+    id: task_id
+    attributes:
+      label: Task ID
+      placeholder: CORE-004
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and prerequisites
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance evidence / tests
+    validations:
+      required: true

@@ -1,0 +1,3775 @@
+{
+  "schema": "jarvis.v2.backlog/1",
+  "created": "2026-11-13",
+  "source_repository": "admindeveloper4562/personal-jarvis",
+  "source_branch": "develop",
+  "planning_branch": "planning/jarvis-v2-complete-backlog-20261113",
+  "architecture_version": "consolidated-10-modules-2026-11-13",
+  "business_module_active": false,
+  "task_count": 247,
+  "sections": [
+    {
+      "module": "BASE",
+      "name": "M0 — Source audit, safety, acceptance baseline",
+      "count": 16,
+      "priority": "P0"
+    },
+    {
+      "module": "SDA",
+      "name": "M1 — Astra One and full SDA qualification",
+      "count": 28,
+      "priority": "P0"
+    },
+    {
+      "module": "MIG",
+      "name": "M1b — Clean repository migration and self-host transition",
+      "count": 16,
+      "priority": "P0"
+    },
+    {
+      "module": "CORE",
+      "name": "M2 — Core orchestrator / global control plane",
+      "count": 14,
+      "priority": "P1"
+    },
+    {
+      "module": "BACK",
+      "name": "M3 — Backend shared data, gateway and memory",
+      "count": 22,
+      "priority": "P1"
+    },
+    {
+      "module": "AUTO",
+      "name": "M4 — Cloudflare always-on automation and observability",
+      "count": 13,
+      "priority": "P1"
+    },
+    {
+      "module": "WIN",
+      "name": "M5 — Windows local Ollama inference agent",
+      "count": 11,
+      "priority": "P1"
+    },
+    {
+      "module": "GUARD",
+      "name": "M6 — Guardian, integrity, recovery and priority",
+      "count": 19,
+      "priority": "P1"
+    },
+    {
+      "module": "RUN",
+      "name": "M7 — Runtime personal assistant",
+      "count": 18,
+      "priority": "P2"
+    },
+    {
+      "module": "RES",
+      "name": "M8 — Research, GitHub and media knowledge",
+      "count": 15,
+      "priority": "P2"
+    },
+    {
+      "module": "TWS",
+      "name": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "count": 20,
+      "priority": "P2"
+    },
+    {
+      "module": "WIC",
+      "name": "M10 — World Information Center",
+      "count": 14,
+      "priority": "P2"
+    },
+    {
+      "module": "FIN",
+      "name": "M11 — Personal CFO and paper trading",
+      "count": 16,
+      "priority": "P2"
+    },
+    {
+      "module": "REL",
+      "name": "M12 — Cross-module qualification, deployment and v2 release",
+      "count": 25,
+      "priority": "P1"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "BASE-001",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Capture clean and dirty Git states on Ubuntu plus main/develop and draft PR refs",
+      "dependencies": [],
+      "acceptance": "Host audit records all refs, worktrees, STOP markers and uncommitted changes",
+      "reuse_notes": "develop, PRs 5-17",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BASE-002",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Resolve GitHub Actions zero-step runner blocker issue 15",
+      "dependencies": [],
+      "acceptance": "Python and iOS CI jobs allocate runners and actually execute test steps",
+      "reuse_notes": "issue #15",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BASE-003",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Restore reproducible CI and dependency/secret/security scans",
+      "dependencies": [
+        "BASE-002"
+      ],
+      "acceptance": "Fresh PR checks produce pass or actionable failure with artifacts",
+      "reuse_notes": "develop ci.yml and TWS workflows",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BASE-004",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Review unmerged SDA PR chain 6 through 13 and PR 17",
+      "dependencies": [
+        "BASE-001"
+      ],
+      "acceptance": "Record merge order, SHA, duplicate code, conflicts, test outcomes and keep/drop rationale",
+      "reuse_notes": "SDA draft branches",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BASE-005",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Review PR 5 Workhorse context experiments",
+      "dependencies": [
+        "BASE-001"
+      ],
+      "acceptance": "Four modes evaluated and decision documented with measured quality and cost",
+      "reuse_notes": "PR #5",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BASE-006",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Review PR 14 TWS and PR 16 Cloudflare independently",
+      "dependencies": [
+        "BASE-001"
+      ],
+      "acceptance": "Feature inventory maps files to tests and remaining host/device blockers",
+      "reuse_notes": "PR #14, PR #16",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BASE-007",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Reconcile historical TASKS.md and DEVELOPMENT_LOG with new queue",
+      "dependencies": [
+        "BASE-001"
+      ],
+      "acceptance": "Crosswalk old task IDs to new IDs without overwriting historical evidence",
+      "reuse_notes": "develop TASKS.md",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BASE-008",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Approve final 10-module architecture and explicit Business exclusion",
+      "dependencies": [
+        "BASE-001"
+      ],
+      "acceptance": "Signed architecture digest and owner-reviewed scope are stored; Business archived",
+      "reuse_notes": "Consolidated architecture 2026-11-13",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BASE-009",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Establish CODING_HANDBOOK.md controlled governance",
+      "dependencies": [
+        "BASE-008"
+      ],
+      "acceptance": "Handbook exists with edit approvals and read-only worker enforcement",
+      "reuse_notes": "Handwritten SDA notes",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BASE-010",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Resolve case-colliding docs names and generated build artifacts",
+      "dependencies": [
+        "BASE-001"
+      ],
+      "acceptance": "Clean Windows/Linux checkout and packaging policy pass without data loss",
+      "reuse_notes": "develop docs and build/lib",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BASE-011",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Audit AGENTS.md SECURITY.md and approval boundaries",
+      "dependencies": [
+        "BASE-001"
+      ],
+      "acceptance": "Risk matrix and regression plan for deletion, secrets, external actions",
+      "reuse_notes": "SECURITY.md",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BASE-012",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Benchmark actual Linux host and authenticated Codex model availability",
+      "dependencies": [
+        "BASE-001"
+      ],
+      "acceptance": "Record exact CPU/RAM/disk, Codex model IDs, quotas and concurrent capacity",
+      "reuse_notes": "Linux host verification pending",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BASE-013",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Audit existing Cloudflare resources, D1 IDs and secrets without disclosure",
+      "dependencies": [
+        "BASE-006"
+      ],
+      "acceptance": "Inventory identifies old coordinator, Astra monitor, resource limits and auth boundaries",
+      "reuse_notes": "PR #16 and previous Astra monitor",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BASE-014",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Define reproducible acceptance evidence and milestone checklists",
+      "dependencies": [
+        "BASE-008",
+        "BASE-011"
+      ],
+      "acceptance": "Every gate has test command, source SHA, owner, artifact and failure behavior",
+      "reuse_notes": "PROJECT_ACCEPTANCE.md",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BASE-015",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Create secure branch-specific code symbol and FTS index plan",
+      "dependencies": [
+        "BASE-001"
+      ],
+      "acceptance": "Generated-file, secret and license exclusions verified; refresh keyed by blob SHA",
+      "reuse_notes": "Repository file manifest",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BASE-016",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Create approval policy for clean rebuild repo name, branch and promotion",
+      "dependencies": [
+        "BASE-008",
+        "BASE-014"
+      ],
+      "acceptance": "No rebuild repository created before real SDA gate and explicit owner decision",
+      "reuse_notes": "Rebuild contract",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-001",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Audit and import Astra One Linux v0.2.0 package into isolated source staging",
+      "dependencies": [
+        "BASE-004",
+        "BASE-012"
+      ],
+      "acceptance": "Package manifest/tests verified; actual source committed for review, not treated as production",
+      "reuse_notes": "Prior ZIP not yet in repo",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-002",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Inspect existing Workhorse v2 Master and reconcile with Astra One",
+      "dependencies": [
+        "SDA-001"
+      ],
+      "acceptance": "One canonical Master chosen; duplicate queues/process controllers cannot both run",
+      "reuse_notes": "develop scripts/codex_workhorse_v2.py",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-003",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Verify Codex supervisor, worker, QC and merger model profiles",
+      "dependencies": [
+        "BASE-012",
+        "SDA-001"
+      ],
+      "acceptance": "Authenticated CLI executes read-only smoke; unavailable aliases produce explicit stop",
+      "reuse_notes": "Luna medium for workers",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-004",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Define durable schema and transactions for SDA five queues",
+      "dependencies": [
+        "SDA-002"
+      ],
+      "acceptance": "project/pending/rebuild/review/merge queue transitions atomic and restart-safe",
+      "reuse_notes": "Owner exact queue names",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-005",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Implement job schema with priority, dependency, approval and scope",
+      "dependencies": [
+        "SDA-004"
+      ],
+      "acceptance": "Invalid dependencies, scope escalation and duplicate job ID are rejected",
+      "reuse_notes": "Master SQLite",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-006",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Build single-controller lock, PID/lease fencing and duplicate Master prevention",
+      "dependencies": [
+        "SDA-004"
+      ],
+      "acceptance": "Second Master refuses to start; stale lock safely reconciled",
+      "reuse_notes": "Legacy Workhorse",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-007",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Implement deterministic eligible-task selector and starvation safeguards",
+      "dependencies": [
+        "SDA-005"
+      ],
+      "acceptance": "Priority plus FIFO and dependency tests pass; blocked head skipped",
+      "reuse_notes": "Owner task priority",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-008",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Create Supervisor read-only repository inspection and requirements parser",
+      "dependencies": [
+        "BASE-009",
+        "SDA-003"
+      ],
+      "acceptance": "Supervisor cites pinned repo contents and exact acceptance without editing code",
+      "reuse_notes": "AGENTS.md and handbook",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-009",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Generate TASK.md per project and machine-validated task DAG",
+      "dependencies": [
+        "SDA-005",
+        "SDA-008"
+      ],
+      "acceptance": "Reviewable TASK.md round-trips to SQLite task IDs without competing truth",
+      "reuse_notes": "Handwritten SDA requirements",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-010",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Build five independent coding slots with Git worktrees and scoped tools",
+      "dependencies": [
+        "SDA-006",
+        "SDA-007",
+        "SDA-009"
+      ],
+      "acceptance": "Five mock workers run concurrently, distinct branches, no shared branch modification",
+      "reuse_notes": "Legacy Workhorse + Astra simulation",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-011",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Implement durable context/session/thread handoff per task",
+      "dependencies": [
+        "SDA-004",
+        "SDA-010"
+      ],
+      "acceptance": "Resume from checkpoint after discarded model session without losing acceptance",
+      "reuse_notes": "PR #11, PR #17",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-012",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Implement Codex JSONL receipts and bounded output/token parsing",
+      "dependencies": [
+        "SDA-010"
+      ],
+      "acceptance": "Thread ID, usage, tool effects and error categories persist without leaking secrets",
+      "reuse_notes": "Workhorse parser",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-013",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Integrate reference-repo allowlist and scoped source packing",
+      "dependencies": [
+        "BASE-015",
+        "SDA-011"
+      ],
+      "acceptance": "Untrusted external code cannot override policy; context fits target window",
+      "reuse_notes": "PR #8 and #11",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-014",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Implement normal Codex worker task completion and commit envelope",
+      "dependencies": [
+        "SDA-010",
+        "SDA-012"
+      ],
+      "acceptance": "Real bounded code change committed with source SHA, files and tests",
+      "reuse_notes": "PR #12 and #13 patch prototypes",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-015",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Implement independent deterministic QC and read-only AI review",
+      "dependencies": [
+        "SDA-014"
+      ],
+      "acceptance": "QC receipt binds candidate SHA to tests, security and architecture policy",
+      "reuse_notes": "Existing Workhorse and Astra",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-016",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Implement isolated safe test execution with Docker and no network",
+      "dependencies": [
+        "SDA-015"
+      ],
+      "acceptance": "Host filesystem/secrets inaccessible; test outcomes repeatable",
+      "reuse_notes": "Astra Docker prototype",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-017",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Implement repairer with same-session return and bounded 20-attempt breakdown",
+      "dependencies": [
+        "SDA-015",
+        "SDA-011"
+      ],
+      "acceptance": "Failed candidate returns with error proof; limit archives history and quarantines candidate",
+      "reuse_notes": "Workhorse policy",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-018",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Implement serialized merger and freshness-aware integration branch",
+      "dependencies": [
+        "SDA-015",
+        "SDA-006"
+      ],
+      "acceptance": "Only one merger updates authorized ref; final regression passes",
+      "reuse_notes": "Workhorse merger",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-019",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Implement conflict retry, rebuild queue and immutable breakdown reports",
+      "dependencies": [
+        "SDA-017",
+        "SDA-018"
+      ],
+      "acceptance": "20-attempt cap respected; old refs/commits recoverable",
+      "reuse_notes": "Workhorse queue",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-020",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Implement STOP, PAUSE, quota, approval gates and crash reconciliation",
+      "dependencies": [
+        "SDA-006",
+        "SDA-011"
+      ],
+      "acceptance": "Crash during safe boundary does not bypass STOP or repeat tool action",
+      "reuse_notes": "PR #10 and recovery docs",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-021",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Implement SDA-specific self-doctor and deduplicated fault proposals",
+      "dependencies": [
+        "SDA-020"
+      ],
+      "acceptance": "Single reproducible fault creates one scoped repair proposal, not an unbounded loop",
+      "reuse_notes": "PR #10 and #17",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-022",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Implement checkpoint export, state backups and restore drills",
+      "dependencies": [
+        "SDA-020"
+      ],
+      "acceptance": "Fresh process recovers tasks, leases, approvals, refs and receipts correctly",
+      "reuse_notes": "PR #7 and #10",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-023",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Wire SDA metadata event stream into Cloudflare progress API",
+      "dependencies": [
+        "SDA-012",
+        "SDA-020"
+      ],
+      "acceptance": "Per-worker states, actual tests and commits shown; private prompt/code not uploaded",
+      "reuse_notes": "Astra monitor prototype",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-024",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Run host-based real five-worker feature integration qualification",
+      "dependencies": [
+        "SDA-016",
+        "SDA-018",
+        "SDA-023"
+      ],
+      "acceptance": "Actual Codex builds five independent candidates, QC passes, clean serial merge",
+      "reuse_notes": "Simulation alone insufficient",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-025",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Inject failures, model outage, quota, STOP, restart and rollback",
+      "dependencies": [
+        "SDA-019",
+        "SDA-020",
+        "SDA-022"
+      ],
+      "acceptance": "Real host drills prove no duplicate external effects or unsafe auto-promotion",
+      "reuse_notes": "SDA gates F-I",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-026",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Produce independently reviewed SDA gates A-I acceptance report",
+      "dependencies": [
+        "SDA-024",
+        "SDA-025",
+        "SDA-021"
+      ],
+      "acceptance": "Evidence bundle passes all required gates or lists blockers; no premature success",
+      "reuse_notes": "Master handoff",
+      "required_owner_gate": false
+    },
+    {
+      "id": "SDA-027",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Owner approval for clean JARVIS v2 rebuild repository",
+      "dependencies": [
+        "SDA-026",
+        "BASE-016"
+      ],
+      "acceptance": "Written approval, exact repo name and migration scope recorded",
+      "reuse_notes": "Do not auto-create early",
+      "required_owner_gate": true
+    },
+    {
+      "id": "SDA-028",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Create clean rebuild repo and controlled initial develop/main policy",
+      "dependencies": [
+        "SDA-027",
+        "MIG-001"
+      ],
+      "acceptance": "New repo has verified CI, branch protections, provenance and zero legacy runtime data",
+      "reuse_notes": "v2.0.0 only proposed",
+      "required_owner_gate": false
+    },
+    {
+      "id": "CORE-001",
+      "module": "CORE",
+      "milestone": "M2 — Core orchestrator / global control plane",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement Core service boundary and typed module capability registry",
+      "dependencies": [
+        "SDA-028"
+      ],
+      "acceptance": "Ten modules registered with immutable IDs and authorization scopes",
+      "reuse_notes": "New 10-module architecture",
+      "required_owner_gate": false
+    },
+    {
+      "id": "CORE-002",
+      "module": "CORE",
+      "milestone": "M2 — Core orchestrator / global control plane",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement global persistent task inbox and event queue",
+      "dependencies": [
+        "CORE-001"
+      ],
+      "acceptance": "Tasks/events survive shutdown and replay once",
+      "reuse_notes": "Owner one task session + event session",
+      "required_owner_gate": false
+    },
+    {
+      "id": "CORE-003",
+      "module": "CORE",
+      "milestone": "M2 — Core orchestrator / global control plane",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement P0-P5 priority ordering with FIFO same-class fairness",
+      "dependencies": [
+        "CORE-002"
+      ],
+      "acceptance": "Urgent eligible work wins; blocked work does not jam queue",
+      "reuse_notes": "Owner priority contract",
+      "required_owner_gate": false
+    },
+    {
+      "id": "CORE-004",
+      "module": "CORE",
+      "milestone": "M2 — Core orchestrator / global control plane",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement one logical durable session per parent task",
+      "dependencies": [
+        "CORE-002"
+      ],
+      "acceptance": "Task decisions, handoffs and receipts reconstruct after restart",
+      "reuse_notes": "Core requirement",
+      "required_owner_gate": false
+    },
+    {
+      "id": "CORE-005",
+      "module": "CORE",
+      "milestone": "M2 — Core orchestrator / global control plane",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement dedicated event-session interpreter and correlation IDs",
+      "dependencies": [
+        "CORE-002"
+      ],
+      "acceptance": "Event session remains separate from task sessions and retains causal chains",
+      "reuse_notes": "Core requirement",
+      "required_owner_gate": false
+    },
+    {
+      "id": "CORE-006",
+      "module": "CORE",
+      "milestone": "M2 — Core orchestrator / global control plane",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement module dispatch envelopes and result acknowledgments",
+      "dependencies": [
+        "CORE-001",
+        "CORE-004"
+      ],
+      "acceptance": "Each assignment carries scope/acceptance and ack; no duplicate execution",
+      "reuse_notes": "Deterministic dispatcher",
+      "required_owner_gate": false
+    },
+    {
+      "id": "CORE-007",
+      "module": "CORE",
+      "milestone": "M2 — Core orchestrator / global control plane",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement task dependency orchestration and cross-module returns",
+      "dependencies": [
+        "CORE-006",
+        "CORE-003"
+      ],
+      "acceptance": "Ready dependent tasks resume automatically after verified result",
+      "reuse_notes": "Core orchestration",
+      "required_owner_gate": false
+    },
+    {
+      "id": "CORE-008",
+      "module": "CORE",
+      "milestone": "M2 — Core orchestrator / global control plane",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement owner conversation to Core intents, tasks and approvals",
+      "dependencies": [
+        "CORE-004"
+      ],
+      "acceptance": "Ambiguous sensitive intents require explicit approval; safe tasks enqueue",
+      "reuse_notes": "Runtime bridge to follow",
+      "required_owner_gate": false
+    },
+    {
+      "id": "CORE-009",
+      "module": "CORE",
+      "milestone": "M2 — Core orchestrator / global control plane",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Validate GPT-6 Sol medium Core model and authorized fallback behavior",
+      "dependencies": [
+        "BASE-012",
+        "CORE-004"
+      ],
+      "acceptance": "Unsupported model alias blocks or routes only after explicit policy",
+      "reuse_notes": "No silent substitution",
+      "required_owner_gate": false
+    },
+    {
+      "id": "CORE-010",
+      "module": "CORE",
+      "milestone": "M2 — Core orchestrator / global control plane",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement Core read-only task/event timeline and progress query API",
+      "dependencies": [
+        "CORE-005",
+        "CORE-007"
+      ],
+      "acceptance": "Timeline joins source IDs, states and outcome evidence",
+      "reuse_notes": "Backend UI input",
+      "required_owner_gate": false
+    },
+    {
+      "id": "CORE-011",
+      "module": "CORE",
+      "milestone": "M2 — Core orchestrator / global control plane",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement Core resource budget and model-slot scheduling hooks",
+      "dependencies": [
+        "CORE-003"
+      ],
+      "acceptance": "Service capacity, Guardian priority reservation and per-device limits enforced",
+      "reuse_notes": "Guardian integration",
+      "required_owner_gate": false
+    },
+    {
+      "id": "CORE-012",
+      "module": "CORE",
+      "milestone": "M2 — Core orchestrator / global control plane",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement Core interrupt, STOP and pending approval semantics",
+      "dependencies": [
+        "CORE-006"
+      ],
+      "acceptance": "Owner stop blocks dispatch and persistence survives restart",
+      "reuse_notes": "Shared policy",
+      "required_owner_gate": false
+    },
+    {
+      "id": "CORE-013",
+      "module": "CORE",
+      "milestone": "M2 — Core orchestrator / global control plane",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement event storm dedup, backpressure and failure quarantine",
+      "dependencies": [
+        "CORE-005"
+      ],
+      "acceptance": "Duplicate and failing events bounded with diagnostics",
+      "reuse_notes": "Event reliability",
+      "required_owner_gate": false
+    },
+    {
+      "id": "CORE-014",
+      "module": "CORE",
+      "milestone": "M2 — Core orchestrator / global control plane",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Test Core crash recovery, fairness, isolation and exact task semantics",
+      "dependencies": [
+        "CORE-007",
+        "CORE-012",
+        "CORE-013"
+      ],
+      "acceptance": "Fault injection passes with no phantom actions or lost committed tasks",
+      "reuse_notes": "Core qualification",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BACK-001",
+      "module": "BACK",
+      "milestone": "M3 — Backend shared data, gateway and memory",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Specify shared versioned API, event envelope and module manifests",
+      "dependencies": [
+        "SDA-028",
+        "CORE-001"
+      ],
+      "acceptance": "Versioned schemas, stable IDs, sequence, privacy and idempotency defined",
+      "reuse_notes": "Owner architecture",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BACK-002",
+      "module": "BACK",
+      "milestone": "M3 — Backend shared data, gateway and memory",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement canonical storage migrations and data ownership boundaries",
+      "dependencies": [
+        "BACK-001"
+      ],
+      "acceptance": "Each module owns tables; migrations rollback or fail closed",
+      "reuse_notes": "SQLite/D1 split",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BACK-003",
+      "module": "BACK",
+      "milestone": "M3 — Backend shared data, gateway and memory",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement event bus with transactional outbox and dedup receipts",
+      "dependencies": [
+        "BACK-002",
+        "CORE-005"
+      ],
+      "acceptance": "At-least-once delivery without duplicate effects",
+      "reuse_notes": "Event envelope contract",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BACK-004",
+      "module": "BACK",
+      "milestone": "M3 — Backend shared data, gateway and memory",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement central auth identity, scoped capability grants and approvals",
+      "dependencies": [
+        "BACK-001"
+      ],
+      "acceptance": "Least privilege enforced on server; denial tests cover all modules",
+      "reuse_notes": "SECURITY.md",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BACK-005",
+      "module": "BACK",
+      "milestone": "M3 — Backend shared data, gateway and memory",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement secure secret retrieval and configuration boundaries",
+      "dependencies": [
+        "BACK-004"
+      ],
+      "acceptance": "Secrets never enter prompts, tracked files or Cloudflare logs",
+      "reuse_notes": "Existing permissions",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BACK-006",
+      "module": "BACK",
+      "milestone": "M3 — Backend shared data, gateway and memory",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement model/provider registry and capability negotiation",
+      "dependencies": [
+        "BACK-001",
+        "BASE-012"
+      ],
+      "acceptance": "Context, tool support, quota, privacy and locality tested before dispatch",
+      "reuse_notes": "Gateway from PR #17",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BACK-007",
+      "module": "BACK",
+      "milestone": "M3 — Backend shared data, gateway and memory",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement model-neutral conversation and turn store",
+      "dependencies": [
+        "BACK-002"
+      ],
+      "acceptance": "Conversation id/sequence/provider/tool effects persisted durably",
+      "reuse_notes": "Existing server storage partial",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BACK-008",
+      "module": "BACK",
+      "milestone": "M3 — Backend shared data, gateway and memory",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement provider-specific Responses/chat protocol adapters",
+      "dependencies": [
+        "BACK-006"
+      ],
+      "acceptance": "Typed adapters verified with real compatible provider smoke",
+      "reuse_notes": "Codex, Colibri, Ollama",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BACK-009",
+      "module": "BACK",
+      "milestone": "M3 — Backend shared data, gateway and memory",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement token/context packer preserving safety constraints",
+      "dependencies": [
+        "BACK-007",
+        "BACK-006"
+      ],
+      "acceptance": "Exact requirements, recent receipts and policy never lost in compression",
+      "reuse_notes": "PR #11, PR #17",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BACK-010",
+      "module": "BACK",
+      "milestone": "M3 — Backend shared data, gateway and memory",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement sticky routing, circuit breakers and usage budgets",
+      "dependencies": [
+        "BACK-008"
+      ],
+      "acceptance": "Quota/outage triggers permitted pause or handoff, no covert paid fallback",
+      "reuse_notes": "OmniRoute reference ideas",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BACK-011",
+      "module": "BACK",
+      "milestone": "M3 — Backend shared data, gateway and memory",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement atomic cross-provider context handoff protocol",
+      "dependencies": [
+        "BACK-009",
+        "BACK-010"
+      ],
+      "acceptance": "Two-provider interruption tests preserve task ID, permission and tool receipts",
+      "reuse_notes": "PR #17",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BACK-012",
+      "module": "BACK",
+      "milestone": "M3 — Backend shared data, gateway and memory",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement tool-effect journal with exactly-once reconciliation rules",
+      "dependencies": [
+        "BACK-003",
+        "BACK-007"
+      ],
+      "acceptance": "No repeated email, file mutation or Git action after crash",
+      "reuse_notes": "Persistent tool receipts",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BACK-013",
+      "module": "BACK",
+      "milestone": "M3 — Backend shared data, gateway and memory",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement repo code AST/FTS5 index using recorded blob SHAs",
+      "dependencies": [
+        "BASE-015",
+        "BACK-002"
+      ],
+      "acceptance": "Symbols/imports/tests searchable with provenance and secret exclusion",
+      "reuse_notes": "Repository index upgrade",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BACK-014",
+      "module": "BACK",
+      "milestone": "M3 — Backend shared data, gateway and memory",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement source-grounded document/text retrieval and RAG",
+      "dependencies": [
+        "BACK-013",
+        "BACK-007"
+      ],
+      "acceptance": "Search results include access scope, source ID, timestamp and citations",
+      "reuse_notes": "Backend RAG",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BACK-015",
+      "module": "BACK",
+      "milestone": "M3 — Backend shared data, gateway and memory",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement local embeddings optional reranker with hardware budget",
+      "dependencies": [
+        "BACK-014"
+      ],
+      "acceptance": "Memory/time bounded and keyword fallback remains correct",
+      "reuse_notes": "Linux/Windows options",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BACK-016",
+      "module": "BACK",
+      "milestone": "M3 — Backend shared data, gateway and memory",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement local prompt maker with template versioning and audit",
+      "dependencies": [
+        "BACK-009"
+      ],
+      "acceptance": "Prompts are reproducible without storing sensitive raw sources",
+      "reuse_notes": "Owner prompt optimizer",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BACK-017",
+      "module": "BACK",
+      "milestone": "M3 — Backend shared data, gateway and memory",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement scheduler and time/zone-safe durable reminders",
+      "dependencies": [
+        "BACK-003"
+      ],
+      "acceptance": "Reboot and timezone/DST tests preserve reminder semantics",
+      "reuse_notes": "Existing reminders",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BACK-018",
+      "module": "BACK",
+      "milestone": "M3 — Backend shared data, gateway and memory",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement encrypted/safe backups, WAL checks and schema restore",
+      "dependencies": [
+        "BACK-002"
+      ],
+      "acceptance": "Restore clean DB and verify audit continuity and secrets boundary",
+      "reuse_notes": "Existing SQLite",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BACK-019",
+      "module": "BACK",
+      "milestone": "M3 — Backend shared data, gateway and memory",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement service inventory, status, metrics and health API",
+      "dependencies": [
+        "BACK-001"
+      ],
+      "acceptance": "Each component reports honest readiness/liveness, version and resource use",
+      "reuse_notes": "Existing diagnostics",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BACK-020",
+      "module": "BACK",
+      "milestone": "M3 — Backend shared data, gateway and memory",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement permission-scoped connector broker and revocation",
+      "dependencies": [
+        "BACK-004",
+        "BACK-005"
+      ],
+      "acceptance": "Google/GitHub/Mira/Cloudflare connectors independently revocable",
+      "reuse_notes": "No blanket access",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BACK-021",
+      "module": "BACK",
+      "milestone": "M3 — Backend shared data, gateway and memory",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement Windows local-agent interface and capability leases",
+      "dependencies": [
+        "BACK-003",
+        "BACK-004",
+        "BACK-006"
+      ],
+      "acceptance": "Node identity, heartbeat, routing and bounded job schema tested",
+      "reuse_notes": "Windows submodule",
+      "required_owner_gate": false
+    },
+    {
+      "id": "BACK-022",
+      "module": "BACK",
+      "milestone": "M3 — Backend shared data, gateway and memory",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Run Backend security/performance/privacy and backup acceptance suite",
+      "dependencies": [
+        "BACK-011",
+        "BACK-012",
+        "BACK-014",
+        "BACK-018",
+        "BACK-021"
+      ],
+      "acceptance": "No sensitive cross-scope leak; failover and recovery proof stored",
+      "reuse_notes": "Backend gate",
+      "required_owner_gate": false
+    },
+    {
+      "id": "AUTO-001",
+      "module": "AUTO",
+      "milestone": "M4 — Cloudflare always-on automation and observability",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Audit deployed coordinator and Astra progress monitor resources",
+      "dependencies": [
+        "BASE-013"
+      ],
+      "acceptance": "Current D1/Worker names, bindings, version, secrets and quota recorded",
+      "reuse_notes": "PR #16 live smoke claimed",
+      "required_owner_gate": false
+    },
+    {
+      "id": "AUTO-002",
+      "module": "AUTO",
+      "milestone": "M4 — Cloudflare always-on automation and observability",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Adopt coordinator queue API with versioned schemas",
+      "dependencies": [
+        "AUTO-001",
+        "BACK-001"
+      ],
+      "acceptance": "Existing queue migration/compatibility tests pass without data loss",
+      "reuse_notes": "PR #16",
+      "required_owner_gate": false
+    },
+    {
+      "id": "AUTO-003",
+      "module": "AUTO",
+      "milestone": "M4 — Cloudflare always-on automation and observability",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement independently authenticated device registration and rotation",
+      "dependencies": [
+        "AUTO-002",
+        "BACK-004"
+      ],
+      "acceptance": "Revoked/offline device cannot claim jobs; keys rotated securely",
+      "reuse_notes": "Ubuntu/Windows",
+      "required_owner_gate": false
+    },
+    {
+      "id": "AUTO-004",
+      "module": "AUTO",
+      "milestone": "M4 — Cloudflare always-on automation and observability",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement leased task claim, renew, completion and idempotency",
+      "dependencies": [
+        "AUTO-002"
+      ],
+      "acceptance": "Crash/retry cannot double-apply task effects",
+      "reuse_notes": "PR #16 baseline",
+      "required_owner_gate": false
+    },
+    {
+      "id": "AUTO-005",
+      "module": "AUTO",
+      "milestone": "M4 — Cloudflare always-on automation and observability",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement long-term schedules with UTC and Asia/Bangkok semantics",
+      "dependencies": [
+        "AUTO-002",
+        "BACK-017"
+      ],
+      "acceptance": "Schedules survive both hosts offline and DST/timezone transitions",
+      "reuse_notes": "Cloudflare cron/D1",
+      "required_owner_gate": false
+    },
+    {
+      "id": "AUTO-006",
+      "module": "AUTO",
+      "milestone": "M4 — Cloudflare always-on automation and observability",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement Cloudflare worker heartbeat and offline availability status",
+      "dependencies": [
+        "AUTO-003"
+      ],
+      "acceptance": "Missing heartbeat marks device offline, no fabricated local execution",
+      "reuse_notes": "Always-on requirement",
+      "required_owner_gate": false
+    },
+    {
+      "id": "AUTO-007",
+      "module": "AUTO",
+      "milestone": "M4 — Cloudflare always-on automation and observability",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement safe wake/reconnect dispatch and bounded backlog drain",
+      "dependencies": [
+        "AUTO-004",
+        "AUTO-006"
+      ],
+      "acceptance": "Queued jobs resume only when approved host online and capacity is free",
+      "reuse_notes": "Physical PC may be powered off",
+      "required_owner_gate": false
+    },
+    {
+      "id": "AUTO-008",
+      "module": "AUTO",
+      "milestone": "M4 — Cloudflare always-on automation and observability",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement public/private SDA dashboard and module/task drilldowns",
+      "dependencies": [
+        "SDA-023",
+        "AUTO-002"
+      ],
+      "acceptance": "Shows actual worker, QC, merge, task, phase and failure evidence",
+      "reuse_notes": "Astra monitor source",
+      "required_owner_gate": false
+    },
+    {
+      "id": "AUTO-009",
+      "module": "AUTO",
+      "milestone": "M4 — Cloudflare always-on automation and observability",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement audit event storage, retention, redaction and export",
+      "dependencies": [
+        "AUTO-008",
+        "BACK-004"
+      ],
+      "acceptance": "No source-code prompt or token leak; retention limits tested",
+      "reuse_notes": "Privacy contract",
+      "required_owner_gate": false
+    },
+    {
+      "id": "AUTO-010",
+      "module": "AUTO",
+      "milestone": "M4 — Cloudflare always-on automation and observability",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement actionable notifications with approval and dedup policy",
+      "dependencies": [
+        "AUTO-005",
+        "AUTO-009"
+      ],
+      "acceptance": "No duplicate notices; disabled rules respected",
+      "reuse_notes": "Cloudflare alerts",
+      "required_owner_gate": false
+    },
+    {
+      "id": "AUTO-011",
+      "module": "AUTO",
+      "milestone": "M4 — Cloudflare always-on automation and observability",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement Cloudflare security hardening and rate limits",
+      "dependencies": [
+        "AUTO-003",
+        "AUTO-009"
+      ],
+      "acceptance": "Unauthorized calls denied; abuse, replay and schema validation tests pass",
+      "reuse_notes": "Workers auth",
+      "required_owner_gate": false
+    },
+    {
+      "id": "AUTO-012",
+      "module": "AUTO",
+      "milestone": "M4 — Cloudflare always-on automation and observability",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement Cloudflare/host outage and D1 rollback drills",
+      "dependencies": [
+        "AUTO-007",
+        "AUTO-011"
+      ],
+      "acceptance": "Offline retained jobs recovered without duplicate effects",
+      "reuse_notes": "Reliability requirement",
+      "required_owner_gate": false
+    },
+    {
+      "id": "AUTO-013",
+      "module": "AUTO",
+      "milestone": "M4 — Cloudflare always-on automation and observability",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Verify deployment against real Cloudflare account without altering prod prematurely",
+      "dependencies": [
+        "AUTO-012",
+        "AUTO-010"
+      ],
+      "acceptance": "Versioned deployment, smoke, logs and explicit release approval recorded",
+      "reuse_notes": "Existing account D1 limit",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIN-001",
+      "module": "WIN",
+      "milestone": "M5 — Windows local Ollama inference agent",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Capture current Windows host/GPU/Ollama/Codex inventory",
+      "dependencies": [
+        "BASE-012"
+      ],
+      "acceptance": "Host ID, RAM/VRAM, model hashes, available context and security posture recorded",
+      "reuse_notes": "RTX 5060 Ti 8GB",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIN-002",
+      "module": "WIN",
+      "milestone": "M5 — Windows local Ollama inference agent",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Set reproducible optimized Qwen3 8B inference profile",
+      "dependencies": [
+        "WIN-001"
+      ],
+      "acceptance": "16K/Q8 KV/Flash setup verified; performance measured not assumed",
+      "reuse_notes": "Past 50-59 tok/s",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIN-003",
+      "module": "WIN",
+      "milestone": "M5 — Windows local Ollama inference agent",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Package safe Windows background service and controlled startup",
+      "dependencies": [
+        "WIN-002"
+      ],
+      "acceptance": "Starts/restarts with health checks without duplicate services",
+      "reuse_notes": "Task Scheduler/Service",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIN-004",
+      "module": "WIN",
+      "milestone": "M5 — Windows local Ollama inference agent",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement outbound-only Cloudflare job adapter",
+      "dependencies": [
+        "AUTO-003",
+        "AUTO-004",
+        "WIN-003"
+      ],
+      "acceptance": "No public Ollama listener, durable lease, no secret logged",
+      "reuse_notes": "PR #16 worker",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIN-005",
+      "module": "WIN",
+      "milestone": "M5 — Windows local Ollama inference agent",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement local task capability manifest and input validation",
+      "dependencies": [
+        "WIN-004",
+        "BACK-021"
+      ],
+      "acceptance": "Only approved inference/tool types execute; path sandbox enforced",
+      "reuse_notes": "Backend submodule",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIN-006",
+      "module": "WIN",
+      "milestone": "M5 — Windows local Ollama inference agent",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement quota, priority and one-generation-at-a-time scheduler",
+      "dependencies": [
+        "WIN-005"
+      ],
+      "acceptance": "Interactive vs batch and Guardian compatibility documented",
+      "reuse_notes": "Prior concurrency 1 measurement",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIN-007",
+      "module": "WIN",
+      "milestone": "M5 — Windows local Ollama inference agent",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement offline queue, reconnect and duplicate result prevention",
+      "dependencies": [
+        "WIN-004",
+        "AUTO-007"
+      ],
+      "acceptance": "Reboot resumes jobs without replaying effects",
+      "reuse_notes": "Cloudflare D1",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIN-008",
+      "module": "WIN",
+      "milestone": "M5 — Windows local Ollama inference agent",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement local sandboxed file/repo access only by explicit grants",
+      "dependencies": [
+        "WIN-005",
+        "BACK-004"
+      ],
+      "acceptance": "Disallowed path/credential access rejected with evidence",
+      "reuse_notes": "No blanket desktop control",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIN-009",
+      "module": "WIN",
+      "milestone": "M5 — Windows local Ollama inference agent",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement Windows hardware, token rate and GPU telemetry",
+      "dependencies": [
+        "WIN-002",
+        "WIN-006"
+      ],
+      "acceptance": "Context, token/s, GPU offload, resource limits and errors attributed correctly",
+      "reuse_notes": "Ollama logs",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIN-010",
+      "module": "WIN",
+      "milestone": "M5 — Windows local Ollama inference agent",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Test Windows failure modes including oversized Codex requests",
+      "dependencies": [
+        "WIN-007",
+        "WIN-009"
+      ],
+      "acceptance": "Large context rejected safely; worker reports failure without crash loops",
+      "reuse_notes": "Earlier 362K rejection",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIN-011",
+      "module": "WIN",
+      "milestone": "M5 — Windows local Ollama inference agent",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Complete Windows-Linux-Core-Gateway roundtrip acceptance",
+      "dependencies": [
+        "WIN-010",
+        "CORE-014",
+        "BACK-021"
+      ],
+      "acceptance": "Authenticated task -> GPU inference -> result -> audit and context preserved",
+      "reuse_notes": "Cross-device integration",
+      "required_owner_gate": false
+    },
+    {
+      "id": "GUARD-001",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Select local Guardian model and verify tool-less deterministic fallback",
+      "dependencies": [
+        "BASE-012",
+        "BACK-006"
+      ],
+      "acceptance": "Model fits host; monitored health independently; no model required for emergency stop",
+      "reuse_notes": "Local AI owner requirement",
+      "required_owner_gate": false
+    },
+    {
+      "id": "GUARD-002",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement independent trusted minimal Guardian process/service manager",
+      "dependencies": [
+        "BACK-019",
+        "GUARD-001"
+      ],
+      "acceptance": "Guardian restarts controller only from trusted immutable version",
+      "reuse_notes": "Separate from Jarvis worker edits",
+      "required_owner_gate": false
+    },
+    {
+      "id": "GUARD-003",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Define recoverable component manifest and dependency/failure-domain graph",
+      "dependencies": [
+        "BACK-001"
+      ],
+      "acceptance": "Criticality, health, restart, state and owner approval fields validated",
+      "reuse_notes": "PR #17 spec",
+      "required_owner_gate": false
+    },
+    {
+      "id": "GUARD-004",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement bounded liveness/readiness probes and health evidence",
+      "dependencies": [
+        "GUARD-003",
+        "BACK-019"
+      ],
+      "acceptance": "Failed probe does not imply restart until dependency checked",
+      "reuse_notes": "Read-only first",
+      "required_owner_gate": false
+    },
+    {
+      "id": "GUARD-005",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement P0 deterministic isolation and P1 Guardian model reservation",
+      "dependencies": [
+        "CORE-011",
+        "GUARD-002"
+      ],
+      "acceptance": "Guardian gets next available model call without interrupting safe in-flight generation",
+      "reuse_notes": "Explicit owner amendment",
+      "required_owner_gate": false
+    },
+    {
+      "id": "GUARD-006",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement non-preemptive scheduler resource lock and starvation tests",
+      "dependencies": [
+        "GUARD-005"
+      ],
+      "acceptance": "No new lower-priority generation launches while Guardian waiting; other safe work continues",
+      "reuse_notes": "Priority policy",
+      "required_owner_gate": false
+    },
+    {
+      "id": "GUARD-007",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement periodic read-only integrity scanner",
+      "dependencies": [
+        "GUARD-004",
+        "BACK-018"
+      ],
+      "acceptance": "Checks schemas, hashes, queues and versions without destructive scans",
+      "reuse_notes": "PR #17",
+      "required_owner_gate": false
+    },
+    {
+      "id": "GUARD-008",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement severity classifier and upstream root cause correlation",
+      "dependencies": [
+        "GUARD-007"
+      ],
+      "acceptance": "Component vs dependency vs host outage distinguished and evidenced",
+      "reuse_notes": "P0-P3",
+      "required_owner_gate": false
+    },
+    {
+      "id": "GUARD-009",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement deduplicated findings, rate limit and acknowledgment",
+      "dependencies": [
+        "GUARD-008"
+      ],
+      "acceptance": "Recurring same error yields one tracked incident and bounded alerts",
+      "reuse_notes": "No repair storms",
+      "required_owner_gate": false
+    },
+    {
+      "id": "GUARD-010",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement policy-gated SDA repair proposal queue bridge",
+      "dependencies": [
+        "GUARD-009",
+        "SDA-021"
+      ],
+      "acceptance": "Reproducer, minimal scope, source SHA and acceptance stored; no auto privilege",
+      "reuse_notes": "SDA self-doctor",
+      "required_owner_gate": false
+    },
+    {
+      "id": "GUARD-011",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement smallest-unit drain/quiesce/isolate control",
+      "dependencies": [
+        "GUARD-003",
+        "GUARD-008"
+      ],
+      "acceptance": "Unaffected modules continue; in-flight effects reconciled",
+      "reuse_notes": "Micro-module isolation",
+      "required_owner_gate": false
+    },
+    {
+      "id": "GUARD-012",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement bounded local restart and cooldown budget",
+      "dependencies": [
+        "GUARD-011"
+      ],
+      "acceptance": "Repeat failure stops/escales and preserves logs",
+      "reuse_notes": "No reboot storm",
+      "required_owner_gate": false
+    },
+    {
+      "id": "GUARD-013",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement repair candidate test and canary with route gate",
+      "dependencies": [
+        "GUARD-010",
+        "GUARD-012",
+        "SDA-018"
+      ],
+      "acceptance": "Only independently accepted builds eligible for canary",
+      "reuse_notes": "Staged only",
+      "required_owner_gate": false
+    },
+    {
+      "id": "GUARD-014",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement last-known-good artifact selection and rollback",
+      "dependencies": [
+        "GUARD-013"
+      ],
+      "acceptance": "Bad canary reverts without loss of committed state",
+      "reuse_notes": "Immutable SHA",
+      "required_owner_gate": false
+    },
+    {
+      "id": "GUARD-015",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Prototype critical standby with schema/state compatibility checks",
+      "dependencies": [
+        "GUARD-003",
+        "BACK-018"
+      ],
+      "acceptance": "A tested standby can start isolated; no assumption of automatic capacity",
+      "reuse_notes": "Gate J staging",
+      "required_owner_gate": false
+    },
+    {
+      "id": "GUARD-016",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement fencing leases and prevent split-brain writers",
+      "dependencies": [
+        "GUARD-015",
+        "BACK-003"
+      ],
+      "acceptance": "Only one canonical write authority through cutover",
+      "reuse_notes": "Critical safety",
+      "required_owner_gate": false
+    },
+    {
+      "id": "GUARD-017",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement guarded cutover and optional failback",
+      "dependencies": [
+        "GUARD-016",
+        "GUARD-014"
+      ],
+      "acceptance": "Sync/readiness verified; failures degrade rather than fabricate availability",
+      "reuse_notes": "Mirror policy",
+      "required_owner_gate": false
+    },
+    {
+      "id": "GUARD-018",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Implement independent Guardian boot/recovery and safe-mode semantics",
+      "dependencies": [
+        "GUARD-002",
+        "GUARD-014"
+      ],
+      "acceptance": "STOP/quota/approval preserved even if controller crash loops",
+      "reuse_notes": "Guardian immutable policy",
+      "required_owner_gate": false
+    },
+    {
+      "id": "GUARD-019",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Run P0-P3 fault injection and host/service-manager recovery tests",
+      "dependencies": [
+        "GUARD-006",
+        "GUARD-009",
+        "GUARD-017",
+        "GUARD-018"
+      ],
+      "acceptance": "No uncontrolled restarts, no lost records, no production split brain",
+      "reuse_notes": "Recovery acceptance",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RUN-001",
+      "module": "RUN",
+      "milestone": "M7 — Runtime personal assistant",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Audit legacy Runtime routes and preserve tested local behavior",
+      "dependencies": [
+        "BASE-007",
+        "SDA-028"
+      ],
+      "acceptance": "Existing server features mapped to new contracts; no dead demo routes presented live",
+      "reuse_notes": "develop jarvis/server.py",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RUN-002",
+      "module": "RUN",
+      "milestone": "M7 — Runtime personal assistant",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement Runtime service/API on shared Backend and Core dispatcher",
+      "dependencies": [
+        "RUN-001",
+        "CORE-014",
+        "BACK-022"
+      ],
+      "acceptance": "Authenticated requests, task handoff, event stream and scopes tested",
+      "reuse_notes": "Runtime boundary",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RUN-003",
+      "module": "RUN",
+      "milestone": "M7 — Runtime personal assistant",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Migrate secure owner sessions, CSRF, Host/Origin and web hardening",
+      "dependencies": [
+        "RUN-002",
+        "BACK-004"
+      ],
+      "acceptance": "Cross-origin, session hijack and malformed input regressions pass",
+      "reuse_notes": "Legacy strong controls",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RUN-004",
+      "module": "RUN",
+      "milestone": "M7 — Runtime personal assistant",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Build responsive Firefox-first dashboard navigation",
+      "dependencies": [
+        "RUN-002"
+      ],
+      "acceptance": "Home/Calendar/Email/Actions/Files/System/Projects/Voice/Activity/Settings open and reload",
+      "reuse_notes": "Existing Firefox page",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RUN-005",
+      "module": "RUN",
+      "milestone": "M7 — Runtime personal assistant",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement live chat streaming, cancellation and durable history",
+      "dependencies": [
+        "RUN-003",
+        "BACK-007",
+        "BACK-008"
+      ],
+      "acceptance": "Failed/canceled turn not stored as successful; precise error UI",
+      "reuse_notes": "Existing Colibri SSE",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RUN-006",
+      "module": "RUN",
+      "milestone": "M7 — Runtime personal assistant",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement local/offline conversational model mode with explicit fallback",
+      "dependencies": [
+        "RUN-005",
+        "BACK-010"
+      ],
+      "acceptance": "Unavailable model pauses or uses authorized adapter; no fabricated live answer",
+      "reuse_notes": "Colibri and Windows model",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RUN-007",
+      "module": "RUN",
+      "milestone": "M7 — Runtime personal assistant",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement STT capture, wake/push-to-talk and privacy controls",
+      "dependencies": [
+        "RUN-002"
+      ],
+      "acceptance": "Mic permission/quiet hours and processing state visible",
+      "reuse_notes": "Voice partial",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RUN-008",
+      "module": "RUN",
+      "milestone": "M7 — Runtime personal assistant",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement TTS British-butler speech with interruption",
+      "dependencies": [
+        "RUN-007",
+        "RUN-005"
+      ],
+      "acceptance": "Streaming speech can stop mid-response without corrupting conversation",
+      "reuse_notes": "Piper/Kokoro candidate",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RUN-009",
+      "module": "RUN",
+      "milestone": "M7 — Runtime personal assistant",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement bounded local desktop app launch and inventory actions",
+      "dependencies": [
+        "RUN-002",
+        "BACK-004"
+      ],
+      "acceptance": "Allowed applications only; audit and confirmations enforced",
+      "reuse_notes": "Existing inventory",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RUN-010",
+      "module": "RUN",
+      "milestone": "M7 — Runtime personal assistant",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement persistent authorized browser profile and human login handoff",
+      "dependencies": [
+        "RUN-003",
+        "BACK-004"
+      ],
+      "acceptance": "Credentials/cookies never enter model context; site actions scoped",
+      "reuse_notes": "Separate browser process",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RUN-011",
+      "module": "RUN",
+      "milestone": "M7 — Runtime personal assistant",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement safe browser navigate/read/click/form typed tools",
+      "dependencies": [
+        "RUN-010"
+      ],
+      "acceptance": "Untrusted page instructions cannot escalate to local shell or send unapproved messages",
+      "reuse_notes": "Playwright",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RUN-012",
+      "module": "RUN",
+      "milestone": "M7 — Runtime personal assistant",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Preserve metadata-only file inventory, repo discovery and FTS search",
+      "dependencies": [
+        "RUN-002"
+      ],
+      "acceptance": "Read-only defaults and bounded roots prevent private data exfiltration",
+      "reuse_notes": "Legacy jarvis/inventory.py",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RUN-013",
+      "module": "RUN",
+      "milestone": "M7 — Runtime personal assistant",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement previews, per-file approvals, Trash/restore and DELETE-LOGS",
+      "dependencies": [
+        "RUN-012",
+        "BACK-004"
+      ],
+      "acceptance": "Each file deletion separately authorized and audited; no bulk bypass",
+      "reuse_notes": "Legacy ApprovalBroker",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RUN-014",
+      "module": "RUN",
+      "milestone": "M7 — Runtime personal assistant",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement calendar events and scheduling connector with approval scopes",
+      "dependencies": [
+        "RUN-002",
+        "BACK-020"
+      ],
+      "acceptance": "Read/create/update operations gated and timezone safe",
+      "reuse_notes": "Legacy sample calendar",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RUN-015",
+      "module": "RUN",
+      "milestone": "M7 — Runtime personal assistant",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement authenticated email search, draft and explicitly approved send",
+      "dependencies": [
+        "RUN-002",
+        "BACK-020"
+      ],
+      "acceptance": "No send without owner approval; dedup and receipts survive timeout",
+      "reuse_notes": "Legacy sample provider",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RUN-016",
+      "module": "RUN",
+      "milestone": "M7 — Runtime personal assistant",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement reminders, routine automation and notification preferences",
+      "dependencies": [
+        "RUN-014",
+        "BACK-017"
+      ],
+      "acceptance": "Schedules survive restart and quiet hours respected",
+      "reuse_notes": "Legacy reminders",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RUN-017",
+      "module": "RUN",
+      "milestone": "M7 — Runtime personal assistant",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement operational System/Projects/Activity dashboards with real data",
+      "dependencies": [
+        "RUN-004",
+        "BACK-019",
+        "CORE-010"
+      ],
+      "acceptance": "No fake health/CI; source timestamps and failures visible",
+      "reuse_notes": "Existing diagnostics",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RUN-018",
+      "module": "RUN",
+      "milestone": "M7 — Runtime personal assistant",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Qualify Runtime on actual Ubuntu Firefox and voice hardware",
+      "dependencies": [
+        "RUN-005",
+        "RUN-008",
+        "RUN-011",
+        "RUN-013",
+        "RUN-015",
+        "RUN-017"
+      ],
+      "acceptance": "AC-01..AC-12 host acceptance tests recorded",
+      "reuse_notes": "Legacy PROJECT_ACCEPTANCE",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RES-001",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Define research task/schema, provenance and permission model",
+      "dependencies": [
+        "BACK-001",
+        "CORE-014"
+      ],
+      "acceptance": "Sources/citations, timestamps, allowlist and job scope versioned",
+      "reuse_notes": "Source-grounded design",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RES-002",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement web discovery and bounded factual retrieval adapter",
+      "dependencies": [
+        "RES-001",
+        "BACK-020"
+      ],
+      "acceptance": "Search/fetch works with source/date distinction and failure states",
+      "reuse_notes": "Research Core",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RES-003",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement safe GitHub source search and pinned commit analysis",
+      "dependencies": [
+        "RES-001",
+        "BACK-013"
+      ],
+      "acceptance": "License and code-exec barrier; repo allowlist enforced",
+      "reuse_notes": "SDA references PR #8",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RES-004",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement primary source comparison, citation and uncertainty rules",
+      "dependencies": [
+        "RES-002"
+      ],
+      "acceptance": "Contradictory sources labeled without invented certainty",
+      "reuse_notes": "News reuse",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RES-005",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Integrate YouTube metadata and authorized transcripts",
+      "dependencies": [
+        "RES-001"
+      ],
+      "acceptance": "Video ID, transcript offsets, source links and failure reason persisted",
+      "reuse_notes": "Video-Summary repo separate",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RES-006",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Integrate Instagram Reel metadata and permitted caption/audio access",
+      "dependencies": [
+        "RES-001"
+      ],
+      "acceptance": "Unavailable/private content fails transparently; no scraping private account sessions",
+      "reuse_notes": "Research requirement",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RES-007",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Add optional audio-visual analysis for transcript gaps",
+      "dependencies": [
+        "RES-005",
+        "RES-006"
+      ],
+      "acceptance": "Model modality/permission checked; timestamped evidence stored",
+      "reuse_notes": "No fabricated transcript",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RES-008",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement chunking, topic extraction, cross-video summaries",
+      "dependencies": [
+        "RES-005",
+        "BACK-014"
+      ],
+      "acceptance": "Long videos indexed and summarized reproducibly with source spans",
+      "reuse_notes": "Media RAG",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RES-009",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement searchable research knowledge graph and dedup",
+      "dependencies": [
+        "RES-008",
+        "BACK-015"
+      ],
+      "acceptance": "Repeated source not duplicated; related claims link to provenance",
+      "reuse_notes": "Knowledge accumulation",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RES-010",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement followed-channel and topic update subscriptions",
+      "dependencies": [
+        "RES-005",
+        "AUTO-005"
+      ],
+      "acceptance": "Followed feeds refresh only at approved cadence and respect provider terms",
+      "reuse_notes": "Owner handwritten note",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RES-011",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement on-demand GitHub trend/technique research",
+      "dependencies": [
+        "RES-003",
+        "RES-004"
+      ],
+      "acceptance": "Source-linked advice never directly changes CODING_HANDBOOK",
+      "reuse_notes": "Developer tips",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RES-012",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement verified handbook improvement proposal workflow",
+      "dependencies": [
+        "RES-011",
+        "BASE-009"
+      ],
+      "acceptance": "Only authorized Research development tips approved into handbook",
+      "reuse_notes": "Owner edit policy",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RES-013",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement research-to-SDA proposal bridge with source provenance",
+      "dependencies": [
+        "RES-009",
+        "SDA-009"
+      ],
+      "acceptance": "Research cannot self-approve code execution or permissions",
+      "reuse_notes": "Independent control",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RES-014",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement privacy/retention/copyright and injection regression tests",
+      "dependencies": [
+        "RES-002",
+        "RES-006",
+        "RES-009"
+      ],
+      "acceptance": "Untrusted docs and media cannot alter instructions; content scopes enforced",
+      "reuse_notes": "Research safety",
+      "required_owner_gate": false
+    },
+    {
+      "id": "RES-015",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Complete research benchmark with real permitted video/web sources",
+      "dependencies": [
+        "RES-010",
+        "RES-012",
+        "RES-014"
+      ],
+      "acceptance": "Traceable Q&A works across sources with timestamps and known limitations",
+      "reuse_notes": "Research acceptance",
+      "required_owner_gate": false
+    },
+    {
+      "id": "TWS-001",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Audit PR 14 Python/iOS/3D code and map M001-M021 to acceptance",
+      "dependencies": [
+        "BASE-006",
+        "SDA-028"
+      ],
+      "acceptance": "Reuse plan lists existing verified vs unverified milestones, source SHAs and licenses",
+      "reuse_notes": "PR #14 draft",
+      "required_owner_gate": false
+    },
+    {
+      "id": "TWS-002",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Repair TWS CI runner allocation and execute full Python and iOS workflows",
+      "dependencies": [
+        "BASE-002",
+        "TWS-001"
+      ],
+      "acceptance": "Real steps run and failures fixed; issue 15 closed only with evidence",
+      "reuse_notes": "M011 blocker",
+      "required_owner_gate": false
+    },
+    {
+      "id": "TWS-003",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Migrate verified quest data model and SQLite schemas to new module",
+      "dependencies": [
+        "TWS-001",
+        "BACK-002"
+      ],
+      "acceptance": "No lost wings/proofs; versioned migrations tested",
+      "reuse_notes": "Existing src/tws",
+      "required_owner_gate": false
+    },
+    {
+      "id": "TWS-004",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Migrate quest catalog, daily/weekly/skill and story/trial lifecycle",
+      "dependencies": [
+        "TWS-003"
+      ],
+      "acceptance": "Draft/offered/accepted/submitted/verified/rewarded state passes tests",
+      "reuse_notes": "TWS engine",
+      "required_owner_gate": false
+    },
+    {
+      "id": "TWS-005",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement evidence capture and owner/engine proof review",
+      "dependencies": [
+        "TWS-004",
+        "BACK-004"
+      ],
+      "acceptance": "Unverified evidence never yields XP; privacy scopes enforced",
+      "reuse_notes": "TWS evidence",
+      "required_owner_gate": false
+    },
+    {
+      "id": "TWS-006",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement idempotent XP ledger and twelve wing/realm gates",
+      "dependencies": [
+        "TWS-005"
+      ],
+      "acceptance": "Duplicate sync submits at most one reward; realm prerequisites enforced",
+      "reuse_notes": "TWS progression",
+      "required_owner_gate": false
+    },
+    {
+      "id": "TWS-007",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement cultivation, patterns, skill adaptation and fairness controls",
+      "dependencies": [
+        "TWS-004",
+        "TWS-006"
+      ],
+      "acceptance": "Progression uses verifiable achievement not companion persuasion",
+      "reuse_notes": "Owner immersive mode",
+      "required_owner_gate": false
+    },
+    {
+      "id": "TWS-008",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement original Aurelia dialogue/personality and narrative state",
+      "dependencies": [
+        "TWS-003",
+        "BACK-007"
+      ],
+      "acceptance": "Dialogue cannot directly mutate XP or finance",
+      "reuse_notes": "Original companion",
+      "required_owner_gate": false
+    },
+    {
+      "id": "TWS-009",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement Sanctuary, quest views and web dashboard integration",
+      "dependencies": [
+        "TWS-006",
+        "TWS-008",
+        "RUN-004"
+      ],
+      "acceptance": "Displayed wings/state match authoritative ledger",
+      "reuse_notes": "TWS UI bridge",
+      "required_owner_gate": false
+    },
+    {
+      "id": "TWS-010",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Preserve Aurelia portable rigged model generator and independent validator",
+      "dependencies": [
+        "TWS-001"
+      ],
+      "acceptance": "Binary model and deformation/morph/clip assertions reproducible",
+      "reuse_notes": "M013 source",
+      "required_owner_gate": false
+    },
+    {
+      "id": "TWS-011",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Run real Blender import/skinning and generate native asset candidate",
+      "dependencies": [
+        "TWS-010"
+      ],
+      "acceptance": "Editable .blend and reviewed USDZ/SCN candidate validated on native tools",
+      "reuse_notes": "M017-M018 blocked",
+      "required_owner_gate": false
+    },
+    {
+      "id": "TWS-012",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Execute full native visual QA for Aurelia expressions and motion",
+      "dependencies": [
+        "TWS-011"
+      ],
+      "acceptance": "24-view and time-sampled galleries pass artist review",
+      "reuse_notes": "M018-M019",
+      "required_owner_gate": false
+    },
+    {
+      "id": "TWS-013",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Build SwiftUI/SceneKit app and offline 2D fallback on macOS runner",
+      "dependencies": [
+        "TWS-002",
+        "TWS-012"
+      ],
+      "acceptance": "Native iOS targets compile and fallback works",
+      "reuse_notes": "M020-M021 code",
+      "required_owner_gate": false
+    },
+    {
+      "id": "TWS-014",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Test iOS lifecycle, reduce motion, thermal and low memory handling",
+      "dependencies": [
+        "TWS-013"
+      ],
+      "acceptance": "Hardware-like lifecycle and accessible manual retry pass",
+      "reuse_notes": "M020/M021",
+      "required_owner_gate": false
+    },
+    {
+      "id": "TWS-015",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Validate secure iOS device pairing, revoke and TLS trust rotation",
+      "dependencies": [
+        "TWS-013",
+        "BACK-004"
+      ],
+      "acceptance": "Unauthorized phone rejected; revocation/rotation test passes",
+      "reuse_notes": "TWS pairing docs",
+      "required_owner_gate": false
+    },
+    {
+      "id": "TWS-016",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement offline iOS synchronization, conflict resolution and proof queue",
+      "dependencies": [
+        "TWS-006",
+        "TWS-015"
+      ],
+      "acceptance": "Offline replays do not double reward, leak proof or lose saves",
+      "reuse_notes": "Mobile sync",
+      "required_owner_gate": false
+    },
+    {
+      "id": "TWS-017",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement tasks-to-quests import with consent and explicit reward gate",
+      "dependencies": [
+        "TWS-006",
+        "CORE-006"
+      ],
+      "acceptance": "Cross-module signals only propose quests; no auto XP award",
+      "reuse_notes": "TWS integration",
+      "required_owner_gate": false
+    },
+    {
+      "id": "TWS-018",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement onboarding, narrative state and accessible preferences",
+      "dependencies": [
+        "TWS-008",
+        "TWS-009"
+      ],
+      "acceptance": "Immersive mode, reduced motion and fallback chosen independently",
+      "reuse_notes": "Owner TWS choice",
+      "required_owner_gate": false
+    },
+    {
+      "id": "TWS-019",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Perform physical iPhone-Ubuntu pairing and app performance testing",
+      "dependencies": [
+        "TWS-014",
+        "TWS-016",
+        "TWS-018"
+      ],
+      "acceptance": "Real device FPS/thermal/pairing receipts and privacy audit",
+      "reuse_notes": "No device test verified",
+      "required_owner_gate": false
+    },
+    {
+      "id": "TWS-020",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Complete quest release acceptance, backup/restore and rollback",
+      "dependencies": [
+        "TWS-017",
+        "TWS-019"
+      ],
+      "acceptance": "M001-M021 accepted with actual evidence; draft artifacts not misreported shipped",
+      "reuse_notes": "TWS release gate",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIC-001",
+      "module": "WIC",
+      "milestone": "M10 — World Information Center",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Define world stories/events/sources/timestamps/confidence schemas",
+      "dependencies": [
+        "BACK-001",
+        "CORE-014"
+      ],
+      "acceptance": "Published/fetched/event date, updates and corrections independently stored",
+      "reuse_notes": "PR #17 architecture",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIC-002",
+      "module": "WIC",
+      "milestone": "M10 — World Information Center",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement permitted public-news/source ingestion with provenance",
+      "dependencies": [
+        "WIC-001",
+        "RES-002"
+      ],
+      "acceptance": "Authorized feed and article URLs retained with timestamps",
+      "reuse_notes": "No scraping private sources",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIC-003",
+      "module": "WIC",
+      "milestone": "M10 — World Information Center",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement URL normalization, duplicate detection and story clusters",
+      "dependencies": [
+        "WIC-002"
+      ],
+      "acceptance": "Same incident dedupes across outlets without erasing attribution",
+      "reuse_notes": "World pipeline",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIC-004",
+      "module": "WIC",
+      "milestone": "M10 — World Information Center",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement verification/conflict/correction handling",
+      "dependencies": [
+        "WIC-003",
+        "RES-004"
+      ],
+      "acceptance": "Retracted source updates visible; uncertain claim never marked verified",
+      "reuse_notes": "World safety",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIC-005",
+      "module": "WIC",
+      "milestone": "M10 — World Information Center",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement geography, tech, politics, economics, science, Thailand tags",
+      "dependencies": [
+        "WIC-003"
+      ],
+      "acceptance": "Categorization can be corrected and searched",
+      "reuse_notes": "User handwritten WIC",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIC-006",
+      "module": "WIC",
+      "milestone": "M10 — World Information Center",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement snapshot freshness, stale-feed and outage state",
+      "dependencies": [
+        "WIC-002",
+        "AUTO-006"
+      ],
+      "acceptance": "Cached info visibly dated and no false real-time claims",
+      "reuse_notes": "Source age",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIC-007",
+      "module": "WIC",
+      "milestone": "M10 — World Information Center",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement concise cited AI situation summaries",
+      "dependencies": [
+        "WIC-004",
+        "BACK-014"
+      ],
+      "acceptance": "Links and uncertainty survive synthesis; hallucinated live data blocked",
+      "reuse_notes": "Research integration",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIC-008",
+      "module": "WIC",
+      "milestone": "M10 — World Information Center",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement web World overview and chronological timeline",
+      "dependencies": [
+        "WIC-005",
+        "WIC-007",
+        "RUN-004"
+      ],
+      "acceptance": "Cards show source/fetch/event dates and corrections",
+      "reuse_notes": "Dashboard",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIC-009",
+      "module": "WIC",
+      "milestone": "M10 — World Information Center",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement country/region watchlists and saved topic filters",
+      "dependencies": [
+        "WIC-005",
+        "BACK-004"
+      ],
+      "acceptance": "Owner-selectable topics and access-controlled preferences",
+      "reuse_notes": "World UX",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIC-010",
+      "module": "WIC",
+      "milestone": "M10 — World Information Center",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement scheduled configurable alerts, dedupe and quiet-hours",
+      "dependencies": [
+        "WIC-006",
+        "WIC-009",
+        "AUTO-010"
+      ],
+      "acceptance": "Only material change triggers one alert within policy",
+      "reuse_notes": "Alerts",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIC-011",
+      "module": "WIC",
+      "milestone": "M10 — World Information Center",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Integrate Research source archive and finance watchlist signals",
+      "dependencies": [
+        "WIC-007",
+        "RES-009"
+      ],
+      "acceptance": "Links have provenance and never directly trigger trade",
+      "reuse_notes": "No live trades",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIC-012",
+      "module": "WIC",
+      "milestone": "M10 — World Information Center",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement source ranking policy and primary evidence labels",
+      "dependencies": [
+        "WIC-004"
+      ],
+      "acceptance": "Original vs secondary sources and disagreement shown",
+      "reuse_notes": "Truthfulness",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIC-013",
+      "module": "WIC",
+      "milestone": "M10 — World Information Center",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Run fake-news, prompt injection, retraction and offline tests",
+      "dependencies": [
+        "WIC-010",
+        "WIC-012"
+      ],
+      "acceptance": "All regression fixtures pass with bounded retry",
+      "reuse_notes": "World acceptance",
+      "required_owner_gate": false
+    },
+    {
+      "id": "WIC-014",
+      "module": "WIC",
+      "milestone": "M10 — World Information Center",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Conduct live feed transparency/user acceptance review",
+      "dependencies": [
+        "WIC-008",
+        "WIC-013"
+      ],
+      "acceptance": "Data ages and alerts accurate for tested current cases",
+      "reuse_notes": "WIC release gate",
+      "required_owner_gate": false
+    },
+    {
+      "id": "FIN-001",
+      "module": "FIN",
+      "milestone": "M11 — Personal CFO and paper trading",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Audit Mira Personal-Management source/schema and actual auth boundaries",
+      "dependencies": [
+        "BACK-020",
+        "BASE-011"
+      ],
+      "acceptance": "Owner-approved repo review; no assumed production DB access",
+      "reuse_notes": "External repo separate audit",
+      "required_owner_gate": false
+    },
+    {
+      "id": "FIN-002",
+      "module": "FIN",
+      "milestone": "M11 — Personal CFO and paper trading",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Define read-only scopes and independent partner consent enforcement",
+      "dependencies": [
+        "FIN-001",
+        "BACK-004"
+      ],
+      "acceptance": "Unauthorized cross-person rows rejected server-side",
+      "reuse_notes": "Mira two-person app",
+      "required_owner_gate": false
+    },
+    {
+      "id": "FIN-003",
+      "module": "FIN",
+      "milestone": "M11 — Personal CFO and paper trading",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement Mira-owned scoped read-only export/connector token",
+      "dependencies": [
+        "FIN-002"
+      ],
+      "acceptance": "Short-lived revocable credential, audit and no shared D1 admin token",
+      "reuse_notes": "No cookie scraping",
+      "required_owner_gate": false
+    },
+    {
+      "id": "FIN-004",
+      "module": "FIN",
+      "milestone": "M11 — Personal CFO and paper trading",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement idempotent transaction/account/category/budget ingestion",
+      "dependencies": [
+        "FIN-003",
+        "BACK-002"
+      ],
+      "acceptance": "Exact satang, timestamps, original IDs preserved; sync deduplicates",
+      "reuse_notes": "Mira source of truth",
+      "required_owner_gate": false
+    },
+    {
+      "id": "FIN-005",
+      "module": "FIN",
+      "milestone": "M11 — Personal CFO and paper trading",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement transfer/adjustment/reconciliation semantics",
+      "dependencies": [
+        "FIN-004"
+      ],
+      "acceptance": "No double-counted transfer, savings or balance adjustment",
+      "reuse_notes": "Finance correctness",
+      "required_owner_gate": false
+    },
+    {
+      "id": "FIN-006",
+      "module": "FIN",
+      "milestone": "M11 — Personal CFO and paper trading",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement cash, bank, wallet and per-person account dashboard",
+      "dependencies": [
+        "FIN-005",
+        "RUN-004"
+      ],
+      "acceptance": "Balances labeled reconciled/estimated with source timestamps",
+      "reuse_notes": "TrueMoney and banks",
+      "required_owner_gate": false
+    },
+    {
+      "id": "FIN-007",
+      "module": "FIN",
+      "milestone": "M11 — Personal CFO and paper trading",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement income, expense, trends, category and merchant reports",
+      "dependencies": [
+        "FIN-005"
+      ],
+      "acceptance": "Summary totals match verified fixture ledger",
+      "reuse_notes": "Personal CFO",
+      "required_owner_gate": false
+    },
+    {
+      "id": "FIN-008",
+      "module": "FIN",
+      "milestone": "M11 — Personal CFO and paper trading",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement budget goals, savings plans and forecasting",
+      "dependencies": [
+        "FIN-007"
+      ],
+      "acceptance": "Forecasts labeled uncertain; goals do not double debit",
+      "reuse_notes": "Money management",
+      "required_owner_gate": false
+    },
+    {
+      "id": "FIN-009",
+      "module": "FIN",
+      "milestone": "M11 — Personal CFO and paper trading",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement recurring payment and unusual expense detection",
+      "dependencies": [
+        "FIN-007"
+      ],
+      "acceptance": "Alerts source-linked, explainable and suppressible",
+      "reuse_notes": "Anomaly reporting",
+      "required_owner_gate": false
+    },
+    {
+      "id": "FIN-010",
+      "module": "FIN",
+      "milestone": "M11 — Personal CFO and paper trading",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement read-only recommendation and approval-aware notifications",
+      "dependencies": [
+        "FIN-008",
+        "FIN-009"
+      ],
+      "acceptance": "No writes to Mira, no inappropriate pressure, consent respected",
+      "reuse_notes": "Advice only",
+      "required_owner_gate": false
+    },
+    {
+      "id": "FIN-011",
+      "module": "FIN",
+      "milestone": "M11 — Personal CFO and paper trading",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement time-stamped stock/company/market research adapter",
+      "dependencies": [
+        "WIC-011",
+        "FIN-002"
+      ],
+      "acceptance": "Price data source/delay/exchange and uncertainty recorded",
+      "reuse_notes": "No guaranteed profit",
+      "required_owner_gate": false
+    },
+    {
+      "id": "FIN-012",
+      "module": "FIN",
+      "milestone": "M11 — Personal CFO and paper trading",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement entirely separate paper account/order/position ledger",
+      "dependencies": [
+        "FIN-011",
+        "BACK-002"
+      ],
+      "acceptance": "Hypothetical cash isolated from Mira and real accounts",
+      "reuse_notes": "Demo only",
+      "required_owner_gate": false
+    },
+    {
+      "id": "FIN-013",
+      "module": "FIN",
+      "milestone": "M11 — Personal CFO and paper trading",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement paper fills with spreads, fees, slippage and order rules",
+      "dependencies": [
+        "FIN-012"
+      ],
+      "acceptance": "Rejects invalid/no-liquidity orders and handles market hours",
+      "reuse_notes": "Paper execution",
+      "required_owner_gate": false
+    },
+    {
+      "id": "FIN-014",
+      "module": "FIN",
+      "milestone": "M11 — Personal CFO and paper trading",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Implement paper performance, corporate actions and backtest bias checks",
+      "dependencies": [
+        "FIN-013"
+      ],
+      "acceptance": "P&L/drawdown reproducible; no future-peeking bias",
+      "reuse_notes": "Paper analytics",
+      "required_owner_gate": false
+    },
+    {
+      "id": "FIN-015",
+      "module": "FIN",
+      "milestone": "M11 — Personal CFO and paper trading",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Run leakage/consent/financial precision/adversarial tests",
+      "dependencies": [
+        "FIN-010",
+        "FIN-014"
+      ],
+      "acceptance": "Other person's data denied; no real broker or Mira write endpoints",
+      "reuse_notes": "Financial safety",
+      "required_owner_gate": false
+    },
+    {
+      "id": "FIN-016",
+      "module": "FIN",
+      "milestone": "M11 — Personal CFO and paper trading",
+      "priority": "P2",
+      "status": "NOT_VERIFIED",
+      "title": "Conduct end-to-end Finance owner acceptance and revocation drill",
+      "dependencies": [
+        "FIN-006",
+        "FIN-015"
+      ],
+      "acceptance": "Connector revoke stops sync; budgets and demo reports match fixtures",
+      "reuse_notes": "Finance release gate",
+      "required_owner_gate": false
+    },
+    {
+      "id": "REL-001",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Create full cross-module contract and event compatibility test suite",
+      "dependencies": [
+        "CORE-014",
+        "BACK-022"
+      ],
+      "acceptance": "All ten module schemas/permissions have runnable fixture tests",
+      "reuse_notes": "Module interfaces",
+      "required_owner_gate": false
+    },
+    {
+      "id": "REL-002",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Validate independent deploy/stop and smallest-module fault isolation",
+      "dependencies": [
+        "GUARD-019",
+        "REL-001"
+      ],
+      "acceptance": "Fault one module and prove unrelated services survive",
+      "reuse_notes": "Modular architecture",
+      "required_owner_gate": false
+    },
+    {
+      "id": "REL-003",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Verify Core-SDA project delegation and completion result",
+      "dependencies": [
+        "SDA-026",
+        "CORE-014",
+        "REL-001",
+        "MIG-013"
+      ],
+      "acceptance": "Real project flows through Supervisor, 5 workers, QC, merger to Core event",
+      "reuse_notes": "Core/SDA bridge",
+      "required_owner_gate": false
+    },
+    {
+      "id": "REL-004",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Verify local Windows and Linux model routing, quotas and context handoff",
+      "dependencies": [
+        "WIN-011",
+        "BACK-011",
+        "REL-001"
+      ],
+      "acceptance": "Cross-device model state reconstructed without duplicate tools",
+      "reuse_notes": "Backend/Windows",
+      "required_owner_gate": false
+    },
+    {
+      "id": "REL-005",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Verify Cloudflare pending jobs while all PCs are offline",
+      "dependencies": [
+        "AUTO-012",
+        "REL-001"
+      ],
+      "acceptance": "Cloudflare only stores jobs; reconnect resumes safely and reports age",
+      "reuse_notes": "Always-on",
+      "required_owner_gate": false
+    },
+    {
+      "id": "REL-006",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Verify Guardian next-slot non-preemptive priority under live workload",
+      "dependencies": [
+        "GUARD-019",
+        "REL-003"
+      ],
+      "acceptance": "Active inference finishes; new worker model calls wait while Guardian runs",
+      "reuse_notes": "Guardian owner contract",
+      "required_owner_gate": false
+    },
+    {
+      "id": "REL-007",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Verify Runtime chat/voice/browser and permissions on Ubuntu",
+      "dependencies": [
+        "RUN-018",
+        "REL-001"
+      ],
+      "acceptance": "Real Firefox, voice device, typed actions and denial tests pass",
+      "reuse_notes": "Runtime gate",
+      "required_owner_gate": false
+    },
+    {
+      "id": "REL-008",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Verify Research into memory and handbook edit authority",
+      "dependencies": [
+        "RES-015",
+        "REL-001"
+      ],
+      "acceptance": "Citations retain provenance; ordinary coding workers cannot edit handbook",
+      "reuse_notes": "Research gate",
+      "required_owner_gate": false
+    },
+    {
+      "id": "REL-009",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Verify TWS mobile pairing, 3D fallback and cross-module quest gates",
+      "dependencies": [
+        "TWS-020",
+        "REL-001"
+      ],
+      "acceptance": "Real iPhone/device evidence, XP non-duplication and graceful failure",
+      "reuse_notes": "TWS gate",
+      "required_owner_gate": false
+    },
+    {
+      "id": "REL-010",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Verify WIC freshness, corrections and time-sensitive notifications",
+      "dependencies": [
+        "WIC-014",
+        "REL-001"
+      ],
+      "acceptance": "No false live claim, duplication or unsourced notification",
+      "reuse_notes": "WIC gate",
+      "required_owner_gate": false
+    },
+    {
+      "id": "REL-011",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Verify Mira scoped analytics and paper-only finance integration",
+      "dependencies": [
+        "FIN-016",
+        "REL-001"
+      ],
+      "acceptance": "No cross-person leak or broker order; financial fixture totals correct",
+      "reuse_notes": "Finance gate",
+      "required_owner_gate": false
+    },
+    {
+      "id": "REL-012",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Run full security adversarial matrix against each module",
+      "dependencies": [
+        "REL-002",
+        "REL-007",
+        "REL-008",
+        "REL-011"
+      ],
+      "acceptance": "Injection, auth, path, CSRF, XSS, secrets and prompt boundary tests pass",
+      "reuse_notes": "SECURITY.md",
+      "required_owner_gate": false
+    },
+    {
+      "id": "REL-013",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Run system crash, corruption, provider outage and rollback drills",
+      "dependencies": [
+        "REL-002",
+        "REL-004",
+        "REL-005",
+        "REL-006",
+        "MIG-014"
+      ],
+      "acceptance": "Durable recovery with approvals/STOP preserved and known-good rollback",
+      "reuse_notes": "Recovery",
+      "required_owner_gate": false
+    },
+    {
+      "id": "REL-014",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Benchmark five-worker SDA plus model/DB workload resource limits",
+      "dependencies": [
+        "REL-003",
+        "REL-013"
+      ],
+      "acceptance": "Measured throughput, quotas, RAM, backpressure and no runaway workers",
+      "reuse_notes": "Linux host",
+      "required_owner_gate": false
+    },
+    {
+      "id": "REL-015",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Validate backup/restore and data retention per domain",
+      "dependencies": [
+        "BACK-018",
+        "REL-009",
+        "REL-011",
+        "REL-013"
+      ],
+      "acceptance": "Clean-room restore preserves state without inappropriate private-data retention",
+      "reuse_notes": "Data continuity",
+      "required_owner_gate": false
+    },
+    {
+      "id": "REL-016",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Run full CI on declared Python versions and native iOS runners",
+      "dependencies": [
+        "BASE-003",
+        "REL-012",
+        "REL-015"
+      ],
+      "acceptance": "All required jobs execute and pass; artifacts stored per SHA",
+      "reuse_notes": "CI issue 15",
+      "required_owner_gate": false
+    },
+    {
+      "id": "REL-017",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Produce deployment IaC/manifests, installation and operator runbooks",
+      "dependencies": [
+        "REL-014",
+        "REL-016",
+        "MIG-015"
+      ],
+      "acceptance": "Reproducible documented Linux, Windows, Cloudflare and optional iOS install",
+      "reuse_notes": "Operations",
+      "required_owner_gate": false
+    },
+    {
+      "id": "REL-018",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Run staging end-to-end user-acceptance scenarios and accessibility audit",
+      "dependencies": [
+        "REL-007",
+        "REL-008",
+        "REL-009",
+        "REL-010",
+        "REL-011",
+        "REL-017"
+      ],
+      "acceptance": "Owner-approved scripted journeys pass with objective evidence",
+      "reuse_notes": "UAT",
+      "required_owner_gate": false
+    },
+    {
+      "id": "REL-019",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Review licensing, provenance, threat model and release-blocking defects",
+      "dependencies": [
+        "REL-012",
+        "REL-018"
+      ],
+      "acceptance": "No unreviewed third-party artifacts or unresolved critical findings",
+      "reuse_notes": "Release candidate",
+      "required_owner_gate": false
+    },
+    {
+      "id": "REL-020",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Review exact accepted backlog IDs and frozen candidate Git SHA",
+      "dependencies": [
+        "REL-019",
+        "MIG-014"
+      ],
+      "acceptance": "No required tasks incomplete, or documented owner-approved deferrals that do not violate gates",
+      "reuse_notes": "Scope closure",
+      "required_owner_gate": false
+    },
+    {
+      "id": "REL-021",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Owner authorizes v2.0.0 production promotion",
+      "dependencies": [
+        "REL-020"
+      ],
+      "acceptance": "Explicit signed approval tied to immutable candidate SHA",
+      "reuse_notes": "No automatic main promotion",
+      "required_owner_gate": true
+    },
+    {
+      "id": "REL-022",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Promote accepted develop to main and tag v2.0.0",
+      "dependencies": [
+        "REL-021"
+      ],
+      "acceptance": "Protected-branch CI, tag provenance and deployment receipts verified",
+      "reuse_notes": "Unpadded X.Y.Z",
+      "required_owner_gate": false
+    },
+    {
+      "id": "REL-023",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Post-release smoke, rollback readiness and monitoring validation",
+      "dependencies": [
+        "REL-022"
+      ],
+      "acceptance": "24-hour metrics if available, smoke proofs, rollback tested before signoff",
+      "reuse_notes": "Release health",
+      "required_owner_gate": false
+    },
+    {
+      "id": "REL-024",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Archive historical Business ideas and close out original repository migration",
+      "dependencies": [
+        "REL-022"
+      ],
+      "acceptance": "Source evidence retained, no Business production service, legacy still recoverable",
+      "reuse_notes": "Business excluded",
+      "required_owner_gate": false
+    },
+    {
+      "id": "REL-025",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_VERIFIED",
+      "title": "Publish final complete v2 acceptance report and maintenance roadmap",
+      "dependencies": [
+        "REL-023",
+        "REL-024"
+      ],
+      "acceptance": "Version, artifacts, tests, host verification and known limitations truthfully documented",
+      "reuse_notes": "Definition of Done",
+      "required_owner_gate": false
+    },
+    {
+      "id": "MIG-001",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Design clean private repo structure, formats and CODEOWNERS",
+      "dependencies": [
+        "BASE-008",
+        "BASE-014"
+      ],
+      "acceptance": "Fresh seed has ten modules, versioned docs, branch/commit lint and no Business",
+      "reuse_notes": "JARVIS-v2 seed",
+      "required_owner_gate": false
+    },
+    {
+      "id": "MIG-002",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Enable branch protections, CI and review gates in new repository",
+      "dependencies": [
+        "SDA-028"
+      ],
+      "acceptance": "main/develop protections verified with rejected unauthorized push and executed CI",
+      "reuse_notes": "New GitHub repository",
+      "required_owner_gate": false
+    },
+    {
+      "id": "MIG-003",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Implement commit-SHA-pinned legacy code importer and license/provenance ledger",
+      "dependencies": [
+        "MIG-002",
+        "BASE-006"
+      ],
+      "acceptance": "Read-only dry-run and create-only staging; every blob traced to old commit SHA and reviewed",
+      "reuse_notes": "develop/PRs 5-17",
+      "required_owner_gate": false
+    },
+    {
+      "id": "MIG-004",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Port tested legacy Core, Backend and Runtime contracts incrementally",
+      "dependencies": [
+        "MIG-003",
+        "CORE-001",
+        "BACK-001"
+      ],
+      "acceptance": "Existing important behaviors preserved with adapter and regression tests; no bulk direct merge",
+      "reuse_notes": "Legacy jarvis/*.py",
+      "required_owner_gate": false
+    },
+    {
+      "id": "MIG-005",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Reconcile Astra One with old Workhorse/SDA functions as v2 engine",
+      "dependencies": [
+        "MIG-003",
+        "SDA-026"
+      ],
+      "acceptance": "One authoritative queue/Master, isolated five workers, independent QC and Merger verified",
+      "reuse_notes": "Legacy Workhorse + Astra One",
+      "required_owner_gate": false
+    },
+    {
+      "id": "MIG-006",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Stage TWS/Aurelia and Cloudflare/Windows code in bounded reviewed batches",
+      "dependencies": [
+        "MIG-003"
+      ],
+      "acceptance": "Provenance, dependency, tests and native/cloud gap report recorded per imported module",
+      "reuse_notes": "PR #14 and PR #16",
+      "required_owner_gate": false
+    },
+    {
+      "id": "MIG-007",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Run native JARVIS v2 SDA in read-only shadow mode",
+      "dependencies": [
+        "MIG-005",
+        "CORE-014"
+      ],
+      "acceptance": "Shadow consumes sanitized events; cannot claim/write real tasks or protected refs",
+      "reuse_notes": "External Astra still owns tasks",
+      "required_owner_gate": false
+    },
+    {
+      "id": "MIG-008",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Build Guardian release manifest policy and external immutable watchdog",
+      "dependencies": [
+        "MIG-007",
+        "GUARD-018"
+      ],
+      "acceptance": "Independent watchdog validates artifact identity, approvals, STOP, compatibility and rollback",
+      "reuse_notes": "Guardian deployment safety",
+      "required_owner_gate": false
+    },
+    {
+      "id": "MIG-009",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Prove blue/green Guardian-mediated SDA redeployment in staging",
+      "dependencies": [
+        "MIG-008",
+        "GUARD-016"
+      ],
+      "acceptance": "One writer fenced; canary, health and failed-release rollback demonstrated",
+      "reuse_notes": "No live promotion",
+      "required_owner_gate": false
+    },
+    {
+      "id": "MIG-010",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Run real five-worker full native SDA end-to-end acceptance",
+      "dependencies": [
+        "MIG-007",
+        "MIG-009"
+      ],
+      "acceptance": "Five independent Codex worker tasks + QC + Merger + recoverability host-proven",
+      "reuse_notes": "Not mock simulation",
+      "required_owner_gate": false
+    },
+    {
+      "id": "MIG-011",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Reconcile Astra-to-native task ledger and tool receipts",
+      "dependencies": [
+        "MIG-009",
+        "MIG-010"
+      ],
+      "acceptance": "Checkpoint restore, idempotent receipts, session IDs and approval state match; duplicates fail closed",
+      "reuse_notes": "Reversible migration",
+      "required_owner_gate": false
+    },
+    {
+      "id": "MIG-012",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Obtain explicit owner approval for SDA cutover and guarded deployment",
+      "dependencies": [
+        "MIG-011"
+      ],
+      "acceptance": "Owner authorizes candidate SHA, rollback hash, destination host and cutover policy",
+      "reuse_notes": "Owner gate",
+      "required_owner_gate": true
+    },
+    {
+      "id": "MIG-013",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Switch active SDA to native v2 using Guardian's independent deploy controller",
+      "dependencies": [
+        "MIG-012"
+      ],
+      "acceptance": "Only one active Master, health verified, old Astra preserved, STOP/PAUSE still effective",
+      "reuse_notes": "Actual cutover gated",
+      "required_owner_gate": false
+    },
+    {
+      "id": "MIG-014",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Keep Astra One external rescue and qualify Guardian self-update path",
+      "dependencies": [
+        "MIG-013"
+      ],
+      "acceptance": "Safe external rollback and watchdog self-update tested; old builder recoverable",
+      "reuse_notes": "Guardian cannot self-approve",
+      "required_owner_gate": false
+    },
+    {
+      "id": "MIG-015",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Integrate standalone read-only ATLAS monitor and ARCHON/AEGIS/ATLAS identity manifest",
+      "dependencies": [
+        "MIG-001",
+        "SDA-001"
+      ],
+      "acceptance": "Actual Astra One and native Core SQLite snapshots render verified task/worker/review/merge states without changing DB or invoking runner; roles named ARCHON AEGIS ATLAS across docs and config",
+      "reuse_notes": "JARVIS v2 foundation seed v0.0.2; 22 local tests; real SDA host verification pending",
+      "required_owner_gate": false
+    },
+    {
+      "id": "MIG-016",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_VERIFIED",
+      "title": "Apply ARCHON AEGIS ATLAS naming contract across operator interfaces and docs",
+      "dependencies": [
+        "MIG-001"
+      ],
+      "acceptance": "Ten module IDs unchanged; UI/CLI/docs use approved identities; deprecated naming remains documented without replacing DB records",
+      "reuse_notes": "planning/ARCHON_AEGIS_ATLAS_IDENTITY_AND_MONITOR.md"
+    }
+  ],
+  "system_identity": {
+    "main_ai": "ARCHON",
+    "guardian": "AEGIS",
+    "infrastructure": "ATLAS",
+    "bootstrap_sda": "Astra One",
+    "terminal_monitor": "ATLAS Monitor (read-only separate process)"
+  },
+  "identities": {
+    "main_ai": "ARCHON",
+    "guardian": "AEGIS",
+    "infrastructure": "ATLAS",
+    "bootstrap": "Astra One"
+  },
+  "standalone_monitor": {
+    "name": "ATLAS Monitor",
+    "tool": "tools/atlas_monitor.py",
+    "separate_from_runner": true,
+    "state_sources": [
+      "astra",
+      "atlas"
+    ],
+    "read_only": true
+  }
+}
