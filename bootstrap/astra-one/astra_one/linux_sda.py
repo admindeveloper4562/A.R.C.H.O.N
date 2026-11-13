@@ -28,7 +28,7 @@ import urllib.request
 import uuid
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 
-VERSION = "0.2.0"
+VERSION = "0.2.1"
 MODEL = "gpt-5.6-luna"
 EFFORT = "medium"
 MAX_WORKERS = 5
@@ -266,7 +266,7 @@ class State:
 
     def emit(self, tid: str, run_id: str, *, stage: str, step: str, branch: str, base_sha: str,
              tools: int = 0, attempt: int = 1, elapsed: int = 0, result: str = ""):
-        if stage not in STAGE or not SAFE.fullmatch(step) or not branch.startswith("feature/") or not SHA.fullmatch(base_sha):
+        if stage not in STAGE or not SAFE.fullmatch(step) or not branch.startswith(("feature/", "feat/")) or not SHA.fullmatch(base_sha):
             raise ValueError("invalid progress event")
         with self.db() as db:
             db.execute("BEGIN IMMEDIATE")

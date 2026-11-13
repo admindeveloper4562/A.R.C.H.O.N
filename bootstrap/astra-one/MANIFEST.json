@@ -1,17 +1,17 @@
 {
   "package": "Astra One Linux",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "created_utc": "2026-11-13",
   "files": {
     ".gitignore": "5eb5dc33188abc7eedea03fadff8de65c9761b31a819fe1e5a39c67e4beffc3d",
     "README.md": "74bd920103e0af7ed1d3c6d4acca3d2aa596d59484190fb767a714c88db4bca6",
-    "VERSION": "1f930dd1f133c1f97a94fe3acb8db34372cf4c01ffdb2b3ff4ca72f9494121e9",
+    "VERSION": "71015c979ccb0fc8a0be7ca0ae83046ab045cdc2c8faa09fb2f0f7e440f9b4a6",
     "astra_one/__init__.py": "ec6abe77e1b1c13af010cde45c5ec7dd84690a875d2e4cd822d1b3d347786ddd",
     "astra_one/__main__.py": "131d50e7a0fee09d79d13c98590cc98d0366d150b881ec5091167d3b25d5806e",
     "astra_one/core.py": "63c6bedd7465bb963296dbee1610a9bdf6ea849aaf5e29b4aa6f4cb3a49b970f",
     "astra_one/linux_cli.py": "0db2f53b0db66b8353c434e01cbb83aff4e743e1917bb25a96941c895e7bc657",
     "astra_one/linux_runtime.py": "0bb60b35d4b54f662a85e91fff2ed451ae1f2d2b019d5dd10bfd7c8e5ea3cb37",
-    "astra_one/linux_sda.py": "55fe24987d7f4899e1d26f7cbfbd8207dbe4a6dee6c8636c7fa20416a5bb7be2",
+    "astra_one/linux_sda.py": "9a09bc550dfc328dce3af50041a8ba556c2e25a0a6260a0e68b29b764d6f915a",
     "astra_one/planner.py": "9c18b26401a58c6c206b1e9d14041b0f8b6920a1dafc83d8136d73a88c017df6",
     "astra_one/runner.py": "0468a0cbf01e61d55c9f058b5d6109ac92a0c2165129b7161a4cd2bc5f7041b7",
     "cloudflare/astra-one-monitor/.gitignore": "6d562436cf993addd95932e31bd0fd97dd3b9074a9cf491dbca212aade99d31c",
@@ -34,6 +34,6 @@
     "scripts/verify_manifest.py": "128917adb54ce79b728679c7d05ace9f0b06296303c4757292ad3f0b0977a9a1",
     "scripts/verify_package.py": "8bfe169e85bffe0fc3949bf24f2e0ae94bbf0a647762e40c37f6c5a543d273cc",
     "tests/test_core.py": "26cb1356c98ba763b7aaae7870f7a1066233e5a8cb55d70dcc03e4376fbed4c5",
-    "tests/test_linux_sda.py": "d911db82325e545dc00783f09f452df1dcb202cd5e052e0e44637ea108c5181e"
+    "tests/test_linux_sda.py": "04130051917984b606b4234c7862c2ab1d66dce7df901cff84524eca01410099"
   }
 }

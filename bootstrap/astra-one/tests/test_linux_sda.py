@@ -199,6 +199,26 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change'}}))
         self.assertTrue(all(t["status"]=="completed" for t in self.state.list_tasks()))
         self.assertEqual(git(self.repo,"branch","--show-current"),"develop")
 
+    def test_event_metadata_accepts_new_rebuild_branch_policy(self):
+        self.state.add_tasks(task(1))
+        claim = self.state.claim()
+        sha = self.state.get("source_sha")
+        # The v2 worker generates feat/<module>/<task-id>-... branch names.
+        branch = "feat/core/CORE-301-implementation-a1-1234abcd"
+        self.state.emit("ASTRA-001", claim["run_id"], stage="preflight",
+                        step="worker_1_leased", branch=branch, base_sha=sha)
+        with self.state.db() as db:
+            row = db.execute("SELECT branch, stage, step FROM events").fetchone()
+        self.assertEqual(tuple(row), (branch, "preflight", "worker_1_leased"))
+
+    def test_event_metadata_rejects_unsafe_branch_prefix(self):
+        self.state.add_tasks(task(1))
+        claim = self.state.claim()
+        sha = self.state.get("source_sha")
+        with self.assertRaisesRegex(ValueError, "invalid progress event"):
+            self.state.emit("ASTRA-001", claim["run_id"], stage="preflight",
+                            step="worker_1_leased", branch="main", base_sha=sha)
+
     def test_event_metadata_schema(self):
         self.state.add_tasks(task(1));claim=self.state.claim()
         branch="feature/astra-test"
