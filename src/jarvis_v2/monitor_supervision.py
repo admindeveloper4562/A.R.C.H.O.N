@@ -44,6 +44,12 @@ def _group(db: sqlite3.Connection, table: str, column: str, where: str = "",
     return {_safe(row["group_key"], 48): int(row["count"]) for row in rows}
 
 
+def safe_failure_code(value: Any, size: int = 64) -> str:
+    """Expose only category prefix, not potentially secret reviewer details."""
+    first = str(value or "").split(":", 1)[0].split("=", 1)[0]
+    return _safe(first, size)
+
+
 def _sha(value: Any) -> str:
     s = str(value or "")
     return s[:12] if re.fullmatch(r"[a-f0-9]{40}", s) else ""
@@ -99,7 +105,7 @@ def collect(db: sqlite3.Connection, limit: int = 10) -> dict:
             "GROUP BY error_code ORDER BY n DESC,error_code LIMIT 8"
         ).fetchall()
         data["failure_codes"] = [
-            {"code": _safe(str(row["error_code"]).split(":", 1)[0].split("=", 1)[0]), "count": int(row["n"])}
+            {"code": safe_failure_code(row["error_code"]), "count": int(row["n"])}
             for row in rows
         ]
     else:
