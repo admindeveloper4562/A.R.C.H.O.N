@@ -33,13 +33,41 @@ CHANGE_FAILURE_CODES = frozenset({
 })
 REVIEW_FINDING_CODES = frozenset({
     "acceptance_gap",
+    "config_contract",
     "correctness_risk",
+    "file_collision",
+    "input_validation",
     "integration_risk",
+    "ordering_semantics",
+    "path_safety",
+    "payload_exposure",
+    "permission_scope",
     "review_concern",
     "review_output_invalid",
     "security_boundary",
+    "source_provenance",
+    "state_transition",
     "test_gap",
 })
+
+REVIEW_REPAIR_GUIDANCE = {
+    "acceptance_gap": "re-check every acceptance criterion against both implementation and task-specific tests",
+    "config_contract": "use the approved versioned configuration/contract and reject unknown or unapproved values",
+    "correctness_risk": "check boundary conditions, error paths, and compatibility with existing behavior",
+    "file_collision": "detect exact and case-insensitive collisions before any write and preserve existing files",
+    "input_validation": "validate types, shapes, bounds, and malformed input before processing or side effects",
+    "integration_risk": "check the current integration base, imports, dependencies, and patch compatibility",
+    "ordering_semantics": "make ordering, sequence, and bounded-result semantics explicit and test them",
+    "path_safety": "reject traversal, symlink, delete, rename, and escaped-root paths before writes",
+    "payload_exposure": "return only the explicitly approved metadata; never expose task payloads, receipts, secrets, or raw model text",
+    "permission_scope": "allow only explicitly approved scopes and reject privilege escalation or inferred permissions",
+    "review_concern": "re-read the objective and inspect the complete change for an unaddressed concern",
+    "review_output_invalid": "produce a normal source change and keep the implementation independently reviewable",
+    "security_boundary": "preserve repository, data, process, network, and privilege boundaries",
+    "source_provenance": "require and record the exact approved source identity before copying or applying content",
+    "state_transition": "make duplicate, stale, and invalid state transitions fail closed without extra events",
+    "test_gap": "add focused deterministic coverage for the disputed behavior without weakening existing tests",
+}
 
 
 class ChangeValidationError(ValueError):
@@ -89,17 +117,52 @@ def review_finding_codes(findings: object) -> tuple[str, ...]:
             codes.add("review_output_invalid")
             continue
         text = finding.casefold()
-        if any(word in text for word in ("secret", "sensitive", "payload", "private", "credential", "permission", "expos")):
-            codes.add("security_boundary")
-        elif any(word in text for word in ("test", "coverage", "assert", "regression")):
+        matched = False
+        if any(word in text for word in ("payload", "receipt", "private", "secret", "sensitive", "credential", "raw model", "expos")):
+            codes.add("payload_exposure")
+            matched = True
+        if any(word in text for word in ("permission", "scope", "privilege", "escalat")):
+            codes.add("permission_scope")
+            matched = True
+        if any(word in text for word in ("symlink", "path", "travers", "escape", "delete", "rename")):
+            codes.add("path_safety")
+            matched = True
+        if any(word in text for word in ("collision", "case-insensitive", "overwrite", "existing file")):
+            codes.add("file_collision")
+            matched = True
+        if any(word in text for word in ("provenance", "source commit", "origin sha", "source sha", "pin", "commit identity")):
+            codes.add("source_provenance")
+            matched = True
+        if any(word in text for word in ("config", "registry", "hardcod", "module contract", "approved module")):
+            codes.add("config_contract")
+            matched = True
+        if any(word in text for word in ("duplicate", "stale lease", "state transition", "idempot")):
+            codes.add("state_transition")
+            matched = True
+        if any(word in text for word in ("order", "ordering", "sequence", "bounded result", "limit")):
+            codes.add("ordering_semantics")
+            matched = True
+        if any(word in text for word in ("type", "malformed", "input", "shape", "validation")):
+            codes.add("input_validation")
+            matched = True
+        if any(word in text for word in ("test", "coverage", "assert", "regression")):
             codes.add("test_gap")
-        elif any(word in text for word in ("acceptance", "criterion", "criteria", "objective", "requirement")):
+            matched = True
+        if any(word in text for word in ("acceptance", "criterion", "criteria", "objective", "requirement")):
             codes.add("acceptance_gap")
-        elif any(word in text for word in ("integration", "conflict", "merge", "dependency", "base")):
+            matched = True
+        if any(word in text for word in ("integration", "conflict", "merge", "dependency", "base")):
             codes.add("integration_risk")
-        else:
+            matched = True
+        if "security" in text:
+            codes.add("security_boundary")
+            matched = True
+        if not matched:
             codes.add("correctness_risk")
-    return tuple(sorted(codes)) or ("review_concern",)
+    # A repair receipt must remain small enough to reach the next worker. Keep
+    # deterministic order and cap the number of categories; raw findings never
+    # enter SQLite, progress events, or prompts.
+    return tuple(sorted(codes))[:6] or ("review_concern",)
 
 
 def review_failure_code(prefix: str, findings: object) -> str:
@@ -204,12 +267,17 @@ def check_changes(worktree: Path, base_sha: str) -> list[str]:
 
 
 def make_prompt(task: dict, sha: str, architecture_sha: str, role: str, previous_error: str = "") -> str:
+    guidance = []
+    if previous_error:
+        categories = [part for part in re.split(r"[:,]", previous_error) if part in REVIEW_REPAIR_GUIDANCE]
+        guidance = [REVIEW_REPAIR_GUIDANCE[category] for category in dict.fromkeys(categories)]
     return (f"You are Astra One SDA {role}, an implementation agent in an isolated Linux Git worktree.\n"
             f"Task: {task['task_id']} (area {task['area']})\n"
             f"Pinned source commit: {sha}; approved architecture SHA256: {architecture_sha}.\n"
             f"Objective: {task['objective']}\n"
             "Acceptance criteria:\n" + "\n".join("- " + x for x in task["acceptance"]) + "\n"
-            + ("Previous attempt failure (for targeted repair): " + previous_error[:160] + "\n" if previous_error else "")
+            + ("Previous bounded failure categories (for targeted repair): " + previous_error[:160] + "\n" if previous_error else "")
+            + ("Repair checklist:\n" + "\n".join("- " + item for item in guidance) + "\n" if guidance else "")
             + "Only edit source files needed for this task within this workspace. Do not commit, push, delete, rename, "
             "modify AGENTS/security/CI policy, change Git refs, fetch secrets, access private OS files, or deploy. "
             "Do not launch subagents. Keep changes small and testable. Report what was changed; do not claim tests passed.\n")
@@ -589,6 +657,11 @@ def execute_claim(state: State, item: dict, *, slot: int, model: str, effort: st
     sha=state.get("integration_sha")
     tools=0
     started=time.monotonic()
+    prior_errors = state.failure_codes(tid)
+    # Preserve a short, bounded history so a repairer can distinguish a new
+    # failure from a repeated one. State.failure_codes contains only stable
+    # categories, never model findings or command output.
+    prior_error = ";".join(prior_errors[-3:]) if prior_errors else item["prior_error"]
     def emit(stage: str, step: str, result: str = ""):
         state.emit(tid,run_id,stage=stage,step=step,branch=branch,base_sha=sha,
                    tools=tools,attempt=attempt,elapsed=int(time.monotonic()-started),result=result)
@@ -599,7 +672,7 @@ def execute_claim(state: State, item: dict, *, slot: int, model: str, effort: st
         state.set_task(tid,"coding",fields={"base_sha":sha,"branch":branch,"worktree":str(worktree)})
         emit("preflight",f"worker_{slot}_leased")
         emit("coding",f"{role}_{slot}_codex_start")
-        prompt=make_prompt(task,sha,state.get("architecture_sha"),role,item["prior_error"])
+        prompt=make_prompt(task,sha,state.get("architecture_sha"),role,prior_error)
         rc,tools,reason=codex_call(worktree=worktree,prompt=prompt,home=state.home,state=state,
                                    model=model,effort=effort,sandbox="workspace-write",timeout=timeout,role=role,
                                    danger_bypass=danger_bypass)

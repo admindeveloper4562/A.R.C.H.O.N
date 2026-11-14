@@ -19,6 +19,7 @@ from astra_one.linux_runtime import (
     codex_command,
     integrate,
     ensure_integration,
+    make_prompt,
     review_failure_code,
     review_finding_codes,
     worker_failure_code,
@@ -66,11 +67,24 @@ class LinuxSDATests(unittest.TestCase):
             "test coverage does not prove the acceptance criteria",
             "ordering behavior is ambiguous",
         ]
-        self.assertEqual(review_finding_codes(findings), ("correctness_risk", "security_boundary", "test_gap"))
+        self.assertEqual(review_finding_codes(findings), ("acceptance_gap", "ordering_semantics", "payload_exposure", "test_gap"))
         code = review_failure_code("qc_rejected", findings)
-        self.assertEqual(code, "qc_rejected:correctness_risk,security_boundary,test_gap")
+        self.assertEqual(code, "qc_rejected:acceptance_gap,ordering_semantics,payload_exposure,test_gap")
         self.assertEqual(worker_failure_code(ReviewFailure(code)), code)
         self.assertLessEqual(len(code), 160)
+
+    def test_repair_prompt_contains_only_bounded_guidance(self):
+        prompt = make_prompt(
+            task(1),
+            "a" * 40,
+            "b" * 64,
+            "repairer",
+            "merger_rejected:payload_exposure,source_provenance",
+        )
+        self.assertIn("Previous bounded failure categories", prompt)
+        self.assertIn("never expose task payloads", prompt)
+        self.assertIn("exact approved source identity", prompt)
+        self.assertNotIn("private payload may be exposed", prompt)
 
     def test_source_dirty_refused(self):
         (self.repo/"README.md").write_text("modified\n")
