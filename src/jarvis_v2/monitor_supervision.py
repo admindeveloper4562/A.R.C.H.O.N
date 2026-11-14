@@ -99,7 +99,7 @@ def collect(db: sqlite3.Connection, limit: int = 10) -> dict:
             "GROUP BY error_code ORDER BY n DESC,error_code LIMIT 8"
         ).fetchall()
         data["failure_codes"] = [
-            {"code": _safe(row["error_code"]), "count": int(row["n"])}
+            {"code": _safe(str(row["error_code"]).split(":", 1)[0].split("=", 1)[0]), "count": int(row["n"])}
             for row in rows
         ]
     else:
