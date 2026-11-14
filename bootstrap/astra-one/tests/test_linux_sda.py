@@ -424,6 +424,27 @@ class LinuxSDATests(unittest.TestCase):
         self.assertIn("bounded Markdown or JSON evidence receipt", captured["prompt"])
         self.assertIn("Do not require the worker to invent main", captured["prompt"])
 
+    def test_merger_retries_once_after_invalid_findings_shape(self):
+        calls = []
+
+        def fake_merger_call(*, output_file, **kwargs):
+            calls.append(kwargs["prompt"])
+            if len(calls) == 1:
+                output_file.write_text('{"verdict":"PASS","findings":{"invalid":"shape"}}')
+            else:
+                output_file.write_text('{"verdict":"PASS","findings":[]}')
+            return 0, 0, "ok"
+
+        with patch("astra_one.linux_runtime.codex_call", side_effect=fake_merger_call):
+            accepted, reason = merger_review_result(
+                self.state, self.repo, "BASE-001", b"candidate\n",
+                model="gpt-5.6-luna", effort="medium",
+            )
+        self.assertTrue(accepted)
+        self.assertEqual(reason, "merger_pass")
+        self.assertEqual(len(calls), 2)
+        self.assertIn("Schema retry", calls[1])
+
     def test_static_change_rejects_invalid_python(self):
         b=git(self.repo,"rev-parse","HEAD")
         (self.repo/"bad.py").write_text("def (")
@@ -557,6 +578,19 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change','status':
         self.assertFalse((self.repo/"added.py").exists())
         self.assertEqual(git(self.repo,"branch","--show-current"),"develop")
         self.assertNotEqual(self.state.get("integration_sha"),self.state.get("source_sha"))
+
+    def test_project_approval_moves_candidate_to_serial_merge_queue(self):
+        self.state.add_tasks(task(1))
+        self.state.claim()
+        candidate_sha = "a" * 40
+        self.state.set_task("ASTRA-001", "awaiting_review", fields={
+            "project_id": "PROJECT-1", "candidate_sha": candidate_sha, "qc_evidence": "{\"independent_qc\":\"passed\"}",
+        })
+        self.state.approve("ASTRA-001")
+        with self.state.db() as db:
+            self.assertEqual(db.execute("SELECT status FROM tasks WHERE id='ASTRA-001'").fetchone()[0], "approved")
+            self.assertEqual(db.execute("SELECT count(*) FROM review_queue WHERE parent_id='ASTRA-001'").fetchone()[0], 0)
+            self.assertEqual(db.execute("SELECT candidate_sha FROM merge_queue WHERE parent_id='ASTRA-001'").fetchone()[0], candidate_sha)
 
     def test_merger_rejection_fails_task_and_preserves_rebuild_queue(self):
         self.state.add_tasks(task(1))

@@ -648,6 +648,7 @@ class State:
                         (tid, project_id, row["candidate_sha"], now()),
                     )
                 elif status == "approved":
+                    db.execute("DELETE FROM review_queue WHERE parent_id=?", (tid,))
                     db.execute(
                         "INSERT INTO merge_queue(parent_id,project_id,candidate_sha,created_at) VALUES(?,?,?,?) "
                         "ON CONFLICT(parent_id) DO UPDATE SET candidate_sha=excluded.candidate_sha",
@@ -779,10 +780,22 @@ class State:
 
     def approve(self, tid: str):
         with self.db() as db:
-            row=db.execute("SELECT status,qc_evidence FROM tasks WHERE id=?",(tid,)).fetchone()
+            db.execute("BEGIN IMMEDIATE")
+            row=db.execute(
+                "SELECT status,qc_evidence,project_id,candidate_sha FROM tasks WHERE id=?", (tid,)
+            ).fetchone()
             if not row or row["status"]!="awaiting_review" or not row["qc_evidence"]:
+                db.execute("ROLLBACK")
                 raise ValueError("task must pass independent QC before approval")
             db.execute("UPDATE tasks SET status='approved',updated_at=? WHERE id=?",(now(),tid))
+            if row["project_id"]:
+                db.execute("DELETE FROM review_queue WHERE parent_id=?", (tid,))
+                db.execute(
+                    "INSERT INTO merge_queue(parent_id,project_id,candidate_sha,created_at) VALUES(?,?,?,?) "
+                    "ON CONFLICT(parent_id) DO UPDATE SET candidate_sha=excluded.candidate_sha",
+                    (tid, row["project_id"], row["candidate_sha"], now()),
+                )
+            db.execute("COMMIT")
 
     def overview(self) -> dict:
         with self.db() as db:
