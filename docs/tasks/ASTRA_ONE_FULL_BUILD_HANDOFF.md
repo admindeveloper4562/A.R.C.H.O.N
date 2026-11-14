@@ -30,7 +30,7 @@ The original dependency DAG is preserved: 247 nodes, 446 dependency edges, zero 
 
 ## 3. Child task execution
 
-Each child has a stable ID such as `CORE-004.S03`, sequence, kind, role, instruction, deliverable, completion test and dependency. Child steps are sequential by default. Audit tasks produce inventories/findings; design tasks produce contracts and test matrices; implementation tasks inspect/design/code/test; migrations pin source SHA, inventory provenance, dry-run, apply bounded changes, verify and prove rollback; verification tasks execute a declared matrix. Owner-gated tasks wait for explicit owner response.
+Each child has a stable ID such as `CORE-004.S03`, sequence, kind, role, instruction, deliverable, completion test and dependency. Child steps are sequential by default. Audit tasks produce inventories/findings; design tasks produce contracts and test matrices; implementation tasks inspect/design/code/test; migrations pin source SHA, inventory provenance, dry-run, apply bounded changes, verify and prove rollback; verification tasks execute a declared matrix. Owner-gated tasks wait for explicit owner response. The expanded plan flags manual owner gates on BASE-008, BASE-016, SDA-027, FIN-001, FIN-016, REL-018, REL-020, REL-021 and MIG-012; do not auto-satisfy them.
 
 The JSON index is only a manifest. The original parent plan remains the parent definition, and Astra One's SQLite ledger is the canonical live state after import. Do not create a second independent queue.
 
