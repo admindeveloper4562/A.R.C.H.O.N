@@ -22,6 +22,7 @@ ALLOWED_SUFFIXES = {".py", ".js", ".jsx", ".ts", ".tsx", ".json", ".toml", ".md"
 MAX_FILES = 30
 MAX_BYTES = 2_000_000
 STOP_POLL = 0.3
+AUDIT_REPORT_SUFFIXES = frozenset({".md", ".json"})
 CHANGE_FAILURE_CODES = frozenset({
     "no_file_changes",
     "changed_file_limit_exceeded",
@@ -210,6 +211,23 @@ def _task_allows_ci_workflow(task: dict | None, path: str) -> bool:
     )
 
 
+def _task_allows_audit_report(task: dict | None, path: str) -> bool:
+    """Allow audit-mode tasks to produce only bounded documentation receipts."""
+    if not isinstance(task, dict) or task.get("execution_mode") != "audit":
+        return False
+    children = task.get("subtasks", [])
+    if not isinstance(children, list) or not any(
+        isinstance(child, dict) and child.get("kind") == "record" for child in children
+    ):
+        return False
+    pure = PurePosixPath(path)
+    return (
+        len(pure.parts) >= 2
+        and pure.parts[0] == "docs"
+        and pure.suffix.lower() in AUDIT_REPORT_SUFFIXES
+    )
+
+
 def _git_common_dir(repo: Path) -> Path:
     """Resolve the repository object store shared by a root or worktree."""
     raw = Path(git(repo, "rev-parse", "--git-common-dir"))
@@ -255,10 +273,13 @@ def check_changes(worktree: Path, base_sha: str, *, task: dict | None = None) ->
         path=item[3:]
         pure=PurePosixPath(path)
         ci_workflow = _task_allows_ci_workflow(task, path)
+        audit_report = _task_allows_audit_report(task, path)
+        if isinstance(task, dict) and task.get("execution_mode") == "audit" and not audit_report:
+            raise ChangeValidationError("unsafe_changed_path", "audit_report_only")
         if (any(p in PROTECTED_PARTS for p in pure.parts) or pure.name in PROTECTED) and not ci_workflow:
             raise ChangeValidationError("protected_file_modified")
         hidden_or_traversal = any(p in (".", "..") or p.startswith(".") for p in pure.parts)
-        if not path or len(path) > 250 or pure.is_absolute() or (hidden_or_traversal and not ci_workflow) or pure.suffix.lower() not in ALLOWED_SUFFIXES:
+        if not path or len(path) > 250 or pure.is_absolute() or (hidden_or_traversal and not ci_workflow and not audit_report) or pure.suffix.lower() not in ALLOWED_SUFFIXES:
             raise ChangeValidationError("unsafe_changed_path", "hidden_or_unsupported_path")
         target=worktree.joinpath(*pure.parts)
         current=worktree
@@ -310,6 +331,17 @@ def make_prompt(task: dict, sha: str, architecture_sha: str, role: str, previous
                 f"  evidence_required: {child['evidence_required']}",
             ))
         child_packet = "\n" + "\n".join(child_lines) + "\n"
+    audit_guidance = ""
+    if task.get("execution_mode") == "audit":
+        audit_guidance = (
+            "Audit-mode contract: this is a bounded, read-only audit. Inspect only the repository and the "
+            "explicitly named host metadata needed for the task, such as Git refs, worktree registrations, "
+            "marker presence and timestamps. Do not read secrets, credentials, private prompts, full database "
+            "payloads, or unrelated OS files; never modify host state, Git refs, databases, services or worktrees. "
+            "Record inaccessible or unavailable evidence as unknown rather than inferring it. The only allowed "
+            "candidate change is a versioned Markdown or JSON report below docs/. Do not add tools, tests, source, "
+            "configuration, policies or generated executables for an audit-only task.\n"
+        )
     return (f"You are Astra One SDA {role}, an implementation agent in an isolated Linux Git worktree.\n"
             f"Task: {task['task_id']} (area {task['area']})\n"
             f"Pinned source commit: {sha}; approved architecture SHA256: {architecture_sha}.\n"
@@ -318,8 +350,10 @@ def make_prompt(task: dict, sha: str, architecture_sha: str, role: str, previous
             + child_packet
             + ("Previous bounded failure categories (for targeted repair): " + previous_error[:160] + "\n" if previous_error else "")
             + ("Repair checklist:\n" + "\n".join("- " + item for item in guidance) + "\n" if guidance else "")
+            + audit_guidance
             + "Only edit source files needed for this task within this workspace. Do not commit, push, delete, rename, "
-            "modify AGENTS/security/CI policy, change Git refs, fetch secrets, access private OS files, or deploy. "
+            "modify AGENTS/security/CI policy, change Git refs, fetch secrets, access private OS files except "
+            "the narrow read-only audit metadata explicitly authorized above, or deploy. "
             "Do not launch subagents. Keep changes small and testable. Report what was changed; do not claim tests passed.\n")
 
 
@@ -468,6 +502,15 @@ def independent_qc(state: State, worktree: Path, task: dict, *, model: str, effo
     result_file=state.home/"private"/("qc-"+uuid.uuid4().hex+".json")
     validated_paths = changed_files or []
     path_context = "\n".join("- " + path for path in validated_paths)
+    audit_context = ""
+    if task.get("execution_mode") == "audit":
+        audit_context = (
+            "Audit-mode review contract: the expected candidate is a bounded Markdown or JSON report under "
+            "docs/. Validate that it records facts versus unknowns, does not disclose sensitive contents, and "
+            "does not claim inaccessible host or remote evidence. Host metadata paths, hashes, marker states and "
+            "explicit unknowns are allowed evidence; they are not permission escalation by themselves. Reject "
+            "source, executable, test, configuration, policy or host-state changes.\n"
+        )
     prompt=("You are the independent SDA quality reviewer. Read the Git worktree diff and relevant files. "
             "Do NOT modify files or run tests. Check this task against objective and criteria, "
             "security issues, tests, and unexpected changes. Return ONLY compact JSON: "
@@ -477,7 +520,8 @@ def independent_qc(state: State, worktree: Path, task: dict, *, model: str, effo
             + (path_context or "- none") + "\n"
             "Git's ordinary diff omits untracked files; inspect every listed path directly and do not reject "
             "a candidate solely because its untracked file is absent from `git diff`.\n"
-            "Task: "+task["task_id"]+"\nObjective: "+task["objective"]+"\nCriteria:\n"+
+            + audit_context
+            + "Task: "+task["task_id"]+"\nObjective: "+task["objective"]+"\nCriteria:\n"+
             "\n".join("- "+x for x in task["acceptance"]))
     try:
         rc,_,reason=codex_call(worktree=worktree,prompt=prompt,home=state.home,state=state,

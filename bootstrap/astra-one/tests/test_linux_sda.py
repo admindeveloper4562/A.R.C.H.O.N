@@ -42,6 +42,26 @@ def git_repo(root):
 def task(i, deps=None):
     return {"task_id":f"ASTRA-{i:03}","objective":"Build a tiny independent implementation slice", "acceptance":["Must have working tests"],"depends_on":deps or [],"area":"foundation"}
 
+
+def audit_task(i=1):
+    return {
+        "task_id": f"BASE-{i:03}",
+        "objective": "Capture bounded repository and host metadata",
+        "acceptance": ["The report distinguishes facts from unknowns"],
+        "area": "base",
+        "execution_mode": "audit",
+        "subtasks": [{
+            "id": f"BASE-{i:03}.S01",
+            "kind": "record",
+            "sequence": 1,
+            "depends_on": [],
+            "instruction": "Write the bounded report.",
+            "deliverable": "Versioned report",
+            "done_when": "Facts and unknowns are explicit",
+            "evidence_required": True,
+        }],
+    }
+
 class LinuxSDATests(unittest.TestCase):
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory()
@@ -86,6 +106,13 @@ class LinuxSDATests(unittest.TestCase):
         self.assertIn("never expose task payloads", prompt)
         self.assertIn("exact approved source identity", prompt)
         self.assertNotIn("private payload may be exposed", prompt)
+
+    def test_audit_prompt_is_report_only_and_metadata_bounded(self):
+        prompt = make_prompt(audit_task(), "a" * 40, "b" * 64, "worker")
+        self.assertIn("Audit-mode contract", prompt)
+        self.assertIn("candidate change is a versioned Markdown or JSON report below docs/", prompt)
+        self.assertIn("Record inaccessible or unavailable evidence as unknown", prompt)
+        self.assertIn("Do not add tools, tests, source", prompt)
 
     def test_source_dirty_refused(self):
         (self.repo/"README.md").write_text("modified\n")
@@ -248,6 +275,21 @@ class LinuxSDATests(unittest.TestCase):
         }
         with self.assertRaisesRegex(ValueError,"protected"):
             check_changes(self.repo,b,task=scoped_task)
+
+    def test_audit_scope_accepts_only_documentation_receipts(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        report=self.repo/"docs"/"tasks"/"BASE-001_AUDIT.md"
+        report.parent.mkdir(parents=True)
+        report.write_text("# bounded audit\n")
+        self.assertEqual(check_changes(self.repo,b,task=audit_task()),["docs/tasks/BASE-001_AUDIT.md"])
+
+    def test_audit_scope_rejects_executable_or_test_changes(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        tool=self.repo/"tools"/"audit.py"
+        tool.parent.mkdir(parents=True)
+        tool.write_text("print('not an audit receipt')\n")
+        with self.assertRaisesRegex(ChangeValidationError,"audit_report_only"):
+            check_changes(self.repo,b,task=audit_task())
 
     def test_static_change_rejects_invalid_python(self):
         b=git(self.repo,"rev-parse","HEAD")
