@@ -7,9 +7,11 @@ import os
 from pathlib import Path, PurePosixPath
 import queue
 import re
+import shutil
 import signal
 import stat
 import subprocess
+import tempfile
 import threading
 import time
 import tomllib
@@ -107,7 +109,10 @@ class ChangeValidationError(ValueError):
 class DockerTestError(RuntimeError):
     """A bounded, non-sensitive Docker QC prerequisite failure."""
 
-    CODES = frozenset({"docker_test_config_invalid", "docker_unavailable", "docker_access_denied", "docker_image_missing"})
+    CODES = frozenset({
+        "docker_test_config_invalid", "docker_context_invalid", "docker_unavailable",
+        "docker_access_denied", "docker_image_missing",
+    })
 
     def __init__(self, code: str):
         if code not in self.CODES:
@@ -562,8 +567,44 @@ def codex_call(*, worktree: Path, prompt: str, home: Path, state: State, model: 
     return code,tools,reason
 
 
+def _docker_context(worktree: Path) -> tuple[tempfile.TemporaryDirectory, Path]:
+    """Create a disposable self-contained checkout for isolated Docker tests.
+
+    Linked Git worktrees contain a text ``.git`` pointer whose metadata lives in
+    the source checkout. Mounting only the worktree therefore makes ordinary
+    in-container ``git`` checks fail with exit 128. The test container receives
+    the candidate content, but never the host repository metadata, so build a
+    temporary read-only snapshot with a private Git index instead.
+    """
+    worktree = Path(worktree)
+    if worktree.is_symlink() or not worktree.is_dir():
+        raise DockerTestError("docker_context_invalid")
+    temporary = tempfile.TemporaryDirectory(prefix="astra-docker-context-")
+    staged = Path(temporary.name) / "src"
+    ignored = shutil.ignore_patterns(
+        ".git", "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache",
+        ".test-output", "ci-artifacts", "build", "dist", "node_modules",
+    )
+    try:
+        shutil.copytree(worktree, staged, symlinks=True, ignore=ignored)
+        for root, directories, files in os.walk(staged, followlinks=False):
+            if any((Path(root) / name).is_symlink() for name in (*directories, *files)):
+                raise DockerTestError("docker_context_invalid")
+        git(staged, "init", "--quiet", "-b", "develop")
+        git(staged, "add", "--all")
+        git(staged, "-c", "user.name=Astra One", "-c", "user.email=astra-one@local.invalid",
+            "commit", "--quiet", "-m", "isolated candidate snapshot")
+        return temporary, staged
+    except DockerTestError:
+        temporary.cleanup()
+        raise
+    except (OSError, ValueError, subprocess.SubprocessError) as ex:
+        temporary.cleanup()
+        raise DockerTestError("docker_context_invalid") from ex
+
+
 def docker_test(worktree: Path, image: str, command: list[str], timeout: int = 300) -> dict:
-    """Run generated tests without network in an existing local Docker image."""
+    """Run candidate tests without network in an existing local Docker image."""
     if not image or not re.fullmatch(r"[a-zA-Z0-9_.:/@-]{1,160}",image):
         raise DockerTestError("docker_test_config_invalid")
     if not command or len(command)>16 or any(not isinstance(x,str) or not 0<len(x)<200 for x in command):
@@ -578,22 +619,28 @@ def docker_test(worktree: Path, image: str, command: list[str], timeout: int = 3
         if "permission denied" in detail or "connect to the docker api" in detail:
             raise DockerTestError("docker_access_denied")
         raise DockerTestError("docker_image_missing")
-    args=["docker","run","--rm","--pull=never","--network=none","--read-only",
-          "--cap-drop=ALL","--security-opt=no-new-privileges","--pids-limit=128","--memory=1g","--cpus=2",
-          "--user=65534:65534","--tmpfs=/tmp:rw,nosuid,nodev,size=128m",
-          "--mount",f"type=bind,src={worktree.resolve()},dst=/src,readonly","-w","/src",
-          "-e","HOME=/tmp","-e","PYTHONDONTWRITEBYTECODE=1","-e","PYTHONPATH=/src/src",image]+command
+    temporary, staged = _docker_context(worktree)
     try:
-        finished=subprocess.run(args,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,timeout=timeout,check=False)
-        # Evidence captures exit codes only; not logs (may contain secrets).
-        output=(finished.stdout+"\n"+finished.stderr)[-20000:]
-        ran=True
-        if len(command)>=3 and command[:3] in (["python3","-m","unittest"],["python","-m","unittest"]):
-            count=re.search(r"Ran (\d+) tests?",output)
-            ran=bool(count and int(count.group(1))>=1)
-        return {"passed":finished.returncode==0 and ran,"exit_code":finished.returncode,"sandbox":"docker_no_network","tests_detected":ran}
-    except subprocess.TimeoutExpired:
-        return {"passed":False,"exit_code":124,"sandbox":"docker_timeout"}
+        args=["docker","run","--rm","--pull=never","--network=none","--read-only",
+              "--cap-drop=ALL","--security-opt=no-new-privileges","--pids-limit=128","--memory=1g","--cpus=2",
+              "--user=65534:65534","--tmpfs=/tmp:rw,nosuid,nodev,size=128m",
+              "--mount",f"type=bind,src={staged},dst=/src,readonly","-w","/src",
+              "-e","HOME=/tmp","-e","PYTHONDONTWRITEBYTECODE=1","-e","PYTHONPATH=/src/src",
+              "-e","GIT_CONFIG_COUNT=1","-e","GIT_CONFIG_KEY_0=safe.directory",
+              "-e","GIT_CONFIG_VALUE_0=/src",image]+command
+        try:
+            finished=subprocess.run(args,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,timeout=timeout,check=False)
+            # Evidence captures exit codes only; not logs (may contain secrets).
+            output=(finished.stdout+"\n"+finished.stderr)[-20000:]
+            ran=True
+            if len(command)>=3 and command[:3] in (["python3","-m","unittest"],["python","-m","unittest"]):
+                count=re.search(r"Ran (\d+) tests?",output)
+                ran=bool(count and int(count.group(1))>=1)
+            return {"passed":finished.returncode==0 and ran,"exit_code":finished.returncode,"sandbox":"docker_no_network","tests_detected":ran}
+        except subprocess.TimeoutExpired:
+            return {"passed":False,"exit_code":124,"sandbox":"docker_timeout"}
+    finally:
+        temporary.cleanup()
 
 def shutil_which(name: str) -> str | None:
     import shutil
@@ -735,6 +782,7 @@ SAFE_WORKER_FAILURE_CODES = CHANGE_FAILURE_CODES | frozenset({
     "worker_timeout",
     "worker_io_error",
     "docker_test_config_invalid",
+    "docker_context_invalid",
     "docker_unavailable",
     "docker_access_denied",
     "docker_image_missing",

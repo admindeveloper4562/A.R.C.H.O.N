@@ -17,6 +17,7 @@ from astra_one.linux_runtime import (
     check_changes,
     codex_call,
     codex_command,
+    docker_test,
     integrate,
     merger_review_result,
     _bounded_patch_preview,
@@ -485,6 +486,35 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change','status':
                               model="gpt-5.6-luna",effort="medium",sandbox="workspace-write",timeout=60)
         self.assertEqual(result,(126,0,"sandbox_unavailable"))
         start.assert_not_called()
+
+    def test_docker_qc_stages_linked_worktree_with_private_git_index(self):
+        candidate = self.base / "linked-candidate"
+        candidate.mkdir()
+        (candidate / ".git").write_text("gitdir: /outside/metadata\n")
+        (candidate / "tests").mkdir()
+        (candidate / "tests" / "test_candidate.py").write_text(
+            "import unittest\nclass T(unittest.TestCase):\n    def test_ok(self): pass\n"
+        )
+        docker_calls = []
+        real_run = subprocess.run
+
+        def fake_run(args, *rest, **kwargs):
+            if args and args[0] == "docker":
+                docker_calls.append(list(args))
+                if args[1:3] == ["image", "inspect"]:
+                    return subprocess.CompletedProcess(args, 0, "", "")
+                return subprocess.CompletedProcess(args, 0, "Ran 1 test in 0.01s\nOK\n", "")
+            return real_run(args, *rest, **kwargs)
+
+        with patch("astra_one.linux_runtime.subprocess.run", side_effect=fake_run):
+            result = docker_test(candidate, "python:3.12-slim", ["python3", "-m", "unittest", "discover"])
+
+        self.assertTrue(result["passed"])
+        mount = docker_calls[1][docker_calls[1].index("--mount") + 1]
+        staged = Path(mount.split(",", 2)[1].split("=", 1)[1])
+        self.assertNotEqual(staged, candidate.resolve())
+        self.assertFalse(staged.exists())
+        self.assertIn("GIT_CONFIG_VALUE_0=/src", docker_calls[1])
 
     def test_five_worker_parallel_scheduler(self):
         self.state.add_tasks([task(i) for i in range(1,6)])
