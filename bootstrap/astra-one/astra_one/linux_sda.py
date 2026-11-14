@@ -66,7 +66,7 @@ CREATE INDEX IF NOT EXISTS idx_event_sync ON events(synced,time);
 """
 
 def now() -> str:
-    return dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
+    return dt.datetime.now(dt.timezone.utc).isoformat(timespec="microseconds")
 
 def git(repo: Path, *args: str, timeout: int = 90) -> str:
     result = subprocess.run(["git", "-C", str(repo), *args], text=True,
@@ -275,10 +275,18 @@ class State:
     def failure_codes(self, tid: str) -> list[str]:
         """Return bounded failure codes in attempt order; never returns model text."""
         with self.db() as db:
-            return [str(row[0])[:160] for row in db.execute(
-                "SELECT error_code FROM runs WHERE task_id=? AND error_code<>'' ORDER BY attempt,started_at",
-                (tid,)
-            )]
+            epoch = db.execute("SELECT value FROM settings WHERE key=?", (f"retry_epoch:{tid}",)).fetchone()
+            if epoch:
+                rows = db.execute(
+                    "SELECT error_code FROM runs WHERE task_id=? AND error_code<>'' AND started_at>? "
+                    "ORDER BY attempt,started_at", (tid, epoch[0])
+                )
+            else:
+                rows = db.execute(
+                    "SELECT error_code FROM runs WHERE task_id=? AND error_code<>'' ORDER BY attempt,started_at",
+                    (tid,)
+                )
+            return [str(row[0])[:160] for row in rows]
 
     def emit(self, tid: str, run_id: str, *, stage: str, step: str, branch: str, base_sha: str,
              tools: int = 0, attempt: int = 1, elapsed: int = 0, result: str = ""):
@@ -338,6 +346,33 @@ class State:
             if not row or row["status"] not in {"failed","interrupted","conflict","stopped"} or row["attempt"]>=MAX_FAILURES:
                 raise ValueError("only failed/interrupted/conflict/stopped tasks below retry ceiling can retry")
             db.execute("UPDATE tasks SET status='queued',available_at=0,updated_at=? WHERE id=?",(now(),tid))
+
+    def reopen_failed(self, task_ids: list[str]) -> list[str]:
+        """Start an explicit new bounded repair generation without erasing history."""
+        if not task_ids or len(task_ids) > 100 or len(set(task_ids)) != len(task_ids):
+            raise ValueError("one or more task IDs required")
+        with self.master_lock():
+            with self.db() as db:
+                db.execute("BEGIN IMMEDIATE")
+                reopened = []
+                epoch = now()
+                for tid in task_ids:
+                    row = db.execute("SELECT status FROM tasks WHERE id=?", (tid,)).fetchone()
+                    if not row or row["status"] != "failed":
+                        raise ValueError("only failed tasks can start a new repair generation")
+                    db.execute(
+                        "UPDATE tasks SET status='queued',attempt=0,available_at=0,last_error='',"
+                        "candidate_sha='',changed_files='[]',qc_evidence='',base_sha='',branch='',worktree='',updated_at=? "
+                        "WHERE id=?", (epoch, tid)
+                    )
+                    db.execute(
+                        "INSERT INTO settings(key,value) VALUES(?,?) "
+                        "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                        (f"retry_epoch:{tid}", epoch),
+                    )
+                    reopened.append(tid)
+                db.execute("COMMIT")
+                return reopened
 
     def approve(self, tid: str):
         with self.db() as db:

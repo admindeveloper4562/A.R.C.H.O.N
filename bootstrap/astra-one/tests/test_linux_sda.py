@@ -135,6 +135,24 @@ class LinuxSDATests(unittest.TestCase):
         self.assertEqual(tuple(row),("","","[]","","","",""))
         self.assertEqual(self.state.failure_codes("ASTRA-001"),["no_file_changes"])
 
+    def test_reopen_failed_starts_new_generation_without_erasing_history(self):
+        self.state.add_tasks(task(1))
+        for code in ("qc_rejected:input_validation", "qc_rejected:permission_scope"):
+            self.state.claim()
+            self.state.set_task("ASTRA-001", "failed", error=code)
+            if code != "qc_rejected:permission_scope":
+                self.state.retry("ASTRA-001")
+
+        self.assertEqual(self.state.reopen_failed(["ASTRA-001"]), ["ASTRA-001"])
+        claim = self.state.claim()
+        self.assertEqual(claim["attempt"], 1)
+        self.assertEqual(claim["prior_error"], "")
+        self.assertEqual(self.state.failure_codes("ASTRA-001"), [])
+        with self.state.db() as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM runs WHERE task_id='ASTRA-001'").fetchone()[0], 3)
+        self.state.set_task("ASTRA-001", "failed", error="qc_rejected:permission_scope")
+        self.assertEqual(self.state.failure_codes("ASTRA-001"), ["qc_rejected:permission_scope"])
+
     def test_plan_is_atomic(self):
         with self.assertRaisesRegex(ValueError,"dependencies"):
             self.state.add_tasks([task(1),task(2,["ASTRA-999"])])
