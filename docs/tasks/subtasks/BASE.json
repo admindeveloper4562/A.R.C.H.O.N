@@ -1,0 +1,1512 @@
+{
+  "schema": "jarvis.v2.subtask-module/1",
+  "created": "2026-11-14",
+  "source_parent_plan_blob_sha": "36e674f4e58fc19aa8158da42d802b9599a23763",
+  "module": "BASE",
+  "module_name": "M0 — Source audit, safety, acceptance baseline",
+  "parent_count": 16,
+  "subtask_count": 69,
+  "parents": [
+    {
+      "parent_id": "BASE-001",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Capture clean and dirty Git states on Ubuntu plus main/develop and draft PR refs",
+      "acceptance": "Host audit records all refs, worktrees, STOP markers and uncommitted changes",
+      "parent_dependencies": [],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "audit",
+      "suggested_scope_roots": [
+        ".github/",
+        "docs/",
+        "config/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Read-only inventory unless explicitly authorized.",
+        "Preserve refs, worktrees, logs and existing data.",
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "BASE-001.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Pin and inspect the repositories, refs, files, PRs, logs, databases or host evidence named by this task and its reuse notes. Record SHAs, timestamps and current state; do not modify inspected sources.",
+          "deliverable": "Evidence inventory with exact refs/SHAs, paths, current behavior and unknowns.",
+          "done_when": "Material claims trace to concrete sources and no inspected source was changed.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-001.S02",
+          "sequence": 2,
+          "kind": "analyze",
+          "title": "Compare evidence to acceptance",
+          "assignee_role": "worker",
+          "instruction": "Compare inspected evidence with the parent objective and acceptance. Identify duplicates, conflicts, gaps, risks, platform constraints and relevant prior mistakes.",
+          "deliverable": "Findings matrix mapping every acceptance clause to evidence, gap or blocker.",
+          "done_when": "Every acceptance clause has a supported finding; assumptions are labelled.",
+          "depends_on": [
+            "BASE-001.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-001.S03",
+          "sequence": 3,
+          "kind": "record",
+          "title": "Record findings and decision",
+          "assignee_role": "worker",
+          "instruction": "Write a task-specific audit/decision record with findings, options, recommendation, rejected alternatives and evidence references.",
+          "deliverable": "Versioned report or decision record in approved docs path.",
+          "done_when": "Report is reproducible and distinguishes fact from inference.",
+          "depends_on": [
+            "BASE-001.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-001.S04",
+          "sequence": 4,
+          "kind": "cross_check",
+          "title": "Independently cross-check evidence",
+          "assignee_role": "worker",
+          "instruction": "Independently re-check critical SHAs, paths, counts and conclusions; confirm no unrelated changes or sensitive data disclosure.",
+          "deliverable": "Review checklist and evidence receipt.",
+          "done_when": "Independent check agrees or unresolved differences keep parent blocked.",
+          "depends_on": [
+            "BASE-001.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "BASE-002",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Resolve GitHub Actions zero-step runner blocker issue 15",
+      "acceptance": "Python and iOS CI jobs allocate runners and actually execute test steps",
+      "parent_dependencies": [],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "ci_local_only",
+      "suggested_scope_roots": [
+        ".github/",
+        "docs/",
+        "config/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Read-only inventory unless explicitly authorized.",
+        "Preserve refs, worktrees, logs and existing data.",
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+      ],
+      "special_instructions": [
+        "Monthly GitHub Actions quota is exhausted. Do not trigger or retry remote workflows. Use local reproduction and leave remote-runner acceptance pending."
+      ],
+      "subtasks": [
+        {
+          "id": "BASE-002.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Inspect workflow definitions, runner labels, job dependencies, issue/log evidence and local commands for Resolve GitHub Actions zero-step runner blocker issue 15. Do not trigger remote GitHub Actions.",
+          "deliverable": "Workflow diagnosis with exact references and quota note.",
+          "done_when": "Root cause is evidence-based; no remote run was triggered.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-002.S02",
+          "sequence": 2,
+          "kind": "reproduce",
+          "title": "Reproduce locally without remote CI",
+          "assignee_role": "worker",
+          "instruction": "Reproduce relevant setup/tests locally or in approved Docker environment, without remote Actions.",
+          "deliverable": "Local reproduction transcript and environment details.",
+          "done_when": "Failure reproduced or inability documented without claiming remote success.",
+          "depends_on": [
+            "BASE-002.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-002.S03",
+          "sequence": 3,
+          "kind": "repair",
+          "title": "Repair workflow configuration",
+          "assignee_role": "worker",
+          "instruction": "Make only the smallest workflow/config/test-harness repair; preserve security and permissions.",
+          "deliverable": "Scoped workflow patch and regression test.",
+          "done_when": "No identified zero-step/static configuration defect remains.",
+          "depends_on": [
+            "BASE-002.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-002.S04",
+          "sequence": 4,
+          "kind": "local_check",
+          "title": "Run local validation",
+          "assignee_role": "worker",
+          "instruction": "Run local equivalents for available build/security/test checks; inspect diff and record exit codes.",
+          "deliverable": "Local validation evidence.",
+          "done_when": "All available local checks pass or show actionable failures.",
+          "depends_on": [
+            "BASE-002.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-002.S05",
+          "sequence": 5,
+          "kind": "defer",
+          "title": "Record remote CI quota deferral",
+          "assignee_role": "worker",
+          "instruction": "Mark hosted runner execution DEFERRED_QUOTA until owner confirms quota availability. Do not fabricate green checks or close parent if remote run is required.",
+          "deliverable": "Deferred remote verification record.",
+          "done_when": "Remote acceptance remains pending.",
+          "depends_on": [
+            "BASE-002.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "BASE-003",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Restore reproducible CI and dependency/secret/security scans",
+      "acceptance": "Fresh PR checks produce pass or actionable failure with artifacts",
+      "parent_dependencies": [
+        "BASE-002"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "ci_local_only",
+      "suggested_scope_roots": [
+        ".github/",
+        "docs/",
+        "config/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Read-only inventory unless explicitly authorized.",
+        "Preserve refs, worktrees, logs and existing data.",
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+      ],
+      "special_instructions": [
+        "Do not trigger GitHub Actions while quota is exhausted. Validate workflow definitions and available checks locally; remote CI remains deferred."
+      ],
+      "subtasks": [
+        {
+          "id": "BASE-003.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Inspect workflow definitions, runner labels, job dependencies, issue/log evidence and local commands for Restore reproducible CI and dependency/secret/security scans. Do not trigger remote GitHub Actions.",
+          "deliverable": "Workflow diagnosis with exact references and quota note.",
+          "done_when": "Root cause is evidence-based; no remote run was triggered.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-003.S02",
+          "sequence": 2,
+          "kind": "reproduce",
+          "title": "Reproduce locally without remote CI",
+          "assignee_role": "worker",
+          "instruction": "Reproduce relevant setup/tests locally or in approved Docker environment, without remote Actions.",
+          "deliverable": "Local reproduction transcript and environment details.",
+          "done_when": "Failure reproduced or inability documented without claiming remote success.",
+          "depends_on": [
+            "BASE-003.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-003.S03",
+          "sequence": 3,
+          "kind": "repair",
+          "title": "Repair workflow configuration",
+          "assignee_role": "worker",
+          "instruction": "Make only the smallest workflow/config/test-harness repair; preserve security and permissions.",
+          "deliverable": "Scoped workflow patch and regression test.",
+          "done_when": "No identified zero-step/static configuration defect remains.",
+          "depends_on": [
+            "BASE-003.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-003.S04",
+          "sequence": 4,
+          "kind": "local_check",
+          "title": "Run local validation",
+          "assignee_role": "worker",
+          "instruction": "Run local equivalents for available build/security/test checks; inspect diff and record exit codes.",
+          "deliverable": "Local validation evidence.",
+          "done_when": "All available local checks pass or show actionable failures.",
+          "depends_on": [
+            "BASE-003.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-003.S05",
+          "sequence": 5,
+          "kind": "defer",
+          "title": "Record remote CI quota deferral",
+          "assignee_role": "worker",
+          "instruction": "Mark hosted runner execution DEFERRED_QUOTA until owner confirms quota availability. Do not fabricate green checks or close parent if remote run is required.",
+          "deliverable": "Deferred remote verification record.",
+          "done_when": "Remote acceptance remains pending.",
+          "depends_on": [
+            "BASE-003.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "BASE-004",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Review unmerged SDA PR chain 6 through 13 and PR 17",
+      "acceptance": "Record merge order, SHA, duplicate code, conflicts, test outcomes and keep/drop rationale",
+      "parent_dependencies": [
+        "BASE-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "audit",
+      "suggested_scope_roots": [
+        ".github/",
+        "docs/",
+        "config/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Read-only inventory unless explicitly authorized.",
+        "Preserve refs, worktrees, logs and existing data.",
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "BASE-004.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Pin and inspect the repositories, refs, files, PRs, logs, databases or host evidence named by this task and its reuse notes. Record SHAs, timestamps and current state; do not modify inspected sources.",
+          "deliverable": "Evidence inventory with exact refs/SHAs, paths, current behavior and unknowns.",
+          "done_when": "Material claims trace to concrete sources and no inspected source was changed.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-004.S02",
+          "sequence": 2,
+          "kind": "analyze",
+          "title": "Compare evidence to acceptance",
+          "assignee_role": "worker",
+          "instruction": "Compare inspected evidence with the parent objective and acceptance. Identify duplicates, conflicts, gaps, risks, platform constraints and relevant prior mistakes.",
+          "deliverable": "Findings matrix mapping every acceptance clause to evidence, gap or blocker.",
+          "done_when": "Every acceptance clause has a supported finding; assumptions are labelled.",
+          "depends_on": [
+            "BASE-004.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-004.S03",
+          "sequence": 3,
+          "kind": "record",
+          "title": "Record findings and decision",
+          "assignee_role": "worker",
+          "instruction": "Write a task-specific audit/decision record with findings, options, recommendation, rejected alternatives and evidence references.",
+          "deliverable": "Versioned report or decision record in approved docs path.",
+          "done_when": "Report is reproducible and distinguishes fact from inference.",
+          "depends_on": [
+            "BASE-004.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-004.S04",
+          "sequence": 4,
+          "kind": "cross_check",
+          "title": "Independently cross-check evidence",
+          "assignee_role": "worker",
+          "instruction": "Independently re-check critical SHAs, paths, counts and conclusions; confirm no unrelated changes or sensitive data disclosure.",
+          "deliverable": "Review checklist and evidence receipt.",
+          "done_when": "Independent check agrees or unresolved differences keep parent blocked.",
+          "depends_on": [
+            "BASE-004.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "BASE-005",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Review PR 5 Workhorse context experiments",
+      "acceptance": "Four modes evaluated and decision documented with measured quality and cost",
+      "parent_dependencies": [
+        "BASE-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "audit",
+      "suggested_scope_roots": [
+        ".github/",
+        "docs/",
+        "config/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Read-only inventory unless explicitly authorized.",
+        "Preserve refs, worktrees, logs and existing data.",
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "BASE-005.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Pin and inspect the repositories, refs, files, PRs, logs, databases or host evidence named by this task and its reuse notes. Record SHAs, timestamps and current state; do not modify inspected sources.",
+          "deliverable": "Evidence inventory with exact refs/SHAs, paths, current behavior and unknowns.",
+          "done_when": "Material claims trace to concrete sources and no inspected source was changed.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-005.S02",
+          "sequence": 2,
+          "kind": "analyze",
+          "title": "Compare evidence to acceptance",
+          "assignee_role": "worker",
+          "instruction": "Compare inspected evidence with the parent objective and acceptance. Identify duplicates, conflicts, gaps, risks, platform constraints and relevant prior mistakes.",
+          "deliverable": "Findings matrix mapping every acceptance clause to evidence, gap or blocker.",
+          "done_when": "Every acceptance clause has a supported finding; assumptions are labelled.",
+          "depends_on": [
+            "BASE-005.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-005.S03",
+          "sequence": 3,
+          "kind": "record",
+          "title": "Record findings and decision",
+          "assignee_role": "worker",
+          "instruction": "Write a task-specific audit/decision record with findings, options, recommendation, rejected alternatives and evidence references.",
+          "deliverable": "Versioned report or decision record in approved docs path.",
+          "done_when": "Report is reproducible and distinguishes fact from inference.",
+          "depends_on": [
+            "BASE-005.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-005.S04",
+          "sequence": 4,
+          "kind": "cross_check",
+          "title": "Independently cross-check evidence",
+          "assignee_role": "worker",
+          "instruction": "Independently re-check critical SHAs, paths, counts and conclusions; confirm no unrelated changes or sensitive data disclosure.",
+          "deliverable": "Review checklist and evidence receipt.",
+          "done_when": "Independent check agrees or unresolved differences keep parent blocked.",
+          "depends_on": [
+            "BASE-005.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "BASE-006",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Review PR 14 TWS and PR 16 Cloudflare independently",
+      "acceptance": "Feature inventory maps files to tests and remaining host/device blockers",
+      "parent_dependencies": [
+        "BASE-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "audit",
+      "suggested_scope_roots": [
+        ".github/",
+        "docs/",
+        "config/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Read-only inventory unless explicitly authorized.",
+        "Preserve refs, worktrees, logs and existing data.",
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "BASE-006.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Pin and inspect the repositories, refs, files, PRs, logs, databases or host evidence named by this task and its reuse notes. Record SHAs, timestamps and current state; do not modify inspected sources.",
+          "deliverable": "Evidence inventory with exact refs/SHAs, paths, current behavior and unknowns.",
+          "done_when": "Material claims trace to concrete sources and no inspected source was changed.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-006.S02",
+          "sequence": 2,
+          "kind": "analyze",
+          "title": "Compare evidence to acceptance",
+          "assignee_role": "worker",
+          "instruction": "Compare inspected evidence with the parent objective and acceptance. Identify duplicates, conflicts, gaps, risks, platform constraints and relevant prior mistakes.",
+          "deliverable": "Findings matrix mapping every acceptance clause to evidence, gap or blocker.",
+          "done_when": "Every acceptance clause has a supported finding; assumptions are labelled.",
+          "depends_on": [
+            "BASE-006.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-006.S03",
+          "sequence": 3,
+          "kind": "record",
+          "title": "Record findings and decision",
+          "assignee_role": "worker",
+          "instruction": "Write a task-specific audit/decision record with findings, options, recommendation, rejected alternatives and evidence references.",
+          "deliverable": "Versioned report or decision record in approved docs path.",
+          "done_when": "Report is reproducible and distinguishes fact from inference.",
+          "depends_on": [
+            "BASE-006.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-006.S04",
+          "sequence": 4,
+          "kind": "cross_check",
+          "title": "Independently cross-check evidence",
+          "assignee_role": "worker",
+          "instruction": "Independently re-check critical SHAs, paths, counts and conclusions; confirm no unrelated changes or sensitive data disclosure.",
+          "deliverable": "Review checklist and evidence receipt.",
+          "done_when": "Independent check agrees or unresolved differences keep parent blocked.",
+          "depends_on": [
+            "BASE-006.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "BASE-007",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Reconcile historical TASKS.md and DEVELOPMENT_LOG with new queue",
+      "acceptance": "Crosswalk old task IDs to new IDs without overwriting historical evidence",
+      "parent_dependencies": [
+        "BASE-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "audit",
+      "suggested_scope_roots": [
+        ".github/",
+        "docs/",
+        "config/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Read-only inventory unless explicitly authorized.",
+        "Preserve refs, worktrees, logs and existing data.",
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "BASE-007.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Pin and inspect the repositories, refs, files, PRs, logs, databases or host evidence named by this task and its reuse notes. Record SHAs, timestamps and current state; do not modify inspected sources.",
+          "deliverable": "Evidence inventory with exact refs/SHAs, paths, current behavior and unknowns.",
+          "done_when": "Material claims trace to concrete sources and no inspected source was changed.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-007.S02",
+          "sequence": 2,
+          "kind": "analyze",
+          "title": "Compare evidence to acceptance",
+          "assignee_role": "worker",
+          "instruction": "Compare inspected evidence with the parent objective and acceptance. Identify duplicates, conflicts, gaps, risks, platform constraints and relevant prior mistakes.",
+          "deliverable": "Findings matrix mapping every acceptance clause to evidence, gap or blocker.",
+          "done_when": "Every acceptance clause has a supported finding; assumptions are labelled.",
+          "depends_on": [
+            "BASE-007.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-007.S03",
+          "sequence": 3,
+          "kind": "record",
+          "title": "Record findings and decision",
+          "assignee_role": "worker",
+          "instruction": "Write a task-specific audit/decision record with findings, options, recommendation, rejected alternatives and evidence references.",
+          "deliverable": "Versioned report or decision record in approved docs path.",
+          "done_when": "Report is reproducible and distinguishes fact from inference.",
+          "depends_on": [
+            "BASE-007.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-007.S04",
+          "sequence": 4,
+          "kind": "cross_check",
+          "title": "Independently cross-check evidence",
+          "assignee_role": "worker",
+          "instruction": "Independently re-check critical SHAs, paths, counts and conclusions; confirm no unrelated changes or sensitive data disclosure.",
+          "deliverable": "Review checklist and evidence receipt.",
+          "done_when": "Independent check agrees or unresolved differences keep parent blocked.",
+          "depends_on": [
+            "BASE-007.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "BASE-008",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Approve final 10-module architecture and explicit Business exclusion",
+      "acceptance": "Signed architecture digest and owner-reviewed scope are stored; Business archived",
+      "parent_dependencies": [
+        "BASE-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": true,
+      "execution_mode": "owner_gate",
+      "suggested_scope_roots": [
+        ".github/",
+        "docs/",
+        "config/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Read-only inventory unless explicitly authorized.",
+        "Preserve refs, worktrees, logs and existing data.",
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "BASE-008.S01",
+          "sequence": 1,
+          "kind": "packet",
+          "title": "Prepare owner decision packet",
+          "assignee_role": "worker",
+          "instruction": "Assemble candidate, architecture, source SHA, scope, test evidence, risks, rollback target and exact requested decision for Approve final 10-module architecture and explicit Business exclusion.",
+          "deliverable": "Owner decision packet tied to immutable candidate SHA.",
+          "done_when": "Packet is complete and does not imply consent.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-008.S02",
+          "sequence": 2,
+          "kind": "prerequisites",
+          "title": "Verify owner-gate prerequisites",
+          "assignee_role": "worker",
+          "instruction": "Verify dependencies, candidate SHA/evidence match, STOP/PAUSE and rollback readiness; list unresolved blockers.",
+          "deliverable": "Gate checklist and evidence hash manifest.",
+          "done_when": "All prerequisites proven or gate remains blocked.",
+          "depends_on": [
+            "BASE-008.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-008.S03",
+          "sequence": 3,
+          "kind": "await_owner",
+          "title": "Wait for explicit owner decision",
+          "assignee_role": "owner",
+          "instruction": "Present the decision packet and wait for explicit approval/rejection. Never infer approval from silence, prior discussion or model output.",
+          "deliverable": "Explicit owner decision receipt or WAITING_OWNER state.",
+          "done_when": "Only owner response satisfies this step.",
+          "depends_on": [
+            "BASE-008.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "BASE-009",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Establish CODING_HANDBOOK.md controlled governance",
+      "acceptance": "Handbook exists with edit approvals and read-only worker enforcement",
+      "parent_dependencies": [
+        "BASE-008"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "design",
+      "suggested_scope_roots": [
+        ".github/",
+        "docs/",
+        "config/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Read-only inventory unless explicitly authorized.",
+        "Preserve refs, worktrees, logs and existing data.",
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "BASE-009.S01",
+          "sequence": 1,
+          "kind": "requirements",
+          "title": "Extract requirements and constraints",
+          "assignee_role": "worker",
+          "instruction": "Extract exact architecture/user requirements, acceptance, dependencies, non-goals and compatibility obligations; list open decisions.",
+          "deliverable": "Requirements-to-acceptance traceability table.",
+          "done_when": "Every acceptance clause and dependency is represented.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-009.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Define typed interfaces, data ownership, schema/API/event shapes, state transitions and compatibility behavior.",
+          "deliverable": "Interface/schema/sequence specification with versioning and ownership.",
+          "done_when": "Contracts are deterministic, testable and match the ten-module architecture.",
+          "depends_on": [
+            "BASE-009.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-009.S03",
+          "sequence": 3,
+          "kind": "safety",
+          "title": "Define safety and failure behavior",
+          "assignee_role": "worker",
+          "instruction": "Specify permissions, privacy/secrets, failure modes, retry/backpressure, idempotency, rollback and STOP behavior.",
+          "deliverable": "Threat/failure matrix and rollback notes.",
+          "done_when": "No implicit privilege expansion; failures are explicit and fail-closed.",
+          "depends_on": [
+            "BASE-009.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-009.S04",
+          "sequence": 4,
+          "kind": "test_plan",
+          "title": "Map acceptance to tests",
+          "assignee_role": "worker",
+          "instruction": "Map each acceptance clause to unit/integration/negative/host tests, expected outputs and fixtures.",
+          "deliverable": "Acceptance test matrix and commands/fixtures plan.",
+          "done_when": "Every clause has a test or explicit manual gate.",
+          "depends_on": [
+            "BASE-009.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-009.S05",
+          "sequence": 5,
+          "kind": "review_design",
+          "title": "Review implementation design",
+          "assignee_role": "supervisor",
+          "instruction": "Cross-check design against module contracts, AGENTS.md, SECURITY.md and CODING_HANDBOOK.md; resolve contradictions before coding.",
+          "deliverable": "Reviewed implementation plan and allowed-path proposal.",
+          "done_when": "No unresolved architecture/security conflict; Supervisor approves scope.",
+          "depends_on": [
+            "BASE-009.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "BASE-010",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Resolve case-colliding docs names and generated build artifacts",
+      "acceptance": "Clean Windows/Linux checkout and packaging policy pass without data loss",
+      "parent_dependencies": [
+        "BASE-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        ".github/",
+        "docs/",
+        "config/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Read-only inventory unless explicitly authorized.",
+        "Preserve refs, worktrees, logs and existing data.",
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "BASE-010.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Resolve case-colliding docs names and generated build artifacts. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-010.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Resolve case-colliding docs names and generated build artifacts: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "BASE-010.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-010.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Resolve case-colliding docs names and generated build artifacts; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "BASE-010.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-010.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Resolve case-colliding docs names and generated build artifacts.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "BASE-010.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-010.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Clean Windows/Linux checkout and packaging policy pass without data loss. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "BASE-010.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-010.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "BASE-010.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "BASE-011",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Audit AGENTS.md SECURITY.md and approval boundaries",
+      "acceptance": "Risk matrix and regression plan for deletion, secrets, external actions",
+      "parent_dependencies": [
+        "BASE-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "audit",
+      "suggested_scope_roots": [
+        ".github/",
+        "docs/",
+        "config/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Read-only inventory unless explicitly authorized.",
+        "Preserve refs, worktrees, logs and existing data.",
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "BASE-011.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Pin and inspect the repositories, refs, files, PRs, logs, databases or host evidence named by this task and its reuse notes. Record SHAs, timestamps and current state; do not modify inspected sources.",
+          "deliverable": "Evidence inventory with exact refs/SHAs, paths, current behavior and unknowns.",
+          "done_when": "Material claims trace to concrete sources and no inspected source was changed.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-011.S02",
+          "sequence": 2,
+          "kind": "analyze",
+          "title": "Compare evidence to acceptance",
+          "assignee_role": "worker",
+          "instruction": "Compare inspected evidence with the parent objective and acceptance. Identify duplicates, conflicts, gaps, risks, platform constraints and relevant prior mistakes.",
+          "deliverable": "Findings matrix mapping every acceptance clause to evidence, gap or blocker.",
+          "done_when": "Every acceptance clause has a supported finding; assumptions are labelled.",
+          "depends_on": [
+            "BASE-011.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-011.S03",
+          "sequence": 3,
+          "kind": "record",
+          "title": "Record findings and decision",
+          "assignee_role": "worker",
+          "instruction": "Write a task-specific audit/decision record with findings, options, recommendation, rejected alternatives and evidence references.",
+          "deliverable": "Versioned report or decision record in approved docs path.",
+          "done_when": "Report is reproducible and distinguishes fact from inference.",
+          "depends_on": [
+            "BASE-011.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-011.S04",
+          "sequence": 4,
+          "kind": "cross_check",
+          "title": "Independently cross-check evidence",
+          "assignee_role": "worker",
+          "instruction": "Independently re-check critical SHAs, paths, counts and conclusions; confirm no unrelated changes or sensitive data disclosure.",
+          "deliverable": "Review checklist and evidence receipt.",
+          "done_when": "Independent check agrees or unresolved differences keep parent blocked.",
+          "depends_on": [
+            "BASE-011.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "BASE-012",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Benchmark actual Linux host and authenticated Codex model availability",
+      "acceptance": "Record exact CPU/RAM/disk, Codex model IDs, quotas and concurrent capacity",
+      "parent_dependencies": [
+        "BASE-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "audit",
+      "suggested_scope_roots": [
+        ".github/",
+        "docs/",
+        "config/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Read-only inventory unless explicitly authorized.",
+        "Preserve refs, worktrees, logs and existing data.",
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "BASE-012.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Pin and inspect the repositories, refs, files, PRs, logs, databases or host evidence named by this task and its reuse notes. Record SHAs, timestamps and current state; do not modify inspected sources.",
+          "deliverable": "Evidence inventory with exact refs/SHAs, paths, current behavior and unknowns.",
+          "done_when": "Material claims trace to concrete sources and no inspected source was changed.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-012.S02",
+          "sequence": 2,
+          "kind": "analyze",
+          "title": "Compare evidence to acceptance",
+          "assignee_role": "worker",
+          "instruction": "Compare inspected evidence with the parent objective and acceptance. Identify duplicates, conflicts, gaps, risks, platform constraints and relevant prior mistakes.",
+          "deliverable": "Findings matrix mapping every acceptance clause to evidence, gap or blocker.",
+          "done_when": "Every acceptance clause has a supported finding; assumptions are labelled.",
+          "depends_on": [
+            "BASE-012.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-012.S03",
+          "sequence": 3,
+          "kind": "record",
+          "title": "Record findings and decision",
+          "assignee_role": "worker",
+          "instruction": "Write a task-specific audit/decision record with findings, options, recommendation, rejected alternatives and evidence references.",
+          "deliverable": "Versioned report or decision record in approved docs path.",
+          "done_when": "Report is reproducible and distinguishes fact from inference.",
+          "depends_on": [
+            "BASE-012.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-012.S04",
+          "sequence": 4,
+          "kind": "cross_check",
+          "title": "Independently cross-check evidence",
+          "assignee_role": "worker",
+          "instruction": "Independently re-check critical SHAs, paths, counts and conclusions; confirm no unrelated changes or sensitive data disclosure.",
+          "deliverable": "Review checklist and evidence receipt.",
+          "done_when": "Independent check agrees or unresolved differences keep parent blocked.",
+          "depends_on": [
+            "BASE-012.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "BASE-013",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Audit existing Cloudflare resources, D1 IDs and secrets without disclosure",
+      "acceptance": "Inventory identifies old coordinator, Astra monitor, resource limits and auth boundaries",
+      "parent_dependencies": [
+        "BASE-006"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "audit",
+      "suggested_scope_roots": [
+        ".github/",
+        "docs/",
+        "config/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Read-only inventory unless explicitly authorized.",
+        "Preserve refs, worktrees, logs and existing data.",
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "BASE-013.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Pin and inspect the repositories, refs, files, PRs, logs, databases or host evidence named by this task and its reuse notes. Record SHAs, timestamps and current state; do not modify inspected sources.",
+          "deliverable": "Evidence inventory with exact refs/SHAs, paths, current behavior and unknowns.",
+          "done_when": "Material claims trace to concrete sources and no inspected source was changed.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-013.S02",
+          "sequence": 2,
+          "kind": "analyze",
+          "title": "Compare evidence to acceptance",
+          "assignee_role": "worker",
+          "instruction": "Compare inspected evidence with the parent objective and acceptance. Identify duplicates, conflicts, gaps, risks, platform constraints and relevant prior mistakes.",
+          "deliverable": "Findings matrix mapping every acceptance clause to evidence, gap or blocker.",
+          "done_when": "Every acceptance clause has a supported finding; assumptions are labelled.",
+          "depends_on": [
+            "BASE-013.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-013.S03",
+          "sequence": 3,
+          "kind": "record",
+          "title": "Record findings and decision",
+          "assignee_role": "worker",
+          "instruction": "Write a task-specific audit/decision record with findings, options, recommendation, rejected alternatives and evidence references.",
+          "deliverable": "Versioned report or decision record in approved docs path.",
+          "done_when": "Report is reproducible and distinguishes fact from inference.",
+          "depends_on": [
+            "BASE-013.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-013.S04",
+          "sequence": 4,
+          "kind": "cross_check",
+          "title": "Independently cross-check evidence",
+          "assignee_role": "worker",
+          "instruction": "Independently re-check critical SHAs, paths, counts and conclusions; confirm no unrelated changes or sensitive data disclosure.",
+          "deliverable": "Review checklist and evidence receipt.",
+          "done_when": "Independent check agrees or unresolved differences keep parent blocked.",
+          "depends_on": [
+            "BASE-013.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "BASE-014",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Define reproducible acceptance evidence and milestone checklists",
+      "acceptance": "Every gate has test command, source SHA, owner, artifact and failure behavior",
+      "parent_dependencies": [
+        "BASE-008",
+        "BASE-011"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        ".github/",
+        "docs/",
+        "config/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Read-only inventory unless explicitly authorized.",
+        "Preserve refs, worktrees, logs and existing data.",
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "BASE-014.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Define reproducible acceptance evidence and milestone checklists.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-014.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "BASE-014.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-014.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Define reproducible acceptance evidence and milestone checklists; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "BASE-014.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-014.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "BASE-014.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-014.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "BASE-014.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "BASE-015",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Create secure branch-specific code symbol and FTS index plan",
+      "acceptance": "Generated-file, secret and license exclusions verified; refresh keyed by blob SHA",
+      "parent_dependencies": [
+        "BASE-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "design",
+      "suggested_scope_roots": [
+        ".github/",
+        "docs/",
+        "config/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Read-only inventory unless explicitly authorized.",
+        "Preserve refs, worktrees, logs and existing data.",
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "BASE-015.S01",
+          "sequence": 1,
+          "kind": "requirements",
+          "title": "Extract requirements and constraints",
+          "assignee_role": "worker",
+          "instruction": "Extract exact architecture/user requirements, acceptance, dependencies, non-goals and compatibility obligations; list open decisions.",
+          "deliverable": "Requirements-to-acceptance traceability table.",
+          "done_when": "Every acceptance clause and dependency is represented.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-015.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Define typed interfaces, data ownership, schema/API/event shapes, state transitions and compatibility behavior.",
+          "deliverable": "Interface/schema/sequence specification with versioning and ownership.",
+          "done_when": "Contracts are deterministic, testable and match the ten-module architecture.",
+          "depends_on": [
+            "BASE-015.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-015.S03",
+          "sequence": 3,
+          "kind": "safety",
+          "title": "Define safety and failure behavior",
+          "assignee_role": "worker",
+          "instruction": "Specify permissions, privacy/secrets, failure modes, retry/backpressure, idempotency, rollback and STOP behavior.",
+          "deliverable": "Threat/failure matrix and rollback notes.",
+          "done_when": "No implicit privilege expansion; failures are explicit and fail-closed.",
+          "depends_on": [
+            "BASE-015.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-015.S04",
+          "sequence": 4,
+          "kind": "test_plan",
+          "title": "Map acceptance to tests",
+          "assignee_role": "worker",
+          "instruction": "Map each acceptance clause to unit/integration/negative/host tests, expected outputs and fixtures.",
+          "deliverable": "Acceptance test matrix and commands/fixtures plan.",
+          "done_when": "Every clause has a test or explicit manual gate.",
+          "depends_on": [
+            "BASE-015.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-015.S05",
+          "sequence": 5,
+          "kind": "review_design",
+          "title": "Review implementation design",
+          "assignee_role": "supervisor",
+          "instruction": "Cross-check design against module contracts, AGENTS.md, SECURITY.md and CODING_HANDBOOK.md; resolve contradictions before coding.",
+          "deliverable": "Reviewed implementation plan and allowed-path proposal.",
+          "done_when": "No unresolved architecture/security conflict; Supervisor approves scope.",
+          "depends_on": [
+            "BASE-015.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "BASE-016",
+      "module": "BASE",
+      "milestone": "M0 — Source audit, safety, acceptance baseline",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Create approval policy for clean rebuild repo name, branch and promotion",
+      "acceptance": "No rebuild repository created before real SDA gate and explicit owner decision",
+      "parent_dependencies": [
+        "BASE-008",
+        "BASE-014"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": true,
+      "execution_mode": "owner_gate",
+      "suggested_scope_roots": [
+        ".github/",
+        "docs/",
+        "config/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Read-only inventory unless explicitly authorized.",
+        "Preserve refs, worktrees, logs and existing data.",
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "BASE-016.S01",
+          "sequence": 1,
+          "kind": "packet",
+          "title": "Prepare owner decision packet",
+          "assignee_role": "worker",
+          "instruction": "Assemble candidate, architecture, source SHA, scope, test evidence, risks, rollback target and exact requested decision for Create approval policy for clean rebuild repo name, branch and promotion.",
+          "deliverable": "Owner decision packet tied to immutable candidate SHA.",
+          "done_when": "Packet is complete and does not imply consent.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-016.S02",
+          "sequence": 2,
+          "kind": "prerequisites",
+          "title": "Verify owner-gate prerequisites",
+          "assignee_role": "worker",
+          "instruction": "Verify dependencies, candidate SHA/evidence match, STOP/PAUSE and rollback readiness; list unresolved blockers.",
+          "deliverable": "Gate checklist and evidence hash manifest.",
+          "done_when": "All prerequisites proven or gate remains blocked.",
+          "depends_on": [
+            "BASE-016.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-016.S03",
+          "sequence": 3,
+          "kind": "await_owner",
+          "title": "Wait for explicit owner decision",
+          "assignee_role": "owner",
+          "instruction": "Present the decision packet and wait for explicit approval/rejection. Never infer approval from silence, prior discussion or model output.",
+          "deliverable": "Explicit owner decision receipt or WAITING_OWNER state.",
+          "done_when": "Only owner response satisfies this step.",
+          "depends_on": [
+            "BASE-016.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    }
+  ]
+}
