@@ -627,6 +627,8 @@ class State:
                         "UPDATE subtasks SET status='failed',updated_at=? WHERE parent_id=? AND status='running'",
                         (now(), tid),
                     )
+                    for queue in ("review_queue", "merge_queue"):
+                        db.execute(f"DELETE FROM {queue} WHERE parent_id=?", (tid,))
                     db.execute(
                         "INSERT INTO rebuild_queue(parent_id,project_id,generation,reason,created_at) VALUES(?,?,?,?,?) "
                         "ON CONFLICT(parent_id) DO UPDATE SET generation=excluded.generation,reason=excluded.reason,created_at=excluded.created_at",
@@ -724,6 +726,8 @@ class State:
             status = "pending" if row["project_id"] and not row["owner_gate"] else "queued"
             db.execute("UPDATE tasks SET status=?,available_at=0,updated_at=? WHERE id=?",(status,now(),tid))
             if row["project_id"]:
+                for queue in ("review_queue", "merge_queue"):
+                    db.execute(f"DELETE FROM {queue} WHERE parent_id=?", (tid,))
                 db.execute(
                     "INSERT INTO pending_queue(parent_id,project_id,enqueue_seq,available_at,created_at) "
                     "SELECT id,project_id,enqueue_seq,0,? FROM tasks WHERE id=? "

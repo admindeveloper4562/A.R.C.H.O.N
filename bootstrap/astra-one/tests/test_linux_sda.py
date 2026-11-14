@@ -184,6 +184,26 @@ class LinuxSDATests(unittest.TestCase):
         self.assertEqual(tuple(row),("","","[]","","","",""))
         self.assertEqual(self.state.failure_codes("ASTRA-001"),["no_file_changes"])
 
+    def test_failed_and_retried_tasks_leave_no_stale_review_or_merge_queue(self):
+        self.state.add_tasks(task(1))
+        self.state.claim()
+        self.state.set_task("ASTRA-001", "awaiting_review", fields={
+            "candidate_sha": "a" * 40,
+            "changed_files": '["candidate.py"]',
+            "qc_evidence": "reviewed",
+            "project_id": "PROJECT-1",
+        })
+        with self.state.db() as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM review_queue WHERE parent_id='ASTRA-001'").fetchone()[0], 1)
+        self.state.set_task("ASTRA-001", "failed", error="git_diff_check_failed")
+        with self.state.db() as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM review_queue WHERE parent_id='ASTRA-001'").fetchone()[0], 0)
+            self.assertEqual(db.execute("SELECT count(*) FROM merge_queue WHERE parent_id='ASTRA-001'").fetchone()[0], 0)
+        self.state.retry("ASTRA-001")
+        with self.state.db() as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM review_queue WHERE parent_id='ASTRA-001'").fetchone()[0], 0)
+            self.assertEqual(db.execute("SELECT count(*) FROM merge_queue WHERE parent_id='ASTRA-001'").fetchone()[0], 0)
+
     def test_reopen_failed_starts_new_generation_without_erasing_history(self):
         self.state.add_tasks(task(1))
         for code in ("qc_rejected:input_validation", "qc_rejected:permission_scope"):
