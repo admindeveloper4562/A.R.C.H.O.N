@@ -90,6 +90,9 @@ TASK_REPAIR_GUIDANCE = {
         "paths, bound reads before loading data, and do not add an unrelated docs audit receipt. Validate and "
         "normalize the report schema at the writer boundary; reject extra keys, arbitrary strings and caller-supplied "
         "raw result payloads, and add a regression test proving that rejection."
+        " Use a real no-network dependency check rather than hard-coding the current dependency list; bound secret "
+        "file reads and scan the approved tracked source set without emitting matching content. Validate every "
+        "report path component, and validate all input before creating directories or files."
     ),
     "BASE-010": (
         "Packaging repair: preserve policy files, run the manifest/package verifier, and add a manifest hash for "
@@ -101,7 +104,9 @@ TASK_REPAIR_GUIDANCE = {
         "manifest check after generated output cleanup. Preserve any pre-existing build directory and fail closed "
         "rather than deleting it. Add regression tests that execute the manifest checker against generated and "
         "case-colliding package fixtures, plus a pre-existing build-directory cleanup test. Do not claim a clean "
-        "package while verification fails."
+        "package while verification fails. The checker must inventory the actual package tree (not only manifest "
+        "entries), reject unlisted files, actual casefold collisions, generated directories and symlinks, and must "
+        "not add a caller-selected root CLI that expands the inspection boundary."
     ),
 }
 
