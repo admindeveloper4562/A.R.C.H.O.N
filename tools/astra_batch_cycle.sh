@@ -36,7 +36,27 @@ for marker in STOP PAUSE PAUSED_QUOTA; do
     exit 0
   fi
 done
-INTEGRATION="$STATE/integration"
+INTEGRATION="$(python3 - "$STATE/sda.sqlite3" <<'PY'
+import sqlite3
+import sys
+from pathlib import Path
+
+database = Path(sys.argv[1]).resolve(strict=True)
+with sqlite3.connect(f"file:{database.as_posix()}?mode=ro", uri=True) as con:
+    row = con.execute(
+        "SELECT value FROM settings WHERE key='integration_path'"
+    ).fetchone()
+if not row or not row[0]:
+    raise SystemExit("Missing canonical integration_path setting")
+path = Path(row[0]).expanduser().resolve()
+state = database.parent.resolve()
+try:
+    path.relative_to(state)
+except ValueError as exc:
+    raise SystemExit("Canonical integration path is outside Astra state") from exc
+print(path)
+PY
+)"
 if [[ ! -d "$INTEGRATION/.git" && ! -f "$INTEGRATION/.git" ]]; then
   echo '[ARCHON/ATLAS] No local integration worktree yet; nothing to publish'
   exit "$RUN_RC"
