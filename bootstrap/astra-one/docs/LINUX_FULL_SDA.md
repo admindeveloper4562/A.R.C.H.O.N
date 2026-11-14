@@ -32,7 +32,9 @@ On Ubuntu 24.04, verify the Codex bubblewrap/user-namespace prerequisite before 
 python3 -m astra_one.linux_cli doctor
 ```
 
-The doctor must report `sandbox.available: true`. If it reports `user_namespace_unavailable`, stop and install/load the distribution's supported bubblewrap AppArmor profile according to the official Codex sandbox guidance; do **not** disable the system-wide AppArmor restriction. Astra now fails closed before claiming a task when this prerequisite is unavailable. The dangerous Codex bypass is for disposable diagnostics only and is never an unattended worker mode.
+The doctor must report `sandbox.available: true`. If it reports `user_namespace_unavailable`, stop and install/load the distribution's supported bubblewrap AppArmor profile according to the official Codex sandbox guidance; do **not** disable the system-wide AppArmor restriction. Astra now fails closed before claiming a task when this prerequisite is unavailable.
+
+For a temporary, manually supervised development run in a **disposable state and source clone**, `run --danger-bypass` can be used to continue implementation while the host profile is repaired. The flag is rejected for the live `~/.local/state/archon-astra` state, the pinned live source clone and systemd, and it does not bypass deterministic path validation, Docker QC, STOP/PAUSE/quota controls or serial integration. Because every Codex role in that run has host-level access, it is not an unattended mode and must be removed once the sandbox fix is deployed.
 
 The configured Docker test image must contain every tool required by the selected test command. In particular, `python:3.12-slim` does not include Git, while the repository's importer tests invoke Git; use a reviewed local image containing Git for the complete suite, or select a narrower command whose dependencies are present. Astra does not install packages or pull/build images automatically.
 

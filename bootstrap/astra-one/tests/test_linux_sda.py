@@ -112,6 +112,11 @@ class LinuxSDATests(unittest.TestCase):
         self.assertIn("agents.enabled=false",cmd)
         self.assertIn("--ephemeral",cmd)
 
+    def test_danger_bypass_is_explicit_and_omits_normal_sandbox(self):
+        cmd=codex_command(self.repo,"gpt-5.6-luna","medium",None,"workspace-write",danger_bypass=True)
+        self.assertIn("--dangerously-bypass-approvals-and-sandbox",cmd)
+        self.assertNotIn("--sandbox",cmd)
+
     def test_static_change_accepts_valid_python(self):
         b=git(self.repo,"rev-parse","HEAD")
         (self.repo/"candidate.py").write_text("def f():\n    return 7\n")
@@ -310,6 +315,13 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change'}}))
                            test_image="python:3.12-slim",test_command=["python3","-m","unittest"],
                            auto_integrate=False,max_repairs=0,timeout=60)
         self.assertEqual(self.state.list_tasks()[0]["status"],"queued")
+
+    def test_danger_bypass_refuses_live_state(self):
+        with patch("astra_one.linux_cli.os.geteuid",return_value=1000), patch("astra_one.linux_cli.LIVE_STATE",self.state.home):
+            with self.assertRaisesRegex(ValueError,"danger_bypass_forbidden_for_live_state"):
+                run_master(self.state,workers=1,max_tasks=1,max_minutes=1,model="gpt-5.6-luna",effort="medium",
+                           test_image="python:3.12-slim",test_command=["python3","-m","unittest"],
+                           auto_integrate=False,max_repairs=0,timeout=60,danger_bypass=True)
 
     def test_worker_failure_can_recover_on_bounded_repair(self):
         self.state.add_tasks(task(1))

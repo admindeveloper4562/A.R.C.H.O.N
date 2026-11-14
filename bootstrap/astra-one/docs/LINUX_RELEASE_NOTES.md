@@ -6,6 +6,7 @@
 - Codex JSON events with failed file edits and sandbox failures are recorded as explicit worker error codes, even when the CLI exits zero.
 - The Master preserves retry history, stops repeated failures early, reports queued/failed/stopped outcomes, and refuses to claim work when the local Codex sandbox prerequisite is unavailable.
 - Retry claims clear stale candidate fields while keeping prior failure codes for repair context.
+- An explicit `run --danger-bypass` escape hatch is available only for manually supervised disposable development; live state, pinned live source and systemd reject it.
 
 ## Built
 

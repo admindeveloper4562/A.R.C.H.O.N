@@ -17,6 +17,9 @@ import uuid
 from .linux_sda import DEFAULT_HOME, EFFORT, MAX_FAILURES, MAX_WORKERS, MODEL, State, assert_source, task_spec
 from .linux_runtime import codex_call, ensure_integration, integrate, execute_claim, sandbox_status
 
+LIVE_STATE = (Path.home() / ".local" / "state" / "archon-astra").resolve()
+LIVE_SOURCE = (Path.home() / "Projects" / "ARCHON-astra-source").resolve()
+
 
 def report(obj: object):
     print(json.dumps(obj,indent=2,ensure_ascii=False,default=str))
@@ -93,7 +96,8 @@ def supervise(state: State, *, focus: str, count: int, output: Path, model: str,
 
 
 def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, model: str, effort: str,
-               test_image: str, test_command: list[str], auto_integrate: bool, max_repairs: int, timeout: int) -> dict:
+               test_image: str, test_command: list[str], auto_integrate: bool, max_repairs: int, timeout: int,
+               danger_bypass: bool = False) -> dict:
     if not 1<=workers<=MAX_WORKERS or not 1<=max_tasks<=1000 or not 1<=max_minutes<=1440 or not 60<=timeout<=7200:
         raise ValueError("invalid worker/task/time limits")
     if not 0<=max_repairs<=MAX_FAILURES-1:
@@ -103,7 +107,12 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
     state.ensure_approved()
     if not test_image:
         raise ValueError("Docker test image required for independent QC")
-    if not sandbox_status()["available"]:
+    if danger_bypass:
+        if state.home == LIVE_STATE or Path(state.get("source")).expanduser().resolve() == LIVE_SOURCE:
+            raise ValueError("danger_bypass_forbidden_for_live_state")
+        if os.environ.get("INVOCATION_ID") or os.environ.get("JOURNAL_STREAM"):
+            raise ValueError("danger_bypass_forbidden_in_service")
+    elif not sandbox_status()["available"]:
         raise ValueError("sandbox_unavailable")
     if any((state.home/x).exists() for x in ("STOP","PAUSE","PAUSED_QUOTA")):
         raise ValueError("STOP/PAUSE/PAUSED_QUOTA prevents master start")
@@ -163,7 +172,8 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
                         attempted+=1
                         slot=next(i for i in range(1,workers+1) if i not in pending.values())
                         fut=pool.submit(execute_claim,state,claim,slot=slot,model=model,effort=effort,
-                                        timeout=timeout,test_image=test_image,test_command=test_command,auto_integrate=auto_integrate)
+                                        timeout=timeout,test_image=test_image,test_command=test_command,
+                                        auto_integrate=auto_integrate,danger_bypass=danger_bypass)
                         pending[fut]=slot
                     if not pending:
                         if stopped or paused or attempted>=max_tasks:break
@@ -180,7 +190,8 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
                         tid=result["task_id"]
                         if result["status"]=="approved":
                             try:
-                                integrate(state,tid,merger_model=model,merger_effort=effort)
+                                integrate(state,tid,merger_model=model,merger_effort=effort,
+                                          danger_bypass=danger_bypass)
                                 completed+=1
                             except (ValueError,OSError,subprocess.SubprocessError) as ex:
                                 with state.db() as db:
@@ -242,6 +253,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--model",default=MODEL);p.add_argument("--effort",choices=["low","medium","high","xhigh"],default=EFFORT)
     p.add_argument("--test-image",default="");p.add_argument("--test-command-json",default='["python3","-m","unittest","discover","-s","tests","-p","test_*.py"]')
     p.add_argument("--max-repairs",type=int,default=3);p.add_argument("--auto-integrate",action="store_true")
+    p.add_argument("--danger-bypass",action="store_true",
+                   help="supervised disposable development only; rejected for live state and systemd")
     args=parser.parse_args(argv)
     state=State(args.home)
     try:
@@ -282,7 +295,7 @@ def main(argv: list[str] | None = None) -> int:
             result=run_master(state,workers=args.workers,max_tasks=args.max_tasks,max_minutes=args.max_minutes,
                               model=args.model,effort=args.effort,test_image=args.test_image,test_command=command,
                               auto_integrate=args.auto_integrate,max_repairs=args.max_repairs,
-                              timeout=args.max_seconds_per_task)
+                              timeout=args.max_seconds_per_task,danger_bypass=args.danger_bypass)
             report(result)
             return 1 if result.get("terminal_failures") else 0
         return 0

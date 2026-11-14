@@ -149,11 +149,16 @@ def make_prompt(task: dict, sha: str, architecture_sha: str, role: str, previous
             "Do not launch subagents. Keep changes small and testable. Report what was changed; do not claim tests passed.\n")
 
 
-def codex_command(worktree: Path, model: str, effort: str, output_file: Path | None, sandbox: str) -> list[str]:
+def codex_command(worktree: Path, model: str, effort: str, output_file: Path | None, sandbox: str,
+                  danger_bypass: bool = False) -> list[str]:
     executable=os.environ.get("ASTRA_CODEX_BIN") or "codex"
-    cmd=[executable,"exec","--json","--ephemeral","--sandbox",sandbox,"-C",str(worktree),
-         "-m",model,"-c",f"model_reasoning_effort={effort}","-c","agents.enabled=false",
-         "-c","approval_policy=never"]
+    cmd=[executable,"exec","--json","--ephemeral"]
+    if danger_bypass:
+        cmd.append("--dangerously-bypass-approvals-and-sandbox")
+    else:
+        cmd += ["--sandbox",sandbox]
+    cmd += ["-C",str(worktree),"-m",model,"-c",f"model_reasoning_effort={effort}",
+            "-c","agents.enabled=false","-c","approval_policy=never"]
     if output_file:
         cmd += ["--output-last-message",str(output_file)]
     cmd += ["-"]
@@ -161,13 +166,14 @@ def codex_command(worktree: Path, model: str, effort: str, output_file: Path | N
 
 
 def codex_call(*, worktree: Path, prompt: str, home: Path, state: State, model: str, effort: str,
-               sandbox: str, timeout: int, output_file: Path | None = None, role: str = "worker") -> tuple[int,int,str]:
+               sandbox: str, timeout: int, output_file: Path | None = None, role: str = "worker",
+               danger_bypass: bool = False) -> tuple[int,int,str]:
     """Execute one bounded Codex turn, parse only event types, never write raw model logs."""
     if sandbox not in ("workspace-write","read-only"):
         raise ValueError("unsupported sandbox")
-    if not sandbox_status()["available"]:
+    if not danger_bypass and not sandbox_status()["available"]:
         return 126, 0, "sandbox_unavailable"
-    cmd=codex_command(worktree,model,effort,output_file,sandbox)
+    cmd=codex_command(worktree,model,effort,output_file,sandbox,danger_bypass=danger_bypass)
     proc=subprocess.Popen(cmd,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,
                           text=True,encoding="utf-8",errors="replace",cwd=worktree,bufsize=1,start_new_session=True)
     assert proc.stdin and proc.stdout and proc.stderr
@@ -279,7 +285,7 @@ def shutil_which(name: str) -> str | None:
 
 
 def independent_qc(state: State, worktree: Path, task: dict, *, model: str, effort: str,
-                   timeout: int = 600) -> tuple[bool,str]:
+                   timeout: int = 600, danger_bypass: bool = False) -> tuple[bool,str]:
     """Separate read-only Codex session. Fail closed if result is not parseable JSON."""
     result_file=state.home/"private"/("qc-"+uuid.uuid4().hex+".json")
     prompt=("You are the independent SDA quality reviewer. Read the Git worktree diff and relevant files. "
@@ -292,7 +298,7 @@ def independent_qc(state: State, worktree: Path, task: dict, *, model: str, effo
     try:
         rc,_,reason=codex_call(worktree=worktree,prompt=prompt,home=state.home,state=state,
                                model=model,effort=effort,sandbox="read-only",timeout=timeout,
-                               output_file=result_file,role="qc")
+                               output_file=result_file,role="qc",danger_bypass=danger_bypass)
         if rc!=0 or reason!="ok" or not result_file.is_file() or result_file.stat().st_size>8000:
             return False,"qc_agent_failed"
         parsed=json.loads(result_file.read_text(encoding="utf-8"))
@@ -309,7 +315,8 @@ def independent_qc(state: State, worktree: Path, task: dict, *, model: str, effo
 
 
 
-def merger_review(state: State, integration: Path, tid: str, patch: bytes, *, model: str, effort: str) -> bool:
+def merger_review(state: State, integration: Path, tid: str, patch: bytes, *, model: str, effort: str,
+                  danger_bypass: bool = False) -> bool:
     """Independent read-only Codex merger lane before any integration write."""
     result_file=state.home/"private"/("merger-"+uuid.uuid4().hex+".json")
     # Only bounded patch preview. Full patch is still checked deterministically by Git.
@@ -322,7 +329,7 @@ def merger_review(state: State, integration: Path, tid: str, patch: bytes, *, mo
     try:
         rc,_,reason=codex_call(worktree=integration,prompt=prompt,home=state.home,state=state,
                                model=model,effort=effort,sandbox="read-only",timeout=600,
-                               output_file=result_file,role="merger")
+                               output_file=result_file,role="merger",danger_bypass=danger_bypass)
         if rc or reason!="ok" or not result_file.is_file() or result_file.stat().st_size>8000:
             return False
         obj=json.loads(result_file.read_text(encoding="utf-8"))
@@ -390,7 +397,8 @@ def ensure_integration(state: State) -> Path:
     return worktree
 
 
-def integrate(state: State, tid: str, *, merger_model: str | None = None, merger_effort: str = "medium") -> dict:
+def integrate(state: State, tid: str, *, merger_model: str | None = None, merger_effort: str = "medium",
+              danger_bypass: bool = False) -> dict:
     """Serialized and local. Use only from a single master lock holder."""
     if any((state.home/x).exists() for x in ("STOP","PAUSE","PAUSED_QUOTA")):
         raise ValueError("STOP/PAUSE prevents integration")
@@ -416,7 +424,8 @@ def integrate(state: State, tid: str, *, merger_model: str | None = None, merger
     if checked.returncode:
         state.set_task(tid,"conflict",error="integration_patch_conflict")
         raise ValueError("integration conflict; clean working tree preserved, task requires rebase")
-    if merger_model and not merger_review(state,integration,tid,patch.stdout,model=merger_model,effort=merger_effort):
+    if merger_model and not merger_review(state,integration,tid,patch.stdout,model=merger_model,effort=merger_effort,
+                                          danger_bypass=danger_bypass):
         raise ValueError("independent merger agent rejected or could not verify candidate")
     applied=subprocess.run(["git","-C",str(integration),"apply","--index","-"],input=patch.stdout,
                            capture_output=True,timeout=30,check=False)
@@ -438,7 +447,8 @@ def integrate(state: State, tid: str, *, merger_model: str | None = None, merger
 
 
 def execute_claim(state: State, item: dict, *, slot: int, model: str, effort: str, timeout: int,
-                  test_image: str, test_command: list[str], auto_integrate: bool = False) -> dict:
+                  test_image: str, test_command: list[str], auto_integrate: bool = False,
+                  danger_bypass: bool = False) -> dict:
     task=item["task"]
     tid=task["task_id"]
     run_id=item["run_id"]
@@ -469,7 +479,8 @@ def execute_claim(state: State, item: dict, *, slot: int, model: str, effort: st
         emit("coding",f"{role}_{slot}_codex_start")
         prompt=make_prompt(task,sha,state.get("architecture_sha"),role,item["prior_error"])
         rc,tools,reason=codex_call(worktree=worktree,prompt=prompt,home=state.home,state=state,
-                                   model=model,effort=effort,sandbox="workspace-write",timeout=timeout,role=role)
+                                   model=model,effort=effort,sandbox="workspace-write",timeout=timeout,role=role,
+                                   danger_bypass=danger_bypass)
         if rc or reason!="ok":
             raise RuntimeError(reason if reason!="ok" else "codex_nonzero")
         emit("verifying","static_diff_review")
@@ -480,7 +491,8 @@ def execute_claim(state: State, item: dict, *, slot: int, model: str, effort: st
         if not tests["passed"]:
             raise RuntimeError("isolated_tests_failed")
         emit("verifying","independent_qc_start")
-        accepted,qc_reason=independent_qc(state,worktree,task,model=model,effort=effort)
+        accepted,qc_reason=independent_qc(state,worktree,task,model=model,effort=effort,
+                                          danger_bypass=danger_bypass)
         if not accepted:
             raise RuntimeError(qc_reason)
         # Commit only after independent QC and isolated tests have passed.
