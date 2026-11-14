@@ -231,6 +231,41 @@ def _task_allows_audit_report(task: dict | None, path: str) -> bool:
     )
 
 
+def _check_diff_whitespace(worktree: Path, untracked_paths: list[Path]) -> None:
+    """Reject whitespace errors in tracked, staged, and untracked changes.
+
+    ``git diff --check`` does not inspect untracked files, which allowed a
+    newly-created report to pass worker QC and fail only after it was
+    committed for serialized integration.  The no-index form returns 1 for a
+    clean difference and 3 when it finds whitespace errors, so only 0/1 are
+    accepted for each untracked file.
+    """
+    for args in (
+        ["git", "-C", str(worktree), "diff", "--check"],
+        ["git", "-C", str(worktree), "diff", "--cached", "--check"],
+    ):
+        result = subprocess.run(
+            args,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+            timeout=20,
+        )
+        if result.returncode:
+            raise ChangeValidationError("git_diff_check_failed")
+
+    for path in untracked_paths:
+        result = subprocess.run(
+            ["git", "-C", str(worktree), "diff", "--no-index", "--check", "--", "/dev/null", str(path)],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+            timeout=20,
+        )
+        if result.returncode not in (0, 1):
+            raise ChangeValidationError("git_diff_check_failed")
+
+
 def _git_common_dir(repo: Path) -> Path:
     """Resolve the repository object store shared by a root or worktree."""
     raw = Path(git(repo, "rev-parse", "--git-common-dir"))
@@ -266,6 +301,7 @@ def check_changes(worktree: Path, base_sha: str, *, task: dict | None = None) ->
     if len(entries) > MAX_FILES:
         raise ChangeValidationError("changed_file_limit_exceeded")
     paths=[]
+    untracked_paths=[]
     size=0
     for item in entries:
         if len(item) < 4 or item[2] != " ":
@@ -310,8 +346,11 @@ def check_changes(worktree: Path, base_sha: str, *, task: dict | None = None) ->
         except (SyntaxError, UnicodeError, json.JSONDecodeError, tomllib.TOMLDecodeError) as ex:
             raise ChangeValidationError("invalid_changed_file") from ex
         paths.append(path)
+        if code == "??":
+            untracked_paths.append(target)
     if len(set(paths)) != len(paths):
         raise ChangeValidationError("git_status_invalid", "duplicate_paths")
+    _check_diff_whitespace(worktree, untracked_paths)
     return paths
 
 

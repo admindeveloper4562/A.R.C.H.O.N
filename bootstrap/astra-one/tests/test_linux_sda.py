@@ -256,6 +256,19 @@ class LinuxSDATests(unittest.TestCase):
         (self.repo/"staged.py").write_text("value = 2\n")
         self.assertEqual(check_changes(self.repo,b),["staged.py"])
 
+    def test_static_change_rejects_trailing_whitespace_in_untracked_and_staged_files(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        report=self.repo/"report.md"
+        report.write_text("# report  \n")
+        with self.assertRaises(ChangeValidationError) as caught:
+            check_changes(self.repo,b)
+        self.assertEqual(caught.exception.code,"git_diff_check_failed")
+
+        git(self.repo,"add","--","report.md")
+        with self.assertRaises(ChangeValidationError) as caught:
+            check_changes(self.repo,b)
+        self.assertEqual(caught.exception.code,"git_diff_check_failed")
+
     def test_static_change_rejects_delete(self):
         b=git(self.repo,"rev-parse","HEAD")
         (self.repo/"README.md").unlink()
