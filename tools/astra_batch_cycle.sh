@@ -33,7 +33,7 @@ fi
 for marker in STOP PAUSE PAUSED_QUOTA; do
   if [[ -e "$STATE/$marker" ]]; then
     echo "[ARCHON/ATLAS] $marker blocks publication" >&2
-    exit 0
+    exit "$RUN_RC"
   fi
 done
 INTEGRATION="$(python3 - "$STATE/sda.sqlite3" <<'PY'

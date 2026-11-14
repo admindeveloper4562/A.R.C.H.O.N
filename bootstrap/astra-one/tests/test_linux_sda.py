@@ -504,9 +504,10 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change'}}))
         self.assertEqual(calls,[1,2])
         self.assertEqual(result["requeued"],1)
         self.assertEqual(result["terminal_failures"],1)
-        self.assertEqual(result["state"],"failed")
+        self.assertEqual(result["state"],"paused")
         self.assertEqual(self.state.list_tasks()[0]["status"],"failed")
         self.assertEqual(self.state.failure_codes("ASTRA-001"),["no_file_changes","no_file_changes"])
+        self.assertTrue((self.state.home/"PAUSE").is_file())
 
     def test_master_refuses_before_claim_when_sandbox_unavailable(self):
         self.state.add_tasks(task(1))

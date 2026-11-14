@@ -123,6 +123,7 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
     requeued=0
     terminal_failures=0
     blockers=[]
+    halt_after_current=False
 
     def retry_decision(tid: str, result: dict) -> str:
         """Return an empty string when a failed task may receive one repair attempt."""
@@ -138,7 +139,7 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
         return ""
 
     def maybe_requeue(tid: str, result: dict) -> str:
-        nonlocal requeued, terminal_failures
+        nonlocal requeued, terminal_failures, halt_after_current
         markers=[x for x in ("STOP","PAUSE","PAUSED_QUOTA") if (state.home/x).exists()]
         if markers:
             blocker=result.get("error") or markers[0].lower()
@@ -148,6 +149,7 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
         decision=retry_decision(tid,result)
         if decision:
             terminal_failures+=1
+            halt_after_current=True
             if result.get("error") and decision not in blockers:
                 blockers.append(result["error"])
             return decision
@@ -167,7 +169,7 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
                 while time.monotonic()<deadline:
                     stopped=(state.home/"STOP").exists()
                     paused=any((state.home/x).exists() for x in ("PAUSE","PAUSED_QUOTA"))
-                    while not stopped and not paused and len(pending)<workers and attempted<max_tasks:
+                    while not stopped and not paused and not halt_after_current and len(pending)<workers and attempted<max_tasks:
                         claim=state.claim(model=model)
                         if not claim:break
                         attempted+=1
@@ -208,6 +210,10 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
                         else:
                             failed+=1
                             maybe_requeue(tid,result)
+                    if halt_after_current and not pending and not any(
+                        (state.home/x).exists() for x in ("STOP", "PAUSE", "PAUSED_QUOTA")
+                    ):
+                        (state.home/"PAUSE").touch(exist_ok=True)
                     if attempted % 5==0 or done:
                         state.sync(limit=25)
             except KeyboardInterrupt:
@@ -223,10 +229,10 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
     with state.db() as db:
         task_counts={row[0]:row[1] for row in db.execute("SELECT status,count(*) FROM tasks GROUP BY status")}
     markers={x for x in ("STOP","PAUSE","PAUSED_QUOTA") if (state.home/x).exists()}
-    state_name=("failed" if terminal_failures else
-                "paused_quota" if "PAUSED_QUOTA" in markers else
+    state_name=("paused_quota" if "PAUSED_QUOTA" in markers else
                 "paused" if "PAUSE" in markers else
                 "stopped" if "STOP" in markers or task_counts.get("stopped",0) else
+                "failed" if terminal_failures else
                 "queued" if task_counts.get("queued",0) else "idle")
     return {"attempts":attempted,"qc_passed":completed,"failures_or_conflicts":failed,
             "requeued":requeued,"terminal_failures":terminal_failures,
