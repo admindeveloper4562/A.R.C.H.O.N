@@ -1,0 +1,1751 @@
+{
+  "schema": "jarvis.v2.subtask-module/1",
+  "created": "2026-11-14",
+  "source_parent_plan_blob_sha": "36e674f4e58fc19aa8158da42d802b9599a23763",
+  "module": "MIG",
+  "module_name": "M1b — Clean repository migration and self-host transition",
+  "parent_count": 16,
+  "subtask_count": 85,
+  "parents": [
+    {
+      "parent_id": "MIG-001",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Design clean private repo structure, formats and CODEOWNERS",
+      "acceptance": "Fresh seed has ten modules, versioned docs, branch/commit lint and no Business",
+      "parent_dependencies": [
+        "BASE-008",
+        "BASE-014"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "design",
+      "suggested_scope_roots": [
+        "tools/import_legacy.py",
+        "migration/",
+        "docs/migration/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Pin source SHAs and file-level provenance; dry-run first; create-only imports.",
+        "Never execute imported legacy files or modify the legacy source repository.",
+        "Keep Astra One as external rescue until native SDA cutover is approved and reversible."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "MIG-001.S01",
+          "sequence": 1,
+          "kind": "requirements",
+          "title": "Extract requirements and constraints",
+          "assignee_role": "worker",
+          "instruction": "Extract exact architecture/user requirements, acceptance, dependencies, non-goals and compatibility obligations; list open decisions.",
+          "deliverable": "Requirements-to-acceptance traceability table.",
+          "done_when": "Every acceptance clause and dependency is represented.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-001.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Define typed interfaces, data ownership, schema/API/event shapes, state transitions and compatibility behavior.",
+          "deliverable": "Interface/schema/sequence specification with versioning and ownership.",
+          "done_when": "Contracts are deterministic, testable and match the ten-module architecture.",
+          "depends_on": [
+            "MIG-001.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-001.S03",
+          "sequence": 3,
+          "kind": "safety",
+          "title": "Define safety and failure behavior",
+          "assignee_role": "worker",
+          "instruction": "Specify permissions, privacy/secrets, failure modes, retry/backpressure, idempotency, rollback and STOP behavior.",
+          "deliverable": "Threat/failure matrix and rollback notes.",
+          "done_when": "No implicit privilege expansion; failures are explicit and fail-closed.",
+          "depends_on": [
+            "MIG-001.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-001.S04",
+          "sequence": 4,
+          "kind": "test_plan",
+          "title": "Map acceptance to tests",
+          "assignee_role": "worker",
+          "instruction": "Map each acceptance clause to unit/integration/negative/host tests, expected outputs and fixtures.",
+          "deliverable": "Acceptance test matrix and commands/fixtures plan.",
+          "done_when": "Every clause has a test or explicit manual gate.",
+          "depends_on": [
+            "MIG-001.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-001.S05",
+          "sequence": 5,
+          "kind": "review_design",
+          "title": "Review implementation design",
+          "assignee_role": "supervisor",
+          "instruction": "Cross-check design against module contracts, AGENTS.md, SECURITY.md and CODING_HANDBOOK.md; resolve contradictions before coding.",
+          "deliverable": "Reviewed implementation plan and allowed-path proposal.",
+          "done_when": "No unresolved architecture/security conflict; Supervisor approves scope.",
+          "depends_on": [
+            "MIG-001.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "MIG-002",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Enable branch protections, CI and review gates in new repository",
+      "acceptance": "main/develop protections verified with rejected unauthorized push and executed CI",
+      "parent_dependencies": [
+        "SDA-028"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "audit",
+      "suggested_scope_roots": [
+        "tools/import_legacy.py",
+        "migration/",
+        "docs/migration/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Pin source SHAs and file-level provenance; dry-run first; create-only imports.",
+        "Never execute imported legacy files or modify the legacy source repository.",
+        "Keep Astra One as external rescue until native SDA cutover is approved and reversible."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "MIG-002.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Pin and inspect the repositories, refs, files, PRs, logs, databases or host evidence named by this task and its reuse notes. Record SHAs, timestamps and current state; do not modify inspected sources.",
+          "deliverable": "Evidence inventory with exact refs/SHAs, paths, current behavior and unknowns.",
+          "done_when": "Material claims trace to concrete sources and no inspected source was changed.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-002.S02",
+          "sequence": 2,
+          "kind": "analyze",
+          "title": "Compare evidence to acceptance",
+          "assignee_role": "worker",
+          "instruction": "Compare inspected evidence with the parent objective and acceptance. Identify duplicates, conflicts, gaps, risks, platform constraints and relevant prior mistakes.",
+          "deliverable": "Findings matrix mapping every acceptance clause to evidence, gap or blocker.",
+          "done_when": "Every acceptance clause has a supported finding; assumptions are labelled.",
+          "depends_on": [
+            "MIG-002.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-002.S03",
+          "sequence": 3,
+          "kind": "record",
+          "title": "Record findings and decision",
+          "assignee_role": "worker",
+          "instruction": "Write a task-specific audit/decision record with findings, options, recommendation, rejected alternatives and evidence references.",
+          "deliverable": "Versioned report or decision record in approved docs path.",
+          "done_when": "Report is reproducible and distinguishes fact from inference.",
+          "depends_on": [
+            "MIG-002.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-002.S04",
+          "sequence": 4,
+          "kind": "cross_check",
+          "title": "Independently cross-check evidence",
+          "assignee_role": "worker",
+          "instruction": "Independently re-check critical SHAs, paths, counts and conclusions; confirm no unrelated changes or sensitive data disclosure.",
+          "deliverable": "Review checklist and evidence receipt.",
+          "done_when": "Independent check agrees or unresolved differences keep parent blocked.",
+          "depends_on": [
+            "MIG-002.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "MIG-003",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Implement commit-SHA-pinned legacy code importer and license/provenance ledger",
+      "acceptance": "Read-only dry-run and create-only staging; every blob traced to old commit SHA and reviewed",
+      "parent_dependencies": [
+        "MIG-002",
+        "BASE-006"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "tools/import_legacy.py",
+        "migration/",
+        "docs/migration/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Pin source SHAs and file-level provenance; dry-run first; create-only imports.",
+        "Never execute imported legacy files or modify the legacy source repository.",
+        "Keep Astra One as external rescue until native SDA cutover is approved and reversible."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "MIG-003.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement commit-SHA-pinned legacy code importer and license/provenance ledger. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-003.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement commit-SHA-pinned legacy code importer and license/provenance ledger: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "MIG-003.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-003.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement commit-SHA-pinned legacy code importer and license/provenance ledger; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "MIG-003.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-003.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement commit-SHA-pinned legacy code importer and license/provenance ledger.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "MIG-003.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-003.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Read-only dry-run and create-only staging; every blob traced to old commit SHA and reviewed. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "MIG-003.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-003.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "MIG-003.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "MIG-004",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Port tested legacy Core, Backend and Runtime contracts incrementally",
+      "acceptance": "Existing important behaviors preserved with adapter and regression tests; no bulk direct merge",
+      "parent_dependencies": [
+        "MIG-003",
+        "CORE-001",
+        "BACK-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "migration",
+      "suggested_scope_roots": [
+        "tools/import_legacy.py",
+        "migration/",
+        "docs/migration/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Pin source SHAs and file-level provenance; dry-run first; create-only imports.",
+        "Never execute imported legacy files or modify the legacy source repository.",
+        "Keep Astra One as external rescue until native SDA cutover is approved and reversible."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "MIG-004.S01",
+          "sequence": 1,
+          "kind": "pin",
+          "title": "Pin source and destination SHAs",
+          "assignee_role": "worker",
+          "instruction": "Pin exact source repository/ref/commit and destination base SHA for Port tested legacy Core, Backend and Runtime contracts incrementally; verify destination is isolated and legacy source untouched.",
+          "deliverable": "Source/target identity record and SHA pair.",
+          "done_when": "Source and target are immutable for this attempt.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-004.S02",
+          "sequence": 2,
+          "kind": "inventory",
+          "title": "Inventory provenance and compatibility",
+          "assignee_role": "worker",
+          "instruction": "Inventory files, dependencies, licenses, secrets, data formats, case collisions and compatibility; record per-file provenance.",
+          "deliverable": "File manifest and provenance ledger.",
+          "done_when": "Every candidate has origin SHA/path/license status and secret-scan disposition.",
+          "depends_on": [
+            "MIG-004.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-004.S03",
+          "sequence": 3,
+          "kind": "dry_run",
+          "title": "Run read-only dry run",
+          "assignee_role": "worker",
+          "instruction": "Run read-only dry-run/staging simulation; detect collisions, incompatibilities, path traversal and unsafe files before applying.",
+          "deliverable": "Dry-run report and compatibility matrix.",
+          "done_when": "Dry-run makes no destination writes; unresolved collisions block application.",
+          "depends_on": [
+            "MIG-004.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-004.S04",
+          "sequence": 4,
+          "kind": "apply",
+          "title": "Apply bounded migration",
+          "assignee_role": "worker",
+          "instruction": "Apply only approved create-only/adapter/migration slice for Port tested legacy Core, Backend and Runtime contracts incrementally; do not delete, execute or overwrite legacy source.",
+          "deliverable": "Bounded destination changes and migration receipt.",
+          "done_when": "Only allowlisted files are changed and provenance is recorded.",
+          "depends_on": [
+            "MIG-004.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-004.S05",
+          "sequence": 5,
+          "kind": "verify",
+          "title": "Verify migrated result",
+          "assignee_role": "worker",
+          "instruction": "Run provenance, schema, behavior, regression and security checks on destination.",
+          "deliverable": "Verification report and file-hash comparison.",
+          "done_when": "All content is traceable and required behavior passes.",
+          "depends_on": [
+            "MIG-004.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-004.S06",
+          "sequence": 6,
+          "kind": "rollback",
+          "title": "Prove rollback and restore",
+          "assignee_role": "worker",
+          "instruction": "Exercise rollback/restore from checkpoint or disposable staging target; prove source and last-known-good destination remain recoverable.",
+          "deliverable": "Rollback drill record and verified restore SHA.",
+          "done_when": "Rollback is demonstrated without destructive cleanup or loss.",
+          "depends_on": [
+            "MIG-004.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-004.S07",
+          "sequence": 7,
+          "kind": "handoff",
+          "title": "Commit and hand off migration candidate",
+          "assignee_role": "worker",
+          "instruction": "Commit reviewed candidate on task branch and hand off to independent QC with provenance, test evidence, gaps and next gate.",
+          "deliverable": "Candidate commit and migration handoff receipt.",
+          "done_when": "No production cutover, main promotion or legacy retirement occurs here.",
+          "depends_on": [
+            "MIG-004.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "MIG-005",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Reconcile Astra One with old Workhorse/SDA functions as v2 engine",
+      "acceptance": "One authoritative queue/Master, isolated five workers, independent QC and Merger verified",
+      "parent_dependencies": [
+        "MIG-003",
+        "SDA-026"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "audit",
+      "suggested_scope_roots": [
+        "tools/import_legacy.py",
+        "migration/",
+        "docs/migration/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Pin source SHAs and file-level provenance; dry-run first; create-only imports.",
+        "Never execute imported legacy files or modify the legacy source repository.",
+        "Keep Astra One as external rescue until native SDA cutover is approved and reversible."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "MIG-005.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Pin and inspect the repositories, refs, files, PRs, logs, databases or host evidence named by this task and its reuse notes. Record SHAs, timestamps and current state; do not modify inspected sources.",
+          "deliverable": "Evidence inventory with exact refs/SHAs, paths, current behavior and unknowns.",
+          "done_when": "Material claims trace to concrete sources and no inspected source was changed.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-005.S02",
+          "sequence": 2,
+          "kind": "analyze",
+          "title": "Compare evidence to acceptance",
+          "assignee_role": "worker",
+          "instruction": "Compare inspected evidence with the parent objective and acceptance. Identify duplicates, conflicts, gaps, risks, platform constraints and relevant prior mistakes.",
+          "deliverable": "Findings matrix mapping every acceptance clause to evidence, gap or blocker.",
+          "done_when": "Every acceptance clause has a supported finding; assumptions are labelled.",
+          "depends_on": [
+            "MIG-005.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-005.S03",
+          "sequence": 3,
+          "kind": "record",
+          "title": "Record findings and decision",
+          "assignee_role": "worker",
+          "instruction": "Write a task-specific audit/decision record with findings, options, recommendation, rejected alternatives and evidence references.",
+          "deliverable": "Versioned report or decision record in approved docs path.",
+          "done_when": "Report is reproducible and distinguishes fact from inference.",
+          "depends_on": [
+            "MIG-005.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-005.S04",
+          "sequence": 4,
+          "kind": "cross_check",
+          "title": "Independently cross-check evidence",
+          "assignee_role": "worker",
+          "instruction": "Independently re-check critical SHAs, paths, counts and conclusions; confirm no unrelated changes or sensitive data disclosure.",
+          "deliverable": "Review checklist and evidence receipt.",
+          "done_when": "Independent check agrees or unresolved differences keep parent blocked.",
+          "depends_on": [
+            "MIG-005.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "MIG-006",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Stage TWS/Aurelia and Cloudflare/Windows code in bounded reviewed batches",
+      "acceptance": "Provenance, dependency, tests and native/cloud gap report recorded per imported module",
+      "parent_dependencies": [
+        "MIG-003"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "migration",
+      "suggested_scope_roots": [
+        "tools/import_legacy.py",
+        "migration/",
+        "docs/migration/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Pin source SHAs and file-level provenance; dry-run first; create-only imports.",
+        "Never execute imported legacy files or modify the legacy source repository.",
+        "Keep Astra One as external rescue until native SDA cutover is approved and reversible."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "MIG-006.S01",
+          "sequence": 1,
+          "kind": "pin",
+          "title": "Pin source and destination SHAs",
+          "assignee_role": "worker",
+          "instruction": "Pin exact source repository/ref/commit and destination base SHA for Stage TWS/Aurelia and Cloudflare/Windows code in bounded reviewed batches; verify destination is isolated and legacy source untouched.",
+          "deliverable": "Source/target identity record and SHA pair.",
+          "done_when": "Source and target are immutable for this attempt.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-006.S02",
+          "sequence": 2,
+          "kind": "inventory",
+          "title": "Inventory provenance and compatibility",
+          "assignee_role": "worker",
+          "instruction": "Inventory files, dependencies, licenses, secrets, data formats, case collisions and compatibility; record per-file provenance.",
+          "deliverable": "File manifest and provenance ledger.",
+          "done_when": "Every candidate has origin SHA/path/license status and secret-scan disposition.",
+          "depends_on": [
+            "MIG-006.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-006.S03",
+          "sequence": 3,
+          "kind": "dry_run",
+          "title": "Run read-only dry run",
+          "assignee_role": "worker",
+          "instruction": "Run read-only dry-run/staging simulation; detect collisions, incompatibilities, path traversal and unsafe files before applying.",
+          "deliverable": "Dry-run report and compatibility matrix.",
+          "done_when": "Dry-run makes no destination writes; unresolved collisions block application.",
+          "depends_on": [
+            "MIG-006.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-006.S04",
+          "sequence": 4,
+          "kind": "apply",
+          "title": "Apply bounded migration",
+          "assignee_role": "worker",
+          "instruction": "Apply only approved create-only/adapter/migration slice for Stage TWS/Aurelia and Cloudflare/Windows code in bounded reviewed batches; do not delete, execute or overwrite legacy source.",
+          "deliverable": "Bounded destination changes and migration receipt.",
+          "done_when": "Only allowlisted files are changed and provenance is recorded.",
+          "depends_on": [
+            "MIG-006.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-006.S05",
+          "sequence": 5,
+          "kind": "verify",
+          "title": "Verify migrated result",
+          "assignee_role": "worker",
+          "instruction": "Run provenance, schema, behavior, regression and security checks on destination.",
+          "deliverable": "Verification report and file-hash comparison.",
+          "done_when": "All content is traceable and required behavior passes.",
+          "depends_on": [
+            "MIG-006.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-006.S06",
+          "sequence": 6,
+          "kind": "rollback",
+          "title": "Prove rollback and restore",
+          "assignee_role": "worker",
+          "instruction": "Exercise rollback/restore from checkpoint or disposable staging target; prove source and last-known-good destination remain recoverable.",
+          "deliverable": "Rollback drill record and verified restore SHA.",
+          "done_when": "Rollback is demonstrated without destructive cleanup or loss.",
+          "depends_on": [
+            "MIG-006.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-006.S07",
+          "sequence": 7,
+          "kind": "handoff",
+          "title": "Commit and hand off migration candidate",
+          "assignee_role": "worker",
+          "instruction": "Commit reviewed candidate on task branch and hand off to independent QC with provenance, test evidence, gaps and next gate.",
+          "deliverable": "Candidate commit and migration handoff receipt.",
+          "done_when": "No production cutover, main promotion or legacy retirement occurs here.",
+          "depends_on": [
+            "MIG-006.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "MIG-007",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Run native JARVIS v2 SDA in read-only shadow mode",
+      "acceptance": "Shadow consumes sanitized events; cannot claim/write real tasks or protected refs",
+      "parent_dependencies": [
+        "MIG-005",
+        "CORE-014"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "tools/import_legacy.py",
+        "migration/",
+        "docs/migration/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Pin source SHAs and file-level provenance; dry-run first; create-only imports.",
+        "Never execute imported legacy files or modify the legacy source repository.",
+        "Keep Astra One as external rescue until native SDA cutover is approved and reversible."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "MIG-007.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Run native JARVIS v2 SDA in read-only shadow mode.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-007.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "MIG-007.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-007.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Run native JARVIS v2 SDA in read-only shadow mode; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "MIG-007.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-007.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "MIG-007.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-007.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "MIG-007.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "MIG-008",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Build Guardian release manifest policy and external immutable watchdog",
+      "acceptance": "Independent watchdog validates artifact identity, approvals, STOP, compatibility and rollback",
+      "parent_dependencies": [
+        "MIG-007",
+        "GUARD-018"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "design",
+      "suggested_scope_roots": [
+        "tools/import_legacy.py",
+        "migration/",
+        "docs/migration/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Pin source SHAs and file-level provenance; dry-run first; create-only imports.",
+        "Never execute imported legacy files or modify the legacy source repository.",
+        "Keep Astra One as external rescue until native SDA cutover is approved and reversible."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "MIG-008.S01",
+          "sequence": 1,
+          "kind": "requirements",
+          "title": "Extract requirements and constraints",
+          "assignee_role": "worker",
+          "instruction": "Extract exact architecture/user requirements, acceptance, dependencies, non-goals and compatibility obligations; list open decisions.",
+          "deliverable": "Requirements-to-acceptance traceability table.",
+          "done_when": "Every acceptance clause and dependency is represented.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-008.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Define typed interfaces, data ownership, schema/API/event shapes, state transitions and compatibility behavior.",
+          "deliverable": "Interface/schema/sequence specification with versioning and ownership.",
+          "done_when": "Contracts are deterministic, testable and match the ten-module architecture.",
+          "depends_on": [
+            "MIG-008.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-008.S03",
+          "sequence": 3,
+          "kind": "safety",
+          "title": "Define safety and failure behavior",
+          "assignee_role": "worker",
+          "instruction": "Specify permissions, privacy/secrets, failure modes, retry/backpressure, idempotency, rollback and STOP behavior.",
+          "deliverable": "Threat/failure matrix and rollback notes.",
+          "done_when": "No implicit privilege expansion; failures are explicit and fail-closed.",
+          "depends_on": [
+            "MIG-008.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-008.S04",
+          "sequence": 4,
+          "kind": "test_plan",
+          "title": "Map acceptance to tests",
+          "assignee_role": "worker",
+          "instruction": "Map each acceptance clause to unit/integration/negative/host tests, expected outputs and fixtures.",
+          "deliverable": "Acceptance test matrix and commands/fixtures plan.",
+          "done_when": "Every clause has a test or explicit manual gate.",
+          "depends_on": [
+            "MIG-008.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-008.S05",
+          "sequence": 5,
+          "kind": "review_design",
+          "title": "Review implementation design",
+          "assignee_role": "supervisor",
+          "instruction": "Cross-check design against module contracts, AGENTS.md, SECURITY.md and CODING_HANDBOOK.md; resolve contradictions before coding.",
+          "deliverable": "Reviewed implementation plan and allowed-path proposal.",
+          "done_when": "No unresolved architecture/security conflict; Supervisor approves scope.",
+          "depends_on": [
+            "MIG-008.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "MIG-009",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Prove blue/green Guardian-mediated SDA redeployment in staging",
+      "acceptance": "One writer fenced; canary, health and failed-release rollback demonstrated",
+      "parent_dependencies": [
+        "MIG-008",
+        "GUARD-016"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "tools/import_legacy.py",
+        "migration/",
+        "docs/migration/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Pin source SHAs and file-level provenance; dry-run first; create-only imports.",
+        "Never execute imported legacy files or modify the legacy source repository.",
+        "Keep Astra One as external rescue until native SDA cutover is approved and reversible."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "MIG-009.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Prove blue/green Guardian-mediated SDA redeployment in staging.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-009.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "MIG-009.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-009.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Prove blue/green Guardian-mediated SDA redeployment in staging; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "MIG-009.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-009.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "MIG-009.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-009.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "MIG-009.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "MIG-010",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Run real five-worker full native SDA end-to-end acceptance",
+      "acceptance": "Five independent Codex worker tasks + QC + Merger + recoverability host-proven",
+      "parent_dependencies": [
+        "MIG-007",
+        "MIG-009"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "tools/import_legacy.py",
+        "migration/",
+        "docs/migration/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Pin source SHAs and file-level provenance; dry-run first; create-only imports.",
+        "Never execute imported legacy files or modify the legacy source repository.",
+        "Keep Astra One as external rescue until native SDA cutover is approved and reversible."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "MIG-010.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Run real five-worker full native SDA end-to-end acceptance.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-010.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "MIG-010.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-010.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Run real five-worker full native SDA end-to-end acceptance; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "MIG-010.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-010.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "MIG-010.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-010.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "MIG-010.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "MIG-011",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Reconcile Astra-to-native task ledger and tool receipts",
+      "acceptance": "Checkpoint restore, idempotent receipts, session IDs and approval state match; duplicates fail closed",
+      "parent_dependencies": [
+        "MIG-009",
+        "MIG-010"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "audit",
+      "suggested_scope_roots": [
+        "tools/import_legacy.py",
+        "migration/",
+        "docs/migration/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Pin source SHAs and file-level provenance; dry-run first; create-only imports.",
+        "Never execute imported legacy files or modify the legacy source repository.",
+        "Keep Astra One as external rescue until native SDA cutover is approved and reversible."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "MIG-011.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Pin and inspect the repositories, refs, files, PRs, logs, databases or host evidence named by this task and its reuse notes. Record SHAs, timestamps and current state; do not modify inspected sources.",
+          "deliverable": "Evidence inventory with exact refs/SHAs, paths, current behavior and unknowns.",
+          "done_when": "Material claims trace to concrete sources and no inspected source was changed.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-011.S02",
+          "sequence": 2,
+          "kind": "analyze",
+          "title": "Compare evidence to acceptance",
+          "assignee_role": "worker",
+          "instruction": "Compare inspected evidence with the parent objective and acceptance. Identify duplicates, conflicts, gaps, risks, platform constraints and relevant prior mistakes.",
+          "deliverable": "Findings matrix mapping every acceptance clause to evidence, gap or blocker.",
+          "done_when": "Every acceptance clause has a supported finding; assumptions are labelled.",
+          "depends_on": [
+            "MIG-011.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-011.S03",
+          "sequence": 3,
+          "kind": "record",
+          "title": "Record findings and decision",
+          "assignee_role": "worker",
+          "instruction": "Write a task-specific audit/decision record with findings, options, recommendation, rejected alternatives and evidence references.",
+          "deliverable": "Versioned report or decision record in approved docs path.",
+          "done_when": "Report is reproducible and distinguishes fact from inference.",
+          "depends_on": [
+            "MIG-011.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-011.S04",
+          "sequence": 4,
+          "kind": "cross_check",
+          "title": "Independently cross-check evidence",
+          "assignee_role": "worker",
+          "instruction": "Independently re-check critical SHAs, paths, counts and conclusions; confirm no unrelated changes or sensitive data disclosure.",
+          "deliverable": "Review checklist and evidence receipt.",
+          "done_when": "Independent check agrees or unresolved differences keep parent blocked.",
+          "depends_on": [
+            "MIG-011.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "MIG-012",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Obtain explicit owner approval for SDA cutover and guarded deployment",
+      "acceptance": "Owner authorizes candidate SHA, rollback hash, destination host and cutover policy",
+      "parent_dependencies": [
+        "MIG-011"
+      ],
+      "required_owner_gate": true,
+      "manual_owner_gate_required": true,
+      "execution_mode": "owner_gate",
+      "suggested_scope_roots": [
+        "tools/import_legacy.py",
+        "migration/",
+        "docs/migration/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Pin source SHAs and file-level provenance; dry-run first; create-only imports.",
+        "Never execute imported legacy files or modify the legacy source repository.",
+        "Keep Astra One as external rescue until native SDA cutover is approved and reversible."
+      ],
+      "special_instructions": [
+        "Mandatory owner gate: Astra One remains active until the owner approves exact candidate SHA, rollback SHA, destination host and cutover policy."
+      ],
+      "subtasks": [
+        {
+          "id": "MIG-012.S01",
+          "sequence": 1,
+          "kind": "packet",
+          "title": "Prepare owner decision packet",
+          "assignee_role": "worker",
+          "instruction": "Assemble candidate, architecture, source SHA, scope, test evidence, risks, rollback target and exact requested decision for Obtain explicit owner approval for SDA cutover and guarded deployment.",
+          "deliverable": "Owner decision packet tied to immutable candidate SHA.",
+          "done_when": "Packet is complete and does not imply consent.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-012.S02",
+          "sequence": 2,
+          "kind": "prerequisites",
+          "title": "Verify owner-gate prerequisites",
+          "assignee_role": "worker",
+          "instruction": "Verify dependencies, candidate SHA/evidence match, STOP/PAUSE and rollback readiness; list unresolved blockers.",
+          "deliverable": "Gate checklist and evidence hash manifest.",
+          "done_when": "All prerequisites proven or gate remains blocked.",
+          "depends_on": [
+            "MIG-012.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-012.S03",
+          "sequence": 3,
+          "kind": "await_owner",
+          "title": "Wait for explicit owner decision",
+          "assignee_role": "owner",
+          "instruction": "Present the decision packet and wait for explicit approval/rejection. Never infer approval from silence, prior discussion or model output.",
+          "deliverable": "Explicit owner decision receipt or WAITING_OWNER state.",
+          "done_when": "Only owner response satisfies this step.",
+          "depends_on": [
+            "MIG-012.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "MIG-013",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Switch active SDA to native v2 using Guardian's independent deploy controller",
+      "acceptance": "Only one active Master, health verified, old Astra preserved, STOP/PAUSE still effective",
+      "parent_dependencies": [
+        "MIG-012"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "migration",
+      "suggested_scope_roots": [
+        "tools/import_legacy.py",
+        "migration/",
+        "docs/migration/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Pin source SHAs and file-level provenance; dry-run first; create-only imports.",
+        "Never execute imported legacy files or modify the legacy source repository.",
+        "Keep Astra One as external rescue until native SDA cutover is approved and reversible."
+      ],
+      "special_instructions": [
+        "No active cutover until MIG-012 has explicit recorded owner approval. Keep Astra One available and fence exactly one writer."
+      ],
+      "subtasks": [
+        {
+          "id": "MIG-013.S01",
+          "sequence": 1,
+          "kind": "pin",
+          "title": "Pin source and destination SHAs",
+          "assignee_role": "worker",
+          "instruction": "Pin exact source repository/ref/commit and destination base SHA for Switch active SDA to native v2 using Guardian's independent deploy controller; verify destination is isolated and legacy source untouched.",
+          "deliverable": "Source/target identity record and SHA pair.",
+          "done_when": "Source and target are immutable for this attempt.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-013.S02",
+          "sequence": 2,
+          "kind": "inventory",
+          "title": "Inventory provenance and compatibility",
+          "assignee_role": "worker",
+          "instruction": "Inventory files, dependencies, licenses, secrets, data formats, case collisions and compatibility; record per-file provenance.",
+          "deliverable": "File manifest and provenance ledger.",
+          "done_when": "Every candidate has origin SHA/path/license status and secret-scan disposition.",
+          "depends_on": [
+            "MIG-013.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-013.S03",
+          "sequence": 3,
+          "kind": "dry_run",
+          "title": "Run read-only dry run",
+          "assignee_role": "worker",
+          "instruction": "Run read-only dry-run/staging simulation; detect collisions, incompatibilities, path traversal and unsafe files before applying.",
+          "deliverable": "Dry-run report and compatibility matrix.",
+          "done_when": "Dry-run makes no destination writes; unresolved collisions block application.",
+          "depends_on": [
+            "MIG-013.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-013.S04",
+          "sequence": 4,
+          "kind": "apply",
+          "title": "Apply bounded migration",
+          "assignee_role": "worker",
+          "instruction": "Apply only approved create-only/adapter/migration slice for Switch active SDA to native v2 using Guardian's independent deploy controller; do not delete, execute or overwrite legacy source.",
+          "deliverable": "Bounded destination changes and migration receipt.",
+          "done_when": "Only allowlisted files are changed and provenance is recorded.",
+          "depends_on": [
+            "MIG-013.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-013.S05",
+          "sequence": 5,
+          "kind": "verify",
+          "title": "Verify migrated result",
+          "assignee_role": "worker",
+          "instruction": "Run provenance, schema, behavior, regression and security checks on destination.",
+          "deliverable": "Verification report and file-hash comparison.",
+          "done_when": "All content is traceable and required behavior passes.",
+          "depends_on": [
+            "MIG-013.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-013.S06",
+          "sequence": 6,
+          "kind": "rollback",
+          "title": "Prove rollback and restore",
+          "assignee_role": "worker",
+          "instruction": "Exercise rollback/restore from checkpoint or disposable staging target; prove source and last-known-good destination remain recoverable.",
+          "deliverable": "Rollback drill record and verified restore SHA.",
+          "done_when": "Rollback is demonstrated without destructive cleanup or loss.",
+          "depends_on": [
+            "MIG-013.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-013.S07",
+          "sequence": 7,
+          "kind": "handoff",
+          "title": "Commit and hand off migration candidate",
+          "assignee_role": "worker",
+          "instruction": "Commit reviewed candidate on task branch and hand off to independent QC with provenance, test evidence, gaps and next gate.",
+          "deliverable": "Candidate commit and migration handoff receipt.",
+          "done_when": "No production cutover, main promotion or legacy retirement occurs here.",
+          "depends_on": [
+            "MIG-013.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "MIG-014",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Keep Astra One external rescue and qualify Guardian self-update path",
+      "acceptance": "Safe external rollback and watchdog self-update tested; old builder recoverable",
+      "parent_dependencies": [
+        "MIG-013"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "tools/import_legacy.py",
+        "migration/",
+        "docs/migration/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Pin source SHAs and file-level provenance; dry-run first; create-only imports.",
+        "Never execute imported legacy files or modify the legacy source repository.",
+        "Keep Astra One as external rescue until native SDA cutover is approved and reversible."
+      ],
+      "special_instructions": [
+        "Preserve external Astra One package, state, backups and rollback path; never retire/delete it during self-update."
+      ],
+      "subtasks": [
+        {
+          "id": "MIG-014.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Keep Astra One external rescue and qualify Guardian self-update path. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-014.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Keep Astra One external rescue and qualify Guardian self-update path: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "MIG-014.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-014.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Keep Astra One external rescue and qualify Guardian self-update path; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "MIG-014.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-014.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Keep Astra One external rescue and qualify Guardian self-update path.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "MIG-014.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-014.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Safe external rollback and watchdog self-update tested; old builder recoverable. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "MIG-014.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-014.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "MIG-014.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "MIG-015",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Integrate standalone read-only ATLAS monitor and ARCHON/AEGIS/ATLAS identity manifest",
+      "acceptance": "Actual Astra One and native Core SQLite snapshots render verified task/worker/review/merge states without changing DB or invoking runner; roles named ARCHON AEGIS ATLAS across docs and config",
+      "parent_dependencies": [
+        "MIG-001",
+        "SDA-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "tools/import_legacy.py",
+        "migration/",
+        "docs/migration/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Pin source SHAs and file-level provenance; dry-run first; create-only imports.",
+        "Never execute imported legacy files or modify the legacy source repository.",
+        "Keep Astra One as external rescue until native SDA cutover is approved and reversible."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "MIG-015.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Integrate standalone read-only ATLAS monitor and ARCHON/AEGIS/ATLAS identity manifest. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-015.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Integrate standalone read-only ATLAS monitor and ARCHON/AEGIS/ATLAS identity manifest: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "MIG-015.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-015.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Integrate standalone read-only ATLAS monitor and ARCHON/AEGIS/ATLAS identity manifest; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "MIG-015.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-015.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Integrate standalone read-only ATLAS monitor and ARCHON/AEGIS/ATLAS identity manifest.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "MIG-015.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-015.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Actual Astra One and native Core SQLite snapshots render verified task/worker/review/merge states without changing DB or invoking runner; roles named ARCHON AEGIS ATLAS across docs and config. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "MIG-015.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-015.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "MIG-015.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "MIG-016",
+      "module": "MIG",
+      "milestone": "M1b — Clean repository migration and self-host transition",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Apply ARCHON AEGIS ATLAS naming contract across operator interfaces and docs",
+      "acceptance": "Ten module IDs unchanged; UI/CLI/docs use approved identities; deprecated naming remains documented without replacing DB records",
+      "parent_dependencies": [
+        "MIG-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "tools/import_legacy.py",
+        "migration/",
+        "docs/migration/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Pin source SHAs and file-level provenance; dry-run first; create-only imports.",
+        "Never execute imported legacy files or modify the legacy source repository.",
+        "Keep Astra One as external rescue until native SDA cutover is approved and reversible."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "MIG-016.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Apply ARCHON AEGIS ATLAS naming contract across operator interfaces and docs. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-016.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Apply ARCHON AEGIS ATLAS naming contract across operator interfaces and docs: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "MIG-016.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-016.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Apply ARCHON AEGIS ATLAS naming contract across operator interfaces and docs; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "MIG-016.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-016.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Apply ARCHON AEGIS ATLAS naming contract across operator interfaces and docs.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "MIG-016.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-016.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Ten module IDs unchanged; UI/CLI/docs use approved identities; deprecated naming remains documented without replacing DB records. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "MIG-016.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-016.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "MIG-016.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    }
+  ]
+}
