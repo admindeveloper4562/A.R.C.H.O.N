@@ -210,6 +210,12 @@ def _task_allows_ci_workflow(task: dict | None, path: str) -> bool:
     )
 
 
+def _git_common_dir(repo: Path) -> Path:
+    """Resolve the repository object store shared by a root or worktree."""
+    raw = Path(git(repo, "rev-parse", "--git-common-dir"))
+    return (raw if raw.is_absolute() else repo / raw).resolve()
+
+
 def check_changes(worktree: Path, base_sha: str, *, task: dict | None = None) -> list[str]:
     """Read-only static boundary. No generated code is executed."""
     try:
@@ -617,6 +623,8 @@ def ensure_integration(state: State) -> Path:
         git(source,"worktree","add","-b",branch,str(worktree),sha)
     if worktree.is_symlink() or not worktree.is_dir() or git(worktree,"branch","--show-current")!=branch:
         raise ValueError("invalid integration worktree")
+    if _git_common_dir(source) != _git_common_dir(worktree):
+        raise ValueError("integration repository mismatch; source and integration must share Git history")
     if git(worktree,"rev-parse","HEAD")!=sha or git(worktree,"status","--porcelain","--untracked-files=all"):
         raise ValueError("integration branch dirty or moved unexpectedly; manual recovery required")
     return worktree

@@ -354,6 +354,14 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change','status':
         self.assertEqual(git(self.repo,"branch","--show-current"),"develop")
         self.assertNotEqual(self.state.get("integration_sha"),self.state.get("source_sha"))
 
+    def test_integration_rejects_worktree_from_different_repository(self):
+        other = git_repo(self.base/"other-source")
+        self.state.put("integration_path",str(other))
+        self.state.put("integration_branch",git(other,"branch","--show-current"))
+        self.state.put("integration_sha",git(other,"rev-parse","HEAD"))
+        with self.assertRaisesRegex(ValueError,"integration repository mismatch"):
+            ensure_integration(self.state)
+
     def test_architecture_change_invalidates_old_queued_tasks(self):
         self.state.add_tasks(task(1))
         other=self.base/"updated-architecture.md"
