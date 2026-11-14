@@ -353,6 +353,30 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change'}}))
         self.assertEqual(result["qc_passed"],1)
         self.assertEqual(self.state.list_tasks()[0]["status"],"awaiting_review")
 
+    def test_repair_budget_can_drain_all_kickoff_tasks(self):
+        self.state.add_tasks([task(i) for i in range(1,6)])
+        calls=[]
+        def fake_execute(state,item,**kwargs):
+            tid=item["task"]["task_id"]
+            attempt=item["attempt"]
+            calls.append((tid,attempt))
+            if attempt < 3:
+                code="repairable_first" if attempt == 1 else "repairable_second"
+                state.set_task(tid,"failed",error=code)
+                return {"task_id":tid,"status":"failed","error":code}
+            state.set_task(tid,"awaiting_review")
+            return {"task_id":tid,"status":"awaiting_review"}
+        with patch("astra_one.linux_cli.os.geteuid",return_value=1000), patch("astra_one.linux_cli.sandbox_status",return_value={"available":True,"reason":"test"}), patch("astra_one.linux_cli.execute_claim",side_effect=fake_execute), patch("astra_one.linux_cli.time.sleep",return_value=None):
+            result=run_master(self.state,workers=5,max_tasks=15,max_minutes=1,model="gpt-5.6-luna",effort="medium",
+                              test_image="python:3.12-slim",test_command=["python3","-m","unittest"],
+                              auto_integrate=False,max_repairs=3,timeout=60)
+        self.assertEqual(result["attempts"],15)
+        self.assertEqual(result["requeued"],10)
+        self.assertEqual(result["terminal_failures"],0)
+        self.assertEqual(result["queued_remaining"],0)
+        self.assertEqual(len(calls),15)
+        self.assertTrue(all(t["status"]=="awaiting_review" for t in self.state.list_tasks()))
+
     def test_event_metadata_accepts_new_rebuild_branch_policy(self):
         self.state.add_tasks(task(1))
         claim = self.state.claim()

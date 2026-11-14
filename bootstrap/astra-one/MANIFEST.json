@@ -34,6 +34,6 @@
     "scripts/verify_manifest.py": "128917adb54ce79b728679c7d05ace9f0b06296303c4757292ad3f0b0977a9a1",
     "scripts/verify_package.py": "8bfe169e85bffe0fc3949bf24f2e0ae94bbf0a647762e40c37f6c5a543d273cc",
     "tests/test_core.py": "26cb1356c98ba763b7aaae7870f7a1066233e5a8cb55d70dcc03e4376fbed4c5",
-    "tests/test_linux_sda.py": "a1bbed97b53df8456eca922aee5b4c148b002f91b9b67165c8209dd73df767e8"
+    "tests/test_linux_sda.py": "ac143f83a1d91b0a9c71a9d2d4e43bc7780861b71bd774360fc040ac37497de1"
   }
 }

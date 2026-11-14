@@ -16,9 +16,10 @@ done
 cd "$ASTRA_ROOT"
 # Repeated calls are safe: the Python Master acquires an exclusive file lock.
 RUN_RC=0
+# Five kickoff tasks plus up to three bounded repair claims per task.
 RUN_OUTPUT=$("${CLI[@]}" run \
   --workers 5 --model gpt-5.6-luna --effort medium \
-  --max-tasks 10 --max-minutes 120 --max-seconds-per-task 1800 \
+  --max-tasks 20 --max-minutes 120 --max-seconds-per-task 1800 \
   --max-repairs 3 --auto-integrate --test-image "$TEST_IMAGE" 2>&1) || RUN_RC=$?
 printf '%s\n' "$RUN_OUTPUT"
 # A refusal to start is an operational error. A completed batch with terminal
