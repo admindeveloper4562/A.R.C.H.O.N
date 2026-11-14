@@ -31,3 +31,16 @@ jobs:
           cd bootstrap/astra-one
           python3 scripts/verify_manifest.py
           python3 -m unittest discover -s tests -p 'test_*.py' -q
+
+  ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run iOS scaffold tests
+        run: python3 -m unittest discover -s apps/ios/tests -p 'test_*.py' -v
