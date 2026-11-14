@@ -18,7 +18,7 @@ import sqlite3
 
 from .linux_sda import MODEL, EFFORT, MAX_FAILURES, PROTECTED, PROTECTED_PARTS, State, git, now
 
-ALLOWED_SUFFIXES = {".py", ".js", ".jsx", ".ts", ".tsx", ".json", ".toml", ".md", ".html", ".css", ".sql", ".yaml", ".yml"}
+ALLOWED_SUFFIXES = {".py", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".json", ".toml", ".md", ".html", ".css", ".sql", ".yaml", ".yml"}
 MAX_FILES = 30
 MAX_BYTES = 2_000_000
 STOP_POLL = 0.3

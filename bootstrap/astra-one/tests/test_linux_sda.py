@@ -272,6 +272,11 @@ class LinuxSDATests(unittest.TestCase):
         (self.repo/"two.json").write_text('{"value": 2}\n')
         self.assertEqual(check_changes(self.repo,b),["one.py","two.json"])
 
+    def test_static_change_accepts_javascript_module_files(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        (self.repo/"worker.test.mjs").write_text("export const ok = true;\n")
+        self.assertEqual(check_changes(self.repo,b),["worker.test.mjs"])
+
     def test_static_change_rejects_zero_files_with_specific_code(self):
         b=git(self.repo,"rev-parse","HEAD")
         with self.assertRaises(ChangeValidationError) as caught:
