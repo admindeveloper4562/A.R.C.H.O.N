@@ -1,0 +1,2659 @@
+{
+  "schema": "jarvis.v2.subtask-module/1",
+  "created": "2026-11-14",
+  "source_parent_plan_blob_sha": "36e674f4e58fc19aa8158da42d802b9599a23763",
+  "module": "REL",
+  "module_name": "M12 — Cross-module qualification, deployment and v2 release",
+  "parent_count": 25,
+  "subtask_count": 127,
+  "parents": [
+    {
+      "parent_id": "REL-001",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Create full cross-module contract and event compatibility test suite",
+      "acceptance": "All ten module schemas/permissions have runnable fixture tests",
+      "parent_dependencies": [
+        "CORE-014",
+        "BACK-022"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "REL-001.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Create full cross-module contract and event compatibility test suite.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-001.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "REL-001.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-001.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Create full cross-module contract and event compatibility test suite; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "REL-001.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-001.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "REL-001.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-001.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "REL-001.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "REL-002",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Validate independent deploy/stop and smallest-module fault isolation",
+      "acceptance": "Fault one module and prove unrelated services survive",
+      "parent_dependencies": [
+        "GUARD-019",
+        "REL-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "migration",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "REL-002.S01",
+          "sequence": 1,
+          "kind": "pin",
+          "title": "Pin source and destination SHAs",
+          "assignee_role": "worker",
+          "instruction": "Pin exact source repository/ref/commit and destination base SHA for Validate independent deploy/stop and smallest-module fault isolation; verify destination is isolated and legacy source untouched.",
+          "deliverable": "Source/target identity record and SHA pair.",
+          "done_when": "Source and target are immutable for this attempt.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-002.S02",
+          "sequence": 2,
+          "kind": "inventory",
+          "title": "Inventory provenance and compatibility",
+          "assignee_role": "worker",
+          "instruction": "Inventory files, dependencies, licenses, secrets, data formats, case collisions and compatibility; record per-file provenance.",
+          "deliverable": "File manifest and provenance ledger.",
+          "done_when": "Every candidate has origin SHA/path/license status and secret-scan disposition.",
+          "depends_on": [
+            "REL-002.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-002.S03",
+          "sequence": 3,
+          "kind": "dry_run",
+          "title": "Run read-only dry run",
+          "assignee_role": "worker",
+          "instruction": "Run read-only dry-run/staging simulation; detect collisions, incompatibilities, path traversal and unsafe files before applying.",
+          "deliverable": "Dry-run report and compatibility matrix.",
+          "done_when": "Dry-run makes no destination writes; unresolved collisions block application.",
+          "depends_on": [
+            "REL-002.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-002.S04",
+          "sequence": 4,
+          "kind": "apply",
+          "title": "Apply bounded migration",
+          "assignee_role": "worker",
+          "instruction": "Apply only approved create-only/adapter/migration slice for Validate independent deploy/stop and smallest-module fault isolation; do not delete, execute or overwrite legacy source.",
+          "deliverable": "Bounded destination changes and migration receipt.",
+          "done_when": "Only allowlisted files are changed and provenance is recorded.",
+          "depends_on": [
+            "REL-002.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-002.S05",
+          "sequence": 5,
+          "kind": "verify",
+          "title": "Verify migrated result",
+          "assignee_role": "worker",
+          "instruction": "Run provenance, schema, behavior, regression and security checks on destination.",
+          "deliverable": "Verification report and file-hash comparison.",
+          "done_when": "All content is traceable and required behavior passes.",
+          "depends_on": [
+            "REL-002.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-002.S06",
+          "sequence": 6,
+          "kind": "rollback",
+          "title": "Prove rollback and restore",
+          "assignee_role": "worker",
+          "instruction": "Exercise rollback/restore from checkpoint or disposable staging target; prove source and last-known-good destination remain recoverable.",
+          "deliverable": "Rollback drill record and verified restore SHA.",
+          "done_when": "Rollback is demonstrated without destructive cleanup or loss.",
+          "depends_on": [
+            "REL-002.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-002.S07",
+          "sequence": 7,
+          "kind": "handoff",
+          "title": "Commit and hand off migration candidate",
+          "assignee_role": "worker",
+          "instruction": "Commit reviewed candidate on task branch and hand off to independent QC with provenance, test evidence, gaps and next gate.",
+          "deliverable": "Candidate commit and migration handoff receipt.",
+          "done_when": "No production cutover, main promotion or legacy retirement occurs here.",
+          "depends_on": [
+            "REL-002.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "REL-003",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Verify Core-SDA project delegation and completion result",
+      "acceptance": "Real project flows through Supervisor, 5 workers, QC, merger to Core event",
+      "parent_dependencies": [
+        "SDA-026",
+        "CORE-014",
+        "REL-001",
+        "MIG-013"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "REL-003.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Verify Core-SDA project delegation and completion result.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-003.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "REL-003.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-003.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Verify Core-SDA project delegation and completion result; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "REL-003.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-003.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "REL-003.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-003.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "REL-003.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "REL-004",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Verify local Windows and Linux model routing, quotas and context handoff",
+      "acceptance": "Cross-device model state reconstructed without duplicate tools",
+      "parent_dependencies": [
+        "WIN-011",
+        "BACK-011",
+        "REL-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "REL-004.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Verify local Windows and Linux model routing, quotas and context handoff.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-004.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "REL-004.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-004.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Verify local Windows and Linux model routing, quotas and context handoff; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "REL-004.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-004.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "REL-004.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-004.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "REL-004.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "REL-005",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Verify Cloudflare pending jobs while all PCs are offline",
+      "acceptance": "Cloudflare only stores jobs; reconnect resumes safely and reports age",
+      "parent_dependencies": [
+        "AUTO-012",
+        "REL-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "REL-005.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Verify Cloudflare pending jobs while all PCs are offline.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-005.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "REL-005.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-005.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Verify Cloudflare pending jobs while all PCs are offline; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "REL-005.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-005.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "REL-005.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-005.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "REL-005.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "REL-006",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Verify Guardian next-slot non-preemptive priority under live workload",
+      "acceptance": "Active inference finishes; new worker model calls wait while Guardian runs",
+      "parent_dependencies": [
+        "GUARD-019",
+        "REL-003"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "REL-006.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Verify Guardian next-slot non-preemptive priority under live workload.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-006.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "REL-006.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-006.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Verify Guardian next-slot non-preemptive priority under live workload; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "REL-006.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-006.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "REL-006.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-006.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "REL-006.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "REL-007",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Verify Runtime chat/voice/browser and permissions on Ubuntu",
+      "acceptance": "Real Firefox, voice device, typed actions and denial tests pass",
+      "parent_dependencies": [
+        "RUN-018",
+        "REL-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "REL-007.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Verify Runtime chat/voice/browser and permissions on Ubuntu.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-007.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "REL-007.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-007.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Verify Runtime chat/voice/browser and permissions on Ubuntu; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "REL-007.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-007.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "REL-007.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-007.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "REL-007.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "REL-008",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Verify Research into memory and handbook edit authority",
+      "acceptance": "Citations retain provenance; ordinary coding workers cannot edit handbook",
+      "parent_dependencies": [
+        "RES-015",
+        "REL-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "audit",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "REL-008.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Pin and inspect the repositories, refs, files, PRs, logs, databases or host evidence named by this task and its reuse notes. Record SHAs, timestamps and current state; do not modify inspected sources.",
+          "deliverable": "Evidence inventory with exact refs/SHAs, paths, current behavior and unknowns.",
+          "done_when": "Material claims trace to concrete sources and no inspected source was changed.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-008.S02",
+          "sequence": 2,
+          "kind": "analyze",
+          "title": "Compare evidence to acceptance",
+          "assignee_role": "worker",
+          "instruction": "Compare inspected evidence with the parent objective and acceptance. Identify duplicates, conflicts, gaps, risks, platform constraints and relevant prior mistakes.",
+          "deliverable": "Findings matrix mapping every acceptance clause to evidence, gap or blocker.",
+          "done_when": "Every acceptance clause has a supported finding; assumptions are labelled.",
+          "depends_on": [
+            "REL-008.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-008.S03",
+          "sequence": 3,
+          "kind": "record",
+          "title": "Record findings and decision",
+          "assignee_role": "worker",
+          "instruction": "Write a task-specific audit/decision record with findings, options, recommendation, rejected alternatives and evidence references.",
+          "deliverable": "Versioned report or decision record in approved docs path.",
+          "done_when": "Report is reproducible and distinguishes fact from inference.",
+          "depends_on": [
+            "REL-008.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-008.S04",
+          "sequence": 4,
+          "kind": "cross_check",
+          "title": "Independently cross-check evidence",
+          "assignee_role": "worker",
+          "instruction": "Independently re-check critical SHAs, paths, counts and conclusions; confirm no unrelated changes or sensitive data disclosure.",
+          "deliverable": "Review checklist and evidence receipt.",
+          "done_when": "Independent check agrees or unresolved differences keep parent blocked.",
+          "depends_on": [
+            "REL-008.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "REL-009",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Verify TWS mobile pairing, 3D fallback and cross-module quest gates",
+      "acceptance": "Real iPhone/device evidence, XP non-duplication and graceful failure",
+      "parent_dependencies": [
+        "TWS-020",
+        "REL-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "REL-009.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Verify TWS mobile pairing, 3D fallback and cross-module quest gates.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-009.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "REL-009.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-009.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Verify TWS mobile pairing, 3D fallback and cross-module quest gates; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "REL-009.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-009.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "REL-009.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-009.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "REL-009.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "REL-010",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Verify WIC freshness, corrections and time-sensitive notifications",
+      "acceptance": "No false live claim, duplication or unsourced notification",
+      "parent_dependencies": [
+        "WIC-014",
+        "REL-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "REL-010.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Verify WIC freshness, corrections and time-sensitive notifications.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-010.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "REL-010.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-010.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Verify WIC freshness, corrections and time-sensitive notifications; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "REL-010.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-010.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "REL-010.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-010.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "REL-010.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "REL-011",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Verify Mira scoped analytics and paper-only finance integration",
+      "acceptance": "No cross-person leak or broker order; financial fixture totals correct",
+      "parent_dependencies": [
+        "FIN-016",
+        "REL-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "REL-011.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Verify Mira scoped analytics and paper-only finance integration.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-011.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "REL-011.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-011.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Verify Mira scoped analytics and paper-only finance integration; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "REL-011.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-011.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "REL-011.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-011.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "REL-011.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "REL-012",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Run full security adversarial matrix against each module",
+      "acceptance": "Injection, auth, path, CSRF, XSS, secrets and prompt boundary tests pass",
+      "parent_dependencies": [
+        "REL-002",
+        "REL-007",
+        "REL-008",
+        "REL-011"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "REL-012.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Run full security adversarial matrix against each module.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-012.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "REL-012.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-012.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Run full security adversarial matrix against each module; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "REL-012.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-012.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "REL-012.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-012.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "REL-012.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "REL-013",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Run system crash, corruption, provider outage and rollback drills",
+      "acceptance": "Durable recovery with approvals/STOP preserved and known-good rollback",
+      "parent_dependencies": [
+        "REL-002",
+        "REL-004",
+        "REL-005",
+        "REL-006",
+        "MIG-014"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "migration",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "REL-013.S01",
+          "sequence": 1,
+          "kind": "pin",
+          "title": "Pin source and destination SHAs",
+          "assignee_role": "worker",
+          "instruction": "Pin exact source repository/ref/commit and destination base SHA for Run system crash, corruption, provider outage and rollback drills; verify destination is isolated and legacy source untouched.",
+          "deliverable": "Source/target identity record and SHA pair.",
+          "done_when": "Source and target are immutable for this attempt.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-013.S02",
+          "sequence": 2,
+          "kind": "inventory",
+          "title": "Inventory provenance and compatibility",
+          "assignee_role": "worker",
+          "instruction": "Inventory files, dependencies, licenses, secrets, data formats, case collisions and compatibility; record per-file provenance.",
+          "deliverable": "File manifest and provenance ledger.",
+          "done_when": "Every candidate has origin SHA/path/license status and secret-scan disposition.",
+          "depends_on": [
+            "REL-013.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-013.S03",
+          "sequence": 3,
+          "kind": "dry_run",
+          "title": "Run read-only dry run",
+          "assignee_role": "worker",
+          "instruction": "Run read-only dry-run/staging simulation; detect collisions, incompatibilities, path traversal and unsafe files before applying.",
+          "deliverable": "Dry-run report and compatibility matrix.",
+          "done_when": "Dry-run makes no destination writes; unresolved collisions block application.",
+          "depends_on": [
+            "REL-013.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-013.S04",
+          "sequence": 4,
+          "kind": "apply",
+          "title": "Apply bounded migration",
+          "assignee_role": "worker",
+          "instruction": "Apply only approved create-only/adapter/migration slice for Run system crash, corruption, provider outage and rollback drills; do not delete, execute or overwrite legacy source.",
+          "deliverable": "Bounded destination changes and migration receipt.",
+          "done_when": "Only allowlisted files are changed and provenance is recorded.",
+          "depends_on": [
+            "REL-013.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-013.S05",
+          "sequence": 5,
+          "kind": "verify",
+          "title": "Verify migrated result",
+          "assignee_role": "worker",
+          "instruction": "Run provenance, schema, behavior, regression and security checks on destination.",
+          "deliverable": "Verification report and file-hash comparison.",
+          "done_when": "All content is traceable and required behavior passes.",
+          "depends_on": [
+            "REL-013.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-013.S06",
+          "sequence": 6,
+          "kind": "rollback",
+          "title": "Prove rollback and restore",
+          "assignee_role": "worker",
+          "instruction": "Exercise rollback/restore from checkpoint or disposable staging target; prove source and last-known-good destination remain recoverable.",
+          "deliverable": "Rollback drill record and verified restore SHA.",
+          "done_when": "Rollback is demonstrated without destructive cleanup or loss.",
+          "depends_on": [
+            "REL-013.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-013.S07",
+          "sequence": 7,
+          "kind": "handoff",
+          "title": "Commit and hand off migration candidate",
+          "assignee_role": "worker",
+          "instruction": "Commit reviewed candidate on task branch and hand off to independent QC with provenance, test evidence, gaps and next gate.",
+          "deliverable": "Candidate commit and migration handoff receipt.",
+          "done_when": "No production cutover, main promotion or legacy retirement occurs here.",
+          "depends_on": [
+            "REL-013.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "REL-014",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Benchmark five-worker SDA plus model/DB workload resource limits",
+      "acceptance": "Measured throughput, quotas, RAM, backpressure and no runaway workers",
+      "parent_dependencies": [
+        "REL-003",
+        "REL-013"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "audit",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "REL-014.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Pin and inspect the repositories, refs, files, PRs, logs, databases or host evidence named by this task and its reuse notes. Record SHAs, timestamps and current state; do not modify inspected sources.",
+          "deliverable": "Evidence inventory with exact refs/SHAs, paths, current behavior and unknowns.",
+          "done_when": "Material claims trace to concrete sources and no inspected source was changed.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-014.S02",
+          "sequence": 2,
+          "kind": "analyze",
+          "title": "Compare evidence to acceptance",
+          "assignee_role": "worker",
+          "instruction": "Compare inspected evidence with the parent objective and acceptance. Identify duplicates, conflicts, gaps, risks, platform constraints and relevant prior mistakes.",
+          "deliverable": "Findings matrix mapping every acceptance clause to evidence, gap or blocker.",
+          "done_when": "Every acceptance clause has a supported finding; assumptions are labelled.",
+          "depends_on": [
+            "REL-014.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-014.S03",
+          "sequence": 3,
+          "kind": "record",
+          "title": "Record findings and decision",
+          "assignee_role": "worker",
+          "instruction": "Write a task-specific audit/decision record with findings, options, recommendation, rejected alternatives and evidence references.",
+          "deliverable": "Versioned report or decision record in approved docs path.",
+          "done_when": "Report is reproducible and distinguishes fact from inference.",
+          "depends_on": [
+            "REL-014.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-014.S04",
+          "sequence": 4,
+          "kind": "cross_check",
+          "title": "Independently cross-check evidence",
+          "assignee_role": "worker",
+          "instruction": "Independently re-check critical SHAs, paths, counts and conclusions; confirm no unrelated changes or sensitive data disclosure.",
+          "deliverable": "Review checklist and evidence receipt.",
+          "done_when": "Independent check agrees or unresolved differences keep parent blocked.",
+          "depends_on": [
+            "REL-014.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "REL-015",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Validate backup/restore and data retention per domain",
+      "acceptance": "Clean-room restore preserves state without inappropriate private-data retention",
+      "parent_dependencies": [
+        "BACK-018",
+        "REL-009",
+        "REL-011",
+        "REL-013"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "migration",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "REL-015.S01",
+          "sequence": 1,
+          "kind": "pin",
+          "title": "Pin source and destination SHAs",
+          "assignee_role": "worker",
+          "instruction": "Pin exact source repository/ref/commit and destination base SHA for Validate backup/restore and data retention per domain; verify destination is isolated and legacy source untouched.",
+          "deliverable": "Source/target identity record and SHA pair.",
+          "done_when": "Source and target are immutable for this attempt.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-015.S02",
+          "sequence": 2,
+          "kind": "inventory",
+          "title": "Inventory provenance and compatibility",
+          "assignee_role": "worker",
+          "instruction": "Inventory files, dependencies, licenses, secrets, data formats, case collisions and compatibility; record per-file provenance.",
+          "deliverable": "File manifest and provenance ledger.",
+          "done_when": "Every candidate has origin SHA/path/license status and secret-scan disposition.",
+          "depends_on": [
+            "REL-015.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-015.S03",
+          "sequence": 3,
+          "kind": "dry_run",
+          "title": "Run read-only dry run",
+          "assignee_role": "worker",
+          "instruction": "Run read-only dry-run/staging simulation; detect collisions, incompatibilities, path traversal and unsafe files before applying.",
+          "deliverable": "Dry-run report and compatibility matrix.",
+          "done_when": "Dry-run makes no destination writes; unresolved collisions block application.",
+          "depends_on": [
+            "REL-015.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-015.S04",
+          "sequence": 4,
+          "kind": "apply",
+          "title": "Apply bounded migration",
+          "assignee_role": "worker",
+          "instruction": "Apply only approved create-only/adapter/migration slice for Validate backup/restore and data retention per domain; do not delete, execute or overwrite legacy source.",
+          "deliverable": "Bounded destination changes and migration receipt.",
+          "done_when": "Only allowlisted files are changed and provenance is recorded.",
+          "depends_on": [
+            "REL-015.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-015.S05",
+          "sequence": 5,
+          "kind": "verify",
+          "title": "Verify migrated result",
+          "assignee_role": "worker",
+          "instruction": "Run provenance, schema, behavior, regression and security checks on destination.",
+          "deliverable": "Verification report and file-hash comparison.",
+          "done_when": "All content is traceable and required behavior passes.",
+          "depends_on": [
+            "REL-015.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-015.S06",
+          "sequence": 6,
+          "kind": "rollback",
+          "title": "Prove rollback and restore",
+          "assignee_role": "worker",
+          "instruction": "Exercise rollback/restore from checkpoint or disposable staging target; prove source and last-known-good destination remain recoverable.",
+          "deliverable": "Rollback drill record and verified restore SHA.",
+          "done_when": "Rollback is demonstrated without destructive cleanup or loss.",
+          "depends_on": [
+            "REL-015.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-015.S07",
+          "sequence": 7,
+          "kind": "handoff",
+          "title": "Commit and hand off migration candidate",
+          "assignee_role": "worker",
+          "instruction": "Commit reviewed candidate on task branch and hand off to independent QC with provenance, test evidence, gaps and next gate.",
+          "deliverable": "Candidate commit and migration handoff receipt.",
+          "done_when": "No production cutover, main promotion or legacy retirement occurs here.",
+          "depends_on": [
+            "REL-015.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "REL-016",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Run full CI on declared Python versions and native iOS runners",
+      "acceptance": "All required jobs execute and pass; artifacts stored per SHA",
+      "parent_dependencies": [
+        "BASE-003",
+        "REL-012",
+        "REL-015"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "ci_local_only",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [
+        "Do not trigger remote GitHub Actions or consume native iOS runner quota. Run available local tests; remote Python/iOS runner acceptance remains pending."
+      ],
+      "subtasks": [
+        {
+          "id": "REL-016.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Inspect workflow definitions, runner labels, job dependencies, issue/log evidence and local commands for Run full CI on declared Python versions and native iOS runners. Do not trigger remote GitHub Actions.",
+          "deliverable": "Workflow diagnosis with exact references and quota note.",
+          "done_when": "Root cause is evidence-based; no remote run was triggered.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-016.S02",
+          "sequence": 2,
+          "kind": "reproduce",
+          "title": "Reproduce locally without remote CI",
+          "assignee_role": "worker",
+          "instruction": "Reproduce relevant setup/tests locally or in approved Docker environment, without remote Actions.",
+          "deliverable": "Local reproduction transcript and environment details.",
+          "done_when": "Failure reproduced or inability documented without claiming remote success.",
+          "depends_on": [
+            "REL-016.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-016.S03",
+          "sequence": 3,
+          "kind": "repair",
+          "title": "Repair workflow configuration",
+          "assignee_role": "worker",
+          "instruction": "Make only the smallest workflow/config/test-harness repair; preserve security and permissions.",
+          "deliverable": "Scoped workflow patch and regression test.",
+          "done_when": "No identified zero-step/static configuration defect remains.",
+          "depends_on": [
+            "REL-016.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-016.S04",
+          "sequence": 4,
+          "kind": "local_check",
+          "title": "Run local validation",
+          "assignee_role": "worker",
+          "instruction": "Run local equivalents for available build/security/test checks; inspect diff and record exit codes.",
+          "deliverable": "Local validation evidence.",
+          "done_when": "All available local checks pass or show actionable failures.",
+          "depends_on": [
+            "REL-016.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-016.S05",
+          "sequence": 5,
+          "kind": "defer",
+          "title": "Record remote CI quota deferral",
+          "assignee_role": "worker",
+          "instruction": "Mark hosted runner execution DEFERRED_QUOTA until owner confirms quota availability. Do not fabricate green checks or close parent if remote run is required.",
+          "deliverable": "Deferred remote verification record.",
+          "done_when": "Remote acceptance remains pending.",
+          "depends_on": [
+            "REL-016.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "REL-017",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Produce deployment IaC/manifests, installation and operator runbooks",
+      "acceptance": "Reproducible documented Linux, Windows, Cloudflare and optional iOS install",
+      "parent_dependencies": [
+        "REL-014",
+        "REL-016",
+        "MIG-015"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "REL-017.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Produce deployment IaC/manifests, installation and operator runbooks. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-017.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Produce deployment IaC/manifests, installation and operator runbooks: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "REL-017.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-017.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Produce deployment IaC/manifests, installation and operator runbooks; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "REL-017.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-017.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Produce deployment IaC/manifests, installation and operator runbooks.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "REL-017.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-017.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Reproducible documented Linux, Windows, Cloudflare and optional iOS install. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "REL-017.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-017.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "REL-017.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "REL-018",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Run staging end-to-end user-acceptance scenarios and accessibility audit",
+      "acceptance": "Owner-approved scripted journeys pass with objective evidence",
+      "parent_dependencies": [
+        "REL-007",
+        "REL-008",
+        "REL-009",
+        "REL-010",
+        "REL-011",
+        "REL-017"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": true,
+      "execution_mode": "owner_gate",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "REL-018.S01",
+          "sequence": 1,
+          "kind": "packet",
+          "title": "Prepare owner decision packet",
+          "assignee_role": "worker",
+          "instruction": "Assemble candidate, architecture, source SHA, scope, test evidence, risks, rollback target and exact requested decision for Run staging end-to-end user-acceptance scenarios and accessibility audit.",
+          "deliverable": "Owner decision packet tied to immutable candidate SHA.",
+          "done_when": "Packet is complete and does not imply consent.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-018.S02",
+          "sequence": 2,
+          "kind": "prerequisites",
+          "title": "Verify owner-gate prerequisites",
+          "assignee_role": "worker",
+          "instruction": "Verify dependencies, candidate SHA/evidence match, STOP/PAUSE and rollback readiness; list unresolved blockers.",
+          "deliverable": "Gate checklist and evidence hash manifest.",
+          "done_when": "All prerequisites proven or gate remains blocked.",
+          "depends_on": [
+            "REL-018.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-018.S03",
+          "sequence": 3,
+          "kind": "await_owner",
+          "title": "Wait for explicit owner decision",
+          "assignee_role": "owner",
+          "instruction": "Present the decision packet and wait for explicit approval/rejection. Never infer approval from silence, prior discussion or model output.",
+          "deliverable": "Explicit owner decision receipt or WAITING_OWNER state.",
+          "done_when": "Only owner response satisfies this step.",
+          "depends_on": [
+            "REL-018.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "REL-019",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Review licensing, provenance, threat model and release-blocking defects",
+      "acceptance": "No unreviewed third-party artifacts or unresolved critical findings",
+      "parent_dependencies": [
+        "REL-012",
+        "REL-018"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "audit",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "REL-019.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Pin and inspect the repositories, refs, files, PRs, logs, databases or host evidence named by this task and its reuse notes. Record SHAs, timestamps and current state; do not modify inspected sources.",
+          "deliverable": "Evidence inventory with exact refs/SHAs, paths, current behavior and unknowns.",
+          "done_when": "Material claims trace to concrete sources and no inspected source was changed.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-019.S02",
+          "sequence": 2,
+          "kind": "analyze",
+          "title": "Compare evidence to acceptance",
+          "assignee_role": "worker",
+          "instruction": "Compare inspected evidence with the parent objective and acceptance. Identify duplicates, conflicts, gaps, risks, platform constraints and relevant prior mistakes.",
+          "deliverable": "Findings matrix mapping every acceptance clause to evidence, gap or blocker.",
+          "done_when": "Every acceptance clause has a supported finding; assumptions are labelled.",
+          "depends_on": [
+            "REL-019.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-019.S03",
+          "sequence": 3,
+          "kind": "record",
+          "title": "Record findings and decision",
+          "assignee_role": "worker",
+          "instruction": "Write a task-specific audit/decision record with findings, options, recommendation, rejected alternatives and evidence references.",
+          "deliverable": "Versioned report or decision record in approved docs path.",
+          "done_when": "Report is reproducible and distinguishes fact from inference.",
+          "depends_on": [
+            "REL-019.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-019.S04",
+          "sequence": 4,
+          "kind": "cross_check",
+          "title": "Independently cross-check evidence",
+          "assignee_role": "worker",
+          "instruction": "Independently re-check critical SHAs, paths, counts and conclusions; confirm no unrelated changes or sensitive data disclosure.",
+          "deliverable": "Review checklist and evidence receipt.",
+          "done_when": "Independent check agrees or unresolved differences keep parent blocked.",
+          "depends_on": [
+            "REL-019.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "REL-020",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Review exact accepted backlog IDs and frozen candidate Git SHA",
+      "acceptance": "No required tasks incomplete, or documented owner-approved deferrals that do not violate gates",
+      "parent_dependencies": [
+        "REL-019",
+        "MIG-014"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": true,
+      "execution_mode": "owner_gate",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "REL-020.S01",
+          "sequence": 1,
+          "kind": "packet",
+          "title": "Prepare owner decision packet",
+          "assignee_role": "worker",
+          "instruction": "Assemble candidate, architecture, source SHA, scope, test evidence, risks, rollback target and exact requested decision for Review exact accepted backlog IDs and frozen candidate Git SHA.",
+          "deliverable": "Owner decision packet tied to immutable candidate SHA.",
+          "done_when": "Packet is complete and does not imply consent.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-020.S02",
+          "sequence": 2,
+          "kind": "prerequisites",
+          "title": "Verify owner-gate prerequisites",
+          "assignee_role": "worker",
+          "instruction": "Verify dependencies, candidate SHA/evidence match, STOP/PAUSE and rollback readiness; list unresolved blockers.",
+          "deliverable": "Gate checklist and evidence hash manifest.",
+          "done_when": "All prerequisites proven or gate remains blocked.",
+          "depends_on": [
+            "REL-020.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-020.S03",
+          "sequence": 3,
+          "kind": "await_owner",
+          "title": "Wait for explicit owner decision",
+          "assignee_role": "owner",
+          "instruction": "Present the decision packet and wait for explicit approval/rejection. Never infer approval from silence, prior discussion or model output.",
+          "deliverable": "Explicit owner decision receipt or WAITING_OWNER state.",
+          "done_when": "Only owner response satisfies this step.",
+          "depends_on": [
+            "REL-020.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "REL-021",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Owner authorizes v2.0.0 production promotion",
+      "acceptance": "Explicit signed approval tied to immutable candidate SHA",
+      "parent_dependencies": [
+        "REL-020"
+      ],
+      "required_owner_gate": true,
+      "manual_owner_gate_required": true,
+      "execution_mode": "owner_gate",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [
+        "Mandatory owner approval tied to immutable release candidate SHA; no agent can approve."
+      ],
+      "subtasks": [
+        {
+          "id": "REL-021.S01",
+          "sequence": 1,
+          "kind": "packet",
+          "title": "Prepare owner decision packet",
+          "assignee_role": "worker",
+          "instruction": "Assemble candidate, architecture, source SHA, scope, test evidence, risks, rollback target and exact requested decision for Owner authorizes v2.0.0 production promotion.",
+          "deliverable": "Owner decision packet tied to immutable candidate SHA.",
+          "done_when": "Packet is complete and does not imply consent.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-021.S02",
+          "sequence": 2,
+          "kind": "prerequisites",
+          "title": "Verify owner-gate prerequisites",
+          "assignee_role": "worker",
+          "instruction": "Verify dependencies, candidate SHA/evidence match, STOP/PAUSE and rollback readiness; list unresolved blockers.",
+          "deliverable": "Gate checklist and evidence hash manifest.",
+          "done_when": "All prerequisites proven or gate remains blocked.",
+          "depends_on": [
+            "REL-021.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-021.S03",
+          "sequence": 3,
+          "kind": "await_owner",
+          "title": "Wait for explicit owner decision",
+          "assignee_role": "owner",
+          "instruction": "Present the decision packet and wait for explicit approval/rejection. Never infer approval from silence, prior discussion or model output.",
+          "deliverable": "Explicit owner decision receipt or WAITING_OWNER state.",
+          "done_when": "Only owner response satisfies this step.",
+          "depends_on": [
+            "REL-021.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "REL-022",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Promote accepted develop to main and tag v2.0.0",
+      "acceptance": "Protected-branch CI, tag provenance and deployment receipts verified",
+      "parent_dependencies": [
+        "REL-021"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [
+        "Promote only after REL-021 is satisfied. Do not push main or tag a release before the owner gate."
+      ],
+      "subtasks": [
+        {
+          "id": "REL-022.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Promote accepted develop to main and tag v2.0.0. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-022.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Promote accepted develop to main and tag v2.0.0: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "REL-022.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-022.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Promote accepted develop to main and tag v2.0.0; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "REL-022.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-022.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Promote accepted develop to main and tag v2.0.0.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "REL-022.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-022.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Protected-branch CI, tag provenance and deployment receipts verified. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "REL-022.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-022.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "REL-022.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "REL-023",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Post-release smoke, rollback readiness and monitoring validation",
+      "acceptance": "24-hour metrics if available, smoke proofs, rollback tested before signoff",
+      "parent_dependencies": [
+        "REL-022"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "migration",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "REL-023.S01",
+          "sequence": 1,
+          "kind": "pin",
+          "title": "Pin source and destination SHAs",
+          "assignee_role": "worker",
+          "instruction": "Pin exact source repository/ref/commit and destination base SHA for Post-release smoke, rollback readiness and monitoring validation; verify destination is isolated and legacy source untouched.",
+          "deliverable": "Source/target identity record and SHA pair.",
+          "done_when": "Source and target are immutable for this attempt.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-023.S02",
+          "sequence": 2,
+          "kind": "inventory",
+          "title": "Inventory provenance and compatibility",
+          "assignee_role": "worker",
+          "instruction": "Inventory files, dependencies, licenses, secrets, data formats, case collisions and compatibility; record per-file provenance.",
+          "deliverable": "File manifest and provenance ledger.",
+          "done_when": "Every candidate has origin SHA/path/license status and secret-scan disposition.",
+          "depends_on": [
+            "REL-023.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-023.S03",
+          "sequence": 3,
+          "kind": "dry_run",
+          "title": "Run read-only dry run",
+          "assignee_role": "worker",
+          "instruction": "Run read-only dry-run/staging simulation; detect collisions, incompatibilities, path traversal and unsafe files before applying.",
+          "deliverable": "Dry-run report and compatibility matrix.",
+          "done_when": "Dry-run makes no destination writes; unresolved collisions block application.",
+          "depends_on": [
+            "REL-023.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-023.S04",
+          "sequence": 4,
+          "kind": "apply",
+          "title": "Apply bounded migration",
+          "assignee_role": "worker",
+          "instruction": "Apply only approved create-only/adapter/migration slice for Post-release smoke, rollback readiness and monitoring validation; do not delete, execute or overwrite legacy source.",
+          "deliverable": "Bounded destination changes and migration receipt.",
+          "done_when": "Only allowlisted files are changed and provenance is recorded.",
+          "depends_on": [
+            "REL-023.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-023.S05",
+          "sequence": 5,
+          "kind": "verify",
+          "title": "Verify migrated result",
+          "assignee_role": "worker",
+          "instruction": "Run provenance, schema, behavior, regression and security checks on destination.",
+          "deliverable": "Verification report and file-hash comparison.",
+          "done_when": "All content is traceable and required behavior passes.",
+          "depends_on": [
+            "REL-023.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-023.S06",
+          "sequence": 6,
+          "kind": "rollback",
+          "title": "Prove rollback and restore",
+          "assignee_role": "worker",
+          "instruction": "Exercise rollback/restore from checkpoint or disposable staging target; prove source and last-known-good destination remain recoverable.",
+          "deliverable": "Rollback drill record and verified restore SHA.",
+          "done_when": "Rollback is demonstrated without destructive cleanup or loss.",
+          "depends_on": [
+            "REL-023.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-023.S07",
+          "sequence": 7,
+          "kind": "handoff",
+          "title": "Commit and hand off migration candidate",
+          "assignee_role": "worker",
+          "instruction": "Commit reviewed candidate on task branch and hand off to independent QC with provenance, test evidence, gaps and next gate.",
+          "deliverable": "Candidate commit and migration handoff receipt.",
+          "done_when": "No production cutover, main promotion or legacy retirement occurs here.",
+          "depends_on": [
+            "REL-023.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "REL-024",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Archive historical Business ideas and close out original repository migration",
+      "acceptance": "Source evidence retained, no Business production service, legacy still recoverable",
+      "parent_dependencies": [
+        "REL-022"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "REL-024.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Archive historical Business ideas and close out original repository migration. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-024.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Archive historical Business ideas and close out original repository migration: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "REL-024.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-024.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Archive historical Business ideas and close out original repository migration; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "REL-024.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-024.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Archive historical Business ideas and close out original repository migration.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "REL-024.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-024.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Source evidence retained, no Business production service, legacy still recoverable. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "REL-024.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-024.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "REL-024.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "REL-025",
+      "module": "REL",
+      "milestone": "M12 — Cross-module qualification, deployment and v2 release",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Publish final complete v2 acceptance report and maintenance roadmap",
+      "acceptance": "Version, artifacts, tests, host verification and known limitations truthfully documented",
+      "parent_dependencies": [
+        "REL-023",
+        "REL-024"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/"
+      ],
+      "module_guardrails": [
+        "Bind acceptance to immutable candidate SHA and test artifact hashes.",
+        "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
+        "No main/production promotion without owner gate."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "REL-025.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Publish final complete v2 acceptance report and maintenance roadmap.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-025.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "REL-025.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-025.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Publish final complete v2 acceptance report and maintenance roadmap; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "REL-025.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-025.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "REL-025.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-025.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "REL-025.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    }
+  ]
+}
