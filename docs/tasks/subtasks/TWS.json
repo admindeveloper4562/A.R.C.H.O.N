@@ -1,0 +1,2307 @@
+{
+  "schema": "jarvis.v2.subtask-module/1",
+  "created": "2026-11-14",
+  "source_parent_plan_blob_sha": "36e674f4e58fc19aa8158da42d802b9599a23763",
+  "module": "TWS",
+  "module_name": "M9 — Twelve-Winged quests, Aurelia and mobile",
+  "parent_count": 20,
+  "subtask_count": 116,
+  "parents": [
+    {
+      "parent_id": "TWS-001",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Audit PR 14 Python/iOS/3D code and map M001-M021 to acceptance",
+      "acceptance": "Reuse plan lists existing verified vs unverified milestones, source SHAs and licenses",
+      "parent_dependencies": [
+        "BASE-006",
+        "SDA-028"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "audit",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/tws/",
+        "apps/ios/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "XP/rewards are idempotent and recoverable across devices.",
+        "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
+        "No duplicate rewards after retries or reconnect."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "TWS-001.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Pin and inspect the repositories, refs, files, PRs, logs, databases or host evidence named by this task and its reuse notes. Record SHAs, timestamps and current state; do not modify inspected sources.",
+          "deliverable": "Evidence inventory with exact refs/SHAs, paths, current behavior and unknowns.",
+          "done_when": "Material claims trace to concrete sources and no inspected source was changed.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-001.S02",
+          "sequence": 2,
+          "kind": "analyze",
+          "title": "Compare evidence to acceptance",
+          "assignee_role": "worker",
+          "instruction": "Compare inspected evidence with the parent objective and acceptance. Identify duplicates, conflicts, gaps, risks, platform constraints and relevant prior mistakes.",
+          "deliverable": "Findings matrix mapping every acceptance clause to evidence, gap or blocker.",
+          "done_when": "Every acceptance clause has a supported finding; assumptions are labelled.",
+          "depends_on": [
+            "TWS-001.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-001.S03",
+          "sequence": 3,
+          "kind": "record",
+          "title": "Record findings and decision",
+          "assignee_role": "worker",
+          "instruction": "Write a task-specific audit/decision record with findings, options, recommendation, rejected alternatives and evidence references.",
+          "deliverable": "Versioned report or decision record in approved docs path.",
+          "done_when": "Report is reproducible and distinguishes fact from inference.",
+          "depends_on": [
+            "TWS-001.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-001.S04",
+          "sequence": 4,
+          "kind": "cross_check",
+          "title": "Independently cross-check evidence",
+          "assignee_role": "worker",
+          "instruction": "Independently re-check critical SHAs, paths, counts and conclusions; confirm no unrelated changes or sensitive data disclosure.",
+          "deliverable": "Review checklist and evidence receipt.",
+          "done_when": "Independent check agrees or unresolved differences keep parent blocked.",
+          "depends_on": [
+            "TWS-001.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "TWS-002",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Repair TWS CI runner allocation and execute full Python and iOS workflows",
+      "acceptance": "Real steps run and failures fixed; issue 15 closed only with evidence",
+      "parent_dependencies": [
+        "BASE-002",
+        "TWS-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "ci_local_only",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/tws/",
+        "apps/ios/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "XP/rewards are idempotent and recoverable across devices.",
+        "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
+        "No duplicate rewards after retries or reconnect."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "TWS-002.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Inspect workflow definitions, runner labels, job dependencies, issue/log evidence and local commands for Repair TWS CI runner allocation and execute full Python and iOS workflows. Do not trigger remote GitHub Actions.",
+          "deliverable": "Workflow diagnosis with exact references and quota note.",
+          "done_when": "Root cause is evidence-based; no remote run was triggered.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-002.S02",
+          "sequence": 2,
+          "kind": "reproduce",
+          "title": "Reproduce locally without remote CI",
+          "assignee_role": "worker",
+          "instruction": "Reproduce relevant setup/tests locally or in approved Docker environment, without remote Actions.",
+          "deliverable": "Local reproduction transcript and environment details.",
+          "done_when": "Failure reproduced or inability documented without claiming remote success.",
+          "depends_on": [
+            "TWS-002.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-002.S03",
+          "sequence": 3,
+          "kind": "repair",
+          "title": "Repair workflow configuration",
+          "assignee_role": "worker",
+          "instruction": "Make only the smallest workflow/config/test-harness repair; preserve security and permissions.",
+          "deliverable": "Scoped workflow patch and regression test.",
+          "done_when": "No identified zero-step/static configuration defect remains.",
+          "depends_on": [
+            "TWS-002.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-002.S04",
+          "sequence": 4,
+          "kind": "local_check",
+          "title": "Run local validation",
+          "assignee_role": "worker",
+          "instruction": "Run local equivalents for available build/security/test checks; inspect diff and record exit codes.",
+          "deliverable": "Local validation evidence.",
+          "done_when": "All available local checks pass or show actionable failures.",
+          "depends_on": [
+            "TWS-002.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-002.S05",
+          "sequence": 5,
+          "kind": "defer",
+          "title": "Record remote CI quota deferral",
+          "assignee_role": "worker",
+          "instruction": "Mark hosted runner execution DEFERRED_QUOTA until owner confirms quota availability. Do not fabricate green checks or close parent if remote run is required.",
+          "deliverable": "Deferred remote verification record.",
+          "done_when": "Remote acceptance remains pending.",
+          "depends_on": [
+            "TWS-002.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "TWS-003",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Migrate verified quest data model and SQLite schemas to new module",
+      "acceptance": "No lost wings/proofs; versioned migrations tested",
+      "parent_dependencies": [
+        "TWS-001",
+        "BACK-002"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/tws/",
+        "apps/ios/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "XP/rewards are idempotent and recoverable across devices.",
+        "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
+        "No duplicate rewards after retries or reconnect."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "TWS-003.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Migrate verified quest data model and SQLite schemas to new module. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-003.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Migrate verified quest data model and SQLite schemas to new module: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "TWS-003.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-003.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Migrate verified quest data model and SQLite schemas to new module; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "TWS-003.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-003.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Migrate verified quest data model and SQLite schemas to new module.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "TWS-003.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-003.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: No lost wings/proofs; versioned migrations tested. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "TWS-003.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-003.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "TWS-003.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "TWS-004",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Migrate quest catalog, daily/weekly/skill and story/trial lifecycle",
+      "acceptance": "Draft/offered/accepted/submitted/verified/rewarded state passes tests",
+      "parent_dependencies": [
+        "TWS-003"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/tws/",
+        "apps/ios/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "XP/rewards are idempotent and recoverable across devices.",
+        "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
+        "No duplicate rewards after retries or reconnect."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "TWS-004.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Migrate quest catalog, daily/weekly/skill and story/trial lifecycle. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-004.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Migrate quest catalog, daily/weekly/skill and story/trial lifecycle: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "TWS-004.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-004.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Migrate quest catalog, daily/weekly/skill and story/trial lifecycle; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "TWS-004.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-004.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Migrate quest catalog, daily/weekly/skill and story/trial lifecycle.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "TWS-004.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-004.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Draft/offered/accepted/submitted/verified/rewarded state passes tests. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "TWS-004.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-004.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "TWS-004.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "TWS-005",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Implement evidence capture and owner/engine proof review",
+      "acceptance": "Unverified evidence never yields XP; privacy scopes enforced",
+      "parent_dependencies": [
+        "TWS-004",
+        "BACK-004"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "audit",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/tws/",
+        "apps/ios/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "XP/rewards are idempotent and recoverable across devices.",
+        "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
+        "No duplicate rewards after retries or reconnect."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "TWS-005.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Pin and inspect the repositories, refs, files, PRs, logs, databases or host evidence named by this task and its reuse notes. Record SHAs, timestamps and current state; do not modify inspected sources.",
+          "deliverable": "Evidence inventory with exact refs/SHAs, paths, current behavior and unknowns.",
+          "done_when": "Material claims trace to concrete sources and no inspected source was changed.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-005.S02",
+          "sequence": 2,
+          "kind": "analyze",
+          "title": "Compare evidence to acceptance",
+          "assignee_role": "worker",
+          "instruction": "Compare inspected evidence with the parent objective and acceptance. Identify duplicates, conflicts, gaps, risks, platform constraints and relevant prior mistakes.",
+          "deliverable": "Findings matrix mapping every acceptance clause to evidence, gap or blocker.",
+          "done_when": "Every acceptance clause has a supported finding; assumptions are labelled.",
+          "depends_on": [
+            "TWS-005.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-005.S03",
+          "sequence": 3,
+          "kind": "record",
+          "title": "Record findings and decision",
+          "assignee_role": "worker",
+          "instruction": "Write a task-specific audit/decision record with findings, options, recommendation, rejected alternatives and evidence references.",
+          "deliverable": "Versioned report or decision record in approved docs path.",
+          "done_when": "Report is reproducible and distinguishes fact from inference.",
+          "depends_on": [
+            "TWS-005.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-005.S04",
+          "sequence": 4,
+          "kind": "cross_check",
+          "title": "Independently cross-check evidence",
+          "assignee_role": "worker",
+          "instruction": "Independently re-check critical SHAs, paths, counts and conclusions; confirm no unrelated changes or sensitive data disclosure.",
+          "deliverable": "Review checklist and evidence receipt.",
+          "done_when": "Independent check agrees or unresolved differences keep parent blocked.",
+          "depends_on": [
+            "TWS-005.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "TWS-006",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Implement idempotent XP ledger and twelve wing/realm gates",
+      "acceptance": "Duplicate sync submits at most one reward; realm prerequisites enforced",
+      "parent_dependencies": [
+        "TWS-005"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/tws/",
+        "apps/ios/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "XP/rewards are idempotent and recoverable across devices.",
+        "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
+        "No duplicate rewards after retries or reconnect."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "TWS-006.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement idempotent XP ledger and twelve wing/realm gates. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-006.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement idempotent XP ledger and twelve wing/realm gates: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "TWS-006.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-006.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement idempotent XP ledger and twelve wing/realm gates; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "TWS-006.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-006.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement idempotent XP ledger and twelve wing/realm gates.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "TWS-006.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-006.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Duplicate sync submits at most one reward; realm prerequisites enforced. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "TWS-006.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-006.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "TWS-006.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "TWS-007",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Implement cultivation, patterns, skill adaptation and fairness controls",
+      "acceptance": "Progression uses verifiable achievement not companion persuasion",
+      "parent_dependencies": [
+        "TWS-004",
+        "TWS-006"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/tws/",
+        "apps/ios/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "XP/rewards are idempotent and recoverable across devices.",
+        "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
+        "No duplicate rewards after retries or reconnect."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "TWS-007.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement cultivation, patterns, skill adaptation and fairness controls. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-007.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement cultivation, patterns, skill adaptation and fairness controls: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "TWS-007.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-007.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement cultivation, patterns, skill adaptation and fairness controls; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "TWS-007.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-007.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement cultivation, patterns, skill adaptation and fairness controls.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "TWS-007.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-007.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Progression uses verifiable achievement not companion persuasion. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "TWS-007.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-007.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "TWS-007.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "TWS-008",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Implement original Aurelia dialogue/personality and narrative state",
+      "acceptance": "Dialogue cannot directly mutate XP or finance",
+      "parent_dependencies": [
+        "TWS-003",
+        "BACK-007"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/tws/",
+        "apps/ios/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "XP/rewards are idempotent and recoverable across devices.",
+        "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
+        "No duplicate rewards after retries or reconnect."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "TWS-008.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement original Aurelia dialogue/personality and narrative state. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-008.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement original Aurelia dialogue/personality and narrative state: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "TWS-008.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-008.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement original Aurelia dialogue/personality and narrative state; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "TWS-008.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-008.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement original Aurelia dialogue/personality and narrative state.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "TWS-008.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-008.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Dialogue cannot directly mutate XP or finance. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "TWS-008.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-008.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "TWS-008.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "TWS-009",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Implement Sanctuary, quest views and web dashboard integration",
+      "acceptance": "Displayed wings/state match authoritative ledger",
+      "parent_dependencies": [
+        "TWS-006",
+        "TWS-008",
+        "RUN-004"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/tws/",
+        "apps/ios/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "XP/rewards are idempotent and recoverable across devices.",
+        "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
+        "No duplicate rewards after retries or reconnect."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "TWS-009.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement Sanctuary, quest views and web dashboard integration. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-009.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement Sanctuary, quest views and web dashboard integration: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "TWS-009.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-009.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement Sanctuary, quest views and web dashboard integration; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "TWS-009.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-009.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement Sanctuary, quest views and web dashboard integration.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "TWS-009.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-009.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Displayed wings/state match authoritative ledger. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "TWS-009.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-009.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "TWS-009.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "TWS-010",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Preserve Aurelia portable rigged model generator and independent validator",
+      "acceptance": "Binary model and deformation/morph/clip assertions reproducible",
+      "parent_dependencies": [
+        "TWS-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/tws/",
+        "apps/ios/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "XP/rewards are idempotent and recoverable across devices.",
+        "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
+        "No duplicate rewards after retries or reconnect."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "TWS-010.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Preserve Aurelia portable rigged model generator and independent validator. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-010.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Preserve Aurelia portable rigged model generator and independent validator: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "TWS-010.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-010.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Preserve Aurelia portable rigged model generator and independent validator; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "TWS-010.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-010.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Preserve Aurelia portable rigged model generator and independent validator.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "TWS-010.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-010.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Binary model and deformation/morph/clip assertions reproducible. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "TWS-010.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-010.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "TWS-010.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "TWS-011",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Run real Blender import/skinning and generate native asset candidate",
+      "acceptance": "Editable .blend and reviewed USDZ/SCN candidate validated on native tools",
+      "parent_dependencies": [
+        "TWS-010"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "migration",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/tws/",
+        "apps/ios/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "XP/rewards are idempotent and recoverable across devices.",
+        "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
+        "No duplicate rewards after retries or reconnect."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "TWS-011.S01",
+          "sequence": 1,
+          "kind": "pin",
+          "title": "Pin source and destination SHAs",
+          "assignee_role": "worker",
+          "instruction": "Pin exact source repository/ref/commit and destination base SHA for Run real Blender import/skinning and generate native asset candidate; verify destination is isolated and legacy source untouched.",
+          "deliverable": "Source/target identity record and SHA pair.",
+          "done_when": "Source and target are immutable for this attempt.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-011.S02",
+          "sequence": 2,
+          "kind": "inventory",
+          "title": "Inventory provenance and compatibility",
+          "assignee_role": "worker",
+          "instruction": "Inventory files, dependencies, licenses, secrets, data formats, case collisions and compatibility; record per-file provenance.",
+          "deliverable": "File manifest and provenance ledger.",
+          "done_when": "Every candidate has origin SHA/path/license status and secret-scan disposition.",
+          "depends_on": [
+            "TWS-011.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-011.S03",
+          "sequence": 3,
+          "kind": "dry_run",
+          "title": "Run read-only dry run",
+          "assignee_role": "worker",
+          "instruction": "Run read-only dry-run/staging simulation; detect collisions, incompatibilities, path traversal and unsafe files before applying.",
+          "deliverable": "Dry-run report and compatibility matrix.",
+          "done_when": "Dry-run makes no destination writes; unresolved collisions block application.",
+          "depends_on": [
+            "TWS-011.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-011.S04",
+          "sequence": 4,
+          "kind": "apply",
+          "title": "Apply bounded migration",
+          "assignee_role": "worker",
+          "instruction": "Apply only approved create-only/adapter/migration slice for Run real Blender import/skinning and generate native asset candidate; do not delete, execute or overwrite legacy source.",
+          "deliverable": "Bounded destination changes and migration receipt.",
+          "done_when": "Only allowlisted files are changed and provenance is recorded.",
+          "depends_on": [
+            "TWS-011.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-011.S05",
+          "sequence": 5,
+          "kind": "verify",
+          "title": "Verify migrated result",
+          "assignee_role": "worker",
+          "instruction": "Run provenance, schema, behavior, regression and security checks on destination.",
+          "deliverable": "Verification report and file-hash comparison.",
+          "done_when": "All content is traceable and required behavior passes.",
+          "depends_on": [
+            "TWS-011.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-011.S06",
+          "sequence": 6,
+          "kind": "rollback",
+          "title": "Prove rollback and restore",
+          "assignee_role": "worker",
+          "instruction": "Exercise rollback/restore from checkpoint or disposable staging target; prove source and last-known-good destination remain recoverable.",
+          "deliverable": "Rollback drill record and verified restore SHA.",
+          "done_when": "Rollback is demonstrated without destructive cleanup or loss.",
+          "depends_on": [
+            "TWS-011.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-011.S07",
+          "sequence": 7,
+          "kind": "handoff",
+          "title": "Commit and hand off migration candidate",
+          "assignee_role": "worker",
+          "instruction": "Commit reviewed candidate on task branch and hand off to independent QC with provenance, test evidence, gaps and next gate.",
+          "deliverable": "Candidate commit and migration handoff receipt.",
+          "done_when": "No production cutover, main promotion or legacy retirement occurs here.",
+          "depends_on": [
+            "TWS-011.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "TWS-012",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Execute full native visual QA for Aurelia expressions and motion",
+      "acceptance": "24-view and time-sampled galleries pass artist review",
+      "parent_dependencies": [
+        "TWS-011"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/tws/",
+        "apps/ios/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "XP/rewards are idempotent and recoverable across devices.",
+        "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
+        "No duplicate rewards after retries or reconnect."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "TWS-012.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Execute full native visual QA for Aurelia expressions and motion. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-012.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Execute full native visual QA for Aurelia expressions and motion: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "TWS-012.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-012.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Execute full native visual QA for Aurelia expressions and motion; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "TWS-012.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-012.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Execute full native visual QA for Aurelia expressions and motion.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "TWS-012.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-012.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: 24-view and time-sampled galleries pass artist review. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "TWS-012.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-012.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "TWS-012.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "TWS-013",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Build SwiftUI/SceneKit app and offline 2D fallback on macOS runner",
+      "acceptance": "Native iOS targets compile and fallback works",
+      "parent_dependencies": [
+        "TWS-002",
+        "TWS-012"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/tws/",
+        "apps/ios/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "XP/rewards are idempotent and recoverable across devices.",
+        "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
+        "No duplicate rewards after retries or reconnect."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "TWS-013.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Build SwiftUI/SceneKit app and offline 2D fallback on macOS runner. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-013.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Build SwiftUI/SceneKit app and offline 2D fallback on macOS runner: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "TWS-013.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-013.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Build SwiftUI/SceneKit app and offline 2D fallback on macOS runner; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "TWS-013.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-013.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Build SwiftUI/SceneKit app and offline 2D fallback on macOS runner.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "TWS-013.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-013.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Native iOS targets compile and fallback works. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "TWS-013.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-013.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "TWS-013.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "TWS-014",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Test iOS lifecycle, reduce motion, thermal and low memory handling",
+      "acceptance": "Hardware-like lifecycle and accessible manual retry pass",
+      "parent_dependencies": [
+        "TWS-013"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/tws/",
+        "apps/ios/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "XP/rewards are idempotent and recoverable across devices.",
+        "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
+        "No duplicate rewards after retries or reconnect."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "TWS-014.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Test iOS lifecycle, reduce motion, thermal and low memory handling.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-014.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "TWS-014.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-014.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Test iOS lifecycle, reduce motion, thermal and low memory handling; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "TWS-014.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-014.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "TWS-014.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-014.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "TWS-014.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "TWS-015",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Validate secure iOS device pairing, revoke and TLS trust rotation",
+      "acceptance": "Unauthorized phone rejected; revocation/rotation test passes",
+      "parent_dependencies": [
+        "TWS-013",
+        "BACK-004"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/tws/",
+        "apps/ios/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "XP/rewards are idempotent and recoverable across devices.",
+        "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
+        "No duplicate rewards after retries or reconnect."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "TWS-015.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Validate secure iOS device pairing, revoke and TLS trust rotation.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-015.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "TWS-015.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-015.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Validate secure iOS device pairing, revoke and TLS trust rotation; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "TWS-015.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-015.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "TWS-015.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-015.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "TWS-015.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "TWS-016",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Implement offline iOS synchronization, conflict resolution and proof queue",
+      "acceptance": "Offline replays do not double reward, leak proof or lose saves",
+      "parent_dependencies": [
+        "TWS-006",
+        "TWS-015"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/tws/",
+        "apps/ios/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "XP/rewards are idempotent and recoverable across devices.",
+        "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
+        "No duplicate rewards after retries or reconnect."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "TWS-016.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement offline iOS synchronization, conflict resolution and proof queue. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-016.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement offline iOS synchronization, conflict resolution and proof queue: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "TWS-016.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-016.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement offline iOS synchronization, conflict resolution and proof queue; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "TWS-016.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-016.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement offline iOS synchronization, conflict resolution and proof queue.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "TWS-016.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-016.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Offline replays do not double reward, leak proof or lose saves. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "TWS-016.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-016.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "TWS-016.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "TWS-017",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Implement tasks-to-quests import with consent and explicit reward gate",
+      "acceptance": "Cross-module signals only propose quests; no auto XP award",
+      "parent_dependencies": [
+        "TWS-006",
+        "CORE-006"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "migration",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/tws/",
+        "apps/ios/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "XP/rewards are idempotent and recoverable across devices.",
+        "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
+        "No duplicate rewards after retries or reconnect."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "TWS-017.S01",
+          "sequence": 1,
+          "kind": "pin",
+          "title": "Pin source and destination SHAs",
+          "assignee_role": "worker",
+          "instruction": "Pin exact source repository/ref/commit and destination base SHA for Implement tasks-to-quests import with consent and explicit reward gate; verify destination is isolated and legacy source untouched.",
+          "deliverable": "Source/target identity record and SHA pair.",
+          "done_when": "Source and target are immutable for this attempt.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-017.S02",
+          "sequence": 2,
+          "kind": "inventory",
+          "title": "Inventory provenance and compatibility",
+          "assignee_role": "worker",
+          "instruction": "Inventory files, dependencies, licenses, secrets, data formats, case collisions and compatibility; record per-file provenance.",
+          "deliverable": "File manifest and provenance ledger.",
+          "done_when": "Every candidate has origin SHA/path/license status and secret-scan disposition.",
+          "depends_on": [
+            "TWS-017.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-017.S03",
+          "sequence": 3,
+          "kind": "dry_run",
+          "title": "Run read-only dry run",
+          "assignee_role": "worker",
+          "instruction": "Run read-only dry-run/staging simulation; detect collisions, incompatibilities, path traversal and unsafe files before applying.",
+          "deliverable": "Dry-run report and compatibility matrix.",
+          "done_when": "Dry-run makes no destination writes; unresolved collisions block application.",
+          "depends_on": [
+            "TWS-017.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-017.S04",
+          "sequence": 4,
+          "kind": "apply",
+          "title": "Apply bounded migration",
+          "assignee_role": "worker",
+          "instruction": "Apply only approved create-only/adapter/migration slice for Implement tasks-to-quests import with consent and explicit reward gate; do not delete, execute or overwrite legacy source.",
+          "deliverable": "Bounded destination changes and migration receipt.",
+          "done_when": "Only allowlisted files are changed and provenance is recorded.",
+          "depends_on": [
+            "TWS-017.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-017.S05",
+          "sequence": 5,
+          "kind": "verify",
+          "title": "Verify migrated result",
+          "assignee_role": "worker",
+          "instruction": "Run provenance, schema, behavior, regression and security checks on destination.",
+          "deliverable": "Verification report and file-hash comparison.",
+          "done_when": "All content is traceable and required behavior passes.",
+          "depends_on": [
+            "TWS-017.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-017.S06",
+          "sequence": 6,
+          "kind": "rollback",
+          "title": "Prove rollback and restore",
+          "assignee_role": "worker",
+          "instruction": "Exercise rollback/restore from checkpoint or disposable staging target; prove source and last-known-good destination remain recoverable.",
+          "deliverable": "Rollback drill record and verified restore SHA.",
+          "done_when": "Rollback is demonstrated without destructive cleanup or loss.",
+          "depends_on": [
+            "TWS-017.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-017.S07",
+          "sequence": 7,
+          "kind": "handoff",
+          "title": "Commit and hand off migration candidate",
+          "assignee_role": "worker",
+          "instruction": "Commit reviewed candidate on task branch and hand off to independent QC with provenance, test evidence, gaps and next gate.",
+          "deliverable": "Candidate commit and migration handoff receipt.",
+          "done_when": "No production cutover, main promotion or legacy retirement occurs here.",
+          "depends_on": [
+            "TWS-017.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "TWS-018",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Implement onboarding, narrative state and accessible preferences",
+      "acceptance": "Immersive mode, reduced motion and fallback chosen independently",
+      "parent_dependencies": [
+        "TWS-008",
+        "TWS-009"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/tws/",
+        "apps/ios/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "XP/rewards are idempotent and recoverable across devices.",
+        "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
+        "No duplicate rewards after retries or reconnect."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "TWS-018.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement onboarding, narrative state and accessible preferences. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-018.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement onboarding, narrative state and accessible preferences: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "TWS-018.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-018.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement onboarding, narrative state and accessible preferences; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "TWS-018.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-018.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement onboarding, narrative state and accessible preferences.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "TWS-018.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-018.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Immersive mode, reduced motion and fallback chosen independently. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "TWS-018.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-018.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "TWS-018.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "TWS-019",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Perform physical iPhone-Ubuntu pairing and app performance testing",
+      "acceptance": "Real device FPS/thermal/pairing receipts and privacy audit",
+      "parent_dependencies": [
+        "TWS-014",
+        "TWS-016",
+        "TWS-018"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/tws/",
+        "apps/ios/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "XP/rewards are idempotent and recoverable across devices.",
+        "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
+        "No duplicate rewards after retries or reconnect."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "TWS-019.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Perform physical iPhone-Ubuntu pairing and app performance testing. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-019.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Perform physical iPhone-Ubuntu pairing and app performance testing: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "TWS-019.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-019.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Perform physical iPhone-Ubuntu pairing and app performance testing; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "TWS-019.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-019.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Perform physical iPhone-Ubuntu pairing and app performance testing.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "TWS-019.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-019.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Real device FPS/thermal/pairing receipts and privacy audit. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "TWS-019.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-019.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "TWS-019.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "TWS-020",
+      "module": "TWS",
+      "milestone": "M9 — Twelve-Winged quests, Aurelia and mobile",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Complete quest release acceptance, backup/restore and rollback",
+      "acceptance": "M001-M021 accepted with actual evidence; draft artifacts not misreported shipped",
+      "parent_dependencies": [
+        "TWS-017",
+        "TWS-019"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "migration",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/tws/",
+        "apps/ios/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "XP/rewards are idempotent and recoverable across devices.",
+        "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
+        "No duplicate rewards after retries or reconnect."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "TWS-020.S01",
+          "sequence": 1,
+          "kind": "pin",
+          "title": "Pin source and destination SHAs",
+          "assignee_role": "worker",
+          "instruction": "Pin exact source repository/ref/commit and destination base SHA for Complete quest release acceptance, backup/restore and rollback; verify destination is isolated and legacy source untouched.",
+          "deliverable": "Source/target identity record and SHA pair.",
+          "done_when": "Source and target are immutable for this attempt.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-020.S02",
+          "sequence": 2,
+          "kind": "inventory",
+          "title": "Inventory provenance and compatibility",
+          "assignee_role": "worker",
+          "instruction": "Inventory files, dependencies, licenses, secrets, data formats, case collisions and compatibility; record per-file provenance.",
+          "deliverable": "File manifest and provenance ledger.",
+          "done_when": "Every candidate has origin SHA/path/license status and secret-scan disposition.",
+          "depends_on": [
+            "TWS-020.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-020.S03",
+          "sequence": 3,
+          "kind": "dry_run",
+          "title": "Run read-only dry run",
+          "assignee_role": "worker",
+          "instruction": "Run read-only dry-run/staging simulation; detect collisions, incompatibilities, path traversal and unsafe files before applying.",
+          "deliverable": "Dry-run report and compatibility matrix.",
+          "done_when": "Dry-run makes no destination writes; unresolved collisions block application.",
+          "depends_on": [
+            "TWS-020.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-020.S04",
+          "sequence": 4,
+          "kind": "apply",
+          "title": "Apply bounded migration",
+          "assignee_role": "worker",
+          "instruction": "Apply only approved create-only/adapter/migration slice for Complete quest release acceptance, backup/restore and rollback; do not delete, execute or overwrite legacy source.",
+          "deliverable": "Bounded destination changes and migration receipt.",
+          "done_when": "Only allowlisted files are changed and provenance is recorded.",
+          "depends_on": [
+            "TWS-020.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-020.S05",
+          "sequence": 5,
+          "kind": "verify",
+          "title": "Verify migrated result",
+          "assignee_role": "worker",
+          "instruction": "Run provenance, schema, behavior, regression and security checks on destination.",
+          "deliverable": "Verification report and file-hash comparison.",
+          "done_when": "All content is traceable and required behavior passes.",
+          "depends_on": [
+            "TWS-020.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-020.S06",
+          "sequence": 6,
+          "kind": "rollback",
+          "title": "Prove rollback and restore",
+          "assignee_role": "worker",
+          "instruction": "Exercise rollback/restore from checkpoint or disposable staging target; prove source and last-known-good destination remain recoverable.",
+          "deliverable": "Rollback drill record and verified restore SHA.",
+          "done_when": "Rollback is demonstrated without destructive cleanup or loss.",
+          "depends_on": [
+            "TWS-020.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-020.S07",
+          "sequence": 7,
+          "kind": "handoff",
+          "title": "Commit and hand off migration candidate",
+          "assignee_role": "worker",
+          "instruction": "Commit reviewed candidate on task branch and hand off to independent QC with provenance, test evidence, gaps and next gate.",
+          "deliverable": "Candidate commit and migration handoff receipt.",
+          "done_when": "No production cutover, main promotion or legacy retirement occurs here.",
+          "depends_on": [
+            "TWS-020.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    }
+  ]
+}
