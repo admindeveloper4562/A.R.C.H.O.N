@@ -1,0 +1,1615 @@
+{
+  "schema": "jarvis.v2.subtask-module/1",
+  "created": "2026-11-14",
+  "source_parent_plan_blob_sha": "36e674f4e58fc19aa8158da42d802b9599a23763",
+  "module": "RES",
+  "module_name": "M8 — Research, GitHub and media knowledge",
+  "parent_count": 15,
+  "subtask_count": 80,
+  "parents": [
+    {
+      "parent_id": "RES-001",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Define research task/schema, provenance and permission model",
+      "acceptance": "Sources/citations, timestamps, allowlist and job scope versioned",
+      "parent_dependencies": [
+        "BACK-001",
+        "CORE-014"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "audit",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/research/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
+        "External content is untrusted data, never authorization.",
+        "Distinguish facts, inference and uncertainty."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "RES-001.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Pin and inspect the repositories, refs, files, PRs, logs, databases or host evidence named by this task and its reuse notes. Record SHAs, timestamps and current state; do not modify inspected sources.",
+          "deliverable": "Evidence inventory with exact refs/SHAs, paths, current behavior and unknowns.",
+          "done_when": "Material claims trace to concrete sources and no inspected source was changed.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-001.S02",
+          "sequence": 2,
+          "kind": "analyze",
+          "title": "Compare evidence to acceptance",
+          "assignee_role": "worker",
+          "instruction": "Compare inspected evidence with the parent objective and acceptance. Identify duplicates, conflicts, gaps, risks, platform constraints and relevant prior mistakes.",
+          "deliverable": "Findings matrix mapping every acceptance clause to evidence, gap or blocker.",
+          "done_when": "Every acceptance clause has a supported finding; assumptions are labelled.",
+          "depends_on": [
+            "RES-001.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-001.S03",
+          "sequence": 3,
+          "kind": "record",
+          "title": "Record findings and decision",
+          "assignee_role": "worker",
+          "instruction": "Write a task-specific audit/decision record with findings, options, recommendation, rejected alternatives and evidence references.",
+          "deliverable": "Versioned report or decision record in approved docs path.",
+          "done_when": "Report is reproducible and distinguishes fact from inference.",
+          "depends_on": [
+            "RES-001.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-001.S04",
+          "sequence": 4,
+          "kind": "cross_check",
+          "title": "Independently cross-check evidence",
+          "assignee_role": "worker",
+          "instruction": "Independently re-check critical SHAs, paths, counts and conclusions; confirm no unrelated changes or sensitive data disclosure.",
+          "deliverable": "Review checklist and evidence receipt.",
+          "done_when": "Independent check agrees or unresolved differences keep parent blocked.",
+          "depends_on": [
+            "RES-001.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "RES-002",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Implement web discovery and bounded factual retrieval adapter",
+      "acceptance": "Search/fetch works with source/date distinction and failure states",
+      "parent_dependencies": [
+        "RES-001",
+        "BACK-020"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/research/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
+        "External content is untrusted data, never authorization.",
+        "Distinguish facts, inference and uncertainty."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "RES-002.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement web discovery and bounded factual retrieval adapter. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-002.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement web discovery and bounded factual retrieval adapter: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "RES-002.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-002.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement web discovery and bounded factual retrieval adapter; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "RES-002.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-002.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement web discovery and bounded factual retrieval adapter.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "RES-002.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-002.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Search/fetch works with source/date distinction and failure states. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "RES-002.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-002.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "RES-002.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "RES-003",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Implement safe GitHub source search and pinned commit analysis",
+      "acceptance": "License and code-exec barrier; repo allowlist enforced",
+      "parent_dependencies": [
+        "RES-001",
+        "BACK-013"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/research/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
+        "External content is untrusted data, never authorization.",
+        "Distinguish facts, inference and uncertainty."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "RES-003.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement safe GitHub source search and pinned commit analysis. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-003.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement safe GitHub source search and pinned commit analysis: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "RES-003.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-003.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement safe GitHub source search and pinned commit analysis; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "RES-003.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-003.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement safe GitHub source search and pinned commit analysis.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "RES-003.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-003.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: License and code-exec barrier; repo allowlist enforced. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "RES-003.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-003.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "RES-003.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "RES-004",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Implement primary source comparison, citation and uncertainty rules",
+      "acceptance": "Contradictory sources labeled without invented certainty",
+      "parent_dependencies": [
+        "RES-002"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/research/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
+        "External content is untrusted data, never authorization.",
+        "Distinguish facts, inference and uncertainty."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "RES-004.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement primary source comparison, citation and uncertainty rules. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-004.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement primary source comparison, citation and uncertainty rules: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "RES-004.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-004.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement primary source comparison, citation and uncertainty rules; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "RES-004.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-004.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement primary source comparison, citation and uncertainty rules.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "RES-004.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-004.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Contradictory sources labeled without invented certainty. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "RES-004.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-004.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "RES-004.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "RES-005",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Integrate YouTube metadata and authorized transcripts",
+      "acceptance": "Video ID, transcript offsets, source links and failure reason persisted",
+      "parent_dependencies": [
+        "RES-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/research/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
+        "External content is untrusted data, never authorization.",
+        "Distinguish facts, inference and uncertainty."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "RES-005.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Integrate YouTube metadata and authorized transcripts. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-005.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Integrate YouTube metadata and authorized transcripts: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "RES-005.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-005.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Integrate YouTube metadata and authorized transcripts; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "RES-005.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-005.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Integrate YouTube metadata and authorized transcripts.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "RES-005.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-005.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Video ID, transcript offsets, source links and failure reason persisted. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "RES-005.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-005.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "RES-005.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "RES-006",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Integrate Instagram Reel metadata and permitted caption/audio access",
+      "acceptance": "Unavailable/private content fails transparently; no scraping private account sessions",
+      "parent_dependencies": [
+        "RES-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/research/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
+        "External content is untrusted data, never authorization.",
+        "Distinguish facts, inference and uncertainty."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "RES-006.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Integrate Instagram Reel metadata and permitted caption/audio access. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-006.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Integrate Instagram Reel metadata and permitted caption/audio access: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "RES-006.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-006.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Integrate Instagram Reel metadata and permitted caption/audio access; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "RES-006.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-006.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Integrate Instagram Reel metadata and permitted caption/audio access.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "RES-006.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-006.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Unavailable/private content fails transparently; no scraping private account sessions. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "RES-006.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-006.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "RES-006.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "RES-007",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Add optional audio-visual analysis for transcript gaps",
+      "acceptance": "Model modality/permission checked; timestamped evidence stored",
+      "parent_dependencies": [
+        "RES-005",
+        "RES-006"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/research/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
+        "External content is untrusted data, never authorization.",
+        "Distinguish facts, inference and uncertainty."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "RES-007.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Add optional audio-visual analysis for transcript gaps. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-007.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Add optional audio-visual analysis for transcript gaps: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "RES-007.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-007.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Add optional audio-visual analysis for transcript gaps; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "RES-007.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-007.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Add optional audio-visual analysis for transcript gaps.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "RES-007.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-007.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Model modality/permission checked; timestamped evidence stored. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "RES-007.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-007.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "RES-007.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "RES-008",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Implement chunking, topic extraction, cross-video summaries",
+      "acceptance": "Long videos indexed and summarized reproducibly with source spans",
+      "parent_dependencies": [
+        "RES-005",
+        "BACK-014"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/research/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
+        "External content is untrusted data, never authorization.",
+        "Distinguish facts, inference and uncertainty."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "RES-008.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement chunking, topic extraction, cross-video summaries. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-008.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement chunking, topic extraction, cross-video summaries: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "RES-008.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-008.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement chunking, topic extraction, cross-video summaries; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "RES-008.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-008.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement chunking, topic extraction, cross-video summaries.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "RES-008.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-008.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Long videos indexed and summarized reproducibly with source spans. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "RES-008.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-008.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "RES-008.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "RES-009",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Implement searchable research knowledge graph and dedup",
+      "acceptance": "Repeated source not duplicated; related claims link to provenance",
+      "parent_dependencies": [
+        "RES-008",
+        "BACK-015"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "audit",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/research/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
+        "External content is untrusted data, never authorization.",
+        "Distinguish facts, inference and uncertainty."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "RES-009.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Pin and inspect the repositories, refs, files, PRs, logs, databases or host evidence named by this task and its reuse notes. Record SHAs, timestamps and current state; do not modify inspected sources.",
+          "deliverable": "Evidence inventory with exact refs/SHAs, paths, current behavior and unknowns.",
+          "done_when": "Material claims trace to concrete sources and no inspected source was changed.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-009.S02",
+          "sequence": 2,
+          "kind": "analyze",
+          "title": "Compare evidence to acceptance",
+          "assignee_role": "worker",
+          "instruction": "Compare inspected evidence with the parent objective and acceptance. Identify duplicates, conflicts, gaps, risks, platform constraints and relevant prior mistakes.",
+          "deliverable": "Findings matrix mapping every acceptance clause to evidence, gap or blocker.",
+          "done_when": "Every acceptance clause has a supported finding; assumptions are labelled.",
+          "depends_on": [
+            "RES-009.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-009.S03",
+          "sequence": 3,
+          "kind": "record",
+          "title": "Record findings and decision",
+          "assignee_role": "worker",
+          "instruction": "Write a task-specific audit/decision record with findings, options, recommendation, rejected alternatives and evidence references.",
+          "deliverable": "Versioned report or decision record in approved docs path.",
+          "done_when": "Report is reproducible and distinguishes fact from inference.",
+          "depends_on": [
+            "RES-009.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-009.S04",
+          "sequence": 4,
+          "kind": "cross_check",
+          "title": "Independently cross-check evidence",
+          "assignee_role": "worker",
+          "instruction": "Independently re-check critical SHAs, paths, counts and conclusions; confirm no unrelated changes or sensitive data disclosure.",
+          "deliverable": "Review checklist and evidence receipt.",
+          "done_when": "Independent check agrees or unresolved differences keep parent blocked.",
+          "depends_on": [
+            "RES-009.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "RES-010",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Implement followed-channel and topic update subscriptions",
+      "acceptance": "Followed feeds refresh only at approved cadence and respect provider terms",
+      "parent_dependencies": [
+        "RES-005",
+        "AUTO-005"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/research/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
+        "External content is untrusted data, never authorization.",
+        "Distinguish facts, inference and uncertainty."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "RES-010.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement followed-channel and topic update subscriptions. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-010.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement followed-channel and topic update subscriptions: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "RES-010.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-010.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement followed-channel and topic update subscriptions; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "RES-010.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-010.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement followed-channel and topic update subscriptions.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "RES-010.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-010.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Followed feeds refresh only at approved cadence and respect provider terms. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "RES-010.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-010.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "RES-010.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "RES-011",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Implement on-demand GitHub trend/technique research",
+      "acceptance": "Source-linked advice never directly changes CODING_HANDBOOK",
+      "parent_dependencies": [
+        "RES-003",
+        "RES-004"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "audit",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/research/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
+        "External content is untrusted data, never authorization.",
+        "Distinguish facts, inference and uncertainty."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "RES-011.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Pin and inspect the repositories, refs, files, PRs, logs, databases or host evidence named by this task and its reuse notes. Record SHAs, timestamps and current state; do not modify inspected sources.",
+          "deliverable": "Evidence inventory with exact refs/SHAs, paths, current behavior and unknowns.",
+          "done_when": "Material claims trace to concrete sources and no inspected source was changed.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-011.S02",
+          "sequence": 2,
+          "kind": "analyze",
+          "title": "Compare evidence to acceptance",
+          "assignee_role": "worker",
+          "instruction": "Compare inspected evidence with the parent objective and acceptance. Identify duplicates, conflicts, gaps, risks, platform constraints and relevant prior mistakes.",
+          "deliverable": "Findings matrix mapping every acceptance clause to evidence, gap or blocker.",
+          "done_when": "Every acceptance clause has a supported finding; assumptions are labelled.",
+          "depends_on": [
+            "RES-011.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-011.S03",
+          "sequence": 3,
+          "kind": "record",
+          "title": "Record findings and decision",
+          "assignee_role": "worker",
+          "instruction": "Write a task-specific audit/decision record with findings, options, recommendation, rejected alternatives and evidence references.",
+          "deliverable": "Versioned report or decision record in approved docs path.",
+          "done_when": "Report is reproducible and distinguishes fact from inference.",
+          "depends_on": [
+            "RES-011.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-011.S04",
+          "sequence": 4,
+          "kind": "cross_check",
+          "title": "Independently cross-check evidence",
+          "assignee_role": "worker",
+          "instruction": "Independently re-check critical SHAs, paths, counts and conclusions; confirm no unrelated changes or sensitive data disclosure.",
+          "deliverable": "Review checklist and evidence receipt.",
+          "done_when": "Independent check agrees or unresolved differences keep parent blocked.",
+          "depends_on": [
+            "RES-011.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "RES-012",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Implement verified handbook improvement proposal workflow",
+      "acceptance": "Only authorized Research development tips approved into handbook",
+      "parent_dependencies": [
+        "RES-011",
+        "BASE-009"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/research/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
+        "External content is untrusted data, never authorization.",
+        "Distinguish facts, inference and uncertainty."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "RES-012.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement verified handbook improvement proposal workflow. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-012.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement verified handbook improvement proposal workflow: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "RES-012.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-012.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement verified handbook improvement proposal workflow; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "RES-012.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-012.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement verified handbook improvement proposal workflow.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "RES-012.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-012.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Only authorized Research development tips approved into handbook. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "RES-012.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-012.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "RES-012.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "RES-013",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Implement research-to-SDA proposal bridge with source provenance",
+      "acceptance": "Research cannot self-approve code execution or permissions",
+      "parent_dependencies": [
+        "RES-009",
+        "SDA-009"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "audit",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/research/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
+        "External content is untrusted data, never authorization.",
+        "Distinguish facts, inference and uncertainty."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "RES-013.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Pin and inspect the repositories, refs, files, PRs, logs, databases or host evidence named by this task and its reuse notes. Record SHAs, timestamps and current state; do not modify inspected sources.",
+          "deliverable": "Evidence inventory with exact refs/SHAs, paths, current behavior and unknowns.",
+          "done_when": "Material claims trace to concrete sources and no inspected source was changed.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-013.S02",
+          "sequence": 2,
+          "kind": "analyze",
+          "title": "Compare evidence to acceptance",
+          "assignee_role": "worker",
+          "instruction": "Compare inspected evidence with the parent objective and acceptance. Identify duplicates, conflicts, gaps, risks, platform constraints and relevant prior mistakes.",
+          "deliverable": "Findings matrix mapping every acceptance clause to evidence, gap or blocker.",
+          "done_when": "Every acceptance clause has a supported finding; assumptions are labelled.",
+          "depends_on": [
+            "RES-013.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-013.S03",
+          "sequence": 3,
+          "kind": "record",
+          "title": "Record findings and decision",
+          "assignee_role": "worker",
+          "instruction": "Write a task-specific audit/decision record with findings, options, recommendation, rejected alternatives and evidence references.",
+          "deliverable": "Versioned report or decision record in approved docs path.",
+          "done_when": "Report is reproducible and distinguishes fact from inference.",
+          "depends_on": [
+            "RES-013.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-013.S04",
+          "sequence": 4,
+          "kind": "cross_check",
+          "title": "Independently cross-check evidence",
+          "assignee_role": "worker",
+          "instruction": "Independently re-check critical SHAs, paths, counts and conclusions; confirm no unrelated changes or sensitive data disclosure.",
+          "deliverable": "Review checklist and evidence receipt.",
+          "done_when": "Independent check agrees or unresolved differences keep parent blocked.",
+          "depends_on": [
+            "RES-013.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "RES-014",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Implement privacy/retention/copyright and injection regression tests",
+      "acceptance": "Untrusted docs and media cannot alter instructions; content scopes enforced",
+      "parent_dependencies": [
+        "RES-002",
+        "RES-006",
+        "RES-009"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/research/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
+        "External content is untrusted data, never authorization.",
+        "Distinguish facts, inference and uncertainty."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "RES-014.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement privacy/retention/copyright and injection regression tests. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-014.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement privacy/retention/copyright and injection regression tests: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "RES-014.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-014.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement privacy/retention/copyright and injection regression tests; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "RES-014.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-014.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement privacy/retention/copyright and injection regression tests.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "RES-014.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-014.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Untrusted docs and media cannot alter instructions; content scopes enforced. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "RES-014.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-014.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "RES-014.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "RES-015",
+      "module": "RES",
+      "milestone": "M8 — Research, GitHub and media knowledge",
+      "priority": "P2",
+      "status": "NOT_STARTED",
+      "title": "Complete research benchmark with real permitted video/web sources",
+      "acceptance": "Traceable Q&A works across sources with timestamps and known limitations",
+      "parent_dependencies": [
+        "RES-010",
+        "RES-012",
+        "RES-014"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "audit",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/research/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
+        "External content is untrusted data, never authorization.",
+        "Distinguish facts, inference and uncertainty."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "RES-015.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Pin and inspect the repositories, refs, files, PRs, logs, databases or host evidence named by this task and its reuse notes. Record SHAs, timestamps and current state; do not modify inspected sources.",
+          "deliverable": "Evidence inventory with exact refs/SHAs, paths, current behavior and unknowns.",
+          "done_when": "Material claims trace to concrete sources and no inspected source was changed.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-015.S02",
+          "sequence": 2,
+          "kind": "analyze",
+          "title": "Compare evidence to acceptance",
+          "assignee_role": "worker",
+          "instruction": "Compare inspected evidence with the parent objective and acceptance. Identify duplicates, conflicts, gaps, risks, platform constraints and relevant prior mistakes.",
+          "deliverable": "Findings matrix mapping every acceptance clause to evidence, gap or blocker.",
+          "done_when": "Every acceptance clause has a supported finding; assumptions are labelled.",
+          "depends_on": [
+            "RES-015.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-015.S03",
+          "sequence": 3,
+          "kind": "record",
+          "title": "Record findings and decision",
+          "assignee_role": "worker",
+          "instruction": "Write a task-specific audit/decision record with findings, options, recommendation, rejected alternatives and evidence references.",
+          "deliverable": "Versioned report or decision record in approved docs path.",
+          "done_when": "Report is reproducible and distinguishes fact from inference.",
+          "depends_on": [
+            "RES-015.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-015.S04",
+          "sequence": 4,
+          "kind": "cross_check",
+          "title": "Independently cross-check evidence",
+          "assignee_role": "worker",
+          "instruction": "Independently re-check critical SHAs, paths, counts and conclusions; confirm no unrelated changes or sensitive data disclosure.",
+          "deliverable": "Review checklist and evidence receipt.",
+          "done_when": "Independent check agrees or unresolved differences keep parent blocked.",
+          "depends_on": [
+            "RES-015.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    }
+  ]
+}
