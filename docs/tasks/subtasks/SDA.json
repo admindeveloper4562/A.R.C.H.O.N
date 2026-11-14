@@ -1,0 +1,3236 @@
+{
+  "schema": "jarvis.v2.subtask-module/1",
+  "created": "2026-11-14",
+  "source_parent_plan_blob_sha": "36e674f4e58fc19aa8158da42d802b9599a23763",
+  "module": "SDA",
+  "module_name": "M1 — Astra One and full SDA qualification",
+  "parent_count": 28,
+  "subtask_count": 161,
+  "parents": [
+    {
+      "parent_id": "SDA-001",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Audit and import Astra One Linux v0.2.0 package into isolated source staging",
+      "acceptance": "Package manifest/tests verified; actual source committed for review, not treated as production",
+      "parent_dependencies": [
+        "BASE-004",
+        "BASE-012"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "migration",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-001.S01",
+          "sequence": 1,
+          "kind": "pin",
+          "title": "Pin source and destination SHAs",
+          "assignee_role": "worker",
+          "instruction": "Pin exact source repository/ref/commit and destination base SHA for Audit and import Astra One Linux v0.2.0 package into isolated source staging; verify destination is isolated and legacy source untouched.",
+          "deliverable": "Source/target identity record and SHA pair.",
+          "done_when": "Source and target are immutable for this attempt.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-001.S02",
+          "sequence": 2,
+          "kind": "inventory",
+          "title": "Inventory provenance and compatibility",
+          "assignee_role": "worker",
+          "instruction": "Inventory files, dependencies, licenses, secrets, data formats, case collisions and compatibility; record per-file provenance.",
+          "deliverable": "File manifest and provenance ledger.",
+          "done_when": "Every candidate has origin SHA/path/license status and secret-scan disposition.",
+          "depends_on": [
+            "SDA-001.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-001.S03",
+          "sequence": 3,
+          "kind": "dry_run",
+          "title": "Run read-only dry run",
+          "assignee_role": "worker",
+          "instruction": "Run read-only dry-run/staging simulation; detect collisions, incompatibilities, path traversal and unsafe files before applying.",
+          "deliverable": "Dry-run report and compatibility matrix.",
+          "done_when": "Dry-run makes no destination writes; unresolved collisions block application.",
+          "depends_on": [
+            "SDA-001.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-001.S04",
+          "sequence": 4,
+          "kind": "apply",
+          "title": "Apply bounded migration",
+          "assignee_role": "worker",
+          "instruction": "Apply only approved create-only/adapter/migration slice for Audit and import Astra One Linux v0.2.0 package into isolated source staging; do not delete, execute or overwrite legacy source.",
+          "deliverable": "Bounded destination changes and migration receipt.",
+          "done_when": "Only allowlisted files are changed and provenance is recorded.",
+          "depends_on": [
+            "SDA-001.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-001.S05",
+          "sequence": 5,
+          "kind": "verify",
+          "title": "Verify migrated result",
+          "assignee_role": "worker",
+          "instruction": "Run provenance, schema, behavior, regression and security checks on destination.",
+          "deliverable": "Verification report and file-hash comparison.",
+          "done_when": "All content is traceable and required behavior passes.",
+          "depends_on": [
+            "SDA-001.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-001.S06",
+          "sequence": 6,
+          "kind": "rollback",
+          "title": "Prove rollback and restore",
+          "assignee_role": "worker",
+          "instruction": "Exercise rollback/restore from checkpoint or disposable staging target; prove source and last-known-good destination remain recoverable.",
+          "deliverable": "Rollback drill record and verified restore SHA.",
+          "done_when": "Rollback is demonstrated without destructive cleanup or loss.",
+          "depends_on": [
+            "SDA-001.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-001.S07",
+          "sequence": 7,
+          "kind": "handoff",
+          "title": "Commit and hand off migration candidate",
+          "assignee_role": "worker",
+          "instruction": "Commit reviewed candidate on task branch and hand off to independent QC with provenance, test evidence, gaps and next gate.",
+          "deliverable": "Candidate commit and migration handoff receipt.",
+          "done_when": "No production cutover, main promotion or legacy retirement occurs here.",
+          "depends_on": [
+            "SDA-001.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-002",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Inspect existing Workhorse v2 Master and reconcile with Astra One",
+      "acceptance": "One canonical Master chosen; duplicate queues/process controllers cannot both run",
+      "parent_dependencies": [
+        "SDA-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "audit",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-002.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Pin and inspect the repositories, refs, files, PRs, logs, databases or host evidence named by this task and its reuse notes. Record SHAs, timestamps and current state; do not modify inspected sources.",
+          "deliverable": "Evidence inventory with exact refs/SHAs, paths, current behavior and unknowns.",
+          "done_when": "Material claims trace to concrete sources and no inspected source was changed.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-002.S02",
+          "sequence": 2,
+          "kind": "analyze",
+          "title": "Compare evidence to acceptance",
+          "assignee_role": "worker",
+          "instruction": "Compare inspected evidence with the parent objective and acceptance. Identify duplicates, conflicts, gaps, risks, platform constraints and relevant prior mistakes.",
+          "deliverable": "Findings matrix mapping every acceptance clause to evidence, gap or blocker.",
+          "done_when": "Every acceptance clause has a supported finding; assumptions are labelled.",
+          "depends_on": [
+            "SDA-002.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-002.S03",
+          "sequence": 3,
+          "kind": "record",
+          "title": "Record findings and decision",
+          "assignee_role": "worker",
+          "instruction": "Write a task-specific audit/decision record with findings, options, recommendation, rejected alternatives and evidence references.",
+          "deliverable": "Versioned report or decision record in approved docs path.",
+          "done_when": "Report is reproducible and distinguishes fact from inference.",
+          "depends_on": [
+            "SDA-002.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-002.S04",
+          "sequence": 4,
+          "kind": "cross_check",
+          "title": "Independently cross-check evidence",
+          "assignee_role": "worker",
+          "instruction": "Independently re-check critical SHAs, paths, counts and conclusions; confirm no unrelated changes or sensitive data disclosure.",
+          "deliverable": "Review checklist and evidence receipt.",
+          "done_when": "Independent check agrees or unresolved differences keep parent blocked.",
+          "depends_on": [
+            "SDA-002.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-003",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Verify Codex supervisor, worker, QC and merger model profiles",
+      "acceptance": "Authenticated CLI executes read-only smoke; unavailable aliases produce explicit stop",
+      "parent_dependencies": [
+        "BASE-012",
+        "SDA-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-003.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Verify Codex supervisor, worker, QC and merger model profiles.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-003.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "SDA-003.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-003.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Verify Codex supervisor, worker, QC and merger model profiles; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "SDA-003.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-003.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "SDA-003.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-003.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "SDA-003.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-004",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Define durable schema and transactions for SDA five queues",
+      "acceptance": "project/pending/rebuild/review/merge queue transitions atomic and restart-safe",
+      "parent_dependencies": [
+        "SDA-002"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "design",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-004.S01",
+          "sequence": 1,
+          "kind": "requirements",
+          "title": "Extract requirements and constraints",
+          "assignee_role": "worker",
+          "instruction": "Extract exact architecture/user requirements, acceptance, dependencies, non-goals and compatibility obligations; list open decisions.",
+          "deliverable": "Requirements-to-acceptance traceability table.",
+          "done_when": "Every acceptance clause and dependency is represented.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-004.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Define typed interfaces, data ownership, schema/API/event shapes, state transitions and compatibility behavior.",
+          "deliverable": "Interface/schema/sequence specification with versioning and ownership.",
+          "done_when": "Contracts are deterministic, testable and match the ten-module architecture.",
+          "depends_on": [
+            "SDA-004.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-004.S03",
+          "sequence": 3,
+          "kind": "safety",
+          "title": "Define safety and failure behavior",
+          "assignee_role": "worker",
+          "instruction": "Specify permissions, privacy/secrets, failure modes, retry/backpressure, idempotency, rollback and STOP behavior.",
+          "deliverable": "Threat/failure matrix and rollback notes.",
+          "done_when": "No implicit privilege expansion; failures are explicit and fail-closed.",
+          "depends_on": [
+            "SDA-004.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-004.S04",
+          "sequence": 4,
+          "kind": "test_plan",
+          "title": "Map acceptance to tests",
+          "assignee_role": "worker",
+          "instruction": "Map each acceptance clause to unit/integration/negative/host tests, expected outputs and fixtures.",
+          "deliverable": "Acceptance test matrix and commands/fixtures plan.",
+          "done_when": "Every clause has a test or explicit manual gate.",
+          "depends_on": [
+            "SDA-004.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-004.S05",
+          "sequence": 5,
+          "kind": "review_design",
+          "title": "Review implementation design",
+          "assignee_role": "supervisor",
+          "instruction": "Cross-check design against module contracts, AGENTS.md, SECURITY.md and CODING_HANDBOOK.md; resolve contradictions before coding.",
+          "deliverable": "Reviewed implementation plan and allowed-path proposal.",
+          "done_when": "No unresolved architecture/security conflict; Supervisor approves scope.",
+          "depends_on": [
+            "SDA-004.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-005",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Implement job schema with priority, dependency, approval and scope",
+      "acceptance": "Invalid dependencies, scope escalation and duplicate job ID are rejected",
+      "parent_dependencies": [
+        "SDA-004"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-005.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement job schema with priority, dependency, approval and scope. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-005.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement job schema with priority, dependency, approval and scope: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "SDA-005.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-005.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement job schema with priority, dependency, approval and scope; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "SDA-005.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-005.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement job schema with priority, dependency, approval and scope.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "SDA-005.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-005.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Invalid dependencies, scope escalation and duplicate job ID are rejected. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "SDA-005.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-005.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "SDA-005.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-006",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Build single-controller lock, PID/lease fencing and duplicate Master prevention",
+      "acceptance": "Second Master refuses to start; stale lock safely reconciled",
+      "parent_dependencies": [
+        "SDA-004"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-006.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Build single-controller lock, PID/lease fencing and duplicate Master prevention. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-006.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Build single-controller lock, PID/lease fencing and duplicate Master prevention: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "SDA-006.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-006.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Build single-controller lock, PID/lease fencing and duplicate Master prevention; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "SDA-006.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-006.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Build single-controller lock, PID/lease fencing and duplicate Master prevention.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "SDA-006.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-006.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Second Master refuses to start; stale lock safely reconciled. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "SDA-006.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-006.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "SDA-006.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-007",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Implement deterministic eligible-task selector and starvation safeguards",
+      "acceptance": "Priority plus FIFO and dependency tests pass; blocked head skipped",
+      "parent_dependencies": [
+        "SDA-005"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-007.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement deterministic eligible-task selector and starvation safeguards. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-007.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement deterministic eligible-task selector and starvation safeguards: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "SDA-007.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-007.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement deterministic eligible-task selector and starvation safeguards; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "SDA-007.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-007.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement deterministic eligible-task selector and starvation safeguards.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "SDA-007.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-007.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Priority plus FIFO and dependency tests pass; blocked head skipped. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "SDA-007.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-007.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "SDA-007.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-008",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Create Supervisor read-only repository inspection and requirements parser",
+      "acceptance": "Supervisor cites pinned repo contents and exact acceptance without editing code",
+      "parent_dependencies": [
+        "BASE-009",
+        "SDA-003"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-008.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Create Supervisor read-only repository inspection and requirements parser. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-008.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Create Supervisor read-only repository inspection and requirements parser: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "SDA-008.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-008.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Create Supervisor read-only repository inspection and requirements parser; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "SDA-008.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-008.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Create Supervisor read-only repository inspection and requirements parser.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "SDA-008.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-008.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Supervisor cites pinned repo contents and exact acceptance without editing code. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "SDA-008.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-008.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "SDA-008.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-009",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Generate TASK.md per project and machine-validated task DAG",
+      "acceptance": "Reviewable TASK.md round-trips to SQLite task IDs without competing truth",
+      "parent_dependencies": [
+        "SDA-005",
+        "SDA-008"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-009.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Generate TASK.md per project and machine-validated task DAG. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-009.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Generate TASK.md per project and machine-validated task DAG: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "SDA-009.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-009.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Generate TASK.md per project and machine-validated task DAG; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "SDA-009.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-009.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Generate TASK.md per project and machine-validated task DAG.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "SDA-009.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-009.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Reviewable TASK.md round-trips to SQLite task IDs without competing truth. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "SDA-009.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-009.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "SDA-009.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-010",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Build five independent coding slots with Git worktrees and scoped tools",
+      "acceptance": "Five mock workers run concurrently, distinct branches, no shared branch modification",
+      "parent_dependencies": [
+        "SDA-006",
+        "SDA-007",
+        "SDA-009"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-010.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Build five independent coding slots with Git worktrees and scoped tools. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-010.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Build five independent coding slots with Git worktrees and scoped tools: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "SDA-010.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-010.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Build five independent coding slots with Git worktrees and scoped tools; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "SDA-010.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-010.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Build five independent coding slots with Git worktrees and scoped tools.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "SDA-010.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-010.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Five mock workers run concurrently, distinct branches, no shared branch modification. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "SDA-010.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-010.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "SDA-010.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-011",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Implement durable context/session/thread handoff per task",
+      "acceptance": "Resume from checkpoint after discarded model session without losing acceptance",
+      "parent_dependencies": [
+        "SDA-004",
+        "SDA-010"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-011.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement durable context/session/thread handoff per task. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-011.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement durable context/session/thread handoff per task: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "SDA-011.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-011.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement durable context/session/thread handoff per task; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "SDA-011.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-011.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement durable context/session/thread handoff per task.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "SDA-011.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-011.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Resume from checkpoint after discarded model session without losing acceptance. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "SDA-011.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-011.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "SDA-011.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-012",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Implement Codex JSONL receipts and bounded output/token parsing",
+      "acceptance": "Thread ID, usage, tool effects and error categories persist without leaking secrets",
+      "parent_dependencies": [
+        "SDA-010"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-012.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement Codex JSONL receipts and bounded output/token parsing. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-012.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement Codex JSONL receipts and bounded output/token parsing: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "SDA-012.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-012.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement Codex JSONL receipts and bounded output/token parsing; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "SDA-012.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-012.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement Codex JSONL receipts and bounded output/token parsing.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "SDA-012.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-012.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Thread ID, usage, tool effects and error categories persist without leaking secrets. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "SDA-012.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-012.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "SDA-012.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-013",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Integrate reference-repo allowlist and scoped source packing",
+      "acceptance": "Untrusted external code cannot override policy; context fits target window",
+      "parent_dependencies": [
+        "BASE-015",
+        "SDA-011"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-013.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Integrate reference-repo allowlist and scoped source packing. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-013.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Integrate reference-repo allowlist and scoped source packing: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "SDA-013.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-013.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Integrate reference-repo allowlist and scoped source packing; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "SDA-013.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-013.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Integrate reference-repo allowlist and scoped source packing.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "SDA-013.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-013.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Untrusted external code cannot override policy; context fits target window. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "SDA-013.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-013.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "SDA-013.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-014",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Implement normal Codex worker task completion and commit envelope",
+      "acceptance": "Real bounded code change committed with source SHA, files and tests",
+      "parent_dependencies": [
+        "SDA-010",
+        "SDA-012"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-014.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement normal Codex worker task completion and commit envelope. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-014.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement normal Codex worker task completion and commit envelope: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "SDA-014.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-014.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement normal Codex worker task completion and commit envelope; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "SDA-014.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-014.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement normal Codex worker task completion and commit envelope.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "SDA-014.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-014.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Real bounded code change committed with source SHA, files and tests. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "SDA-014.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-014.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "SDA-014.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-015",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Implement independent deterministic QC and read-only AI review",
+      "acceptance": "QC receipt binds candidate SHA to tests, security and architecture policy",
+      "parent_dependencies": [
+        "SDA-014"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "audit",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-015.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Pin and inspect the repositories, refs, files, PRs, logs, databases or host evidence named by this task and its reuse notes. Record SHAs, timestamps and current state; do not modify inspected sources.",
+          "deliverable": "Evidence inventory with exact refs/SHAs, paths, current behavior and unknowns.",
+          "done_when": "Material claims trace to concrete sources and no inspected source was changed.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-015.S02",
+          "sequence": 2,
+          "kind": "analyze",
+          "title": "Compare evidence to acceptance",
+          "assignee_role": "worker",
+          "instruction": "Compare inspected evidence with the parent objective and acceptance. Identify duplicates, conflicts, gaps, risks, platform constraints and relevant prior mistakes.",
+          "deliverable": "Findings matrix mapping every acceptance clause to evidence, gap or blocker.",
+          "done_when": "Every acceptance clause has a supported finding; assumptions are labelled.",
+          "depends_on": [
+            "SDA-015.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-015.S03",
+          "sequence": 3,
+          "kind": "record",
+          "title": "Record findings and decision",
+          "assignee_role": "worker",
+          "instruction": "Write a task-specific audit/decision record with findings, options, recommendation, rejected alternatives and evidence references.",
+          "deliverable": "Versioned report or decision record in approved docs path.",
+          "done_when": "Report is reproducible and distinguishes fact from inference.",
+          "depends_on": [
+            "SDA-015.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-015.S04",
+          "sequence": 4,
+          "kind": "cross_check",
+          "title": "Independently cross-check evidence",
+          "assignee_role": "worker",
+          "instruction": "Independently re-check critical SHAs, paths, counts and conclusions; confirm no unrelated changes or sensitive data disclosure.",
+          "deliverable": "Review checklist and evidence receipt.",
+          "done_when": "Independent check agrees or unresolved differences keep parent blocked.",
+          "depends_on": [
+            "SDA-015.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-016",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Implement isolated safe test execution with Docker and no network",
+      "acceptance": "Host filesystem/secrets inaccessible; test outcomes repeatable",
+      "parent_dependencies": [
+        "SDA-015"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-016.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Implement isolated safe test execution with Docker and no network.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-016.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "SDA-016.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-016.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Implement isolated safe test execution with Docker and no network; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "SDA-016.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-016.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "SDA-016.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-016.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "SDA-016.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-017",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Implement repairer with same-session return and bounded 20-attempt breakdown",
+      "acceptance": "Failed candidate returns with error proof; limit archives history and quarantines candidate",
+      "parent_dependencies": [
+        "SDA-015",
+        "SDA-011"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-017.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement repairer with same-session return and bounded 20-attempt breakdown. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-017.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement repairer with same-session return and bounded 20-attempt breakdown: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "SDA-017.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-017.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement repairer with same-session return and bounded 20-attempt breakdown; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "SDA-017.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-017.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement repairer with same-session return and bounded 20-attempt breakdown.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "SDA-017.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-017.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Failed candidate returns with error proof; limit archives history and quarantines candidate. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "SDA-017.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-017.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "SDA-017.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-018",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Implement serialized merger and freshness-aware integration branch",
+      "acceptance": "Only one merger updates authorized ref; final regression passes",
+      "parent_dependencies": [
+        "SDA-015",
+        "SDA-006"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-018.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement serialized merger and freshness-aware integration branch. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-018.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement serialized merger and freshness-aware integration branch: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "SDA-018.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-018.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement serialized merger and freshness-aware integration branch; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "SDA-018.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-018.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement serialized merger and freshness-aware integration branch.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "SDA-018.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-018.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Only one merger updates authorized ref; final regression passes. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "SDA-018.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-018.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "SDA-018.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-019",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Implement conflict retry, rebuild queue and immutable breakdown reports",
+      "acceptance": "20-attempt cap respected; old refs/commits recoverable",
+      "parent_dependencies": [
+        "SDA-017",
+        "SDA-018"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "migration",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-019.S01",
+          "sequence": 1,
+          "kind": "pin",
+          "title": "Pin source and destination SHAs",
+          "assignee_role": "worker",
+          "instruction": "Pin exact source repository/ref/commit and destination base SHA for Implement conflict retry, rebuild queue and immutable breakdown reports; verify destination is isolated and legacy source untouched.",
+          "deliverable": "Source/target identity record and SHA pair.",
+          "done_when": "Source and target are immutable for this attempt.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-019.S02",
+          "sequence": 2,
+          "kind": "inventory",
+          "title": "Inventory provenance and compatibility",
+          "assignee_role": "worker",
+          "instruction": "Inventory files, dependencies, licenses, secrets, data formats, case collisions and compatibility; record per-file provenance.",
+          "deliverable": "File manifest and provenance ledger.",
+          "done_when": "Every candidate has origin SHA/path/license status and secret-scan disposition.",
+          "depends_on": [
+            "SDA-019.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-019.S03",
+          "sequence": 3,
+          "kind": "dry_run",
+          "title": "Run read-only dry run",
+          "assignee_role": "worker",
+          "instruction": "Run read-only dry-run/staging simulation; detect collisions, incompatibilities, path traversal and unsafe files before applying.",
+          "deliverable": "Dry-run report and compatibility matrix.",
+          "done_when": "Dry-run makes no destination writes; unresolved collisions block application.",
+          "depends_on": [
+            "SDA-019.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-019.S04",
+          "sequence": 4,
+          "kind": "apply",
+          "title": "Apply bounded migration",
+          "assignee_role": "worker",
+          "instruction": "Apply only approved create-only/adapter/migration slice for Implement conflict retry, rebuild queue and immutable breakdown reports; do not delete, execute or overwrite legacy source.",
+          "deliverable": "Bounded destination changes and migration receipt.",
+          "done_when": "Only allowlisted files are changed and provenance is recorded.",
+          "depends_on": [
+            "SDA-019.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-019.S05",
+          "sequence": 5,
+          "kind": "verify",
+          "title": "Verify migrated result",
+          "assignee_role": "worker",
+          "instruction": "Run provenance, schema, behavior, regression and security checks on destination.",
+          "deliverable": "Verification report and file-hash comparison.",
+          "done_when": "All content is traceable and required behavior passes.",
+          "depends_on": [
+            "SDA-019.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-019.S06",
+          "sequence": 6,
+          "kind": "rollback",
+          "title": "Prove rollback and restore",
+          "assignee_role": "worker",
+          "instruction": "Exercise rollback/restore from checkpoint or disposable staging target; prove source and last-known-good destination remain recoverable.",
+          "deliverable": "Rollback drill record and verified restore SHA.",
+          "done_when": "Rollback is demonstrated without destructive cleanup or loss.",
+          "depends_on": [
+            "SDA-019.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-019.S07",
+          "sequence": 7,
+          "kind": "handoff",
+          "title": "Commit and hand off migration candidate",
+          "assignee_role": "worker",
+          "instruction": "Commit reviewed candidate on task branch and hand off to independent QC with provenance, test evidence, gaps and next gate.",
+          "deliverable": "Candidate commit and migration handoff receipt.",
+          "done_when": "No production cutover, main promotion or legacy retirement occurs here.",
+          "depends_on": [
+            "SDA-019.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-020",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Implement STOP, PAUSE, quota, approval gates and crash reconciliation",
+      "acceptance": "Crash during safe boundary does not bypass STOP or repeat tool action",
+      "parent_dependencies": [
+        "SDA-006",
+        "SDA-011"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-020.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement STOP, PAUSE, quota, approval gates and crash reconciliation. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-020.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement STOP, PAUSE, quota, approval gates and crash reconciliation: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "SDA-020.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-020.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement STOP, PAUSE, quota, approval gates and crash reconciliation; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "SDA-020.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-020.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement STOP, PAUSE, quota, approval gates and crash reconciliation.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "SDA-020.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-020.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Crash during safe boundary does not bypass STOP or repeat tool action. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "SDA-020.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-020.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "SDA-020.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-021",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Implement SDA-specific self-doctor and deduplicated fault proposals",
+      "acceptance": "Single reproducible fault creates one scoped repair proposal, not an unbounded loop",
+      "parent_dependencies": [
+        "SDA-020"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-021.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement SDA-specific self-doctor and deduplicated fault proposals. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-021.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement SDA-specific self-doctor and deduplicated fault proposals: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "SDA-021.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-021.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement SDA-specific self-doctor and deduplicated fault proposals; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "SDA-021.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-021.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement SDA-specific self-doctor and deduplicated fault proposals.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "SDA-021.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-021.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Single reproducible fault creates one scoped repair proposal, not an unbounded loop. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "SDA-021.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-021.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "SDA-021.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-022",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Implement checkpoint export, state backups and restore drills",
+      "acceptance": "Fresh process recovers tasks, leases, approvals, refs and receipts correctly",
+      "parent_dependencies": [
+        "SDA-020"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "migration",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-022.S01",
+          "sequence": 1,
+          "kind": "pin",
+          "title": "Pin source and destination SHAs",
+          "assignee_role": "worker",
+          "instruction": "Pin exact source repository/ref/commit and destination base SHA for Implement checkpoint export, state backups and restore drills; verify destination is isolated and legacy source untouched.",
+          "deliverable": "Source/target identity record and SHA pair.",
+          "done_when": "Source and target are immutable for this attempt.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-022.S02",
+          "sequence": 2,
+          "kind": "inventory",
+          "title": "Inventory provenance and compatibility",
+          "assignee_role": "worker",
+          "instruction": "Inventory files, dependencies, licenses, secrets, data formats, case collisions and compatibility; record per-file provenance.",
+          "deliverable": "File manifest and provenance ledger.",
+          "done_when": "Every candidate has origin SHA/path/license status and secret-scan disposition.",
+          "depends_on": [
+            "SDA-022.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-022.S03",
+          "sequence": 3,
+          "kind": "dry_run",
+          "title": "Run read-only dry run",
+          "assignee_role": "worker",
+          "instruction": "Run read-only dry-run/staging simulation; detect collisions, incompatibilities, path traversal and unsafe files before applying.",
+          "deliverable": "Dry-run report and compatibility matrix.",
+          "done_when": "Dry-run makes no destination writes; unresolved collisions block application.",
+          "depends_on": [
+            "SDA-022.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-022.S04",
+          "sequence": 4,
+          "kind": "apply",
+          "title": "Apply bounded migration",
+          "assignee_role": "worker",
+          "instruction": "Apply only approved create-only/adapter/migration slice for Implement checkpoint export, state backups and restore drills; do not delete, execute or overwrite legacy source.",
+          "deliverable": "Bounded destination changes and migration receipt.",
+          "done_when": "Only allowlisted files are changed and provenance is recorded.",
+          "depends_on": [
+            "SDA-022.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-022.S05",
+          "sequence": 5,
+          "kind": "verify",
+          "title": "Verify migrated result",
+          "assignee_role": "worker",
+          "instruction": "Run provenance, schema, behavior, regression and security checks on destination.",
+          "deliverable": "Verification report and file-hash comparison.",
+          "done_when": "All content is traceable and required behavior passes.",
+          "depends_on": [
+            "SDA-022.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-022.S06",
+          "sequence": 6,
+          "kind": "rollback",
+          "title": "Prove rollback and restore",
+          "assignee_role": "worker",
+          "instruction": "Exercise rollback/restore from checkpoint or disposable staging target; prove source and last-known-good destination remain recoverable.",
+          "deliverable": "Rollback drill record and verified restore SHA.",
+          "done_when": "Rollback is demonstrated without destructive cleanup or loss.",
+          "depends_on": [
+            "SDA-022.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-022.S07",
+          "sequence": 7,
+          "kind": "handoff",
+          "title": "Commit and hand off migration candidate",
+          "assignee_role": "worker",
+          "instruction": "Commit reviewed candidate on task branch and hand off to independent QC with provenance, test evidence, gaps and next gate.",
+          "deliverable": "Candidate commit and migration handoff receipt.",
+          "done_when": "No production cutover, main promotion or legacy retirement occurs here.",
+          "depends_on": [
+            "SDA-022.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-023",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Wire SDA metadata event stream into Cloudflare progress API",
+      "acceptance": "Per-worker states, actual tests and commits shown; private prompt/code not uploaded",
+      "parent_dependencies": [
+        "SDA-012",
+        "SDA-020"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-023.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Wire SDA metadata event stream into Cloudflare progress API. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-023.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Wire SDA metadata event stream into Cloudflare progress API: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "SDA-023.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-023.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Wire SDA metadata event stream into Cloudflare progress API; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "SDA-023.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-023.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Wire SDA metadata event stream into Cloudflare progress API.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "SDA-023.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-023.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Per-worker states, actual tests and commits shown; private prompt/code not uploaded. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "SDA-023.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-023.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "SDA-023.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-024",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Run host-based real five-worker feature integration qualification",
+      "acceptance": "Actual Codex builds five independent candidates, QC passes, clean serial merge",
+      "parent_dependencies": [
+        "SDA-016",
+        "SDA-018",
+        "SDA-023"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-024.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Run host-based real five-worker feature integration qualification.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-024.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "SDA-024.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-024.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Run host-based real five-worker feature integration qualification; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "SDA-024.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-024.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "SDA-024.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-024.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "SDA-024.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-025",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Inject failures, model outage, quota, STOP, restart and rollback",
+      "acceptance": "Real host drills prove no duplicate external effects or unsafe auto-promotion",
+      "parent_dependencies": [
+        "SDA-019",
+        "SDA-020",
+        "SDA-022"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "migration",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-025.S01",
+          "sequence": 1,
+          "kind": "pin",
+          "title": "Pin source and destination SHAs",
+          "assignee_role": "worker",
+          "instruction": "Pin exact source repository/ref/commit and destination base SHA for Inject failures, model outage, quota, STOP, restart and rollback; verify destination is isolated and legacy source untouched.",
+          "deliverable": "Source/target identity record and SHA pair.",
+          "done_when": "Source and target are immutable for this attempt.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-025.S02",
+          "sequence": 2,
+          "kind": "inventory",
+          "title": "Inventory provenance and compatibility",
+          "assignee_role": "worker",
+          "instruction": "Inventory files, dependencies, licenses, secrets, data formats, case collisions and compatibility; record per-file provenance.",
+          "deliverable": "File manifest and provenance ledger.",
+          "done_when": "Every candidate has origin SHA/path/license status and secret-scan disposition.",
+          "depends_on": [
+            "SDA-025.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-025.S03",
+          "sequence": 3,
+          "kind": "dry_run",
+          "title": "Run read-only dry run",
+          "assignee_role": "worker",
+          "instruction": "Run read-only dry-run/staging simulation; detect collisions, incompatibilities, path traversal and unsafe files before applying.",
+          "deliverable": "Dry-run report and compatibility matrix.",
+          "done_when": "Dry-run makes no destination writes; unresolved collisions block application.",
+          "depends_on": [
+            "SDA-025.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-025.S04",
+          "sequence": 4,
+          "kind": "apply",
+          "title": "Apply bounded migration",
+          "assignee_role": "worker",
+          "instruction": "Apply only approved create-only/adapter/migration slice for Inject failures, model outage, quota, STOP, restart and rollback; do not delete, execute or overwrite legacy source.",
+          "deliverable": "Bounded destination changes and migration receipt.",
+          "done_when": "Only allowlisted files are changed and provenance is recorded.",
+          "depends_on": [
+            "SDA-025.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-025.S05",
+          "sequence": 5,
+          "kind": "verify",
+          "title": "Verify migrated result",
+          "assignee_role": "worker",
+          "instruction": "Run provenance, schema, behavior, regression and security checks on destination.",
+          "deliverable": "Verification report and file-hash comparison.",
+          "done_when": "All content is traceable and required behavior passes.",
+          "depends_on": [
+            "SDA-025.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-025.S06",
+          "sequence": 6,
+          "kind": "rollback",
+          "title": "Prove rollback and restore",
+          "assignee_role": "worker",
+          "instruction": "Exercise rollback/restore from checkpoint or disposable staging target; prove source and last-known-good destination remain recoverable.",
+          "deliverable": "Rollback drill record and verified restore SHA.",
+          "done_when": "Rollback is demonstrated without destructive cleanup or loss.",
+          "depends_on": [
+            "SDA-025.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-025.S07",
+          "sequence": 7,
+          "kind": "handoff",
+          "title": "Commit and hand off migration candidate",
+          "assignee_role": "worker",
+          "instruction": "Commit reviewed candidate on task branch and hand off to independent QC with provenance, test evidence, gaps and next gate.",
+          "deliverable": "Candidate commit and migration handoff receipt.",
+          "done_when": "No production cutover, main promotion or legacy retirement occurs here.",
+          "depends_on": [
+            "SDA-025.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-026",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Produce independently reviewed SDA gates A-I acceptance report",
+      "acceptance": "Evidence bundle passes all required gates or lists blockers; no premature success",
+      "parent_dependencies": [
+        "SDA-024",
+        "SDA-025",
+        "SDA-021"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "SDA-026.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Produce independently reviewed SDA gates A-I acceptance report.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-026.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "SDA-026.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-026.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Produce independently reviewed SDA gates A-I acceptance report; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "SDA-026.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-026.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "SDA-026.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-026.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "SDA-026.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-027",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Owner approval for clean JARVIS v2 rebuild repository",
+      "acceptance": "Written approval, exact repo name and migration scope recorded",
+      "parent_dependencies": [
+        "SDA-026",
+        "BASE-016"
+      ],
+      "required_owner_gate": true,
+      "manual_owner_gate_required": true,
+      "execution_mode": "owner_gate",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [
+        "The intended repository already exists: admindeveloper4562/A.R.C.H.O.N. Verify and record it as the destination; do not create a second repository. Preserve owner approval for migration scope."
+      ],
+      "subtasks": [
+        {
+          "id": "SDA-027.S01",
+          "sequence": 1,
+          "kind": "packet",
+          "title": "Prepare owner decision packet",
+          "assignee_role": "worker",
+          "instruction": "Assemble candidate, architecture, source SHA, scope, test evidence, risks, rollback target and exact requested decision for Owner approval for clean JARVIS v2 rebuild repository.",
+          "deliverable": "Owner decision packet tied to immutable candidate SHA.",
+          "done_when": "Packet is complete and does not imply consent.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-027.S02",
+          "sequence": 2,
+          "kind": "prerequisites",
+          "title": "Verify owner-gate prerequisites",
+          "assignee_role": "worker",
+          "instruction": "Verify dependencies, candidate SHA/evidence match, STOP/PAUSE and rollback readiness; list unresolved blockers.",
+          "deliverable": "Gate checklist and evidence hash manifest.",
+          "done_when": "All prerequisites proven or gate remains blocked.",
+          "depends_on": [
+            "SDA-027.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-027.S03",
+          "sequence": 3,
+          "kind": "await_owner",
+          "title": "Wait for explicit owner decision",
+          "assignee_role": "owner",
+          "instruction": "Present the decision packet and wait for explicit approval/rejection. Never infer approval from silence, prior discussion or model output.",
+          "deliverable": "Explicit owner decision receipt or WAITING_OWNER state.",
+          "done_when": "Only owner response satisfies this step.",
+          "depends_on": [
+            "SDA-027.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "SDA-028",
+      "module": "SDA",
+      "milestone": "M1 — Astra One and full SDA qualification",
+      "priority": "P0",
+      "status": "NOT_STARTED",
+      "title": "Create clean rebuild repo and controlled initial develop/main policy",
+      "acceptance": "New repo has verified CI, branch protections, provenance and zero legacy runtime data",
+      "parent_dependencies": [
+        "SDA-027",
+        "MIG-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "migration",
+      "suggested_scope_roots": [
+        "bootstrap/astra-one/",
+        "src/jarvis_v2/sda/",
+        "tools/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
+        "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
+        "Independent QC and serialized Merger are mandatory."
+      ],
+      "special_instructions": [
+        "Verify/bootstrap the existing admindeveloper4562/A.R.C.H.O.N repository and main/develop policy; do not create a duplicate repository."
+      ],
+      "subtasks": [
+        {
+          "id": "SDA-028.S01",
+          "sequence": 1,
+          "kind": "pin",
+          "title": "Pin source and destination SHAs",
+          "assignee_role": "worker",
+          "instruction": "Pin exact source repository/ref/commit and destination base SHA for Create clean rebuild repo and controlled initial develop/main policy; verify destination is isolated and legacy source untouched.",
+          "deliverable": "Source/target identity record and SHA pair.",
+          "done_when": "Source and target are immutable for this attempt.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-028.S02",
+          "sequence": 2,
+          "kind": "inventory",
+          "title": "Inventory provenance and compatibility",
+          "assignee_role": "worker",
+          "instruction": "Inventory files, dependencies, licenses, secrets, data formats, case collisions and compatibility; record per-file provenance.",
+          "deliverable": "File manifest and provenance ledger.",
+          "done_when": "Every candidate has origin SHA/path/license status and secret-scan disposition.",
+          "depends_on": [
+            "SDA-028.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-028.S03",
+          "sequence": 3,
+          "kind": "dry_run",
+          "title": "Run read-only dry run",
+          "assignee_role": "worker",
+          "instruction": "Run read-only dry-run/staging simulation; detect collisions, incompatibilities, path traversal and unsafe files before applying.",
+          "deliverable": "Dry-run report and compatibility matrix.",
+          "done_when": "Dry-run makes no destination writes; unresolved collisions block application.",
+          "depends_on": [
+            "SDA-028.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-028.S04",
+          "sequence": 4,
+          "kind": "apply",
+          "title": "Apply bounded migration",
+          "assignee_role": "worker",
+          "instruction": "Apply only approved create-only/adapter/migration slice for Create clean rebuild repo and controlled initial develop/main policy; do not delete, execute or overwrite legacy source.",
+          "deliverable": "Bounded destination changes and migration receipt.",
+          "done_when": "Only allowlisted files are changed and provenance is recorded.",
+          "depends_on": [
+            "SDA-028.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-028.S05",
+          "sequence": 5,
+          "kind": "verify",
+          "title": "Verify migrated result",
+          "assignee_role": "worker",
+          "instruction": "Run provenance, schema, behavior, regression and security checks on destination.",
+          "deliverable": "Verification report and file-hash comparison.",
+          "done_when": "All content is traceable and required behavior passes.",
+          "depends_on": [
+            "SDA-028.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-028.S06",
+          "sequence": 6,
+          "kind": "rollback",
+          "title": "Prove rollback and restore",
+          "assignee_role": "worker",
+          "instruction": "Exercise rollback/restore from checkpoint or disposable staging target; prove source and last-known-good destination remain recoverable.",
+          "deliverable": "Rollback drill record and verified restore SHA.",
+          "done_when": "Rollback is demonstrated without destructive cleanup or loss.",
+          "depends_on": [
+            "SDA-028.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-028.S07",
+          "sequence": 7,
+          "kind": "handoff",
+          "title": "Commit and hand off migration candidate",
+          "assignee_role": "worker",
+          "instruction": "Commit reviewed candidate on task branch and hand off to independent QC with provenance, test evidence, gaps and next gate.",
+          "deliverable": "Candidate commit and migration handoff receipt.",
+          "done_when": "No production cutover, main promotion or legacy retirement occurs here.",
+          "depends_on": [
+            "SDA-028.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    }
+  ]
+}
