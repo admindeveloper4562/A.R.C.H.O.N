@@ -1,0 +1,34 @@
+{
+  "schema": "archon.astra-project-handoff/1",
+  "project_id": "ARCHON-JARVIS-V2",
+  "target_repository": "admindeveloper4562/A.R.C.H.O.N",
+  "target_branch": "develop",
+  "protected_branch": "main",
+  "parent_plan": "docs/tasks/JARVIS_V2_TASK_PLAN.json",
+  "parent_plan_blob_sha": "36e674f4e58fc19aa8158da42d802b9599a23763",
+  "subtask_plan": "docs/tasks/JARVIS_V2_SUBTASK_PLAN.json",
+  "parent_task_count": 247,
+  "subtask_count": 1359,
+  "modules": 10,
+  "business_module_active": false,
+  "requested_execution": {
+    "provider": "Codex CLI",
+    "model": "gpt-5.6-luna",
+    "reasoning_effort": "medium",
+    "workers": 5
+  },
+  "import_policy": "Import exactly 247 parent tasks into Astra One project_queue. Attach subtasks as child records; do not create separate top-level tasks for each child.",
+  "dispatch_policy": "After read-only preflight and explicit operator start, dispatch only dependency-ready parents; max five active parents, one per worker.",
+  "quota_policy": "If Codex quota is exhausted, pause without retry consumption. Do not silently substitute a model.",
+  "github_actions_policy": "Do not trigger remote GitHub Actions while monthly build quota is exhausted. Run local checks and mark remote-only acceptance pending.",
+  "repository_policy": "Use the existing admindeveloper4562/A.R.C.H.O.N repository. Do not create a duplicate repository.",
+  "handover_policy": "Astra One remains the active external builder until native SDA passes all migration qualification gates and explicit owner approval.",
+  "owner_gates": [
+    "SDA-027",
+    "BASE-016",
+    "REL-018",
+    "REL-021",
+    "MIG-012"
+  ],
+  "created": "2026-11-14"
+}
