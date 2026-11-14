@@ -193,7 +193,24 @@ def sandbox_status() -> dict[str, str | bool]:
     return {"available": True, "reason": "ready"}
 
 
-def check_changes(worktree: Path, base_sha: str) -> list[str]:
+def _task_allows_ci_workflow(task: dict | None, path: str) -> bool:
+    """Allow only an explicitly planned workflow repair to touch CI YAML."""
+    if not isinstance(task, dict) or ".github/" not in task.get("suggested_scope_roots", []):
+        return False
+    subtasks = task.get("subtasks", [])
+    if not isinstance(subtasks, list) or not any(
+        isinstance(child, dict) and child.get("kind") == "repair" for child in subtasks
+    ):
+        return False
+    pure = PurePosixPath(path)
+    return (
+        len(pure.parts) >= 3
+        and pure.parts[:2] == (".github", "workflows")
+        and pure.suffix.lower() in {".yml", ".yaml"}
+    )
+
+
+def check_changes(worktree: Path, base_sha: str, *, task: dict | None = None) -> list[str]:
     """Read-only static boundary. No generated code is executed."""
     try:
         head = git(worktree, "rev-parse", "HEAD")
@@ -231,9 +248,11 @@ def check_changes(worktree: Path, base_sha: str) -> list[str]:
             raise ChangeValidationError("unsafe_changed_path", "delete_rename_copy_conflict_or_typechange")
         path=item[3:]
         pure=PurePosixPath(path)
-        if any(p in PROTECTED_PARTS for p in pure.parts) or pure.name in PROTECTED:
+        ci_workflow = _task_allows_ci_workflow(task, path)
+        if (any(p in PROTECTED_PARTS for p in pure.parts) or pure.name in PROTECTED) and not ci_workflow:
             raise ChangeValidationError("protected_file_modified")
-        if not path or len(path) > 250 or pure.is_absolute() or any(p in (".", "..") or p.startswith(".") for p in pure.parts) or pure.suffix.lower() not in ALLOWED_SUFFIXES:
+        hidden_or_traversal = any(p in (".", "..") or p.startswith(".") for p in pure.parts)
+        if not path or len(path) > 250 or pure.is_absolute() or (hidden_or_traversal and not ci_workflow) or pure.suffix.lower() not in ALLOWED_SUFFIXES:
             raise ChangeValidationError("unsafe_changed_path", "hidden_or_unsupported_path")
         target=worktree.joinpath(*pure.parts)
         current=worktree
@@ -702,7 +721,7 @@ def execute_claim(state: State, item: dict, *, slot: int, model: str, effort: st
             raise RuntimeError(reason if reason!="ok" else "codex_nonzero")
         emit("verifying","static_diff_review")
         state.set_task(tid,"verifying")
-        changed=check_changes(worktree,sha)
+        changed=check_changes(worktree,sha,task=task)
         emit("verifying","docker_no_network_tests")
         tests=docker_test(worktree,test_image,test_command)
         if not tests["passed"]:

@@ -226,6 +226,29 @@ class LinuxSDATests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"protected"):
             check_changes(self.repo,b)
 
+    def test_scoped_ci_workflow_repair_can_change_only_workflow_yaml(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        workflow=self.repo/".github"/"workflows"/"ci.yml"
+        workflow.parent.mkdir(parents=True)
+        workflow.write_text("name: local\n")
+        scoped_task={
+            "suggested_scope_roots":[".github/"],
+            "subtasks":[{"kind":"repair"}],
+        }
+        self.assertEqual(check_changes(self.repo,b,task=scoped_task),[".github/workflows/ci.yml"])
+
+    def test_ci_workflow_scope_does_not_allow_other_hidden_paths(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        policy=self.repo/".github"/"CODEOWNERS"
+        policy.parent.mkdir(parents=True)
+        policy.write_text("* @owner\n")
+        scoped_task={
+            "suggested_scope_roots":[".github/"],
+            "subtasks":[{"kind":"repair"}],
+        }
+        with self.assertRaisesRegex(ValueError,"protected"):
+            check_changes(self.repo,b,task=scoped_task)
+
     def test_static_change_rejects_invalid_python(self):
         b=git(self.repo,"rev-parse","HEAD")
         (self.repo/"bad.py").write_text("def (")
