@@ -13,11 +13,14 @@ from astra_one.linux_sda import State, task_spec, git, assert_source
 from astra_one.linux_runtime import (
     ChangeValidationError,
     DockerTestError,
+    ReviewFailure,
     check_changes,
     codex_call,
     codex_command,
     integrate,
     ensure_integration,
+    review_failure_code,
+    review_finding_codes,
     worker_failure_code,
 )
 from astra_one.linux_cli import run_master
@@ -56,6 +59,18 @@ class LinuxSDATests(unittest.TestCase):
         self.assertEqual(worker_failure_code(UnicodeDecodeError("utf-8",b"\\xff",0,1,"bad")),"worker_output_invalid")
         self.assertEqual(worker_failure_code(ValueError("unexpected detail")),"worker_input_invalid")
         self.assertEqual(worker_failure_code(DockerTestError("docker_access_denied")),"docker_access_denied")
+
+    def test_review_rejections_keep_only_bounded_repair_categories(self):
+        findings = [
+            "private payload may be exposed",
+            "test coverage does not prove the acceptance criteria",
+            "ordering behavior is ambiguous",
+        ]
+        self.assertEqual(review_finding_codes(findings), ("correctness_risk", "security_boundary", "test_gap"))
+        code = review_failure_code("qc_rejected", findings)
+        self.assertEqual(code, "qc_rejected:correctness_risk,security_boundary,test_gap")
+        self.assertEqual(worker_failure_code(ReviewFailure(code)), code)
+        self.assertLessEqual(len(code), 160)
 
     def test_source_dirty_refused(self):
         (self.repo/"README.md").write_text("modified\n")
@@ -353,6 +368,25 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change'}}))
         self.assertEqual(result["qc_passed"],1)
         self.assertEqual(self.state.list_tasks()[0]["status"],"awaiting_review")
 
+    def test_review_category_reaches_bounded_repair_prompt(self):
+        self.state.add_tasks(task(1))
+        prior_errors=[]
+        def fake_execute(state,item,**kwargs):
+            prior_errors.append(item["prior_error"])
+            if item["attempt"] == 1:
+                error="qc_rejected:security_boundary"
+                state.set_task(item["task"]["task_id"],"failed",error=error)
+                return {"task_id":item["task"]["task_id"],"status":"failed","error":error}
+            state.set_task(item["task"]["task_id"],"awaiting_review")
+            return {"task_id":item["task"]["task_id"],"status":"awaiting_review"}
+        with patch("astra_one.linux_cli.os.geteuid",return_value=1000), patch("astra_one.linux_cli.sandbox_status",return_value={"available":True,"reason":"test"}), patch("astra_one.linux_cli.execute_claim",side_effect=fake_execute):
+            result=run_master(self.state,workers=1,max_tasks=2,max_minutes=1,model="gpt-5.6-luna",effort="medium",
+                              test_image="python:3.12-slim",test_command=["python3","-m","unittest"],
+                              auto_integrate=False,max_repairs=3,timeout=60)
+        self.assertEqual(prior_errors,["", "qc_rejected:security_boundary"])
+        self.assertEqual(result["queued_remaining"],0)
+        self.assertEqual(self.state.list_tasks()[0]["status"],"awaiting_review")
+
     def test_repair_budget_can_drain_all_kickoff_tasks(self):
         self.state.add_tasks([task(i) for i in range(1,6)])
         calls=[]
@@ -366,7 +400,7 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change'}}))
                 return {"task_id":tid,"status":"failed","error":code}
             state.set_task(tid,"awaiting_review")
             return {"task_id":tid,"status":"awaiting_review"}
-        with patch("astra_one.linux_cli.os.geteuid",return_value=1000), patch("astra_one.linux_cli.sandbox_status",return_value={"available":True,"reason":"test"}), patch("astra_one.linux_cli.execute_claim",side_effect=fake_execute), patch("astra_one.linux_cli.time.sleep",return_value=None):
+        with patch("astra_one.linux_cli.os.geteuid",return_value=1000), patch("astra_one.linux_cli.sandbox_status",return_value={"available":True,"reason":"test"}), patch("astra_one.linux_cli.execute_claim",side_effect=fake_execute):
             result=run_master(self.state,workers=5,max_tasks=15,max_minutes=1,model="gpt-5.6-luna",effort="medium",
                               test_image="python:3.12-slim",test_command=["python3","-m","unittest"],
                               auto_integrate=False,max_repairs=3,timeout=60)

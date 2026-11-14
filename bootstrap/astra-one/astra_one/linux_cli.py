@@ -194,11 +194,12 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
                                           danger_bypass=danger_bypass)
                                 completed+=1
                             except (ValueError,OSError,subprocess.SubprocessError) as ex:
+                                error = getattr(ex, "failure_code", "merger_failed")
                                 with state.db() as db:
                                     row=db.execute("SELECT status FROM tasks WHERE id=?",(tid,)).fetchone()
                                 if row and row[0]=="approved":
-                                    state.set_task(tid,"failed",error="merger_failed")
-                                result={"task_id":tid,"status":"failed","error":"merger_failed"}
+                                    state.set_task(tid,"failed",error=error)
+                                result={"task_id":tid,"status":"failed","error":error}
                                 failed+=1
                                 maybe_requeue(tid,result)
                         elif result["status"]=="awaiting_review":
