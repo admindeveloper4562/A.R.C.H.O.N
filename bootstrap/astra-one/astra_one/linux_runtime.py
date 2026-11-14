@@ -59,6 +59,8 @@ REVIEW_REPAIR_GUIDANCE = {
     "file_collision": "detect exact and case-insensitive collisions before any write and preserve existing files",
     "input_validation": "validate types, shapes, bounds, and malformed input before processing or side effects",
     "integration_risk": "check the current integration base, imports, dependencies, public API compatibility, and patch compatibility",
+    "git_diff_check_failed": "run git diff --check before returning; remove trailing whitespace without changing report meaning",
+    "protected_file_modified": "do not modify protected policy files such as .gitignore, AGENTS.md, SECURITY.md or CODEOWNERS; solve the task within allowed files or stop for owner approval",
     "ordering_semantics": "make ordering, sequence, and bounded-result semantics explicit and test them",
     "path_safety": "reject traversal, symlink, delete, rename, and escaped-root paths before writes",
     "payload_exposure": "return only the explicitly approved metadata; never expose task payloads, receipts, secrets, or raw model text",
@@ -316,7 +318,7 @@ def check_changes(worktree: Path, base_sha: str, *, task: dict | None = None) ->
 def make_prompt(task: dict, sha: str, architecture_sha: str, role: str, previous_error: str = "") -> str:
     guidance = []
     if previous_error:
-        categories = [part for part in re.split(r"[:,]", previous_error) if part in REVIEW_REPAIR_GUIDANCE]
+        categories = [part for part in re.split(r"[;:,]", previous_error) if part in REVIEW_REPAIR_GUIDANCE]
         guidance = [REVIEW_REPAIR_GUIDANCE[category] for category in dict.fromkeys(categories)]
     child_packet = ""
     children = task.get("subtasks", [])
@@ -343,6 +345,14 @@ def make_prompt(task: dict, sha: str, architecture_sha: str, role: str, previous
             "candidate change is a versioned Markdown or JSON report below docs/. Do not add tools, tests, source, "
             "configuration, policies or generated executables for an audit-only task.\n"
         )
+    ci_local_guidance = ""
+    if task.get("execution_mode") == "ci_local_only":
+        ci_local_guidance = (
+            "CI-local-only contract: do not trigger GitHub Actions or claim hosted success. Keep remote acceptance "
+            "DEFERRED_QUOTA. Do not add network-dependent downloads, secret-bearing artifacts, unpinned external "
+            "actions or new scanners merely to claim coverage; use the existing local/Docker checks and record any "
+            "unavailable tool as an actionable failure.\n"
+        )
     return (f"You are Astra One SDA {role}, an implementation agent in an isolated Linux Git worktree.\n"
             f"Task: {task['task_id']} (area {task['area']})\n"
             f"Pinned source commit: {sha}; approved architecture SHA256: {architecture_sha}.\n"
@@ -352,6 +362,7 @@ def make_prompt(task: dict, sha: str, architecture_sha: str, role: str, previous
             + ("Previous bounded failure categories (for targeted repair): " + previous_error[:160] + "\n" if previous_error else "")
             + ("Repair checklist:\n" + "\n".join("- " + item for item in guidance) + "\n" if guidance else "")
             + audit_guidance
+            + ci_local_guidance
             + "Only edit source files needed for this task within this workspace. Do not commit, push, delete, rename, "
             "modify AGENTS/security/CI policy, change Git refs, fetch secrets, access private OS files except "
             "the narrow read-only audit metadata explicitly authorized above, or deploy. "
@@ -718,7 +729,7 @@ def integrate(state: State, tid: str, *, merger_model: str | None = None, merger
     )
     if diff_check.returncode:
         state.set_task(tid, "failed", error="git_diff_check_failed")
-        raise ValueError("candidate diff check failed")
+        raise ChangeValidationError("git_diff_check_failed")
     patch=subprocess.run(["git","-C",str(candidate),"diff","--binary",data["base_sha"],data["candidate_sha"]],
                          stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=30,check=False)
     if patch.returncode or not patch.stdout or len(patch.stdout)>MAX_BYTES*3:

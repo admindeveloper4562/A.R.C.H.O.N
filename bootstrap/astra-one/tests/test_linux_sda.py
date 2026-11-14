@@ -109,6 +109,25 @@ class LinuxSDATests(unittest.TestCase):
         self.assertIn("exact approved source identity", prompt)
         self.assertNotIn("private payload may be exposed", prompt)
 
+    def test_repair_prompt_covers_merge_and_scope_failures(self):
+        prompt = make_prompt(
+            task(1),
+            "a" * 40,
+            "b" * 64,
+            "repairer",
+            "git_diff_check_failed;protected_file_modified",
+        )
+        self.assertIn("remove trailing whitespace", prompt)
+        self.assertIn("do not modify protected policy files", prompt)
+
+    def test_ci_local_only_prompt_preserves_quota_boundary(self):
+        ci_task = task(1)
+        ci_task["execution_mode"] = "ci_local_only"
+        prompt = make_prompt(ci_task, "a" * 40, "b" * 64, "worker")
+        self.assertIn("do not trigger GitHub Actions", prompt)
+        self.assertIn("DEFERRED_QUOTA", prompt)
+        self.assertIn("network-dependent downloads", prompt)
+
     def test_audit_prompt_is_report_only_and_metadata_bounded(self):
         prompt = make_prompt(audit_task(), "a" * 40, "b" * 64, "worker")
         self.assertIn("Audit-mode contract", prompt)
@@ -438,7 +457,7 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change','status':
             "candidate_sha":sha,"qc_evidence":"{\"independent_qc\":\"passed\"}",
         })
         self.state.approve("ASTRA-001")
-        with self.assertRaisesRegex(ValueError,"candidate diff check failed"):
+        with self.assertRaisesRegex(ValueError,"git_diff_check_failed"):
             integrate(self.state,"ASTRA-001")
         self.assertEqual(self.state.list_tasks()[0]["status"],"failed")
         self.assertEqual(self.state.list_tasks()[0]["last_error"],"git_diff_check_failed")
