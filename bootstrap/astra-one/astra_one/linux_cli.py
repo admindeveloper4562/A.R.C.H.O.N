@@ -246,6 +246,7 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("status");sub.add_parser("tasks");sub.add_parser("sync")
     for name in ("stop","pause","resume","clear-quota","recover"):sub.add_parser(name)
     p=sub.add_parser("retry");p.add_argument("task_id")
+    p=sub.add_parser("reopen");p.add_argument("task_ids",nargs="+")
     p=sub.add_parser("approve-task");p.add_argument("task_id")
     p=sub.add_parser("integrate");p.add_argument("task_id");p.add_argument("--confirm",action="store_true")
     p=sub.add_parser("run")
@@ -286,6 +287,7 @@ def main(argv: list[str] | None = None) -> int:
             report({"quota_pause":"owner_cleared","engine":"not_started"})
         elif args.command=="recover":report({"interrupted_tasks":state.recover(),"auto_restart":False})
         elif args.command=="retry":state.retry(args.task_id);report({"queued":args.task_id})
+        elif args.command=="reopen":report({"reopened":state.reopen_failed(args.task_ids),"history_preserved":True})
         elif args.command=="approve-task":state.approve(args.task_id);report({"approved":args.task_id})
         elif args.command=="integrate":
             if not args.confirm:raise ValueError("integration requires --confirm after diff review")

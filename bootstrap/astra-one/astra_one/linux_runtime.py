@@ -52,21 +52,21 @@ REVIEW_FINDING_CODES = frozenset({
 
 REVIEW_REPAIR_GUIDANCE = {
     "acceptance_gap": "re-check every acceptance criterion against both implementation and task-specific tests",
-    "config_contract": "use the approved versioned configuration/contract and reject unknown or unapproved values",
+    "config_contract": "preserve the existing versioned config schema and stable IDs; do not invent a parallel contract or silently diverge from config/modules.json",
     "correctness_risk": "check boundary conditions, error paths, and compatibility with existing behavior",
     "file_collision": "detect exact and case-insensitive collisions before any write and preserve existing files",
     "input_validation": "validate types, shapes, bounds, and malformed input before processing or side effects",
-    "integration_risk": "check the current integration base, imports, dependencies, and patch compatibility",
+    "integration_risk": "check the current integration base, imports, dependencies, public API compatibility, and patch compatibility",
     "ordering_semantics": "make ordering, sequence, and bounded-result semantics explicit and test them",
     "path_safety": "reject traversal, symlink, delete, rename, and escaped-root paths before writes",
     "payload_exposure": "return only the explicitly approved metadata; never expose task payloads, receipts, secrets, or raw model text",
-    "permission_scope": "allow only explicitly approved scopes and reject privilege escalation or inferred permissions",
+    "permission_scope": "allow only explicitly approved scopes; reject cross-module, write, process, network, privilege, or inferred permissions",
     "review_concern": "re-read the objective and inspect the complete change for an unaddressed concern",
     "review_output_invalid": "produce a normal source change and keep the implementation independently reviewable",
     "security_boundary": "preserve repository, data, process, network, and privilege boundaries",
     "source_provenance": "require and record the exact approved source identity before copying or applying content",
     "state_transition": "make duplicate, stale, and invalid state transitions fail closed without extra events",
-    "test_gap": "add focused deterministic coverage for the disputed behavior without weakening existing tests",
+    "test_gap": "add focused deterministic coverage for the disputed public behavior and compatibility path without weakening existing tests",
 }
 
 
