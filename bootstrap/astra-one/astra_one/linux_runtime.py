@@ -79,11 +79,14 @@ TASK_REPAIR_GUIDANCE = {
     "BASE-003": (
         "CI-local-only repair: do not add dependency downloads, hosted scanners, secret contents, or floating "
         "action tags. If a workflow action is added, pin it to a full immutable commit SHA; use existing local "
-        "commands and record hosted verification as DEFERRED_QUOTA."
+        "commands and record hosted verification as DEFERRED_QUOTA. Add focused tests for malformed report paths, "
+        "redacted actionable failures, and bounded artifacts; do not include unbounded command output in reports."
     ),
     "BASE-010": (
         "Packaging repair: preserve policy files, run the manifest/package verifier, and add a manifest hash for "
-        "every new tracked package file, including new tests. Do not claim a clean package while verification fails."
+        "every new tracked package file, including new tests. Ensure verify_foundation.py works both as a direct "
+        "script and from the repository package context, and test symlink/path rejection. Do not claim a clean "
+        "package while verification fails."
     ),
 }
 
