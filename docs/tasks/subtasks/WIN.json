@@ -1,0 +1,1249 @@
+{
+  "schema": "jarvis.v2.subtask-module/1",
+  "created": "2026-11-14",
+  "source_parent_plan_blob_sha": "36e674f4e58fc19aa8158da42d802b9599a23763",
+  "module": "WIN",
+  "module_name": "M5 — Windows local Ollama inference agent",
+  "parent_count": 11,
+  "subtask_count": 62,
+  "parents": [
+    {
+      "parent_id": "WIN-001",
+      "module": "WIN",
+      "milestone": "M5 — Windows local Ollama inference agent",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Capture current Windows host/GPU/Ollama/Codex inventory",
+      "acceptance": "Host ID, RAM/VRAM, model hashes, available context and security posture recorded",
+      "parent_dependencies": [
+        "BASE-012"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "audit",
+      "suggested_scope_roots": [
+        "infra/windows/",
+        "src/jarvis_v2/backend/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Authenticated outbound Windows agent; Ollama stays loopback-only.",
+        "Use leases, idempotency keys and reconnect reconciliation.",
+        "Never expose unauthenticated Ollama or silently route sensitive data."
+      ],
+      "special_instructions": [
+        "Windows node must be authenticated and Ollama bound to localhost; never expose Ollama publicly."
+      ],
+      "subtasks": [
+        {
+          "id": "WIN-001.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Pin and inspect the repositories, refs, files, PRs, logs, databases or host evidence named by this task and its reuse notes. Record SHAs, timestamps and current state; do not modify inspected sources.",
+          "deliverable": "Evidence inventory with exact refs/SHAs, paths, current behavior and unknowns.",
+          "done_when": "Material claims trace to concrete sources and no inspected source was changed.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-001.S02",
+          "sequence": 2,
+          "kind": "analyze",
+          "title": "Compare evidence to acceptance",
+          "assignee_role": "worker",
+          "instruction": "Compare inspected evidence with the parent objective and acceptance. Identify duplicates, conflicts, gaps, risks, platform constraints and relevant prior mistakes.",
+          "deliverable": "Findings matrix mapping every acceptance clause to evidence, gap or blocker.",
+          "done_when": "Every acceptance clause has a supported finding; assumptions are labelled.",
+          "depends_on": [
+            "WIN-001.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-001.S03",
+          "sequence": 3,
+          "kind": "record",
+          "title": "Record findings and decision",
+          "assignee_role": "worker",
+          "instruction": "Write a task-specific audit/decision record with findings, options, recommendation, rejected alternatives and evidence references.",
+          "deliverable": "Versioned report or decision record in approved docs path.",
+          "done_when": "Report is reproducible and distinguishes fact from inference.",
+          "depends_on": [
+            "WIN-001.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-001.S04",
+          "sequence": 4,
+          "kind": "cross_check",
+          "title": "Independently cross-check evidence",
+          "assignee_role": "worker",
+          "instruction": "Independently re-check critical SHAs, paths, counts and conclusions; confirm no unrelated changes or sensitive data disclosure.",
+          "deliverable": "Review checklist and evidence receipt.",
+          "done_when": "Independent check agrees or unresolved differences keep parent blocked.",
+          "depends_on": [
+            "WIN-001.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "WIN-002",
+      "module": "WIN",
+      "milestone": "M5 — Windows local Ollama inference agent",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Set reproducible optimized Qwen3 8B inference profile",
+      "acceptance": "16K/Q8 KV/Flash setup verified; performance measured not assumed",
+      "parent_dependencies": [
+        "WIN-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "infra/windows/",
+        "src/jarvis_v2/backend/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Authenticated outbound Windows agent; Ollama stays loopback-only.",
+        "Use leases, idempotency keys and reconnect reconciliation.",
+        "Never expose unauthenticated Ollama or silently route sensitive data."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "WIN-002.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Set reproducible optimized Qwen3 8B inference profile. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-002.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Set reproducible optimized Qwen3 8B inference profile: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "WIN-002.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-002.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Set reproducible optimized Qwen3 8B inference profile; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "WIN-002.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-002.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Set reproducible optimized Qwen3 8B inference profile.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "WIN-002.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-002.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: 16K/Q8 KV/Flash setup verified; performance measured not assumed. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "WIN-002.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-002.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "WIN-002.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "WIN-003",
+      "module": "WIN",
+      "milestone": "M5 — Windows local Ollama inference agent",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Package safe Windows background service and controlled startup",
+      "acceptance": "Starts/restarts with health checks without duplicate services",
+      "parent_dependencies": [
+        "WIN-002"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "infra/windows/",
+        "src/jarvis_v2/backend/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Authenticated outbound Windows agent; Ollama stays loopback-only.",
+        "Use leases, idempotency keys and reconnect reconciliation.",
+        "Never expose unauthenticated Ollama or silently route sensitive data."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "WIN-003.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Package safe Windows background service and controlled startup. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-003.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Package safe Windows background service and controlled startup: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "WIN-003.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-003.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Package safe Windows background service and controlled startup; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "WIN-003.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-003.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Package safe Windows background service and controlled startup.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "WIN-003.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-003.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Starts/restarts with health checks without duplicate services. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "WIN-003.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-003.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "WIN-003.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "WIN-004",
+      "module": "WIN",
+      "milestone": "M5 — Windows local Ollama inference agent",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Implement outbound-only Cloudflare job adapter",
+      "acceptance": "No public Ollama listener, durable lease, no secret logged",
+      "parent_dependencies": [
+        "AUTO-003",
+        "AUTO-004",
+        "WIN-003"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "infra/windows/",
+        "src/jarvis_v2/backend/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Authenticated outbound Windows agent; Ollama stays loopback-only.",
+        "Use leases, idempotency keys and reconnect reconciliation.",
+        "Never expose unauthenticated Ollama or silently route sensitive data."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "WIN-004.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement outbound-only Cloudflare job adapter. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-004.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement outbound-only Cloudflare job adapter: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "WIN-004.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-004.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement outbound-only Cloudflare job adapter; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "WIN-004.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-004.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement outbound-only Cloudflare job adapter.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "WIN-004.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-004.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: No public Ollama listener, durable lease, no secret logged. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "WIN-004.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-004.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "WIN-004.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "WIN-005",
+      "module": "WIN",
+      "milestone": "M5 — Windows local Ollama inference agent",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Implement local task capability manifest and input validation",
+      "acceptance": "Only approved inference/tool types execute; path sandbox enforced",
+      "parent_dependencies": [
+        "WIN-004",
+        "BACK-021"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "infra/windows/",
+        "src/jarvis_v2/backend/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Authenticated outbound Windows agent; Ollama stays loopback-only.",
+        "Use leases, idempotency keys and reconnect reconciliation.",
+        "Never expose unauthenticated Ollama or silently route sensitive data."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "WIN-005.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement local task capability manifest and input validation. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-005.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement local task capability manifest and input validation: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "WIN-005.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-005.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement local task capability manifest and input validation; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "WIN-005.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-005.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement local task capability manifest and input validation.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "WIN-005.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-005.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Only approved inference/tool types execute; path sandbox enforced. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "WIN-005.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-005.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "WIN-005.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "WIN-006",
+      "module": "WIN",
+      "milestone": "M5 — Windows local Ollama inference agent",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Implement quota, priority and one-generation-at-a-time scheduler",
+      "acceptance": "Interactive vs batch and Guardian compatibility documented",
+      "parent_dependencies": [
+        "WIN-005"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "infra/windows/",
+        "src/jarvis_v2/backend/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Authenticated outbound Windows agent; Ollama stays loopback-only.",
+        "Use leases, idempotency keys and reconnect reconciliation.",
+        "Never expose unauthenticated Ollama or silently route sensitive data."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "WIN-006.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement quota, priority and one-generation-at-a-time scheduler. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-006.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement quota, priority and one-generation-at-a-time scheduler: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "WIN-006.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-006.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement quota, priority and one-generation-at-a-time scheduler; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "WIN-006.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-006.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement quota, priority and one-generation-at-a-time scheduler.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "WIN-006.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-006.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Interactive vs batch and Guardian compatibility documented. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "WIN-006.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-006.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "WIN-006.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "WIN-007",
+      "module": "WIN",
+      "milestone": "M5 — Windows local Ollama inference agent",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Implement offline queue, reconnect and duplicate result prevention",
+      "acceptance": "Reboot resumes jobs without replaying effects",
+      "parent_dependencies": [
+        "WIN-004",
+        "AUTO-007"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "infra/windows/",
+        "src/jarvis_v2/backend/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Authenticated outbound Windows agent; Ollama stays loopback-only.",
+        "Use leases, idempotency keys and reconnect reconciliation.",
+        "Never expose unauthenticated Ollama or silently route sensitive data."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "WIN-007.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement offline queue, reconnect and duplicate result prevention. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-007.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement offline queue, reconnect and duplicate result prevention: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "WIN-007.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-007.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement offline queue, reconnect and duplicate result prevention; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "WIN-007.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-007.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement offline queue, reconnect and duplicate result prevention.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "WIN-007.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-007.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Reboot resumes jobs without replaying effects. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "WIN-007.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-007.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "WIN-007.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "WIN-008",
+      "module": "WIN",
+      "milestone": "M5 — Windows local Ollama inference agent",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Implement local sandboxed file/repo access only by explicit grants",
+      "acceptance": "Disallowed path/credential access rejected with evidence",
+      "parent_dependencies": [
+        "WIN-005",
+        "BACK-004"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "infra/windows/",
+        "src/jarvis_v2/backend/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Authenticated outbound Windows agent; Ollama stays loopback-only.",
+        "Use leases, idempotency keys and reconnect reconciliation.",
+        "Never expose unauthenticated Ollama or silently route sensitive data."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "WIN-008.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement local sandboxed file/repo access only by explicit grants. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-008.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement local sandboxed file/repo access only by explicit grants: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "WIN-008.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-008.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement local sandboxed file/repo access only by explicit grants; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "WIN-008.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-008.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement local sandboxed file/repo access only by explicit grants.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "WIN-008.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-008.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Disallowed path/credential access rejected with evidence. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "WIN-008.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-008.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "WIN-008.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "WIN-009",
+      "module": "WIN",
+      "milestone": "M5 — Windows local Ollama inference agent",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Implement Windows hardware, token rate and GPU telemetry",
+      "acceptance": "Context, token/s, GPU offload, resource limits and errors attributed correctly",
+      "parent_dependencies": [
+        "WIN-002",
+        "WIN-006"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "infra/windows/",
+        "src/jarvis_v2/backend/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Authenticated outbound Windows agent; Ollama stays loopback-only.",
+        "Use leases, idempotency keys and reconnect reconciliation.",
+        "Never expose unauthenticated Ollama or silently route sensitive data."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "WIN-009.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement Windows hardware, token rate and GPU telemetry. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-009.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement Windows hardware, token rate and GPU telemetry: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "WIN-009.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-009.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement Windows hardware, token rate and GPU telemetry; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "WIN-009.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-009.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement Windows hardware, token rate and GPU telemetry.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "WIN-009.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-009.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Context, token/s, GPU offload, resource limits and errors attributed correctly. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "WIN-009.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-009.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "WIN-009.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "WIN-010",
+      "module": "WIN",
+      "milestone": "M5 — Windows local Ollama inference agent",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Test Windows failure modes including oversized Codex requests",
+      "acceptance": "Large context rejected safely; worker reports failure without crash loops",
+      "parent_dependencies": [
+        "WIN-007",
+        "WIN-009"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "infra/windows/",
+        "src/jarvis_v2/backend/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Authenticated outbound Windows agent; Ollama stays loopback-only.",
+        "Use leases, idempotency keys and reconnect reconciliation.",
+        "Never expose unauthenticated Ollama or silently route sensitive data."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "WIN-010.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Test Windows failure modes including oversized Codex requests.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-010.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "WIN-010.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-010.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Test Windows failure modes including oversized Codex requests; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "WIN-010.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-010.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "WIN-010.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-010.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "WIN-010.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "WIN-011",
+      "module": "WIN",
+      "milestone": "M5 — Windows local Ollama inference agent",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Complete Windows-Linux-Core-Gateway roundtrip acceptance",
+      "acceptance": "Authenticated task -> GPU inference -> result -> audit and context preserved",
+      "parent_dependencies": [
+        "WIN-010",
+        "CORE-014",
+        "BACK-021"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "infra/windows/",
+        "src/jarvis_v2/backend/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "Authenticated outbound Windows agent; Ollama stays loopback-only.",
+        "Use leases, idempotency keys and reconnect reconciliation.",
+        "Never expose unauthenticated Ollama or silently route sensitive data."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "WIN-011.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Complete Windows-Linux-Core-Gateway roundtrip acceptance.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-011.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "WIN-011.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-011.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Complete Windows-Linux-Core-Gateway roundtrip acceptance; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "WIN-011.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-011.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "WIN-011.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIN-011.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "WIN-011.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    }
+  ]
+}
