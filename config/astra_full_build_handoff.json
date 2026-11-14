@@ -24,11 +24,15 @@
   "repository_policy": "Use the existing admindeveloper4562/A.R.C.H.O.N repository. Do not create a duplicate repository.",
   "handover_policy": "Astra One remains the active external builder until native SDA passes all migration qualification gates and explicit owner approval.",
   "owner_gates": [
-    "SDA-027",
+    "BASE-008",
     "BASE-016",
+    "SDA-027",
+    "MIG-012",
+    "FIN-001",
+    "FIN-016",
     "REL-018",
-    "REL-021",
-    "MIG-012"
+    "REL-020",
+    "REL-021"
   ],
   "created": "2026-11-14",
   "module_subtask_files": [
@@ -47,5 +51,6 @@
     "docs/tasks/subtasks/FIN.json",
     "docs/tasks/subtasks/REL.json"
   ],
-  "subtask_index": "docs/tasks/JARVIS_V2_SUBTASK_PLAN.json"
+  "subtask_index": "docs/tasks/JARVIS_V2_SUBTASK_PLAN.json",
+  "owner_gate_count": 9
 }
