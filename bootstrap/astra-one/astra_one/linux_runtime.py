@@ -437,14 +437,21 @@ def shutil_which(name: str) -> str | None:
 
 
 def independent_qc(state: State, worktree: Path, task: dict, *, model: str, effort: str,
-                   timeout: int = 600, danger_bypass: bool = False) -> tuple[bool,str]:
+                   changed_files: list[str] | None = None, timeout: int = 600,
+                   danger_bypass: bool = False) -> tuple[bool,str]:
     """Separate read-only Codex session. Fail closed if result is not parseable JSON."""
     result_file=state.home/"private"/("qc-"+uuid.uuid4().hex+".json")
+    validated_paths = changed_files or []
+    path_context = "\n".join("- " + path for path in validated_paths)
     prompt=("You are the independent SDA quality reviewer. Read the Git worktree diff and relevant files. "
             "Do NOT modify files or run tests. Check this task against objective and criteria, "
             "security issues, tests, and unexpected changes. Return ONLY compact JSON: "
             '{"verdict":"PASS" or "FAIL","findings":["short reason"]}. '
             "PASS only if no concerns. You are not the implementer.\n"
+            "The deterministic change validator already accepted these changed paths:\n"
+            + (path_context or "- none") + "\n"
+            "Git's ordinary diff omits untracked files; inspect every listed path directly and do not reject "
+            "a candidate solely because its untracked file is absent from `git diff`.\n"
             "Task: "+task["task_id"]+"\nObjective: "+task["objective"]+"\nCriteria:\n"+
             "\n".join("- "+x for x in task["acceptance"]))
     try:
@@ -702,6 +709,7 @@ def execute_claim(state: State, item: dict, *, slot: int, model: str, effort: st
             raise RuntimeError("isolated_tests_failed")
         emit("verifying","independent_qc_start")
         accepted,qc_reason=independent_qc(state,worktree,task,model=model,effort=effort,
+                                          changed_files=changed,
                                           danger_bypass=danger_bypass)
         if not accepted:
             if qc_reason.startswith("qc_rejected:"):

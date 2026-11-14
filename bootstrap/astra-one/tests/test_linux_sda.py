@@ -19,6 +19,7 @@ from astra_one.linux_runtime import (
     codex_command,
     integrate,
     ensure_integration,
+    independent_qc,
     make_prompt,
     review_failure_code,
     review_finding_codes,
@@ -245,6 +246,28 @@ print(json.dumps({'type':'turn.completed'}))
         self.assertEqual((rc,tools,reason),(0,0,"ok"))
         with self.assertRaisesRegex(ChangeValidationError,"no_file_changes"):
             check_changes(self.repo,git(self.repo,"rev-parse","HEAD"))
+
+    def test_independent_qc_receives_validated_untracked_paths(self):
+        candidate = self.repo / "candidate.py"
+        candidate.write_text("WORKER_ID = 'QUAL-001'\n")
+        base = git(self.repo,"rev-parse","HEAD")
+        changed = check_changes(self.repo,base)
+        captured = {}
+
+        def fake_qc_call(*, output_file, **kwargs):
+            captured["prompt"] = kwargs["prompt"]
+            output_file.write_text('{"verdict":"PASS","findings":[]}')
+            return 0, 0, "ok"
+
+        with patch("astra_one.linux_runtime.codex_call", side_effect=fake_qc_call):
+            accepted, reason = independent_qc(
+                self.state, self.repo, task(1), model="gpt-5.6-luna", effort="medium",
+                changed_files=changed,
+            )
+        self.assertTrue(accepted)
+        self.assertEqual(reason,"qc_pass")
+        self.assertIn("candidate.py", captured["prompt"])
+        self.assertIn("ordinary diff omits untracked files", captured["prompt"])
 
     def test_codex_failed_file_change_event_is_reported(self):
         executable=self.base/"failed-edit-codex"

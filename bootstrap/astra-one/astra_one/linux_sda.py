@@ -208,6 +208,11 @@ class State:
                 if current > SCHEMA_VERSION:
                     raise ValueError("database schema is newer than this Astra One runtime")
                 if current == SCHEMA_VERSION:
+                    db.execute(
+                        "INSERT INTO settings(key,value) VALUES('version',?) "
+                        "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                        (VERSION,),
+                    )
                     return {"schema_version": current, "migrated": False}
                 db.execute("BEGIN IMMEDIATE")
                 columns = {row[1] for row in db.execute("PRAGMA table_info(tasks)")}
@@ -221,6 +226,11 @@ class State:
                     "INSERT INTO settings(key,value) VALUES('schema_version',?) "
                     "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
                     (str(SCHEMA_VERSION),),
+                )
+                db.execute(
+                    "INSERT INTO settings(key,value) VALUES('version',?) "
+                    "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                    (VERSION,),
                 )
                 db.execute(
                     "INSERT OR IGNORE INTO schema_migrations(version,applied_at) VALUES(?,?)",
