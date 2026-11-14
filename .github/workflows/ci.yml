@@ -6,41 +6,221 @@ on:
 permissions:
   contents: read
 jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write startup receipt
+        run: |
+          artifact_dir="$RUNNER_TEMP/ci-artifacts"
+          mkdir -p "$artifact_dir"
+          python3 - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          commit = os.environ.get("GITHUB_SHA", "")
+          run_id = os.environ.get("GITHUB_RUN_ID", "")
+          repository = os.environ.get("GITHUB_REPOSITORY", "")
+          if not re.fullmatch(r"[0-9a-fA-F]{40}", commit) or not run_id.isdigit() or len(run_id) > 32 or not re.fullmatch(r"[A-Za-z0-9_.-]{1,100}/[A-Za-z0-9_.-]{1,100}", repository):
+              raise SystemExit(2)
+          receipt = {"schema_version": 1, "profile": "preflight", "status": "started", "commit": commit.lower(), "run_id": run_id, "remote_ci": "EXECUTED_HOSTED", "provenance": {"repository": repository, "workflow": "foundation-ci", "job": "foundation-preflight", "matrix": "none", "artifact": "ci-report-preflight"}}
+          target = Path(artifact_dir) / "startup.json"
+          encoded = (json.dumps(receipt, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
+          flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
+          fd = os.open(target, flags, 0o600)
+          with os.fdopen(fd, "wb") as stream:
+              stream.write(encoded)
+          PY
+      - name: Upload startup receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ci-report-preflight
+          path: ${{ runner.temp }}/ci-artifacts/startup.json
+          if-no-files-found: error
+          retention-days: 7
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ['3.11', '3.12']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - uses: actions/setup-python@v5
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: ${{ matrix.python-version }}
       - name: Run seed unit tests
+        id: unit_tests
+        continue-on-error: true
         run: PYTHONPATH=src python -m unittest discover -s tests -v
       - name: PR branch and commit convention
+        id: policy
+        continue-on-error: true
         if: github.event_name == 'pull_request'
         run: bash tools/check_pr_policy.sh
       - name: Validate metadata and folder conventions
+        id: foundation
+        continue-on-error: true
         run: PYTHONPATH=src python tools/verify_foundation.py
       - name: Verify bundled Astra One Linux bootstrap
+        id: bootstrap
+        continue-on-error: true
         run: |
           cd bootstrap/astra-one
           python3 scripts/verify_manifest.py
           python3 -m unittest discover -s tests -p 'test_*.py' -q
+      - name: Dependency scan
+        id: dependency_scan
+        continue-on-error: true
+        run: python3 tools/ci_checks.py dependency_scan
+      - name: Secret scan
+        id: secret_scan
+        continue-on-error: true
+        run: python3 tools/ci_checks.py secret_scan
+      - name: Workflow security scan
+        id: security_scan
+        continue-on-error: true
+        run: python3 tools/ci_checks.py security_scan
+      - name: Write bounded CI receipt
+        if: always()
+        env:
+          UNIT_TESTS: ${{ steps.unit_tests.outcome }}
+          POLICY: ${{ steps.policy.outcome }}
+          FOUNDATION: ${{ steps.foundation.outcome }}
+          BOOTSTRAP: ${{ steps.bootstrap.outcome }}
+          DEPENDENCY_SCAN: ${{ steps.dependency_scan.outcome }}
+          SECRET_SCAN: ${{ steps.secret_scan.outcome }}
+          SECURITY_SCAN: ${{ steps.security_scan.outcome }}
+        run: |
+          artifact_dir="$RUNNER_TEMP/ci-artifacts"
+          mkdir -p "$artifact_dir"
+          code() { if [ "$1" = success ]; then printf '0'; elif [ "$1" = skipped ]; then printf 'SKIPPED'; elif [ "$1" = cancelled ]; then printf 'CANCELLED'; else printf '1'; fi; }
+          python3 tools/ci_report.py --profile python --root "$artifact_dir" --output "$artifact_dir/report.json" \
+            --commit "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID" \
+            --remote-status EXECUTED_HOSTED --repository "$GITHUB_REPOSITORY" \
+            --workflow foundation-ci --job foundation-python --matrix "${{ matrix.python-version }}" \
+            --artifact "ci-report-${{ matrix.python-version }}" \
+            unit_tests=$(code "$UNIT_TESTS") \
+            policy=$(code "$POLICY") \
+            foundation=$(code "$FOUNDATION") \
+            bootstrap=$(code "$BOOTSTRAP") \
+            dependency_scan=$(code "$DEPENDENCY_SCAN") \
+            secret_scan=$(code "$SECRET_SCAN") \
+            security_scan=$(code "$SECURITY_SCAN")
+      - name: Upload bounded CI receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ci-report-${{ matrix.python-version }}
+          path: ${{ runner.temp }}/ci-artifacts/report.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Fail if a required check failed
+        if: always() && (steps.unit_tests.outcome != 'success' || (steps.policy.outcome != 'success' && steps.policy.outcome != 'skipped') || steps.foundation.outcome != 'success' || steps.bootstrap.outcome != 'success' || steps.dependency_scan.outcome != 'success' || steps.secret_scan.outcome != 'success' || steps.security_scan.outcome != 'success')
+        run: exit 1
 
   ios:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - uses: actions/setup-python@v5
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.12'
       - name: Run iOS scaffold tests
+        id: ios_tests
+        continue-on-error: true
         run: python3 -m unittest discover -s apps/ios/tests -p 'test_*.py' -v
+      - name: Write bounded iOS receipt
+        if: always()
+        env:
+          IOS_TESTS: ${{ steps.ios_tests.outcome }}
+        run: |
+          artifact_dir="$RUNNER_TEMP/ci-artifacts"
+          mkdir -p "$artifact_dir"
+          code() { if [ "$1" = success ]; then printf '0'; elif [ "$1" = cancelled ]; then printf 'CANCELLED'; else printf '1'; fi; }
+          python3 tools/ci_report.py --profile ios --root "$artifact_dir" --output "$artifact_dir/report.json" \
+            --commit "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID" \
+            --remote-status EXECUTED_HOSTED --repository "$GITHUB_REPOSITORY" \
+            --workflow foundation-ci --job foundation-ios --matrix none --artifact ci-report-ios \
+            ios_tests=$(code "$IOS_TESTS")
+      - name: Upload bounded iOS receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ci-report-ios
+          path: ${{ runner.temp }}/ci-artifacts/report.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Fail if iOS checks failed
+        if: always() && steps.ios_tests.outcome != 'success'
+        run: exit 1
+
+  fallback_receipt:
+    if: always()
+    needs: [preflight, test, ios]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write prerequisite-failure receipt
+        env:
+          PREFLIGHT_RESULT: ${{ needs.preflight.result }}
+          PYTHON_RESULT: ${{ needs.test.result }}
+          IOS_RESULT: ${{ needs.ios.result }}
+        run: |
+          artifact_dir="$RUNNER_TEMP/ci-artifacts"
+          mkdir -p "$artifact_dir"
+          python3 - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          results = {
+              "preflight": os.environ.get("PREFLIGHT_RESULT", ""),
+              "python_job": os.environ.get("PYTHON_RESULT", ""),
+              "ios_job": os.environ.get("IOS_RESULT", ""),
+          }
+          allowed = {"success", "failure", "cancelled", "skipped"}
+          if any(value not in allowed for value in results.values()):
+              raise SystemExit(2)
+          commit = os.environ.get("GITHUB_SHA", "")
+          run_id = os.environ.get("GITHUB_RUN_ID", "")
+          repository = os.environ.get("GITHUB_REPOSITORY", "")
+          if not re.fullmatch(r"[0-9a-fA-F]{40}", commit) or not run_id.isdigit() or len(run_id) > 32 or not re.fullmatch(r"[A-Za-z0-9_.-]{1,100}/[A-Za-z0-9_.-]{1,100}", repository):
+              raise SystemExit(2)
+          checks = []
+          for name, value in results.items():
+              if value == "success":
+                  status, exit_code = "passed", 0
+              elif value == "cancelled":
+                  status, exit_code = "cancelled", 0
+              else:
+                  status, exit_code = "failed", 1
+              checks.append({"name": name, "status": status, "exit_code": exit_code})
+          overall = "success" if all(value == "success" for value in results.values()) else "cancelled" if "cancelled" in results.values() else "failure"
+          receipt = {
+              "schema_version": 1,
+              "profile": "fallback",
+              "status": overall,
+              "commit": commit.lower(),
+              "run_id": run_id,
+              "remote_ci": "EXECUTED_HOSTED",
+              "provenance": {"repository": repository, "workflow": "foundation-ci", "job": "fallback-receipt", "matrix": "none", "artifact": "ci-report-fallback"},
+              "checks": checks,
+              "remediation": {"preflight": "inspect_workflow_startup", "python_job": "inspect_python_job_receipt_or_prerequisite_failure", "ios_job": "inspect_ios_job_receipt_or_prerequisite_failure"},
+          }
+          target = Path(artifact_dir) / "fallback.json"
+          encoded = (json.dumps(receipt, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
+          flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
+          fd = os.open(target, flags, 0o600)
+          with os.fdopen(fd, "wb") as stream:
+              stream.write(encoded)
+          PY
+      - name: Upload prerequisite-failure receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ci-report-fallback
+          path: ${{ runner.temp }}/ci-artifacts/fallback.json
+          if-no-files-found: error
+          retention-days: 7
