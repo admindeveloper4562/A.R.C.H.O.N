@@ -423,6 +423,8 @@ class LinuxSDATests(unittest.TestCase):
         self.assertEqual(reason, "merger_pass")
         self.assertIn("bounded Markdown or JSON evidence receipt", captured["prompt"])
         self.assertIn("Do not require the worker to invent main", captured["prompt"])
+        self.assertIn("bounded read-only commands", captured["prompt"])
+        self.assertIn("Do not edit files, run tests, invoke network", captured["prompt"])
 
     def test_merger_retries_once_after_invalid_findings_shape(self):
         calls = []
