@@ -31,8 +31,8 @@
     "examples/linux-tasks.sample.json": "fe8e60abdd4a98315e188c5492dea6e0dc0c4941ddfaa4f225ec446595440520",
     "examples/task.sample.json": "04effe5a07a95056f2377ac59448ef19d16df174666db1feb4cafc3d01fbedb5",
     "scripts/linux_preflight.sh": "8bc7d9c0c4cca1315636e075d7d11bb95e97ca0d842920c304c67400d0831179",
-    "scripts/verify_manifest.py": "128917adb54ce79b728679c7d05ace9f0b06296303c4757292ad3f0b0977a9a1",
-    "scripts/verify_package.py": "8bfe169e85bffe0fc3949bf24f2e0ae94bbf0a647762e40c37f6c5a543d273cc",
+    "scripts/verify_manifest.py": "5986285b372d7a5ea84f5290e256d16e7bec586a8d5079637b496a3a7b204228",
+    "scripts/verify_package.py": "445fab8bf3116b71b5c3822a66bbc3878d92c08fdacebaf80d58eedb32ccafec",
     "tests/test_core.py": "26cb1356c98ba763b7aaae7870f7a1066233e5a8cb55d70dcc03e4376fbed4c5",
     "tests/test_linux_sda.py": "75b8b44cc6748bff6d593c571424e54bc3e4ff41ddd616f9a33ca8e3e62f0f7e"
   }
