@@ -18,7 +18,7 @@ import sys
 import time
 from typing import Any
 
-from .monitor_supervision import collect as collect_supervision, render_lines as render_supervision
+from .monitor_supervision import collect as collect_supervision, render_lines as render_supervision, safe_failure_code
 
 ASTRA_DEFAULT = Path.home() / '.local' / 'state' / 'archon-astra' / 'sda.sqlite3'
 ASTRA_LEGACY = Path.home() / '.local' / 'state' / 'astra-one-linux' / 'sda.sqlite3'
@@ -129,7 +129,7 @@ def _fetch_astra(db: sqlite3.Connection, limit: int, event_limit: int, show_obje
         task['objective'] = _safe(spec.get('objective', ''), 150) if show_objectives else '(hidden)'
         task['area'] = _safe(spec.get('area', ''), 24)
         task['branch'] = _safe(task.get('branch', ''), 75)
-        task['last_error'] = _safe(task.get('last_error', ''), 85)
+        task['last_error'] = safe_failure_code(task.get('last_error', ''), 85)
         current_events = [e for e in by_run.get(task.get('last_run') or '', [])
                           if e['task_id'] == task['id']]
         slot = None
@@ -167,7 +167,7 @@ def _fetch_astra(db: sqlite3.Connection, limit: int, event_limit: int, show_obje
         'review': review[:limit], 'merging': merging[:limit],
         'blocked': blocked[:limit],
         'events': [{k: _safe(e.get(k,''), 90) for k in ('task_id','time','stage','step','result')} for e in events[:event_limit]],
-        'recent_runs': [{k: _safe(r.get(k,''), 70) for k in ('task_id','role','status','model','started_at','finished_at','error_code')} for r in runs[:limit]],
+        'recent_runs': [{k: (safe_failure_code(r.get(k,''), 70) if k == 'error_code' else _safe(r.get(k,''), 70)) for k in ('task_id','role','status','model','started_at','finished_at','error_code')} for r in runs[:limit]],
         'supervision': collect_supervision(db, limit),
     }
 
