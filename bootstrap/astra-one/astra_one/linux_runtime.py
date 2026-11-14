@@ -28,6 +28,7 @@ CHANGE_FAILURE_CODES = frozenset({
     "changed_file_limit_exceeded",
     "changed_size_limit_exceeded",
     "git_diff_check_failed",
+    "ci_workflow_unpinned_action",
     "unsafe_changed_path",
     "protected_file_modified",
     "git_status_invalid",
@@ -60,6 +61,7 @@ REVIEW_REPAIR_GUIDANCE = {
     "input_validation": "validate types, shapes, bounds, and malformed input before processing or side effects",
     "integration_risk": "check the current integration base, imports, dependencies, public API compatibility, and patch compatibility",
     "git_diff_check_failed": "run git diff --check before returning; remove trailing whitespace without changing report meaning",
+    "ci_workflow_unpinned_action": "pin every newly added GitHub action to its full immutable 40-character commit SHA; do not use floating tags",
     "protected_file_modified": "do not modify protected policy files such as .gitignore, AGENTS.md, SECURITY.md or CODEOWNERS; solve the task within allowed files or stop for owner approval",
     "ordering_semantics": "make ordering, sequence, and bounded-result semantics explicit and test them",
     "path_safety": "reject traversal, symlink, delete, rename, and escaped-root paths before writes",
@@ -71,6 +73,18 @@ REVIEW_REPAIR_GUIDANCE = {
     "source_provenance": "require and record the exact approved source identity before copying or applying content",
     "state_transition": "make duplicate, stale, and invalid state transitions fail closed without extra events",
     "test_gap": "add focused deterministic coverage for the disputed public behavior and compatibility path without weakening existing tests",
+}
+
+TASK_REPAIR_GUIDANCE = {
+    "BASE-003": (
+        "CI-local-only repair: do not add dependency downloads, hosted scanners, secret contents, or floating "
+        "action tags. If a workflow action is added, pin it to a full immutable commit SHA; use existing local "
+        "commands and record hosted verification as DEFERRED_QUOTA."
+    ),
+    "BASE-010": (
+        "Packaging repair: preserve policy files, run the manifest/package verifier, and add a manifest hash for "
+        "every new tracked package file, including new tests. Do not claim a clean package while verification fails."
+    ),
 }
 
 
@@ -231,6 +245,35 @@ def _task_allows_audit_report(task: dict | None, path: str) -> bool:
     )
 
 
+def _check_ci_workflow_actions(worktree: Path, base_sha: str, path: str, target: Path) -> None:
+    """Reject newly added floating GitHub Actions refs before QC."""
+    result = subprocess.run(
+        ["git", "-C", str(worktree), "diff", "--no-ext-diff", "--unified=0", base_sha, "--", path],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        check=False,
+        timeout=20,
+    )
+    if result.returncode:
+        raise ChangeValidationError("git_status_invalid", "workflow_diff_failed")
+    try:
+        diff = result.stdout.decode("utf-8", "surrogateescape")
+    except UnicodeError as ex:
+        raise ChangeValidationError("git_status_invalid", "workflow_diff_encoding") from ex
+    lines = diff.splitlines()
+    if not lines:
+        try:
+            lines = ["+" + line for line in target.read_text(encoding="utf-8").splitlines()]
+        except (OSError, UnicodeError) as ex:
+            raise ChangeValidationError("git_status_invalid", "workflow_read_failed") from ex
+    for line in lines:
+        if not line.startswith("+") or line.startswith("+++"):
+            continue
+        match = re.search(r"\buses:\s*[^\s#]+@([^\s#]+)", line)
+        if match and not re.fullmatch(r"[0-9a-fA-F]{40}", match.group(1)):
+            raise ChangeValidationError("ci_workflow_unpinned_action")
+
+
 def _check_diff_whitespace(worktree: Path, untracked_paths: list[Path]) -> None:
     """Reject whitespace errors in tracked, staged, and untracked changes.
 
@@ -348,6 +391,8 @@ def check_changes(worktree: Path, base_sha: str, *, task: dict | None = None) ->
         paths.append(path)
         if code == "??":
             untracked_paths.append(target)
+        if ci_workflow:
+            _check_ci_workflow_actions(worktree, base_sha, path, target)
     if len(set(paths)) != len(paths):
         raise ChangeValidationError("git_status_invalid", "duplicate_paths")
     _check_diff_whitespace(worktree, untracked_paths)
@@ -392,6 +437,7 @@ def make_prompt(task: dict, sha: str, architecture_sha: str, role: str, previous
             "actions or new scanners merely to claim coverage; use the existing local/Docker checks and record any "
             "unavailable tool as an actionable failure.\n"
         )
+    task_guidance = TASK_REPAIR_GUIDANCE.get(task.get("task_id"), "")
     return (f"You are Astra One SDA {role}, an implementation agent in an isolated Linux Git worktree.\n"
             f"Task: {task['task_id']} (area {task['area']})\n"
             f"Pinned source commit: {sha}; approved architecture SHA256: {architecture_sha}.\n"
@@ -402,6 +448,7 @@ def make_prompt(task: dict, sha: str, architecture_sha: str, role: str, previous
             + ("Repair checklist:\n" + "\n".join("- " + item for item in guidance) + "\n" if guidance else "")
             + audit_guidance
             + ci_local_guidance
+            + ("Task-specific repair guidance: " + task_guidance + "\n" if task_guidance else "")
             + "Only edit source files needed for this task within this workspace. Do not commit, push, delete, rename, "
             "modify AGENTS/security/CI policy, change Git refs, fetch secrets, access private OS files except "
             "the narrow read-only audit metadata explicitly authorized above, or deploy. "

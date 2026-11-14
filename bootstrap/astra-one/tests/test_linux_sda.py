@@ -123,10 +123,18 @@ class LinuxSDATests(unittest.TestCase):
     def test_ci_local_only_prompt_preserves_quota_boundary(self):
         ci_task = task(1)
         ci_task["execution_mode"] = "ci_local_only"
+        ci_task["task_id"] = "BASE-003"
         prompt = make_prompt(ci_task, "a" * 40, "b" * 64, "worker")
         self.assertIn("do not trigger GitHub Actions", prompt)
         self.assertIn("DEFERRED_QUOTA", prompt)
         self.assertIn("network-dependent downloads", prompt)
+        self.assertIn("full immutable commit SHA", prompt)
+
+    def test_task_specific_packaging_guidance_requires_manifest_update(self):
+        packaging_task = task(1)
+        packaging_task["task_id"] = "BASE-010"
+        prompt = make_prompt(packaging_task, "a" * 40, "b" * 64, "repairer")
+        self.assertIn("manifest hash for every new tracked package file", prompt)
 
     def test_audit_prompt_is_report_only_and_metadata_bounded(self):
         prompt = make_prompt(audit_task(), "a" * 40, "b" * 64, "worker")
@@ -312,6 +320,29 @@ class LinuxSDATests(unittest.TestCase):
         workflow=self.repo/".github"/"workflows"/"ci.yml"
         workflow.parent.mkdir(parents=True)
         workflow.write_text("name: local\n")
+        scoped_task={
+            "suggested_scope_roots":[".github/"],
+            "subtasks":[{"kind":"repair"}],
+        }
+        self.assertEqual(check_changes(self.repo,b,task=scoped_task),[".github/workflows/ci.yml"])
+
+    def test_scoped_ci_workflow_rejects_new_floating_action_ref(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        workflow=self.repo/".github"/"workflows"/"ci.yml"
+        workflow.parent.mkdir(parents=True)
+        workflow.write_text("jobs:\n  test:\n    steps:\n      - uses: actions/checkout@v4\n")
+        scoped_task={
+            "suggested_scope_roots":[".github/"],
+            "subtasks":[{"kind":"repair"}],
+        }
+        with self.assertRaisesRegex(ChangeValidationError,"ci_workflow_unpinned_action"):
+            check_changes(self.repo,b,task=scoped_task)
+
+    def test_scoped_ci_workflow_accepts_immutable_action_ref(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        workflow=self.repo/".github"/"workflows"/"ci.yml"
+        workflow.parent.mkdir(parents=True)
+        workflow.write_text("jobs:\n  test:\n    steps:\n      - uses: actions/checkout@0123456789abcdef0123456789abcdef01234567\n")
         scoped_task={
             "suggested_scope_roots":[".github/"],
             "subtasks":[{"kind":"repair"}],
