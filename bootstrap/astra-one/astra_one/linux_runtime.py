@@ -23,6 +23,7 @@ MAX_FILES = 30
 MAX_BYTES = 2_000_000
 STOP_POLL = 0.3
 AUDIT_REPORT_SUFFIXES = frozenset({".md", ".json"})
+GENERATED_CHANGE_PARTS = frozenset({"__pycache__", ".pytest_cache", ".test-output", "build", "dist", "node_modules", "ci-artifacts"})
 CHANGE_FAILURE_CODES = frozenset({
     "no_file_changes",
     "changed_file_limit_exceeded",
@@ -80,7 +81,8 @@ TASK_REPAIR_GUIDANCE = {
         "CI-local-only repair: do not add dependency downloads, hosted scanners, secret contents, or floating "
         "action tags. If a workflow action is added, pin it to a full immutable commit SHA; use existing local "
         "commands and record hosted verification as DEFERRED_QUOTA. Add focused tests for malformed report paths, "
-        "redacted actionable failures, and bounded artifacts; do not include unbounded command output in reports."
+        "redacted actionable failures, and bounded artifacts; use /tmp for local smoke output and do not leave "
+        "generated ci-artifacts in the candidate or include unbounded command output in reports."
     ),
     "BASE-010": (
         "Packaging repair: preserve policy files, run the manifest/package verifier, and add a manifest hash for "
@@ -359,6 +361,8 @@ def check_changes(worktree: Path, base_sha: str, *, task: dict | None = None) ->
         pure=PurePosixPath(path)
         ci_workflow = _task_allows_ci_workflow(task, path)
         audit_report = _task_allows_audit_report(task, path)
+        if any(part.casefold() in GENERATED_CHANGE_PARTS for part in pure.parts):
+            raise ChangeValidationError("unsafe_changed_path", "generated_artifact")
         if isinstance(task, dict) and task.get("execution_mode") == "audit" and not audit_report:
             raise ChangeValidationError("unsafe_changed_path", "audit_report_only")
         if (any(p in PROTECTED_PARTS for p in pure.parts) or pure.name in PROTECTED) and not ci_workflow:

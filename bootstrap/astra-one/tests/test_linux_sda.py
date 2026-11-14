@@ -277,6 +277,14 @@ class LinuxSDATests(unittest.TestCase):
         (self.repo/"worker.test.mjs").write_text("export const ok = true;\n")
         self.assertEqual(check_changes(self.repo,b),["worker.test.mjs"])
 
+    def test_static_change_rejects_generated_artifact_paths(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        output=self.repo/"ci-artifacts"/"report.json"
+        output.parent.mkdir()
+        output.write_text('{"status":"passed"}\n')
+        with self.assertRaisesRegex(ChangeValidationError,"generated_artifact"):
+            check_changes(self.repo,b)
+
     def test_static_change_rejects_zero_files_with_specific_code(self):
         b=git(self.repo,"rev-parse","HEAD")
         with self.assertRaises(ChangeValidationError) as caught:
