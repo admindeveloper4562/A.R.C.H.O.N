@@ -84,13 +84,19 @@ TASK_REPAIR_GUIDANCE = {
         "action tags. If a workflow action is added, pin it to a full immutable commit SHA; use existing local "
         "commands and record hosted verification as DEFERRED_QUOTA. Add focused tests for malformed report paths, "
         "redacted actionable failures, and bounded artifacts; use /tmp for local smoke output and do not leave "
-        "generated ci-artifacts in the candidate or include unbounded command output in reports."
+        "generated ci-artifacts in the candidate. Never copy log text, command output, architecture/task payloads, "
+        "or secret-shaped values into a committed artifact: reports may contain only fixed safe categories, check "
+        "names, integer exit codes and bounded redaction-safe status. Reject symlinked or escaping report/log "
+        "paths, bound reads before loading data, and do not add an unrelated docs audit receipt."
     ),
     "BASE-010": (
         "Packaging repair: preserve policy files, run the manifest/package verifier, and add a manifest hash for "
         "every new tracked package file, including new tests. Ensure verify_foundation.py works both as a direct "
-        "script and from the repository package context, and test symlink/path rejection. Do not claim a clean "
-        "package while verification fails."
+        "script and from the repository package context, and test symlink/path rejection. Enforce canonical "
+        "root containment, reject absolute paths, backslashes, traversal and symlinks, casefold every path "
+        "component, and never recursively delete broad or user-selected paths; generated output may be cleaned "
+        "only inside the known package build directory and only after it is proven disposable. Run the final "
+        "manifest check after generated output cleanup. Do not claim a clean package while verification fails."
     ),
 }
 
