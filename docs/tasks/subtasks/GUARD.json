@@ -1,0 +1,2207 @@
+{
+  "schema": "jarvis.v2.subtask-module/1",
+  "created": "2026-11-14",
+  "source_parent_plan_blob_sha": "36e674f4e58fc19aa8158da42d802b9599a23763",
+  "module": "GUARD",
+  "module_name": "M6 — Guardian, integrity, recovery and priority",
+  "parent_count": 19,
+  "subtask_count": 111,
+  "parents": [
+    {
+      "parent_id": "GUARD-001",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Select local Guardian model and verify tool-less deterministic fallback",
+      "acceptance": "Model fits host; monitored health independently; no model required for emergency stop",
+      "parent_dependencies": [
+        "BASE-012",
+        "BACK-006"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/guardian/",
+        "infra/systemd/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
+        "No preemption of active token generation; deterministic emergency STOP works without a model.",
+        "Guardian cannot approve its own release, permissions, cutover or updates."
+      ],
+      "special_instructions": [
+        "AEGIS must use a verified local model; do not silently fall back to a hosted model. Deterministic emergency STOP must work without it."
+      ],
+      "subtasks": [
+        {
+          "id": "GUARD-001.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Select local Guardian model and verify tool-less deterministic fallback.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-001.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "GUARD-001.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-001.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Select local Guardian model and verify tool-less deterministic fallback; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "GUARD-001.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-001.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "GUARD-001.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-001.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "GUARD-001.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "GUARD-002",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Implement independent trusted minimal Guardian process/service manager",
+      "acceptance": "Guardian restarts controller only from trusted immutable version",
+      "parent_dependencies": [
+        "BACK-019",
+        "GUARD-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/guardian/",
+        "infra/systemd/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
+        "No preemption of active token generation; deterministic emergency STOP works without a model.",
+        "Guardian cannot approve its own release, permissions, cutover or updates."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "GUARD-002.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement independent trusted minimal Guardian process/service manager. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-002.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement independent trusted minimal Guardian process/service manager: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "GUARD-002.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-002.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement independent trusted minimal Guardian process/service manager; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "GUARD-002.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-002.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement independent trusted minimal Guardian process/service manager.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "GUARD-002.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-002.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Guardian restarts controller only from trusted immutable version. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "GUARD-002.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-002.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "GUARD-002.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "GUARD-003",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Define recoverable component manifest and dependency/failure-domain graph",
+      "acceptance": "Criticality, health, restart, state and owner approval fields validated",
+      "parent_dependencies": [
+        "BACK-001"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "design",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/guardian/",
+        "infra/systemd/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
+        "No preemption of active token generation; deterministic emergency STOP works without a model.",
+        "Guardian cannot approve its own release, permissions, cutover or updates."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "GUARD-003.S01",
+          "sequence": 1,
+          "kind": "requirements",
+          "title": "Extract requirements and constraints",
+          "assignee_role": "worker",
+          "instruction": "Extract exact architecture/user requirements, acceptance, dependencies, non-goals and compatibility obligations; list open decisions.",
+          "deliverable": "Requirements-to-acceptance traceability table.",
+          "done_when": "Every acceptance clause and dependency is represented.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-003.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Define typed interfaces, data ownership, schema/API/event shapes, state transitions and compatibility behavior.",
+          "deliverable": "Interface/schema/sequence specification with versioning and ownership.",
+          "done_when": "Contracts are deterministic, testable and match the ten-module architecture.",
+          "depends_on": [
+            "GUARD-003.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-003.S03",
+          "sequence": 3,
+          "kind": "safety",
+          "title": "Define safety and failure behavior",
+          "assignee_role": "worker",
+          "instruction": "Specify permissions, privacy/secrets, failure modes, retry/backpressure, idempotency, rollback and STOP behavior.",
+          "deliverable": "Threat/failure matrix and rollback notes.",
+          "done_when": "No implicit privilege expansion; failures are explicit and fail-closed.",
+          "depends_on": [
+            "GUARD-003.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-003.S04",
+          "sequence": 4,
+          "kind": "test_plan",
+          "title": "Map acceptance to tests",
+          "assignee_role": "worker",
+          "instruction": "Map each acceptance clause to unit/integration/negative/host tests, expected outputs and fixtures.",
+          "deliverable": "Acceptance test matrix and commands/fixtures plan.",
+          "done_when": "Every clause has a test or explicit manual gate.",
+          "depends_on": [
+            "GUARD-003.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-003.S05",
+          "sequence": 5,
+          "kind": "review_design",
+          "title": "Review implementation design",
+          "assignee_role": "supervisor",
+          "instruction": "Cross-check design against module contracts, AGENTS.md, SECURITY.md and CODING_HANDBOOK.md; resolve contradictions before coding.",
+          "deliverable": "Reviewed implementation plan and allowed-path proposal.",
+          "done_when": "No unresolved architecture/security conflict; Supervisor approves scope.",
+          "depends_on": [
+            "GUARD-003.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "GUARD-004",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Implement bounded liveness/readiness probes and health evidence",
+      "acceptance": "Failed probe does not imply restart until dependency checked",
+      "parent_dependencies": [
+        "GUARD-003",
+        "BACK-019"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/guardian/",
+        "infra/systemd/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
+        "No preemption of active token generation; deterministic emergency STOP works without a model.",
+        "Guardian cannot approve its own release, permissions, cutover or updates."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "GUARD-004.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement bounded liveness/readiness probes and health evidence. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-004.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement bounded liveness/readiness probes and health evidence: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "GUARD-004.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-004.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement bounded liveness/readiness probes and health evidence; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "GUARD-004.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-004.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement bounded liveness/readiness probes and health evidence.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "GUARD-004.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-004.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Failed probe does not imply restart until dependency checked. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "GUARD-004.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-004.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "GUARD-004.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "GUARD-005",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Implement P0 deterministic isolation and P1 Guardian model reservation",
+      "acceptance": "Guardian gets next available model call without interrupting safe in-flight generation",
+      "parent_dependencies": [
+        "CORE-011",
+        "GUARD-002"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/guardian/",
+        "infra/systemd/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
+        "No preemption of active token generation; deterministic emergency STOP works without a model.",
+        "Guardian cannot approve its own release, permissions, cutover or updates."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "GUARD-005.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement P0 deterministic isolation and P1 Guardian model reservation. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-005.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement P0 deterministic isolation and P1 Guardian model reservation: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "GUARD-005.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-005.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement P0 deterministic isolation and P1 Guardian model reservation; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "GUARD-005.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-005.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement P0 deterministic isolation and P1 Guardian model reservation.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "GUARD-005.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-005.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Guardian gets next available model call without interrupting safe in-flight generation. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "GUARD-005.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-005.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "GUARD-005.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "GUARD-006",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Implement non-preemptive scheduler resource lock and starvation tests",
+      "acceptance": "No new lower-priority generation launches while Guardian waiting; other safe work continues",
+      "parent_dependencies": [
+        "GUARD-005"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/guardian/",
+        "infra/systemd/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
+        "No preemption of active token generation; deterministic emergency STOP works without a model.",
+        "Guardian cannot approve its own release, permissions, cutover or updates."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "GUARD-006.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement non-preemptive scheduler resource lock and starvation tests. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-006.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement non-preemptive scheduler resource lock and starvation tests: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "GUARD-006.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-006.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement non-preemptive scheduler resource lock and starvation tests; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "GUARD-006.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-006.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement non-preemptive scheduler resource lock and starvation tests.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "GUARD-006.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-006.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: No new lower-priority generation launches while Guardian waiting; other safe work continues. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "GUARD-006.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-006.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "GUARD-006.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "GUARD-007",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Implement periodic read-only integrity scanner",
+      "acceptance": "Checks schemas, hashes, queues and versions without destructive scans",
+      "parent_dependencies": [
+        "GUARD-004",
+        "BACK-018"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/guardian/",
+        "infra/systemd/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
+        "No preemption of active token generation; deterministic emergency STOP works without a model.",
+        "Guardian cannot approve its own release, permissions, cutover or updates."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "GUARD-007.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement periodic read-only integrity scanner. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-007.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement periodic read-only integrity scanner: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "GUARD-007.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-007.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement periodic read-only integrity scanner; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "GUARD-007.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-007.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement periodic read-only integrity scanner.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "GUARD-007.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-007.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Checks schemas, hashes, queues and versions without destructive scans. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "GUARD-007.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-007.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "GUARD-007.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "GUARD-008",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Implement severity classifier and upstream root cause correlation",
+      "acceptance": "Component vs dependency vs host outage distinguished and evidenced",
+      "parent_dependencies": [
+        "GUARD-007"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/guardian/",
+        "infra/systemd/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
+        "No preemption of active token generation; deterministic emergency STOP works without a model.",
+        "Guardian cannot approve its own release, permissions, cutover or updates."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "GUARD-008.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement severity classifier and upstream root cause correlation. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-008.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement severity classifier and upstream root cause correlation: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "GUARD-008.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-008.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement severity classifier and upstream root cause correlation; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "GUARD-008.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-008.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement severity classifier and upstream root cause correlation.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "GUARD-008.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-008.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Component vs dependency vs host outage distinguished and evidenced. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "GUARD-008.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-008.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "GUARD-008.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "GUARD-009",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Implement deduplicated findings, rate limit and acknowledgment",
+      "acceptance": "Recurring same error yields one tracked incident and bounded alerts",
+      "parent_dependencies": [
+        "GUARD-008"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/guardian/",
+        "infra/systemd/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
+        "No preemption of active token generation; deterministic emergency STOP works without a model.",
+        "Guardian cannot approve its own release, permissions, cutover or updates."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "GUARD-009.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement deduplicated findings, rate limit and acknowledgment. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-009.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement deduplicated findings, rate limit and acknowledgment: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "GUARD-009.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-009.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement deduplicated findings, rate limit and acknowledgment; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "GUARD-009.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-009.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement deduplicated findings, rate limit and acknowledgment.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "GUARD-009.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-009.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Recurring same error yields one tracked incident and bounded alerts. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "GUARD-009.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-009.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "GUARD-009.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "GUARD-010",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Implement policy-gated SDA repair proposal queue bridge",
+      "acceptance": "Reproducer, minimal scope, source SHA and acceptance stored; no auto privilege",
+      "parent_dependencies": [
+        "GUARD-009",
+        "SDA-021"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "design",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/guardian/",
+        "infra/systemd/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
+        "No preemption of active token generation; deterministic emergency STOP works without a model.",
+        "Guardian cannot approve its own release, permissions, cutover or updates."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "GUARD-010.S01",
+          "sequence": 1,
+          "kind": "requirements",
+          "title": "Extract requirements and constraints",
+          "assignee_role": "worker",
+          "instruction": "Extract exact architecture/user requirements, acceptance, dependencies, non-goals and compatibility obligations; list open decisions.",
+          "deliverable": "Requirements-to-acceptance traceability table.",
+          "done_when": "Every acceptance clause and dependency is represented.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-010.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Define typed interfaces, data ownership, schema/API/event shapes, state transitions and compatibility behavior.",
+          "deliverable": "Interface/schema/sequence specification with versioning and ownership.",
+          "done_when": "Contracts are deterministic, testable and match the ten-module architecture.",
+          "depends_on": [
+            "GUARD-010.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-010.S03",
+          "sequence": 3,
+          "kind": "safety",
+          "title": "Define safety and failure behavior",
+          "assignee_role": "worker",
+          "instruction": "Specify permissions, privacy/secrets, failure modes, retry/backpressure, idempotency, rollback and STOP behavior.",
+          "deliverable": "Threat/failure matrix and rollback notes.",
+          "done_when": "No implicit privilege expansion; failures are explicit and fail-closed.",
+          "depends_on": [
+            "GUARD-010.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-010.S04",
+          "sequence": 4,
+          "kind": "test_plan",
+          "title": "Map acceptance to tests",
+          "assignee_role": "worker",
+          "instruction": "Map each acceptance clause to unit/integration/negative/host tests, expected outputs and fixtures.",
+          "deliverable": "Acceptance test matrix and commands/fixtures plan.",
+          "done_when": "Every clause has a test or explicit manual gate.",
+          "depends_on": [
+            "GUARD-010.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-010.S05",
+          "sequence": 5,
+          "kind": "review_design",
+          "title": "Review implementation design",
+          "assignee_role": "supervisor",
+          "instruction": "Cross-check design against module contracts, AGENTS.md, SECURITY.md and CODING_HANDBOOK.md; resolve contradictions before coding.",
+          "deliverable": "Reviewed implementation plan and allowed-path proposal.",
+          "done_when": "No unresolved architecture/security conflict; Supervisor approves scope.",
+          "depends_on": [
+            "GUARD-010.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "GUARD-011",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Implement smallest-unit drain/quiesce/isolate control",
+      "acceptance": "Unaffected modules continue; in-flight effects reconciled",
+      "parent_dependencies": [
+        "GUARD-003",
+        "GUARD-008"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/guardian/",
+        "infra/systemd/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
+        "No preemption of active token generation; deterministic emergency STOP works without a model.",
+        "Guardian cannot approve its own release, permissions, cutover or updates."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "GUARD-011.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement smallest-unit drain/quiesce/isolate control. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-011.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement smallest-unit drain/quiesce/isolate control: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "GUARD-011.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-011.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement smallest-unit drain/quiesce/isolate control; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "GUARD-011.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-011.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement smallest-unit drain/quiesce/isolate control.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "GUARD-011.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-011.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Unaffected modules continue; in-flight effects reconciled. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "GUARD-011.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-011.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "GUARD-011.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "GUARD-012",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Implement bounded local restart and cooldown budget",
+      "acceptance": "Repeat failure stops/escales and preserves logs",
+      "parent_dependencies": [
+        "GUARD-011"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/guardian/",
+        "infra/systemd/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
+        "No preemption of active token generation; deterministic emergency STOP works without a model.",
+        "Guardian cannot approve its own release, permissions, cutover or updates."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "GUARD-012.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement bounded local restart and cooldown budget. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-012.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement bounded local restart and cooldown budget: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "GUARD-012.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-012.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement bounded local restart and cooldown budget; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "GUARD-012.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-012.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement bounded local restart and cooldown budget.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "GUARD-012.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-012.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Repeat failure stops/escales and preserves logs. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "GUARD-012.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-012.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "GUARD-012.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "GUARD-013",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Implement repair candidate test and canary with route gate",
+      "acceptance": "Only independently accepted builds eligible for canary",
+      "parent_dependencies": [
+        "GUARD-010",
+        "GUARD-012",
+        "SDA-018"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/guardian/",
+        "infra/systemd/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
+        "No preemption of active token generation; deterministic emergency STOP works without a model.",
+        "Guardian cannot approve its own release, permissions, cutover or updates."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "GUARD-013.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Implement repair candidate test and canary with route gate.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-013.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "GUARD-013.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-013.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Implement repair candidate test and canary with route gate; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "GUARD-013.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-013.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "GUARD-013.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-013.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "GUARD-013.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "GUARD-014",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Implement last-known-good artifact selection and rollback",
+      "acceptance": "Bad canary reverts without loss of committed state",
+      "parent_dependencies": [
+        "GUARD-013"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "migration",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/guardian/",
+        "infra/systemd/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
+        "No preemption of active token generation; deterministic emergency STOP works without a model.",
+        "Guardian cannot approve its own release, permissions, cutover or updates."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "GUARD-014.S01",
+          "sequence": 1,
+          "kind": "pin",
+          "title": "Pin source and destination SHAs",
+          "assignee_role": "worker",
+          "instruction": "Pin exact source repository/ref/commit and destination base SHA for Implement last-known-good artifact selection and rollback; verify destination is isolated and legacy source untouched.",
+          "deliverable": "Source/target identity record and SHA pair.",
+          "done_when": "Source and target are immutable for this attempt.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-014.S02",
+          "sequence": 2,
+          "kind": "inventory",
+          "title": "Inventory provenance and compatibility",
+          "assignee_role": "worker",
+          "instruction": "Inventory files, dependencies, licenses, secrets, data formats, case collisions and compatibility; record per-file provenance.",
+          "deliverable": "File manifest and provenance ledger.",
+          "done_when": "Every candidate has origin SHA/path/license status and secret-scan disposition.",
+          "depends_on": [
+            "GUARD-014.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-014.S03",
+          "sequence": 3,
+          "kind": "dry_run",
+          "title": "Run read-only dry run",
+          "assignee_role": "worker",
+          "instruction": "Run read-only dry-run/staging simulation; detect collisions, incompatibilities, path traversal and unsafe files before applying.",
+          "deliverable": "Dry-run report and compatibility matrix.",
+          "done_when": "Dry-run makes no destination writes; unresolved collisions block application.",
+          "depends_on": [
+            "GUARD-014.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-014.S04",
+          "sequence": 4,
+          "kind": "apply",
+          "title": "Apply bounded migration",
+          "assignee_role": "worker",
+          "instruction": "Apply only approved create-only/adapter/migration slice for Implement last-known-good artifact selection and rollback; do not delete, execute or overwrite legacy source.",
+          "deliverable": "Bounded destination changes and migration receipt.",
+          "done_when": "Only allowlisted files are changed and provenance is recorded.",
+          "depends_on": [
+            "GUARD-014.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-014.S05",
+          "sequence": 5,
+          "kind": "verify",
+          "title": "Verify migrated result",
+          "assignee_role": "worker",
+          "instruction": "Run provenance, schema, behavior, regression and security checks on destination.",
+          "deliverable": "Verification report and file-hash comparison.",
+          "done_when": "All content is traceable and required behavior passes.",
+          "depends_on": [
+            "GUARD-014.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-014.S06",
+          "sequence": 6,
+          "kind": "rollback",
+          "title": "Prove rollback and restore",
+          "assignee_role": "worker",
+          "instruction": "Exercise rollback/restore from checkpoint or disposable staging target; prove source and last-known-good destination remain recoverable.",
+          "deliverable": "Rollback drill record and verified restore SHA.",
+          "done_when": "Rollback is demonstrated without destructive cleanup or loss.",
+          "depends_on": [
+            "GUARD-014.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-014.S07",
+          "sequence": 7,
+          "kind": "handoff",
+          "title": "Commit and hand off migration candidate",
+          "assignee_role": "worker",
+          "instruction": "Commit reviewed candidate on task branch and hand off to independent QC with provenance, test evidence, gaps and next gate.",
+          "deliverable": "Candidate commit and migration handoff receipt.",
+          "done_when": "No production cutover, main promotion or legacy retirement occurs here.",
+          "depends_on": [
+            "GUARD-014.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "GUARD-015",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Prototype critical standby with schema/state compatibility checks",
+      "acceptance": "A tested standby can start isolated; no assumption of automatic capacity",
+      "parent_dependencies": [
+        "GUARD-003",
+        "BACK-018"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/guardian/",
+        "infra/systemd/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
+        "No preemption of active token generation; deterministic emergency STOP works without a model.",
+        "Guardian cannot approve its own release, permissions, cutover or updates."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "GUARD-015.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Prototype critical standby with schema/state compatibility checks. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-015.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Prototype critical standby with schema/state compatibility checks: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "GUARD-015.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-015.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Prototype critical standby with schema/state compatibility checks; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "GUARD-015.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-015.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Prototype critical standby with schema/state compatibility checks.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "GUARD-015.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-015.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: A tested standby can start isolated; no assumption of automatic capacity. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "GUARD-015.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-015.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "GUARD-015.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "GUARD-016",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Implement fencing leases and prevent split-brain writers",
+      "acceptance": "Only one canonical write authority through cutover",
+      "parent_dependencies": [
+        "GUARD-015",
+        "BACK-003"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/guardian/",
+        "infra/systemd/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
+        "No preemption of active token generation; deterministic emergency STOP works without a model.",
+        "Guardian cannot approve its own release, permissions, cutover or updates."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "GUARD-016.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement fencing leases and prevent split-brain writers. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-016.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement fencing leases and prevent split-brain writers: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "GUARD-016.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-016.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement fencing leases and prevent split-brain writers; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "GUARD-016.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-016.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement fencing leases and prevent split-brain writers.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "GUARD-016.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-016.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: Only one canonical write authority through cutover. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "GUARD-016.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-016.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "GUARD-016.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "GUARD-017",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Implement guarded cutover and optional failback",
+      "acceptance": "Sync/readiness verified; failures degrade rather than fabricate availability",
+      "parent_dependencies": [
+        "GUARD-016",
+        "GUARD-014"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "migration",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/guardian/",
+        "infra/systemd/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
+        "No preemption of active token generation; deterministic emergency STOP works without a model.",
+        "Guardian cannot approve its own release, permissions, cutover or updates."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "GUARD-017.S01",
+          "sequence": 1,
+          "kind": "pin",
+          "title": "Pin source and destination SHAs",
+          "assignee_role": "worker",
+          "instruction": "Pin exact source repository/ref/commit and destination base SHA for Implement guarded cutover and optional failback; verify destination is isolated and legacy source untouched.",
+          "deliverable": "Source/target identity record and SHA pair.",
+          "done_when": "Source and target are immutable for this attempt.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-017.S02",
+          "sequence": 2,
+          "kind": "inventory",
+          "title": "Inventory provenance and compatibility",
+          "assignee_role": "worker",
+          "instruction": "Inventory files, dependencies, licenses, secrets, data formats, case collisions and compatibility; record per-file provenance.",
+          "deliverable": "File manifest and provenance ledger.",
+          "done_when": "Every candidate has origin SHA/path/license status and secret-scan disposition.",
+          "depends_on": [
+            "GUARD-017.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-017.S03",
+          "sequence": 3,
+          "kind": "dry_run",
+          "title": "Run read-only dry run",
+          "assignee_role": "worker",
+          "instruction": "Run read-only dry-run/staging simulation; detect collisions, incompatibilities, path traversal and unsafe files before applying.",
+          "deliverable": "Dry-run report and compatibility matrix.",
+          "done_when": "Dry-run makes no destination writes; unresolved collisions block application.",
+          "depends_on": [
+            "GUARD-017.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-017.S04",
+          "sequence": 4,
+          "kind": "apply",
+          "title": "Apply bounded migration",
+          "assignee_role": "worker",
+          "instruction": "Apply only approved create-only/adapter/migration slice for Implement guarded cutover and optional failback; do not delete, execute or overwrite legacy source.",
+          "deliverable": "Bounded destination changes and migration receipt.",
+          "done_when": "Only allowlisted files are changed and provenance is recorded.",
+          "depends_on": [
+            "GUARD-017.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-017.S05",
+          "sequence": 5,
+          "kind": "verify",
+          "title": "Verify migrated result",
+          "assignee_role": "worker",
+          "instruction": "Run provenance, schema, behavior, regression and security checks on destination.",
+          "deliverable": "Verification report and file-hash comparison.",
+          "done_when": "All content is traceable and required behavior passes.",
+          "depends_on": [
+            "GUARD-017.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-017.S06",
+          "sequence": 6,
+          "kind": "rollback",
+          "title": "Prove rollback and restore",
+          "assignee_role": "worker",
+          "instruction": "Exercise rollback/restore from checkpoint or disposable staging target; prove source and last-known-good destination remain recoverable.",
+          "deliverable": "Rollback drill record and verified restore SHA.",
+          "done_when": "Rollback is demonstrated without destructive cleanup or loss.",
+          "depends_on": [
+            "GUARD-017.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-017.S07",
+          "sequence": 7,
+          "kind": "handoff",
+          "title": "Commit and hand off migration candidate",
+          "assignee_role": "worker",
+          "instruction": "Commit reviewed candidate on task branch and hand off to independent QC with provenance, test evidence, gaps and next gate.",
+          "deliverable": "Candidate commit and migration handoff receipt.",
+          "done_when": "No production cutover, main promotion or legacy retirement occurs here.",
+          "depends_on": [
+            "GUARD-017.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "GUARD-018",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Implement independent Guardian boot/recovery and safe-mode semantics",
+      "acceptance": "STOP/quota/approval preserved even if controller crash loops",
+      "parent_dependencies": [
+        "GUARD-002",
+        "GUARD-014"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "implementation",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/guardian/",
+        "infra/systemd/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
+        "No preemption of active token generation; deterministic emergency STOP works without a model.",
+        "Guardian cannot approve its own release, permissions, cutover or updates."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "GUARD-018.S01",
+          "sequence": 1,
+          "kind": "inspect",
+          "title": "Inspect source and baseline",
+          "assignee_role": "worker",
+          "instruction": "Read applicable module contract, CODING_HANDBOOK.md, existing implementation, tests, callers and migration provenance for Implement independent Guardian boot/recovery and safe-mode semantics. Record exact start SHA and candidate paths.",
+          "deliverable": "Baseline map of files, symbols, callers, tests, current behavior and start SHA.",
+          "done_when": "Worker can explain the current path and parent acceptance before coding.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-018.S02",
+          "sequence": 2,
+          "kind": "contract",
+          "title": "Define interfaces and data contracts",
+          "assignee_role": "worker",
+          "instruction": "Translate acceptance into a bounded implementation contract for Implement independent Guardian boot/recovery and safe-mode semantics: inputs, outputs, state, errors, permissions, compatibility and allowed files.",
+          "deliverable": "Task-specific implementation plan and acceptance-to-test map.",
+          "done_when": "Scope is approved; no unrelated refactor or permission expansion.",
+          "depends_on": [
+            "GUARD-018.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-018.S03",
+          "sequence": 3,
+          "kind": "implement",
+          "title": "Implement primary behavior",
+          "assignee_role": "worker",
+          "instruction": "Implement the smallest end-to-end behavior directly satisfying Implement independent Guardian boot/recovery and safe-mode semantics; reuse verified code and preserve public contracts unless explicitly changed.",
+          "deliverable": "Working code in the isolated task worktree.",
+          "done_when": "Changes stay within approved paths and implement primary behavior.",
+          "depends_on": [
+            "GUARD-018.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-018.S04",
+          "sequence": 4,
+          "kind": "edge_cases",
+          "title": "Implement edge cases and failure paths",
+          "assignee_role": "worker",
+          "instruction": "Complete required invalid-input, empty-state, retry, duplicate, offline, recovery and diagnostic behavior relevant to Implement independent Guardian boot/recovery and safe-mode semantics.",
+          "deliverable": "Edge-case handling and structured redacted diagnostics.",
+          "done_when": "Failure paths are deterministic, safe and covered.",
+          "depends_on": [
+            "GUARD-018.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-018.S05",
+          "sequence": 5,
+          "kind": "tests",
+          "title": "Add focused and regression tests",
+          "assignee_role": "worker",
+          "instruction": "Add/update focused unit and regression tests for parent acceptance: STOP/quota/approval preserved even if controller crash loops. Include negative/security tests for rejected states.",
+          "deliverable": "Automated tests and deterministic fixtures.",
+          "done_when": "Every acceptance clause is covered; relevant regressions fail on old behavior.",
+          "depends_on": [
+            "GUARD-018.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-018.S06",
+          "sequence": 6,
+          "kind": "validate",
+          "title": "Validate candidate and prepare handoff",
+          "assignee_role": "worker",
+          "instruction": "Run local syntax/type/lint/unit/integration checks; inspect full diff; record changed files and test commands/results; commit candidate on task branch.",
+          "deliverable": "Evidence receipt with task ID, start SHA, branch, commit SHA, files, tests, risks and blockers.",
+          "done_when": "Candidate is reproducible and ready for independent QC; worker does not self-approve.",
+          "depends_on": [
+            "GUARD-018.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    },
+    {
+      "parent_id": "GUARD-019",
+      "module": "GUARD",
+      "milestone": "M6 — Guardian, integrity, recovery and priority",
+      "priority": "P1",
+      "status": "NOT_STARTED",
+      "title": "Run P0-P3 fault injection and host/service-manager recovery tests",
+      "acceptance": "No uncontrolled restarts, no lost records, no production split brain",
+      "parent_dependencies": [
+        "GUARD-006",
+        "GUARD-009",
+        "GUARD-017",
+        "GUARD-018"
+      ],
+      "required_owner_gate": false,
+      "manual_owner_gate_required": false,
+      "execution_mode": "verification",
+      "suggested_scope_roots": [
+        "src/jarvis_v2/guardian/",
+        "infra/systemd/",
+        "tests/"
+      ],
+      "module_guardrails": [
+        "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
+        "No preemption of active token generation; deterministic emergency STOP works without a model.",
+        "Guardian cannot approve its own release, permissions, cutover or updates."
+      ],
+      "special_instructions": [],
+      "subtasks": [
+        {
+          "id": "GUARD-019.S01",
+          "sequence": 1,
+          "kind": "matrix",
+          "title": "Build acceptance matrix",
+          "assignee_role": "worker",
+          "instruction": "Convert parent acceptance into observable assertions and define fixtures/environment needed for Run P0-P3 fault injection and host/service-manager recovery tests.",
+          "deliverable": "Acceptance matrix with expected/observed outcomes.",
+          "done_when": "Every acceptance clause is measurable.",
+          "depends_on": [],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-019.S02",
+          "sequence": 2,
+          "kind": "fixtures",
+          "title": "Prepare deterministic fixtures",
+          "assignee_role": "worker",
+          "instruction": "Prepare deterministic sanitized fixtures and record environment/model/device versions.",
+          "deliverable": "Fixture set and environment snapshot.",
+          "done_when": "Fixtures are repeatable, contain no secrets and cover normal/boundary cases.",
+          "depends_on": [
+            "GUARD-019.S01"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-019.S03",
+          "sequence": 3,
+          "kind": "execute",
+          "title": "Execute required checks",
+          "assignee_role": "worker",
+          "instruction": "Execute required local tests, integration checks or host/device drills for Run P0-P3 fault injection and host/service-manager recovery tests; capture commands, exit codes and artifact hashes.",
+          "deliverable": "Test evidence and result summary.",
+          "done_when": "All runnable checks complete; skipped checks are explicitly pending.",
+          "depends_on": [
+            "GUARD-019.S02"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-019.S04",
+          "sequence": 4,
+          "kind": "negative",
+          "title": "Exercise negative and failure cases",
+          "assignee_role": "worker",
+          "instruction": "Exercise denial, corruption, duplicate, outage, restart, rollback or adversarial cases relevant to this parent.",
+          "deliverable": "Negative/fault-injection evidence.",
+          "done_when": "No safety boundary is bypassed; failures are reproducible.",
+          "depends_on": [
+            "GUARD-019.S03"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-019.S05",
+          "sequence": 5,
+          "kind": "report",
+          "title": "Write verification report",
+          "assignee_role": "worker",
+          "instruction": "Compare results with acceptance and produce pass/fail/blocked report with remaining risks.",
+          "deliverable": "Verification report bound to source SHA and artifact hashes.",
+          "done_when": "No mock-only or quota-blocked check is reported as passed.",
+          "depends_on": [
+            "GUARD-019.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        }
+      ],
+      "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
+    }
+  ]
+}
