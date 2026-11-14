@@ -18,6 +18,8 @@ from astra_one.linux_runtime import (
     codex_call,
     codex_command,
     integrate,
+    merger_review_result,
+    _bounded_patch_preview,
     ensure_integration,
     independent_qc,
     make_prompt,
@@ -290,6 +292,30 @@ class LinuxSDATests(unittest.TestCase):
         tool.write_text("print('not an audit receipt')\n")
         with self.assertRaisesRegex(ChangeValidationError,"audit_report_only"):
             check_changes(self.repo,b,task=audit_task())
+
+    def test_merger_preview_preserves_bounded_patch_tail(self):
+        preview = _bounded_patch_preview(b"A" * 8_000 + b"TAIL-EVIDENCE", limit=8_000)
+        self.assertIn("[middle of patch omitted]", preview)
+        self.assertIn("TAIL-EVIDENCE", preview)
+        self.assertLess(len(preview), 8_100)
+
+    def test_audit_merger_prompt_accepts_explicit_unknowns(self):
+        captured = {}
+
+        def fake_merger_call(*, output_file, **kwargs):
+            captured["prompt"] = kwargs["prompt"]
+            output_file.write_text('{"verdict":"PASS","findings":[]}')
+            return 0, 0, "ok"
+
+        with patch("astra_one.linux_runtime.codex_call", side_effect=fake_merger_call):
+            accepted, reason = merger_review_result(
+                self.state, self.repo, "BASE-001", b"report\n" + b"x" * 20,
+                model="gpt-5.6-luna", effort="medium", task=audit_task(),
+            )
+        self.assertTrue(accepted)
+        self.assertEqual(reason, "merger_pass")
+        self.assertIn("bounded Markdown or JSON evidence receipt", captured["prompt"])
+        self.assertIn("Do not require the worker to invent main", captured["prompt"])
 
     def test_static_change_rejects_invalid_python(self):
         b=git(self.repo,"rev-parse","HEAD")
