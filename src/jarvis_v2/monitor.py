@@ -18,7 +18,10 @@ import sys
 import time
 from typing import Any
 
-ASTRA_DEFAULT = Path.home() / '.local' / 'state' / 'astra-one-linux' / 'sda.sqlite3'
+from .monitor_supervision import collect as collect_supervision, render_lines as render_supervision
+
+ASTRA_DEFAULT = Path.home() / '.local' / 'state' / 'archon-astra' / 'sda.sqlite3'
+ASTRA_LEGACY = Path.home() / '.local' / 'state' / 'astra-one-linux' / 'sda.sqlite3'
 ATLAS_DEFAULT = Path.home() / '.local' / 'state' / 'archon' / 'atlas.sqlite3'
 ACTIVE = {'preflight', 'coding', 'verifying', 'leased', 'running'}
 WAITING_REVIEW = {'awaiting_review'}
@@ -165,6 +168,7 @@ def _fetch_astra(db: sqlite3.Connection, limit: int, event_limit: int, show_obje
         'blocked': blocked[:limit],
         'events': [{k: _safe(e.get(k,''), 90) for k in ('task_id','time','stage','step','result')} for e in events[:event_limit]],
         'recent_runs': [{k: _safe(r.get(k,''), 70) for k in ('task_id','role','status','model','started_at','finished_at','error_code')} for r in runs[:limit]],
+        'supervision': collect_supervision(db, limit),
     }
 
 
@@ -254,6 +258,7 @@ def render(data: dict, *, ansi: bool = False, title: str = 'ATLAS Monitor') -> s
            _line('Integration', _safe(data.get('integration_branch') or '—', 72)),
            _line('Commit', _safe(data.get('integration_sha', '')[:12] or '—', 30))]
     if data['engine'] == 'astra':
+        out.extend(render_supervision(data.get('supervision', {})))
         out.extend(['', 'FIVE-WORKER SNAPSHOT (recorded slots; not a process-liveness check)'])
         by_slot = {str(x.get('slot')): x for x in data['active'] if x.get('slot')}
         for n in range(1,6):
@@ -301,11 +306,13 @@ def _choose_db(source: str, given: Path | None) -> Path:
     if given is not None:
         return given
     if source == 'astra':
-        return ASTRA_DEFAULT
+        return ASTRA_DEFAULT if ASTRA_DEFAULT.exists() else ASTRA_LEGACY
     if source == 'atlas':
         return ATLAS_DEFAULT
     if ASTRA_DEFAULT.exists():
         return ASTRA_DEFAULT
+    if ASTRA_LEGACY.exists():
+        return ASTRA_LEGACY
     return ATLAS_DEFAULT
 
 
