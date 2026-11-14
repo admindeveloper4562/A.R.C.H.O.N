@@ -1,6 +1,7 @@
 import json
 import os
 from pathlib import Path
+import sqlite3
 import subprocess
 import tempfile
 import threading
@@ -11,11 +12,13 @@ from unittest.mock import patch
 from astra_one.linux_sda import State, task_spec, git, assert_source
 from astra_one.linux_runtime import (
     ChangeValidationError,
+    DockerTestError,
     check_changes,
     codex_call,
     codex_command,
     integrate,
     ensure_integration,
+    worker_failure_code,
 )
 from astra_one.linux_cli import run_master
 
@@ -46,6 +49,13 @@ class LinuxSDATests(unittest.TestCase):
         arch.write_text("# JARVIS v2 approved architecture\nSafe repository coding only.\n")
         self.sha=self.state.import_architecture(arch)
         self.state.approve_architecture(self.sha)
+
+    def test_worker_failure_categories_are_bounded(self):
+        self.assertEqual(worker_failure_code(sqlite3.OperationalError("database is locked")),"state_database_locked")
+        self.assertEqual(worker_failure_code(KeyError("passed")),"worker_result_invalid")
+        self.assertEqual(worker_failure_code(UnicodeDecodeError("utf-8",b"\\xff",0,1,"bad")),"worker_output_invalid")
+        self.assertEqual(worker_failure_code(ValueError("unexpected detail")),"worker_input_invalid")
+        self.assertEqual(worker_failure_code(DockerTestError("docker_access_denied")),"docker_access_denied")
 
     def test_source_dirty_refused(self):
         (self.repo/"README.md").write_text("modified\n")

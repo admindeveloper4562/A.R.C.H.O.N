@@ -14,6 +14,7 @@ import threading
 import time
 import tomllib
 import uuid
+import sqlite3
 
 from .linux_sda import MODEL, EFFORT, MAX_FAILURES, PROTECTED, PROTECTED_PARTS, State, git, now
 
@@ -41,6 +42,18 @@ class ChangeValidationError(ValueError):
         self.code = code
         message = code if not detail else f"{code}: {detail}"
         super().__init__(message)
+
+
+class DockerTestError(RuntimeError):
+    """A bounded, non-sensitive Docker QC prerequisite failure."""
+
+    CODES = frozenset({"docker_test_config_invalid", "docker_unavailable", "docker_access_denied", "docker_image_missing"})
+
+    def __init__(self, code: str):
+        if code not in self.CODES:
+            raise ValueError("unknown Docker test error code")
+        self.code = code
+        super().__init__(code)
 
 
 def sandbox_status() -> dict[str, str | bool]:
@@ -252,16 +265,19 @@ def codex_call(*, worktree: Path, prompt: str, home: Path, state: State, model: 
 def docker_test(worktree: Path, image: str, command: list[str], timeout: int = 300) -> dict:
     """Run generated tests without network in an existing local Docker image."""
     if not image or not re.fullmatch(r"[a-zA-Z0-9_.:/@-]{1,160}",image):
-        raise ValueError("explicit tested Docker image is required")
+        raise DockerTestError("docker_test_config_invalid")
     if not command or len(command)>16 or any(not isinstance(x,str) or not 0<len(x)<200 for x in command):
-        raise ValueError("invalid test command")
+        raise DockerTestError("docker_test_config_invalid")
     if command[0] not in ("python","python3","pytest","node","npm"):
-        raise ValueError("test command executable not allowlisted")
+        raise DockerTestError("docker_test_config_invalid")
     if not shutil_which("docker"):
-        raise ValueError("Docker missing; cannot securely execute generated tests")
-    inspected=subprocess.run(["docker","image","inspect",image],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=15)
+        raise DockerTestError("docker_unavailable")
+    inspected=subprocess.run(["docker","image","inspect",image],stdout=subprocess.DEVNULL,stderr=subprocess.PIPE,text=True,timeout=15)
     if inspected.returncode:
-        raise ValueError("Docker test image not found locally; pre-pull it manually")
+        detail=inspected.stderr.lower()
+        if "permission denied" in detail or "connect to the docker api" in detail:
+            raise DockerTestError("docker_access_denied")
+        raise DockerTestError("docker_image_missing")
     args=["docker","run","--rm","--pull=never","--network=none","--read-only",
           "--cap-drop=ALL","--security-opt=no-new-privileges","--pids-limit=128","--memory=1g","--cpus=2",
           "--user=65534:65534","--tmpfs=/tmp:rw,nosuid,nodev,size=128m",
@@ -358,6 +374,15 @@ SAFE_WORKER_FAILURE_CODES = CHANGE_FAILURE_CODES | frozenset({
     "qc_runtime_error",
     "worker_timeout",
     "worker_io_error",
+    "docker_test_config_invalid",
+    "docker_unavailable",
+    "docker_access_denied",
+    "docker_image_missing",
+    "worker_result_invalid",
+    "worker_output_invalid",
+    "state_database_error",
+    "state_database_locked",
+    "worker_input_invalid",
     "worker_runtime_error",
     "progress_event_invalid",
     "worker_state_update_failed",
@@ -368,8 +393,18 @@ def worker_failure_code(error: BaseException) -> str:
     """Convert an internal failure to a stable, non-sensitive task error code."""
     if isinstance(error, ChangeValidationError):
         return error.code
+    if isinstance(error, DockerTestError):
+        return error.code
     if isinstance(error, subprocess.TimeoutExpired):
         return "worker_timeout"
+    if isinstance(error, sqlite3.OperationalError):
+        return "state_database_locked" if "locked" in str(error).lower() else "state_database_error"
+    if isinstance(error, sqlite3.Error):
+        return "state_database_error"
+    if isinstance(error, UnicodeError):
+        return "worker_output_invalid"
+    if isinstance(error, (KeyError, TypeError, AttributeError)):
+        return "worker_result_invalid"
     value = str(error)
     if value == "invalid progress event":
         return "progress_event_invalid"
@@ -377,6 +412,8 @@ def worker_failure_code(error: BaseException) -> str:
         return value
     if isinstance(error, OSError):
         return "worker_io_error"
+    if isinstance(error, ValueError):
+        return "worker_input_invalid"
     return "worker_runtime_error"
 
 

@@ -284,12 +284,19 @@ class State:
              tools: int = 0, attempt: int = 1, elapsed: int = 0, result: str = ""):
         if stage not in STAGE or not SAFE.fullmatch(step) or not branch.startswith(("feature/", "feat/")) or not SHA.fullmatch(base_sha):
             raise ValueError("invalid progress event")
-        with self.db() as db:
-            db.execute("BEGIN IMMEDIATE")
-            seq = db.execute("SELECT COALESCE(MAX(seq),0)+1 FROM events WHERE run_id=?",(run_id,)).fetchone()[0]
-            values = (str(uuid.uuid4()),run_id,tid,seq,now(),stage,step,branch[:100],base_sha,max(0,tools),result[:100],max(0,int(elapsed)),attempt)
-            db.execute("INSERT INTO events(event_id,run_id,task_id,seq,time,stage,step,branch,base_sha,tool_count,result,elapsed_s,attempt) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",values)
-            db.execute("COMMIT")
+        for retry in range(4):
+            try:
+                with self.db() as db:
+                    db.execute("BEGIN IMMEDIATE")
+                    seq = db.execute("SELECT COALESCE(MAX(seq),0)+1 FROM events WHERE run_id=?",(run_id,)).fetchone()[0]
+                    values = (str(uuid.uuid4()),run_id,tid,seq,now(),stage,step,branch[:100],base_sha,max(0,tools),result[:100],max(0,int(elapsed)),attempt)
+                    db.execute("INSERT INTO events(event_id,run_id,task_id,seq,time,stage,step,branch,base_sha,tool_count,result,elapsed_s,attempt) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",values)
+                    db.execute("COMMIT")
+                break
+            except sqlite3.OperationalError as ex:
+                if "locked" not in str(ex).lower() or retry == 3:
+                    raise
+                time.sleep(0.05 * (2 ** retry))
         print(f"[{stage:<15}] {tid} {step}",flush=True)
 
     def sync(self, limit: int = 50) -> dict:
