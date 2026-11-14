@@ -422,6 +422,28 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change','status':
         self.assertEqual(git(self.repo,"branch","--show-current"),"develop")
         self.assertNotEqual(self.state.get("integration_sha"),self.state.get("source_sha"))
 
+    def test_merger_rejects_candidate_trailing_whitespace_before_apply(self):
+        self.state.add_tasks(task(1))
+        claim=self.state.claim()
+        base=self.state.get("integration_sha")
+        branch="feature/astra-test-whitespace"
+        candidate=self.state.home/"worktrees"/"candidate-whitespace"
+        git(self.repo,"worktree","add","-b",branch,str(candidate),base)
+        (candidate/"audit.md").write_text("# audit  \n")
+        git(candidate,"add","--","audit.md")
+        git(candidate,"-c","user.name=as","-c","user.email=as@local.invalid","commit","-m","candidate")
+        sha=git(candidate,"rev-parse","HEAD")
+        self.state.set_task("ASTRA-001","awaiting_review",fields={
+            "worktree":str(candidate),"branch":branch,"base_sha":base,
+            "candidate_sha":sha,"qc_evidence":"{\"independent_qc\":\"passed\"}",
+        })
+        self.state.approve("ASTRA-001")
+        with self.assertRaisesRegex(ValueError,"candidate diff check failed"):
+            integrate(self.state,"ASTRA-001")
+        self.assertEqual(self.state.list_tasks()[0]["status"],"failed")
+        self.assertEqual(self.state.list_tasks()[0]["last_error"],"git_diff_check_failed")
+        self.assertEqual(git(self.repo,"rev-parse","HEAD"),base)
+
     def test_integration_rejects_worktree_from_different_repository(self):
         other = git_repo(self.base/"other-source")
         self.state.put("integration_path",str(other))

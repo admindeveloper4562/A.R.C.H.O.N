@@ -27,6 +27,7 @@ CHANGE_FAILURE_CODES = frozenset({
     "no_file_changes",
     "changed_file_limit_exceeded",
     "changed_size_limit_exceeded",
+    "git_diff_check_failed",
     "unsafe_changed_path",
     "protected_file_modified",
     "git_status_invalid",
@@ -711,6 +712,13 @@ def integrate(state: State, tid: str, *, merger_model: str | None = None, merger
         raise ValueError("candidate Git identity mismatch")
     if git(candidate,"status","--porcelain","--untracked-files=all"):
         raise ValueError("candidate dirty after QC")
+    diff_check = subprocess.run(
+        ["git", "-C", str(candidate), "diff", "--check", data["base_sha"], data["candidate_sha"]],
+        stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, check=False, timeout=30,
+    )
+    if diff_check.returncode:
+        state.set_task(tid, "failed", error="git_diff_check_failed")
+        raise ValueError("candidate diff check failed")
     patch=subprocess.run(["git","-C",str(candidate),"diff","--binary",data["base_sha"],data["candidate_sha"]],
                          stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=30,check=False)
     if patch.returncode or not patch.stdout or len(patch.stdout)>MAX_BYTES*3:
