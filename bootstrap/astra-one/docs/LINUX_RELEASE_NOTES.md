@@ -1,3 +1,12 @@
+# Astra One Linux v0.2.2 — Full-plan import handoff
+
+## Full JARVIS v2 plan import
+
+- Adds additive SQLite schema version 2 for one project envelope, the five canonical SDA queues, parent metadata and attached child execution packets.
+- Validates the pinned 247-parent/1,359-child source plan before import and preserves existing task history on idempotent re-import.
+- Keeps owner-gated parents in `approval_required` and dispatches only dependency-ready parents to `pending_queue`.
+- Includes the ordered child packet in each worker prompt; remote GitHub Actions remain disabled by plan policy.
+
 # Astra One Linux v0.2.1 — Development handoff
 
 ## Worker execution and validation repair

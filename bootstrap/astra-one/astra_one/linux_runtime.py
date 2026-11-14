@@ -271,11 +271,26 @@ def make_prompt(task: dict, sha: str, architecture_sha: str, role: str, previous
     if previous_error:
         categories = [part for part in re.split(r"[:,]", previous_error) if part in REVIEW_REPAIR_GUIDANCE]
         guidance = [REVIEW_REPAIR_GUIDANCE[category] for category in dict.fromkeys(categories)]
+    child_packet = ""
+    children = task.get("subtasks", [])
+    if children:
+        child_lines = ["Ordered child execution packet:"]
+        for child in children:
+            deps = ", ".join(child.get("depends_on", [])) or "none"
+            child_lines.extend((
+                f"- {child['id']} [{child['kind']}] sequence={child['sequence']} depends_on={deps}",
+                f"  instruction: {child['instruction']}",
+                f"  deliverable: {child['deliverable']}",
+                f"  done_when: {child['done_when']}",
+                f"  evidence_required: {child['evidence_required']}",
+            ))
+        child_packet = "\n" + "\n".join(child_lines) + "\n"
     return (f"You are Astra One SDA {role}, an implementation agent in an isolated Linux Git worktree.\n"
             f"Task: {task['task_id']} (area {task['area']})\n"
             f"Pinned source commit: {sha}; approved architecture SHA256: {architecture_sha}.\n"
             f"Objective: {task['objective']}\n"
             "Acceptance criteria:\n" + "\n".join("- " + x for x in task["acceptance"]) + "\n"
+            + child_packet
             + ("Previous bounded failure categories (for targeted repair): " + previous_error[:160] + "\n" if previous_error else "")
             + ("Repair checklist:\n" + "\n".join("- " + item for item in guidance) + "\n" if guidance else "")
             + "Only edit source files needed for this task within this workspace. Do not commit, push, delete, rename, "

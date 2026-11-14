@@ -16,6 +16,7 @@ import uuid
 
 from .linux_sda import DEFAULT_HOME, EFFORT, MAX_FAILURES, MAX_WORKERS, MODEL, State, assert_source, task_spec
 from .linux_runtime import codex_call, ensure_integration, integrate, execute_claim, sandbox_status
+from .full_plan import load_full_plan
 
 LIVE_STATE = (Path.home() / ".local" / "state" / "archon-astra").resolve()
 LIVE_SOURCE = (Path.home() / "Projects" / "ARCHON-astra-source").resolve()
@@ -243,11 +244,15 @@ def main(argv: list[str] | None = None) -> int:
     p=sub.add_parser("architecture");p.add_argument("action",choices=["import","approve","status"]);p.add_argument("--file",type=Path);p.add_argument("--sha")
     p=sub.add_parser("supervise");p.add_argument("--focus",default="");p.add_argument("--count",type=int,default=5);p.add_argument("--output",type=Path,required=True);p.add_argument("--model",default=MODEL);p.add_argument("--effort",default=EFFORT)
     p=sub.add_parser("enqueue");p.add_argument("--file",type=Path,required=True)
+    p=sub.add_parser("validate-full-plan");p.add_argument("--parent-plan",type=Path,required=True);p.add_argument("--subtask-index",type=Path,required=True);p.add_argument("--subtask-dir",type=Path,required=True);p.add_argument("--source-ref",default="");p.add_argument("--source-commit",default="")
+    p=sub.add_parser("import-full-plan");p.add_argument("--parent-plan",type=Path,required=True);p.add_argument("--subtask-index",type=Path,required=True);p.add_argument("--subtask-dir",type=Path,required=True);p.add_argument("--source-ref",default="");p.add_argument("--source-commit",default="")
+    sub.add_parser("full-plan-status")
     sub.add_parser("status");sub.add_parser("tasks");sub.add_parser("sync")
     for name in ("stop","pause","resume","clear-quota","recover"):sub.add_parser(name)
     p=sub.add_parser("retry");p.add_argument("task_id")
     p=sub.add_parser("reopen");p.add_argument("task_ids",nargs="+")
     p=sub.add_parser("approve-task");p.add_argument("task_id")
+    p=sub.add_parser("approve-owner");p.add_argument("task_id")
     p=sub.add_parser("integrate");p.add_argument("task_id");p.add_argument("--confirm",action="store_true")
     p=sub.add_parser("run")
     p.add_argument("--workers",type=int,default=5);p.add_argument("--max-tasks",type=int,default=100)
@@ -273,6 +278,14 @@ def main(argv: list[str] | None = None) -> int:
             else:report({"sha256":state.get("architecture_sha"),"approved":state.get("approved_architecture_sha")==state.get("architecture_sha") and bool(state.get("architecture_sha"))})
         elif args.command=="supervise":report(supervise(state,focus=args.focus,count=args.count,output=args.output,model=args.model,effort=args.effort))
         elif args.command=="enqueue":report({"enqueued":state.add_tasks(json.loads(args.file.read_text(encoding="utf-8"))),"started":False})
+        elif args.command in ("validate-full-plan", "import-full-plan"):
+            plan=load_full_plan(args.parent_plan,args.subtask_index,args.subtask_dir,
+                                source_ref=args.source_ref,source_commit=args.source_commit)
+            if args.command=="validate-full-plan":
+                report(plan.validation)
+            else:
+                report(state.import_full_plan(plan))
+        elif args.command=="full-plan-status":report(state.full_plan_status())
         elif args.command=="status":report(state.overview())
         elif args.command=="tasks":report(state.list_tasks())
         elif args.command=="sync":report(state.sync(limit=500))
@@ -289,6 +302,7 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command=="retry":state.retry(args.task_id);report({"queued":args.task_id})
         elif args.command=="reopen":report({"reopened":state.reopen_failed(args.task_ids),"history_preserved":True})
         elif args.command=="approve-task":state.approve(args.task_id);report({"approved":args.task_id})
+        elif args.command=="approve-owner":report(state.approve_owner(args.task_id))
         elif args.command=="integrate":
             if not args.confirm:raise ValueError("integration requires --confirm after diff review")
             with state.master_lock():report(integrate(state,args.task_id,merger_model=MODEL,merger_effort=EFFORT))
