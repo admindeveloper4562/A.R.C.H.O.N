@@ -87,7 +87,9 @@ TASK_REPAIR_GUIDANCE = {
         "generated ci-artifacts in the candidate. Never copy log text, command output, architecture/task payloads, "
         "or secret-shaped values into a committed artifact: reports may contain only fixed safe categories, check "
         "names, integer exit codes and bounded redaction-safe status. Reject symlinked or escaping report/log "
-        "paths, bound reads before loading data, and do not add an unrelated docs audit receipt."
+        "paths, bound reads before loading data, and do not add an unrelated docs audit receipt. Validate and "
+        "normalize the report schema at the writer boundary; reject extra keys, arbitrary strings and caller-supplied "
+        "raw result payloads, and add a regression test proving that rejection."
     ),
     "BASE-010": (
         "Packaging repair: preserve policy files, run the manifest/package verifier, and add a manifest hash for "
@@ -96,7 +98,10 @@ TASK_REPAIR_GUIDANCE = {
         "root containment, reject absolute paths, backslashes, traversal and symlinks, casefold every path "
         "component, and never recursively delete broad or user-selected paths; generated output may be cleaned "
         "only inside the known package build directory and only after it is proven disposable. Run the final "
-        "manifest check after generated output cleanup. Do not claim a clean package while verification fails."
+        "manifest check after generated output cleanup. Preserve any pre-existing build directory and fail closed "
+        "rather than deleting it. Add regression tests that execute the manifest checker against generated and "
+        "case-colliding package fixtures, plus a pre-existing build-directory cleanup test. Do not claim a clean "
+        "package while verification fails."
     ),
 }
 
