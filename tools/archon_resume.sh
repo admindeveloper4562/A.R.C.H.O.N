@@ -7,6 +7,7 @@ REMOTE="https://github.com/${REPO}.git"
 ASTRA="$ROOT/bootstrap/astra-one"
 SRC="$HOME/Projects/ARCHON-astra-source"
 STATE="$HOME/.local/state/archon-astra"
+TEST_IMAGE="${ARCHON_ASTRA_TEST_IMAGE:-python:3.12-slim}"
 if [[ "$EUID" -eq 0 || -n "${SUDO_USER:-}" ]]; then
   echo 'Run as your normal Linux user; never sudo/root' >&2; exit 2
 fi
@@ -84,7 +85,7 @@ codex login status
 codex exec --ephemeral --sandbox read-only -C "$SRC" -m gpt-5.6-luna \
   -c model_reasoning_effort=medium 'Reply with exactly ARCHON_READY'
 docker info >/dev/null
-docker image inspect python:3.12-slim >/dev/null || docker pull python:3.12-slim
+docker image inspect "$TEST_IMAGE" >/dev/null || { echo "Missing Docker test image: $TEST_IMAGE" >&2; exit 2; }
 UNIT="$HOME/.config/systemd/user"
 mkdir -p "$UNIT"
 cat > "$UNIT/archon-astra.service" <<SERVICE
@@ -97,6 +98,7 @@ Type=oneshot
 WorkingDirectory=$ASTRA
 Environment=PATH=$PATH
 Environment=ARCHON_ASTRA_HOME=$STATE
+Environment=ARCHON_ASTRA_TEST_IMAGE=$TEST_IMAGE
 ExecStart=/usr/bin/env bash $ROOT/tools/astra_batch_cycle.sh
 TimeoutStartSec=0
 KillMode=control-group

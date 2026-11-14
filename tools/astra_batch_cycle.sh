@@ -4,6 +4,7 @@ set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 ASTRA_ROOT="$ROOT/bootstrap/astra-one"
 STATE="${ARCHON_ASTRA_HOME:-$HOME/.local/state/archon-astra}"
+TEST_IMAGE="${ARCHON_ASTRA_TEST_IMAGE:-python:3.12-slim}"
 CLI=(python3 -m astra_one.linux_cli --home "$STATE")
 for marker in STOP PAUSE PAUSED_QUOTA; do
   if [[ -e "$STATE/$marker" ]]; then
@@ -18,7 +19,7 @@ RUN_RC=0
 RUN_OUTPUT=$("${CLI[@]}" run \
   --workers 5 --model gpt-5.6-luna --effort medium \
   --max-tasks 10 --max-minutes 120 --max-seconds-per-task 1800 \
-  --max-repairs 3 --auto-integrate --test-image python:3.12-slim 2>&1) || RUN_RC=$?
+  --max-repairs 3 --auto-integrate --test-image "$TEST_IMAGE" 2>&1) || RUN_RC=$?
 printf '%s\n' "$RUN_OUTPUT"
 # A refusal to start is an operational error. A completed batch with terminal
 # worker failures may still publish unrelated, already-QC-approved commits;
