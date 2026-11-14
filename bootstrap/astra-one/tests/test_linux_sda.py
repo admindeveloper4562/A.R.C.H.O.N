@@ -212,6 +212,16 @@ class LinuxSDATests(unittest.TestCase):
             self.assertEqual(db.execute("SELECT count(*) FROM review_queue WHERE parent_id='ASTRA-001'").fetchone()[0], 0)
             self.assertEqual(db.execute("SELECT count(*) FROM merge_queue WHERE parent_id='ASTRA-001'").fetchone()[0], 0)
 
+    def test_tool_count_is_persisted_on_run_transitions(self):
+        self.state.add_tasks(task(1))
+        self.state.claim()
+        self.state.set_task("ASTRA-001", "verifying", fields={"tool_count": 7})
+        with self.state.db() as db:
+            self.assertEqual(db.execute("SELECT tool_count FROM runs WHERE task_id='ASTRA-001'").fetchone()[0], 7)
+        self.state.set_task("ASTRA-001", "failed", error="no_file_changes", fields={"tool_count": 8})
+        with self.state.db() as db:
+            self.assertEqual(db.execute("SELECT tool_count FROM runs WHERE task_id='ASTRA-001'").fetchone()[0], 8)
+
     def test_reopen_failed_starts_new_generation_without_erasing_history(self):
         self.state.add_tasks(task(1))
         for code in ("qc_rejected:input_validation", "qc_rejected:permission_scope"):

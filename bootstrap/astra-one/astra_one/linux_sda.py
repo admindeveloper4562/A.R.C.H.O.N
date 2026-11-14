@@ -597,7 +597,13 @@ class State:
         if error:
             error_code = error[:160]
             params["last_error"] = error_code
+        run_tool_count = None
         if fields:
+            fields = dict(fields)
+            if "tool_count" in fields:
+                run_tool_count = fields.pop("tool_count")
+                if not isinstance(run_tool_count, int) or run_tool_count < 0:
+                    raise ValueError("tool_count must be a non-negative integer")
             params.update(fields)
         columns=", ".join(f"{k}=?" for k in params)
         with self.db() as db:
@@ -607,9 +613,10 @@ class State:
             terminal = int(status in {"awaiting_review","approved","completed","failed","interrupted","conflict","stopped","archived"})
             db.execute("""UPDATE runs SET status=?,
                        error_code=CASE WHEN ? <> '' THEN ? ELSE error_code END,
+                       tool_count=COALESCE(?,tool_count),
                        finished_at=CASE WHEN ? THEN ? ELSE finished_at END
                        WHERE id=(SELECT last_run FROM tasks WHERE id=?)""",
-                       (status,error_code,error_code,terminal,now(),tid))
+                       (status,error_code,error_code,run_tool_count,terminal,now(),tid))
             if row and row["project_id"]:
                 project_id = row["project_id"]
                 if status == "completed":

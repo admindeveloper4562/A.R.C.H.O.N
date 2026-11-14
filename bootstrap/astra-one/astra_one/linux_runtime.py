@@ -899,7 +899,7 @@ def execute_claim(state: State, item: dict, *, slot: int, model: str, effort: st
         if rc or reason!="ok":
             raise RuntimeError(reason if reason!="ok" else "codex_nonzero")
         emit("verifying","static_diff_review")
-        state.set_task(tid,"verifying")
+        state.set_task(tid,"verifying",fields={"tool_count":tools})
         changed=check_changes(worktree,sha,task=task)
         emit("verifying","docker_no_network_tests")
         tests=docker_test(worktree,test_image,test_command)
@@ -919,7 +919,8 @@ def execute_claim(state: State, item: dict, *, slot: int, model: str, effort: st
             "commit","-m",f"astra: {tid} accepted candidate",timeout=90)
         candidate_sha=git(worktree,"rev-parse","HEAD")
         fields={"candidate_sha":candidate_sha,"changed_files":json.dumps(changed),
-                "qc_evidence":json.dumps({"static":"passed","tests":tests,"independent_qc":"passed"})}
+                "qc_evidence":json.dumps({"static":"passed","tests":tests,"independent_qc":"passed"}),
+                "tool_count":tools}
         state.set_task(tid,"awaiting_review",fields=fields)
         emit("awaiting_review","qc_passed_candidate_ready")
         if auto_integrate:
@@ -933,13 +934,13 @@ def execute_claim(state: State, item: dict, *, slot: int, model: str, effort: st
             (state.home/"PAUSED_QUOTA").touch(exist_ok=True)
         stage="stopped" if (state.home/"STOP").exists() else "failed"
         try:
-            state.set_task(tid,stage,error=error)
+            state.set_task(tid,stage,error=error,fields={"tool_count":tools})
         except Exception:
             # A reporting failure must not escape the worker future and strand
             # sibling claims; the durable task DB remains the source of truth.
             error="worker_state_update_failed"
             try:
-                state.set_task(tid,stage,error=error)
+                state.set_task(tid,stage,error=error,fields={"tool_count":tools})
             except Exception:
                 pass
         try:
