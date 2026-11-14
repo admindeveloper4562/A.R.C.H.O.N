@@ -902,6 +902,7 @@ def integrate(state: State, tid: str, *, merger_model: str | None = None, merger
             task=json.loads(data["spec"]), danger_bypass=danger_bypass,
         )
         if not accepted:
+            state.set_task(tid, "failed", error=review_reason)
             if review_reason.startswith("merger_rejected:"):
                 raise ReviewFailure(review_reason)
             raise ValueError(review_reason)

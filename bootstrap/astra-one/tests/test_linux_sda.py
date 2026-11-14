@@ -558,6 +558,33 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change','status':
         self.assertEqual(git(self.repo,"branch","--show-current"),"develop")
         self.assertNotEqual(self.state.get("integration_sha"),self.state.get("source_sha"))
 
+    def test_merger_rejection_fails_task_and_preserves_rebuild_queue(self):
+        self.state.add_tasks(task(1))
+        claim=self.state.claim()
+        base=self.state.get("integration_sha")
+        branch="feature/astra-test-merger-rejection"
+        candidate=self.state.home/"worktrees"/"candidate-merger-rejection"
+        git(self.repo,"worktree","add","-b",branch,str(candidate),base)
+        (candidate/"added.py").write_text("VALUE = 1\n")
+        changed=check_changes(candidate,base)
+        git(candidate,"add","--",*changed)
+        git(candidate,"-c","user.name=as","-c","user.email=as@local.invalid","commit","-m","candidate")
+        sha=git(candidate,"rev-parse","HEAD")
+        self.state.set_task("ASTRA-001","awaiting_review",fields={
+            "worktree":str(candidate),"branch":branch,"base_sha":base,
+            "candidate_sha":sha,"changed_files":json.dumps(changed),
+            "qc_evidence":'{"independent_qc":"passed"}',
+        })
+        self.state.approve("ASTRA-001")
+        with patch("astra_one.linux_runtime.merger_review_result",return_value=(False,"merger_rejected:payload_exposure")):
+            with self.assertRaisesRegex(ReviewFailure,"merger_rejected:payload_exposure"):
+                integrate(self.state,"ASTRA-001",merger_model="gpt-5.6-luna")
+        row=self.state.list_tasks()[0]
+        self.assertEqual(row["status"],"failed")
+        self.assertEqual(row["last_error"],"merger_rejected:payload_exposure")
+        with self.state.db() as db:
+            self.assertIsNone(db.execute("SELECT 1 FROM merge_queue WHERE parent_id='ASTRA-001'").fetchone())
+
     def test_merger_rejects_candidate_trailing_whitespace_before_apply(self):
         self.state.add_tasks(task(1))
         claim=self.state.claim()
