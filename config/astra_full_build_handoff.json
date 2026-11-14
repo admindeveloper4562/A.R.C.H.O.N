@@ -30,5 +30,22 @@
     "REL-021",
     "MIG-012"
   ],
-  "created": "2026-11-14"
+  "created": "2026-11-14",
+  "module_subtask_files": [
+    "docs/tasks/subtasks/BASE.json",
+    "docs/tasks/subtasks/SDA.json",
+    "docs/tasks/subtasks/MIG.json",
+    "docs/tasks/subtasks/CORE.json",
+    "docs/tasks/subtasks/BACK.json",
+    "docs/tasks/subtasks/AUTO.json",
+    "docs/tasks/subtasks/WIN.json",
+    "docs/tasks/subtasks/GUARD.json",
+    "docs/tasks/subtasks/RUN.json",
+    "docs/tasks/subtasks/RES.json",
+    "docs/tasks/subtasks/TWS.json",
+    "docs/tasks/subtasks/WIC.json",
+    "docs/tasks/subtasks/FIN.json",
+    "docs/tasks/subtasks/REL.json"
+  ],
+  "subtask_index": "docs/tasks/JARVIS_V2_SUBTASK_PLAN.json"
 }
