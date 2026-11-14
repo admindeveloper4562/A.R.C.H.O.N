@@ -756,12 +756,24 @@ def merger_review_result(state: State, integration: Path, tid: str, patch: bytes
             "Do not use Markdown, a code fence, null, an object, or any additional text. "
             f"Task ID: {tid}.\n{context}Patch preview (bounded; middle may be omitted):\n{preview}")
     last_error = "merger_runtime_error"
-    for review_attempt in range(2):
+    schema_retries = 0
+    adjudication = False
+    prior_categories = ""
+    for review_attempt in range(3):
         result_file=state.home/"private"/("merger-"+uuid.uuid4().hex+".json")
-        retry_note = "" if review_attempt == 0 else (
+        retry_note = ""
+        if schema_retries:
+            retry_note += (
             "\nSchema retry: the previous reviewer response was not valid for the required contract. "
             "Return only the exact JSON object requested above; this is the final bounded reviewer attempt.\n"
-        )
+            )
+        if adjudication:
+            retry_note += (
+                "\nAdjudication review: a prior bounded reviewer returned the safe categories "
+                f"{prior_categories}. Re-evaluate the candidate independently using the inspected files. "
+                "Do not accept or reject solely because of that prior result. Return PASS if no concrete "
+                "defect is supported; otherwise return FAIL with exact changed paths and actionable defects.\n"
+            )
         try:
             rc,_,reason=codex_call(worktree=integration,prompt=prompt+retry_note,home=state.home,state=state,
                                    model=model,effort=effort,sandbox="read-only",timeout=600,
@@ -776,10 +788,15 @@ def merger_review_result(state: State, integration: Path, tid: str, patch: bytes
                 if not isinstance(findings,list) or len(findings)>20 or any(not isinstance(item,str) or not item or len(item)>500 for item in findings):
                     last_error = "merger_invalid_findings"
                 elif obj["verdict"] == "PASS" and not findings:
-                    return True, "merger_pass"
+                    return True, "merger_pass_after_adjudication" if adjudication else "merger_pass"
+                elif not adjudication:
+                    prior_categories = ",".join(review_finding_codes(findings))
+                    adjudication = True
+                    continue
                 else:
                     return False, review_failure_code("merger_rejected", findings)
-            if review_attempt == 0:
+            if not schema_retries:
+                schema_retries = 1
                 continue
             return False, last_error
         except (OSError,ValueError,json.JSONDecodeError,subprocess.SubprocessError):

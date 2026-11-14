@@ -449,6 +449,30 @@ class LinuxSDATests(unittest.TestCase):
         self.assertEqual(len(calls), 2)
         self.assertIn("Schema retry", calls[1])
 
+    def test_merger_adjudicates_one_concrete_rejection(self):
+        calls = []
+
+        def fake_merger_call(*, output_file, **kwargs):
+            calls.append(kwargs["prompt"])
+            if len(calls) == 1:
+                output_file.write_text(
+                    '{"verdict":"FAIL","findings":[".github/workflows/ci.yml has a concrete integration defect"]}'
+                )
+            else:
+                output_file.write_text('{"verdict":"PASS","findings":[]}')
+            return 0, 0, "ok"
+
+        with patch("astra_one.linux_runtime.codex_call", side_effect=fake_merger_call):
+            accepted, reason = merger_review_result(
+                self.state, self.repo, "BASE-001", b"candidate\n",
+                model="gpt-5.6-luna", effort="medium",
+            )
+        self.assertTrue(accepted)
+        self.assertEqual(reason, "merger_pass_after_adjudication")
+        self.assertEqual(len(calls), 2)
+        self.assertIn("Adjudication review", calls[1])
+        self.assertIn("integration_risk", calls[1])
+
     def test_static_change_rejects_invalid_python(self):
         b=git(self.repo,"rev-parse","HEAD")
         (self.repo/"bad.py").write_text("def (")
