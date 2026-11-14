@@ -242,7 +242,9 @@ class State:
                 attempt=row["attempt"]+1
                 rid=str(uuid.uuid4())
                 role="worker" if attempt==1 else "repairer"
-                db.execute("UPDATE tasks SET status='preflight',attempt=?,last_run=?,updated_at=? WHERE id=?",(attempt,rid,now(),t["task_id"]))
+                db.execute("""UPDATE tasks SET status='preflight',attempt=?,last_run=?,last_error='',
+                           candidate_sha='',changed_files='[]',qc_evidence='',base_sha='',branch='',worktree='',updated_at=?
+                           WHERE id=?""",(attempt,rid,now(),t["task_id"]))
                 db.execute("INSERT INTO runs(id,task_id,attempt,role,status,started_at,model) VALUES (?,?,?,?,?,?,?)",
                            (rid,t["task_id"],attempt,role,"preflight",now(),model))
                 db.execute("COMMIT")
@@ -254,15 +256,29 @@ class State:
         if status not in {"queued","preflight","coding","verifying","awaiting_review","approved","completed","failed","interrupted","conflict","stopped"}:
             raise ValueError("unknown task state")
         params = {"status":status,"updated_at":now()}
+        error_code = ""
         if error:
-            params["last_error"] = error[:160]
+            error_code = error[:160]
+            params["last_error"] = error_code
         if fields:
             params.update(fields)
         columns=", ".join(f"{k}=?" for k in params)
         with self.db() as db:
             db.execute(f"UPDATE tasks SET {columns} WHERE id=?",tuple(params.values())+(tid,))
-            db.execute("UPDATE runs SET status=?,finished_at=CASE WHEN ? THEN ? ELSE finished_at END WHERE id=(SELECT last_run FROM tasks WHERE id=?)",
-                       (status,int(status in {"awaiting_review","approved","completed","failed","interrupted","conflict","stopped"}),now(),tid))
+            terminal = int(status in {"awaiting_review","approved","completed","failed","interrupted","conflict","stopped"})
+            db.execute("""UPDATE runs SET status=?,
+                       error_code=CASE WHEN ? <> '' THEN ? ELSE error_code END,
+                       finished_at=CASE WHEN ? THEN ? ELSE finished_at END
+                       WHERE id=(SELECT last_run FROM tasks WHERE id=?)""",
+                       (status,error_code,error_code,terminal,now(),tid))
+
+    def failure_codes(self, tid: str) -> list[str]:
+        """Return bounded failure codes in attempt order; never returns model text."""
+        with self.db() as db:
+            return [str(row[0])[:160] for row in db.execute(
+                "SELECT error_code FROM runs WHERE task_id=? AND error_code<>'' ORDER BY attempt,started_at",
+                (tid,)
+            )]
 
     def emit(self, tid: str, run_id: str, *, stage: str, step: str, branch: str, base_sha: str,
              tools: int = 0, attempt: int = 1, elapsed: int = 0, result: str = ""):
@@ -327,5 +343,5 @@ class State:
         with self.db() as db:
             counts={r[0]:r[1] for r in db.execute("SELECT status,count(*) FROM tasks GROUP BY status")}
             pending=db.execute("SELECT count(*) FROM events WHERE synced=0").fetchone()[0]
-        return {"version":VERSION,"approved_architecture":bool(self.get("approved_architecture_sha")),"workers_max":MAX_WORKERS,"integration_sha":self.get("integration_sha"),"tasks":counts,"monitor_pending":pending,
+        return {"version":VERSION,"state_version":self.get("version"),"approved_architecture":bool(self.get("approved_architecture_sha")),"workers_max":MAX_WORKERS,"integration_sha":self.get("integration_sha"),"tasks":counts,"monitor_pending":pending,
                 "stop":(self.home/"STOP").exists(),"pause":(self.home/"PAUSE").exists(),"quota_pause":(self.home/"PAUSED_QUOTA").exists()}

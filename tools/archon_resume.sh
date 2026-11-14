@@ -33,6 +33,15 @@ fi
 cd "$ASTRA"
 python3 scripts/verify_manifest.py
 python3 -m astra_one.linux_cli doctor --source "$SRC"
+SANDBOX_READY="$(PYTHONPATH=. python3 - <<'PY'
+from astra_one.linux_runtime import sandbox_status
+print('yes' if sandbox_status()['available'] else 'no')
+PY
+)"
+if [[ "$SANDBOX_READY" != yes ]]; then
+  echo 'Codex Linux sandbox is unavailable; load the Ubuntu AppArmor bubblewrap profile before resuming Astra.' >&2
+  exit 2
+fi
 if [[ ! -f "$STATE/sda.sqlite3" ]]; then
   python3 -m astra_one.linux_cli --home "$STATE" init --source "$SRC"
 fi

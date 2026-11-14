@@ -1,4 +1,4 @@
-# Astra One Linux — Full SDA orchestration (v0.2.0)
+# Astra One Linux — Full SDA orchestration (v0.2.1)
 
 ## Scope and status
 
@@ -6,7 +6,7 @@ This Linux edition uses **normal authenticated OpenAI Codex**, NOT Ollama, with 
 
 **Implementation:** local SQLite task DAG, Supervisor planning, a five-slot parallel Master, fresh worker worktrees and retries, separate read-only QC Codex invocations, tests in a Docker container with network disabled, separate read-only Merger Codex review, Git apply/check + serialized local integration, owner STOP/PAUSE/PAUSED_QUOTA, crash recovery, no remote Git push, and optional metadata-only Cloudflare progress events.
 
-**Verification so far:** unit tests plus an end-to-end **mock Codex** pipeline on Linux. Actual CLI account entitlements, cloud quota, the Docker daemon, the JARVIS repository's full tests, failure handling under real network loss, and long-run scheduling must be verified on the target Linux host before unattended use. It is not a production-ready self-updater and does not autonomously restart host services.
+**Verification so far:** unit tests, deterministic failure/recovery tests, and an end-to-end **mock Codex** pipeline on Linux. Actual CLI account entitlements, cloud quota, the Docker daemon, the JARVIS repository's full tests, failure handling under real network loss, and long-run scheduling must be verified on the target Linux host before unattended use. It is not a production-ready self-updater and does not autonomously restart host services.
 
 ## 1. System requirements
 
@@ -25,6 +25,16 @@ cd "$HOME/Projects/astra-model-check"
 codex exec --ephemeral --sandbox read-only -m gpt-5.6-luna \
   -c model_reasoning_effort=medium "Reply with exactly ASTRA_READY"
 ```
+
+On Ubuntu 24.04, verify the Codex bubblewrap/user-namespace prerequisite before starting a Master:
+
+```bash
+python3 -m astra_one.linux_cli doctor
+```
+
+The doctor must report `sandbox.available: true`. If it reports `user_namespace_unavailable`, stop and install/load the distribution's supported bubblewrap AppArmor profile according to the official Codex sandbox guidance; do **not** disable the system-wide AppArmor restriction. Astra now fails closed before claiming a task when this prerequisite is unavailable. The dangerous Codex bypass is for disposable diagnostics only and is never an unattended worker mode.
+
+The configured Docker test image must contain every tool required by the selected test command. In particular, `python:3.12-slim` does not include Git, while the repository's importer tests invoke Git; use a reviewed local image containing Git for the complete suite, or select a narrower command whose dependencies are present. Astra does not install packages or pull/build images automatically.
 
 If the model is unavailable to your account, stop. Don't edit the package to claim it's running Luna when the backend uses another model. Codex uses the account's normal usage limits and/or API charges depending on how you signed in.
 

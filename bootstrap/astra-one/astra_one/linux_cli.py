@@ -15,7 +15,7 @@ import time
 import uuid
 
 from .linux_sda import DEFAULT_HOME, EFFORT, MAX_FAILURES, MAX_WORKERS, MODEL, State, assert_source, task_spec
-from .linux_runtime import codex_call, ensure_integration, integrate, execute_claim
+from .linux_runtime import codex_call, ensure_integration, integrate, execute_claim, sandbox_status
 
 
 def report(obj: object):
@@ -35,7 +35,7 @@ def diagnose(source: Path | None) -> dict:
         except (OSError,subprocess.TimeoutExpired):pass
     answer={"platform":platform.system(),"tools":tools,"codex":version,"authenticated":authenticated,
             "requested_model":MODEL,"effort":EFFORT,"model_entitlement":"must be verified on target account",
-            "max_workers":MAX_WORKERS,"ollama_required":False}
+            "max_workers":MAX_WORKERS,"ollama_required":False,"sandbox":sandbox_status()}
     if source:
         try:
             p,sha=assert_source(source)
@@ -103,11 +103,50 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
     state.ensure_approved()
     if not test_image:
         raise ValueError("Docker test image required for independent QC")
+    if not sandbox_status()["available"]:
+        raise ValueError("sandbox_unavailable")
     if any((state.home/x).exists() for x in ("STOP","PAUSE","PAUSED_QUOTA")):
         raise ValueError("STOP/PAUSE/PAUSED_QUOTA prevents master start")
     attempted=0
     completed=0
     failed=0
+    requeued=0
+    terminal_failures=0
+    blockers=[]
+
+    def retry_decision(tid: str, result: dict) -> str:
+        """Return an empty string when a failed task may receive one repair attempt."""
+        if result.get("status") != "failed":
+            return "not_retryable_state"
+        with state.db() as db:
+            row=db.execute("SELECT attempt FROM tasks WHERE id=?",(tid,)).fetchone()
+        if not row or row[0] > max_repairs:
+            return "retry_ceiling"
+        codes=state.failure_codes(tid)
+        if len(codes)>=2 and codes[-1]==codes[-2]:
+            return "repeated_failure"
+        return ""
+
+    def maybe_requeue(tid: str, result: dict) -> str:
+        nonlocal requeued, terminal_failures
+        markers=[x for x in ("STOP","PAUSE","PAUSED_QUOTA") if (state.home/x).exists()]
+        if markers:
+            blocker=result.get("error") or markers[0].lower()
+            if blocker not in blockers:
+                blockers.append(blocker)
+            return "paused"
+        decision=retry_decision(tid,result)
+        if decision:
+            terminal_failures+=1
+            if result.get("error") and decision not in blockers:
+                blockers.append(result["error"])
+            return decision
+        with state.db() as db:
+            db.execute("UPDATE tasks SET status='queued',available_at=?,updated_at=? WHERE id=?",
+                       (int(time.time())+2, __import__('astra_one.linux_sda',fromlist=['now']).now(),tid))
+        requeued+=1
+        return "requeued"
+
     with state.master_lock():
         ensure_integration(state)
         deadline=time.monotonic()+max_minutes*60
@@ -144,19 +183,18 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
                                 integrate(state,tid,merger_model=model,merger_effort=effort)
                                 completed+=1
                             except (ValueError,OSError,subprocess.SubprocessError) as ex:
-                                print(f"Merger blocked {tid}: {ex}",file=sys.stderr)
+                                with state.db() as db:
+                                    row=db.execute("SELECT status FROM tasks WHERE id=?",(tid,)).fetchone()
+                                if row and row[0]=="approved":
+                                    state.set_task(tid,"failed",error="merger_failed")
+                                result={"task_id":tid,"status":"failed","error":"merger_failed"}
                                 failed+=1
+                                maybe_requeue(tid,result)
                         elif result["status"]=="awaiting_review":
                             completed+=1
                         else:
                             failed+=1
-                            with state.db() as db:
-                                row=db.execute("SELECT attempt FROM tasks WHERE id=?",(tid,)).fetchone()
-                            if (row and result["status"]=="failed" and row[0]<=max_repairs
-                                    and not any((state.home/x).exists() for x in ("STOP","PAUSE","PAUSED_QUOTA"))):
-                                with state.db() as db:
-                                    db.execute("UPDATE tasks SET status='queued',available_at=?,updated_at=? WHERE id=?",
-                                               (int(time.time())+2, __import__('astra_one.linux_sda',fromlist=['now']).now(),tid))
+                            maybe_requeue(tid,result)
                     if attempted % 5==0 or done:
                         state.sync(limit=25)
             except KeyboardInterrupt:
@@ -169,8 +207,19 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
                     (state.home/"STOP").touch(exist_ok=True)
                     print("Master runtime limit reached: STOP set for active workers.",file=sys.stderr)
                 state.sync(limit=100)
+    with state.db() as db:
+        task_counts={row[0]:row[1] for row in db.execute("SELECT status,count(*) FROM tasks GROUP BY status")}
+    markers={x for x in ("STOP","PAUSE","PAUSED_QUOTA") if (state.home/x).exists()}
+    state_name=("failed" if terminal_failures else
+                "paused_quota" if "PAUSED_QUOTA" in markers else
+                "paused" if "PAUSE" in markers else
+                "stopped" if "STOP" in markers or task_counts.get("stopped",0) else
+                "queued" if task_counts.get("queued",0) else "idle")
     return {"attempts":attempted,"qc_passed":completed,"failures_or_conflicts":failed,
-            "worker_limit":workers,"engine":"stopped","source_unchanged":True,"no_remote_git_push":True}
+            "requeued":requeued,"terminal_failures":terminal_failures,
+            "queued_remaining":task_counts.get("queued",0),"task_counts":task_counts,
+            "blockers":blockers,"state":state_name,"worker_limit":workers,"engine":"stopped",
+            "source_unchanged":True,"no_remote_git_push":True}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -230,10 +279,12 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command=="run":
             command=json.loads(args.test_command_json)
             if not isinstance(command,list):raise ValueError("test command must be a JSON list")
-            report(run_master(state,workers=args.workers,max_tasks=args.max_tasks,max_minutes=args.max_minutes,
+            result=run_master(state,workers=args.workers,max_tasks=args.max_tasks,max_minutes=args.max_minutes,
                               model=args.model,effort=args.effort,test_image=args.test_image,test_command=command,
                               auto_integrate=args.auto_integrate,max_repairs=args.max_repairs,
-                              timeout=args.max_seconds_per_task))
+                              timeout=args.max_seconds_per_task)
+            report(result)
+            return 1 if result.get("terminal_failures") else 0
         return 0
     except (ValueError, OSError, subprocess.SubprocessError, json.JSONDecodeError) as ex:
         print("Astra Linux SDA refused: "+str(ex),file=sys.stderr)

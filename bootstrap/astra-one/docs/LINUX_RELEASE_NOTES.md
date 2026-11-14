@@ -1,4 +1,11 @@
-# Astra One Linux v0.2.0 — Development handoff
+# Astra One Linux v0.2.1 — Development handoff
+
+## Worker execution and validation repair
+
+- Change validation now records bounded categories such as `no_file_changes`, `changed_file_limit_exceeded`, `unsafe_changed_path`, `protected_file_modified`, `git_status_invalid` and `invalid_changed_file` instead of collapsing them into one message.
+- Codex JSON events with failed file edits and sandbox failures are recorded as explicit worker error codes, even when the CLI exits zero.
+- The Master preserves retry history, stops repeated failures early, reports queued/failed/stopped outcomes, and refuses to claim work when the local Codex sandbox prerequisite is unavailable.
+- Retry claims clear stale candidate fields while keeping prior failure codes for repair context.
 
 ## Built
 

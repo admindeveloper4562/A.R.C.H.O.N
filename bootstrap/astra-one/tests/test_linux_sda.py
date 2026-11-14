@@ -9,7 +9,14 @@ import unittest
 from unittest.mock import patch
 
 from astra_one.linux_sda import State, task_spec, git, assert_source
-from astra_one.linux_runtime import check_changes, codex_command, integrate, ensure_integration
+from astra_one.linux_runtime import (
+    ChangeValidationError,
+    check_changes,
+    codex_call,
+    codex_command,
+    integrate,
+    ensure_integration,
+)
 from astra_one.linux_cli import run_master
 
 
@@ -74,6 +81,21 @@ class LinuxSDATests(unittest.TestCase):
         self.state.retry("ASTRA-001")
         self.assertEqual(self.state.list_tasks()[0]["status"],"queued")
 
+    def test_retry_claim_clears_stale_attempt_fields_but_keeps_history(self):
+        self.state.add_tasks(task(1))
+        first=self.state.claim()
+        self.state.set_task("ASTRA-001","failed",error="no_file_changes",
+                            fields={"candidate_sha":"a"*40,"changed_files":"[\"old.py\"]",
+                                    "qc_evidence":"old-review","base_sha":"b"*40,
+                                    "branch":"feat/core/old","worktree":"/old"})
+        self.state.retry("ASTRA-001")
+        second=self.state.claim()
+        self.assertEqual(second["prior_error"],"no_file_changes")
+        with self.state.db() as db:
+            row=db.execute("SELECT last_error,candidate_sha,changed_files,qc_evidence,base_sha,branch,worktree FROM tasks WHERE id='ASTRA-001'").fetchone()
+        self.assertEqual(tuple(row),("","","[]","","","",""))
+        self.assertEqual(self.state.failure_codes("ASTRA-001"),["no_file_changes"])
+
     def test_plan_is_atomic(self):
         with self.assertRaisesRegex(ValueError,"dependencies"):
             self.state.add_tasks([task(1),task(2,["ASTRA-999"])])
@@ -94,6 +116,34 @@ class LinuxSDATests(unittest.TestCase):
         b=git(self.repo,"rev-parse","HEAD")
         (self.repo/"candidate.py").write_text("def f():\n    return 7\n")
         self.assertEqual(check_changes(self.repo,b),["candidate.py"])
+
+    def test_static_change_accepts_multiple_files_within_limit(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        (self.repo/"one.py").write_text("value = 1\n")
+        (self.repo/"two.json").write_text('{"value": 2}\n')
+        self.assertEqual(check_changes(self.repo,b),["one.py","two.json"])
+
+    def test_static_change_rejects_zero_files_with_specific_code(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        with self.assertRaises(ChangeValidationError) as caught:
+            check_changes(self.repo,b)
+        self.assertEqual(caught.exception.code,"no_file_changes")
+
+    def test_static_change_rejects_file_limit_with_specific_code(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        (self.repo/"one.py").write_text("value = 1\n")
+        (self.repo/"two.py").write_text("value = 2\n")
+        with patch("astra_one.linux_runtime.MAX_FILES",1):
+            with self.assertRaises(ChangeValidationError) as caught:
+                check_changes(self.repo,b)
+        self.assertEqual(caught.exception.code,"changed_file_limit_exceeded")
+
+    def test_static_change_parses_staged_and_unstaged_porcelain(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        (self.repo/"staged.py").write_text("value = 1\n")
+        git(self.repo,"add","--","staged.py")
+        (self.repo/"staged.py").write_text("value = 2\n")
+        self.assertEqual(check_changes(self.repo,b),["staged.py"])
 
     def test_static_change_rejects_delete(self):
         b=git(self.repo,"rev-parse","HEAD")
@@ -116,8 +166,43 @@ class LinuxSDATests(unittest.TestCase):
     def test_static_change_rejects_invalid_python(self):
         b=git(self.repo,"rev-parse","HEAD")
         (self.repo/"bad.py").write_text("def (")
-        with self.assertRaises(SyntaxError):
+        with self.assertRaises(ChangeValidationError) as caught:
             check_changes(self.repo,b)
+        self.assertEqual(caught.exception.code,"invalid_changed_file")
+
+    def test_codex_success_without_file_changes_is_not_a_worker_success(self):
+        executable=self.base/"no-edit-codex"
+        executable.write_text("""#!/usr/bin/env python3
+import json
+print(json.dumps({'type':'turn.completed'}))
+""")
+        executable.chmod(0o755)
+        with patch.dict(os.environ,{"ASTRA_CODEX_BIN":str(executable)}), patch("astra_one.linux_runtime.sandbox_status",return_value={"available":True,"reason":"test"}):
+            rc,tools,reason=codex_call(worktree=self.repo,prompt="do nothing",home=self.state.home,state=self.state,
+                                       model="gpt-5.6-luna",effort="medium",sandbox="workspace-write",timeout=60)
+        self.assertEqual((rc,tools,reason),(0,0,"ok"))
+        with self.assertRaisesRegex(ChangeValidationError,"no_file_changes"):
+            check_changes(self.repo,git(self.repo,"rev-parse","HEAD"))
+
+    def test_codex_failed_file_change_event_is_reported(self):
+        executable=self.base/"failed-edit-codex"
+        executable.write_text("""#!/usr/bin/env python3
+import json
+print(json.dumps({'type':'item.completed','item':{'type':'file_change','status':'failed'}}))
+""")
+        executable.chmod(0o755)
+        with patch.dict(os.environ,{"ASTRA_CODEX_BIN":str(executable)}), patch("astra_one.linux_runtime.sandbox_status",return_value={"available":True,"reason":"test"}):
+            rc,tools,reason=codex_call(worktree=self.repo,prompt="edit",home=self.state.home,state=self.state,
+                                       model="gpt-5.6-luna",effort="medium",sandbox="workspace-write",timeout=60)
+        self.assertEqual(rc,0)
+        self.assertEqual(reason,"codex_file_change_failed")
+
+    def test_codex_sandbox_failure_is_reported_before_process_start(self):
+        with patch("astra_one.linux_runtime.sandbox_status",return_value={"available":False,"reason":"user_namespace_unavailable"}), patch("astra_one.linux_runtime.subprocess.Popen") as start:
+            result=codex_call(worktree=self.repo,prompt="edit",home=self.state.home,state=self.state,
+                              model="gpt-5.6-luna",effort="medium",sandbox="workspace-write",timeout=60)
+        self.assertEqual(result,(126,0,"sandbox_unavailable"))
+        start.assert_not_called()
 
     def test_five_worker_parallel_scheduler(self):
         self.state.add_tasks([task(i) for i in range(1,6)])
@@ -130,7 +215,7 @@ class LinuxSDATests(unittest.TestCase):
             state.set_task(item["task"]["task_id"],"awaiting_review")
             with lock:current[0]-=1
             return {"task_id":item["task"]["task_id"],"status":"awaiting_review"}
-        with patch("astra_one.linux_cli.os.geteuid",return_value=1000), patch("astra_one.linux_cli.execute_claim",side_effect=fake_execute):
+        with patch("astra_one.linux_cli.os.geteuid",return_value=1000), patch("astra_one.linux_cli.sandbox_status",return_value={"available":True,"reason":"test"}), patch("astra_one.linux_cli.execute_claim",side_effect=fake_execute):
             result=run_master(self.state,workers=5,max_tasks=5,max_minutes=1,model="gpt-5.6-luna",effort="medium",
                               test_image="python:3.12-slim",test_command=["python3","-m","unittest"],
                               auto_integrate=False,max_repairs=0,timeout=60)
@@ -189,7 +274,7 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change'}}))
 """)
         executable.chmod(0o755)
         self.state.add_tasks([task(i) for i in range(1,6)])
-        with patch("astra_one.linux_cli.os.geteuid",return_value=1000), patch.dict(os.environ,{"ASTRA_CODEX_BIN":str(executable)}), patch("astra_one.linux_runtime.docker_test",return_value={"passed":True,"exit_code":0,"sandbox":"mock_docker"}):
+        with patch("astra_one.linux_cli.os.geteuid",return_value=1000), patch("astra_one.linux_cli.sandbox_status",return_value={"available":True,"reason":"test"}), patch.dict(os.environ,{"ASTRA_CODEX_BIN":str(executable)}), patch("astra_one.linux_runtime.sandbox_status",return_value={"available":True,"reason":"test"}), patch("astra_one.linux_runtime.docker_test",return_value={"passed":True,"exit_code":0,"sandbox":"mock_docker"}):
             result=run_master(self.state,workers=5,max_tasks=5,max_minutes=2,model="gpt-5.6-luna",effort="medium",
                 test_image="python:3.12-slim",test_command=["python3","-m","unittest"],auto_integrate=True,max_repairs=0,timeout=60)
         self.assertEqual(result["qc_passed"],5)
@@ -198,6 +283,53 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change'}}))
         self.assertEqual(len(list(integrated.glob("astra_*.py"))),5)
         self.assertTrue(all(t["status"]=="completed" for t in self.state.list_tasks()))
         self.assertEqual(git(self.repo,"branch","--show-current"),"develop")
+
+    def test_repeated_worker_failure_stops_before_retry_ceiling(self):
+        self.state.add_tasks(task(1))
+        calls=[]
+        def fake_execute(state,item,**kwargs):
+            calls.append(item["attempt"])
+            state.set_task(item["task"]["task_id"],"failed",error="no_file_changes")
+            return {"task_id":item["task"]["task_id"],"status":"failed","error":"no_file_changes"}
+        with patch("astra_one.linux_cli.os.geteuid",return_value=1000), patch("astra_one.linux_cli.sandbox_status",return_value={"available":True,"reason":"test"}), patch("astra_one.linux_cli.execute_claim",side_effect=fake_execute):
+            result=run_master(self.state,workers=1,max_tasks=10,max_minutes=1,model="gpt-5.6-luna",effort="medium",
+                              test_image="python:3.12-slim",test_command=["python3","-m","unittest"],
+                              auto_integrate=False,max_repairs=3,timeout=60)
+        self.assertEqual(calls,[1,2])
+        self.assertEqual(result["requeued"],1)
+        self.assertEqual(result["terminal_failures"],1)
+        self.assertEqual(result["state"],"failed")
+        self.assertEqual(self.state.list_tasks()[0]["status"],"failed")
+        self.assertEqual(self.state.failure_codes("ASTRA-001"),["no_file_changes","no_file_changes"])
+
+    def test_master_refuses_before_claim_when_sandbox_unavailable(self):
+        self.state.add_tasks(task(1))
+        with patch("astra_one.linux_cli.os.geteuid",return_value=1000), patch("astra_one.linux_cli.sandbox_status",return_value={"available":False,"reason":"user_namespace_unavailable"}):
+            with self.assertRaisesRegex(ValueError,"sandbox_unavailable"):
+                run_master(self.state,workers=1,max_tasks=1,max_minutes=1,model="gpt-5.6-luna",effort="medium",
+                           test_image="python:3.12-slim",test_command=["python3","-m","unittest"],
+                           auto_integrate=False,max_repairs=0,timeout=60)
+        self.assertEqual(self.state.list_tasks()[0]["status"],"queued")
+
+    def test_worker_failure_can_recover_on_bounded_repair(self):
+        self.state.add_tasks(task(1))
+        calls=[]
+        def fake_execute(state,item,**kwargs):
+            calls.append(item["attempt"])
+            if item["attempt"] == 1:
+                state.set_task(item["task"]["task_id"],"failed",error="codex_file_change_failed")
+                return {"task_id":item["task"]["task_id"],"status":"failed","error":"codex_file_change_failed"}
+            state.set_task(item["task"]["task_id"],"awaiting_review")
+            return {"task_id":item["task"]["task_id"],"status":"awaiting_review"}
+        with patch("astra_one.linux_cli.os.geteuid",return_value=1000), patch("astra_one.linux_cli.sandbox_status",return_value={"available":True,"reason":"test"}), patch("astra_one.linux_cli.execute_claim",side_effect=fake_execute):
+            result=run_master(self.state,workers=1,max_tasks=2,max_minutes=1,model="gpt-5.6-luna",effort="medium",
+                              test_image="python:3.12-slim",test_command=["python3","-m","unittest"],
+                              auto_integrate=False,max_repairs=3,timeout=60)
+        self.assertEqual(calls,[1,2])
+        self.assertEqual(result["requeued"],1)
+        self.assertEqual(result["terminal_failures"],0)
+        self.assertEqual(result["qc_passed"],1)
+        self.assertEqual(self.state.list_tasks()[0]["status"],"awaiting_review")
 
     def test_event_metadata_accepts_new_rebuild_branch_policy(self):
         self.state.add_tasks(task(1))

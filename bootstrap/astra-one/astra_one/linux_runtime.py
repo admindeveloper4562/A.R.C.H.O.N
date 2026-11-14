@@ -21,57 +21,119 @@ ALLOWED_SUFFIXES = {".py", ".js", ".jsx", ".ts", ".tsx", ".json", ".toml", ".md"
 MAX_FILES = 30
 MAX_BYTES = 2_000_000
 STOP_POLL = 0.3
+CHANGE_FAILURE_CODES = frozenset({
+    "no_file_changes",
+    "changed_file_limit_exceeded",
+    "changed_size_limit_exceeded",
+    "unsafe_changed_path",
+    "protected_file_modified",
+    "git_status_invalid",
+    "invalid_changed_file",
+})
+
+
+class ChangeValidationError(ValueError):
+    """A bounded, non-sensitive reason for rejecting a candidate worktree."""
+
+    def __init__(self, code: str, detail: str = ""):
+        if code not in CHANGE_FAILURE_CODES:
+            raise ValueError("unknown change validation code")
+        self.code = code
+        message = code if not detail else f"{code}: {detail}"
+        super().__init__(message)
+
+
+def sandbox_status() -> dict[str, str | bool]:
+    """Check the local Codex sandbox prerequisite without touching the worktree."""
+    bwrap = shutil_which("bwrap")
+    if not bwrap:
+        return {"available": False, "reason": "bubblewrap_missing"}
+    try:
+        result = subprocess.run(
+            [bwrap, "--die-with-parent", "--ro-bind", "/", "/", "--proc", "/proc",
+             "--dev", "/dev", "/bin/true"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+            timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return {"available": False, "reason": "user_namespace_unavailable"}
+    if result.returncode:
+        return {"available": False, "reason": "user_namespace_unavailable"}
+    return {"available": True, "reason": "ready"}
 
 
 def check_changes(worktree: Path, base_sha: str) -> list[str]:
     """Read-only static boundary. No generated code is executed."""
-    if git(worktree, "rev-parse", "HEAD") != base_sha:
-        raise ValueError("agent changed Git HEAD; refuse autonomous integration")
-    result = subprocess.run(["git", "-C", str(worktree), "status", "--porcelain", "-z", "--untracked-files=all"],
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False, timeout=20)
+    try:
+        head = git(worktree, "rev-parse", "HEAD")
+    except (OSError, ValueError, subprocess.SubprocessError) as ex:
+        raise ChangeValidationError("git_status_invalid", "cannot_read_head") from ex
+    if head != base_sha:
+        raise ChangeValidationError("git_status_invalid", "head_changed")
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(worktree), "status", "--porcelain", "-z", "--untracked-files=all"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+            timeout=20,
+        )
+    except (OSError, subprocess.SubprocessError) as ex:
+        raise ChangeValidationError("git_status_invalid", "status_failed") from ex
     if result.returncode:
-        raise ValueError("cannot inspect Git status")
-    entries = [x.decode("utf-8", "surrogateescape") for x in result.stdout.split(b"\0") if x]
-    if not entries or len(entries) > MAX_FILES:
-        raise ValueError("no changed files or exceeds maximum file count")
+        raise ChangeValidationError("git_status_invalid", "status_failed")
+    try:
+        entries = [x.decode("utf-8", "surrogateescape") for x in result.stdout.split(b"\0") if x]
+    except UnicodeError as ex:
+        raise ChangeValidationError("git_status_invalid", "status_encoding") from ex
+    if not entries:
+        raise ChangeValidationError("no_file_changes")
+    if len(entries) > MAX_FILES:
+        raise ChangeValidationError("changed_file_limit_exceeded")
     paths=[]
     size=0
     for item in entries:
         if len(item) < 4 or item[2] != " ":
-            raise ValueError("malformed Git status")
+            raise ChangeValidationError("git_status_invalid", "malformed_porcelain")
         code=item[:2]
-        if any(c in code for c in "DRCU!"):
-            raise ValueError("delete, rename, copy or conflict requires explicit owner approval")
+        if any(c in code for c in "DRCU!T"):
+            raise ChangeValidationError("unsafe_changed_path", "delete_rename_copy_conflict_or_typechange")
         path=item[3:]
         pure=PurePosixPath(path)
-        if (not path or len(path) > 250 or pure.is_absolute() or any(p in (".", "..") or p.startswith(".") or p in PROTECTED_PARTS for p in pure.parts)
-                or pure.name in PROTECTED or pure.suffix.lower() not in ALLOWED_SUFFIXES):
-            raise ValueError("unsafe or protected changed path")
+        if any(p in PROTECTED_PARTS for p in pure.parts) or pure.name in PROTECTED:
+            raise ChangeValidationError("protected_file_modified")
+        if not path or len(path) > 250 or pure.is_absolute() or any(p in (".", "..") or p.startswith(".") for p in pure.parts) or pure.suffix.lower() not in ALLOWED_SUFFIXES:
+            raise ChangeValidationError("unsafe_changed_path", "hidden_or_unsupported_path")
         target=worktree.joinpath(*pure.parts)
         current=worktree
         for part in pure.parts[:-1]:
             current=current/part
             if current.is_symlink() or not current.is_dir():
-                raise ValueError("symlink or missing parent")
+                raise ChangeValidationError("unsafe_changed_path", "symlink_or_missing_parent")
         try:
             s=target.lstat()
         except FileNotFoundError as ex:
-            raise ValueError("changed file missing") from ex
+            raise ChangeValidationError("unsafe_changed_path", "changed_file_missing") from ex
         if not stat.S_ISREG(s.st_mode) or target.is_symlink():
-            raise ValueError("only ordinary files permitted")
+            raise ChangeValidationError("unsafe_changed_path", "only_ordinary_files")
         size+=s.st_size
         if size>MAX_BYTES:
-            raise ValueError("changed code size exceeds limit")
+            raise ChangeValidationError("changed_size_limit_exceeded")
         # Read a bounded amount only after stat-based size cap.
-        if target.suffix == ".py":
-            ast.parse(target.read_text(encoding="utf-8"),filename=path)
-        elif target.suffix == ".json":
-            json.loads(target.read_text(encoding="utf-8"))
-        elif target.suffix == ".toml":
-            tomllib.loads(target.read_text(encoding="utf-8"))
+        try:
+            if target.suffix == ".py":
+                ast.parse(target.read_text(encoding="utf-8"),filename=path)
+            elif target.suffix == ".json":
+                json.loads(target.read_text(encoding="utf-8"))
+            elif target.suffix == ".toml":
+                tomllib.loads(target.read_text(encoding="utf-8"))
+        except (SyntaxError, UnicodeError, json.JSONDecodeError, tomllib.TOMLDecodeError) as ex:
+            raise ChangeValidationError("invalid_changed_file") from ex
         paths.append(path)
     if len(set(paths)) != len(paths):
-        raise ValueError("duplicate changed paths")
+        raise ChangeValidationError("git_status_invalid", "duplicate_paths")
     return paths
 
 
@@ -103,13 +165,15 @@ def codex_call(*, worktree: Path, prompt: str, home: Path, state: State, model: 
     """Execute one bounded Codex turn, parse only event types, never write raw model logs."""
     if sandbox not in ("workspace-write","read-only"):
         raise ValueError("unsupported sandbox")
+    if not sandbox_status()["available"]:
+        return 126, 0, "sandbox_unavailable"
     cmd=codex_command(worktree,model,effort,output_file,sandbox)
     proc=subprocess.Popen(cmd,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,
                           text=True,encoding="utf-8",errors="replace",cwd=worktree,bufsize=1,start_new_session=True)
     assert proc.stdin and proc.stdout and proc.stderr
     proc.stdin.write(prompt)
     proc.stdin.close()
-    messages:queue.Queue[tuple[str,str]] = queue.Queue(maxsize=100)
+    messages:queue.Queue[str] = queue.Queue(maxsize=100)
     def reader(stream, tag):
         for line in stream:
             # Do not store prompts/code/output; only bounded error category signals.
@@ -119,16 +183,23 @@ def codex_call(*, worktree: Path, prompt: str, home: Path, state: State, model: 
                     kind=str(obj.get("type", ""))
                     item=obj.get("item") or {}
                     tool = isinstance(item,dict) and item.get("type") in ("command_execution","file_change","mcp_tool_call")
+                    status = str(item.get("status", "")) if isinstance(item, dict) else ""
                     if tool and kind=="item.completed":
-                        try:messages.put_nowait(("tool",""))
+                        event = "tool"
+                        if isinstance(item, dict) and item.get("type") == "file_change" and status in {"failed", "error", "cancelled"}:
+                            event = "file_change_failed"
+                        try:messages.put_nowait(event)
                         except queue.Full:pass
                     if kind in ("turn.failed","error"):
-                        try:messages.put_nowait(("error", ""))
+                        try:messages.put_nowait("error")
                         except queue.Full:pass
                 except (json.JSONDecodeError,TypeError):
                     pass
+            elif re.search(r"bubblewrap|bwrap|user.?namespace|setting up uid map",line,re.I):
+                try:messages.put_nowait("sandbox")
+                except queue.Full:pass
             elif re.search(r"quota|rate.limit|usage.limit|429",line,re.I):
-                try:messages.put_nowait(("quota", ""))
+                try:messages.put_nowait("quota")
                 except queue.Full:pass
         stream.close()
     readers=[threading.Thread(target=reader,args=(proc.stdout,"stdout"),daemon=True),
@@ -139,9 +210,11 @@ def codex_call(*, worktree: Path, prompt: str, home: Path, state: State, model: 
     reason="ok"
     while proc.poll() is None:
         while True:
-            try:key,_=messages.get_nowait()
+            try:key=messages.get_nowait()
             except queue.Empty:break
             if key=="tool":tools+=1
+            if key=="file_change_failed":reason="codex_file_change_failed"
+            if key=="sandbox":reason="sandbox_unavailable"
             if key=="quota":reason="quota_or_rate_limit"
             if key=="error" and reason=="ok":reason="model_error"
         if (home/"STOP").exists():reason="owner_stop";break
@@ -158,12 +231,16 @@ def codex_call(*, worktree: Path, prompt: str, home: Path, state: State, model: 
     code=proc.wait(timeout=10)
     for thread in readers:thread.join(timeout=2)
     while True:
-        try:key,_=messages.get_nowait()
+        try:key=messages.get_nowait()
         except queue.Empty:break
         if key=="tool":tools+=1
+        if key=="file_change_failed":reason="codex_file_change_failed"
+        if key=="sandbox":reason="sandbox_unavailable"
         if key=="quota":reason="quota_or_rate_limit"
         if key=="error" and reason=="ok":reason="model_error"
-    return code,tools,reason if code!=0 or reason!="ok" else "ok"
+    if code and reason=="ok":
+        reason="codex_nonzero"
+    return code,tools,reason
 
 
 def docker_test(worktree: Path, image: str, command: list[str], timeout: int = 300) -> dict:
@@ -254,6 +331,46 @@ def merger_review(state: State, integration: Path, tid: str, patch: bytes, *, mo
         return False
     finally:
         result_file.unlink(missing_ok=True)
+
+
+SAFE_WORKER_FAILURE_CODES = CHANGE_FAILURE_CODES | frozenset({
+    "sandbox_unavailable",
+    "codex_file_change_failed",
+    "codex_nonzero",
+    "model_error",
+    "quota_or_rate_limit",
+    "quota_paused",
+    "owner_stop",
+    "timeout",
+    "isolated_tests_failed",
+    "docker_qc_invalid",
+    "qc_agent_failed",
+    "qc_invalid_verdict",
+    "qc_invalid_findings",
+    "qc_rejected",
+    "qc_runtime_error",
+    "worker_timeout",
+    "worker_io_error",
+    "worker_runtime_error",
+    "progress_event_invalid",
+    "worker_state_update_failed",
+})
+
+
+def worker_failure_code(error: BaseException) -> str:
+    """Convert an internal failure to a stable, non-sensitive task error code."""
+    if isinstance(error, ChangeValidationError):
+        return error.code
+    if isinstance(error, subprocess.TimeoutExpired):
+        return "worker_timeout"
+    value = str(error)
+    if value == "invalid progress event":
+        return "progress_event_invalid"
+    if value in SAFE_WORKER_FAILURE_CODES:
+        return value
+    if isinstance(error, OSError):
+        return "worker_io_error"
+    return "worker_runtime_error"
 
 
 def ensure_integration(state: State) -> Path:
@@ -381,10 +498,24 @@ def execute_claim(state: State, item: dict, *, slot: int, model: str, effort: st
         return {"task_id":tid,"status":"approved" if auto_integrate else "awaiting_review","tools":tools}
     except Exception as ex:
         # Error code only. Never publish raw command output or source code.
-        error=str(ex)[:150]
-        if re.search(r"quota|rate.limit|usage.limit|429",error,re.I):
+        error=worker_failure_code(ex)
+        if error in {"quota_or_rate_limit", "quota_paused"} or re.search(r"quota|rate.limit|usage.limit|429",error,re.I):
             (state.home/"PAUSED_QUOTA").touch(exist_ok=True)
         stage="stopped" if (state.home/"STOP").exists() else "failed"
-        state.set_task(tid,stage,error=error)
-        emit(stage,"worker_failed","review_local_error")
+        try:
+            state.set_task(tid,stage,error=error)
+        except Exception:
+            # A reporting failure must not escape the worker future and strand
+            # sibling claims; the durable task DB remains the source of truth.
+            error="worker_state_update_failed"
+            try:
+                state.set_task(tid,stage,error=error)
+            except Exception:
+                pass
+        try:
+            emit(stage,"worker_failed",error)
+        except Exception:
+            # Progress reporting is best effort and must never turn a handled
+            # worker error into an uncaught Master exception.
+            pass
         return {"task_id":tid,"status":stage,"error":error,"tools":tools}

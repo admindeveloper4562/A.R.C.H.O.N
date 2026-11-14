@@ -14,11 +14,19 @@ done
 [[ -f "$STATE/sda.sqlite3" ]] || { echo 'Astra state is not initialized' >&2; exit 1; }
 cd "$ASTRA_ROOT"
 # Repeated calls are safe: the Python Master acquires an exclusive file lock.
-"${CLI[@]}" run \
+RUN_RC=0
+RUN_OUTPUT=$("${CLI[@]}" run \
   --workers 5 --model gpt-5.6-luna --effort medium \
   --max-tasks 10 --max-minutes 120 --max-seconds-per-task 1800 \
-  --max-repairs 3 --auto-integrate --test-image python:3.12-slim
-# A nonzero run, STOP, PAUSE or exhausted quota blocks Git publication.
+  --max-repairs 3 --auto-integrate --test-image python:3.12-slim 2>&1) || RUN_RC=$?
+printf '%s\n' "$RUN_OUTPUT"
+# A refusal to start is an operational error. A completed batch with terminal
+# worker failures may still publish unrelated, already-QC-approved commits;
+# retain its nonzero status for systemd after the publication check.
+if (( RUN_RC == 2 )); then
+  exit "$RUN_RC"
+fi
+# STOP, PAUSE or exhausted quota blocks Git publication.
 for marker in STOP PAUSE PAUSED_QUOTA; do
   if [[ -e "$STATE/$marker" ]]; then
     echo "[ARCHON/ATLAS] $marker blocks publication" >&2
@@ -28,7 +36,7 @@ done
 INTEGRATION="$STATE/integration"
 if [[ ! -d "$INTEGRATION/.git" && ! -f "$INTEGRATION/.git" ]]; then
   echo '[ARCHON/ATLAS] No local integration worktree yet; nothing to publish'
-  exit 0
+  exit "$RUN_RC"
 fi
 # Only a complete, independently reviewed local integration SHA is eligible.
 python3 - "$STATE/sda.sqlite3" "$INTEGRATION" <<'PY'
@@ -57,7 +65,7 @@ REMOTE_SHA="$(git rev-parse refs/remotes/origin/develop)"
 LOCAL_SHA="$(git rev-parse HEAD)"
 if [[ "$REMOTE_SHA" == "$LOCAL_SHA" ]]; then
   echo '[ARCHON/ATLAS] No new accepted commits to publish'
-  exit 0
+  exit "$RUN_RC"
 fi
 if ! git merge-base --is-ancestor "$REMOTE_SHA" "$LOCAL_SHA"; then
   echo '[ARCHON/ATLAS] Remote develop diverged: manual review required, no force push' >&2
@@ -71,3 +79,4 @@ git push origin HEAD:refs/heads/develop || {
   exit 1
 }
 printf '[ARCHON/ATLAS] Published verified integration commit %s to develop\n' "$LOCAL_SHA"
+exit "$RUN_RC"
