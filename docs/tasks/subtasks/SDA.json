@@ -5,7 +5,7 @@
   "module": "SDA",
   "module_name": "M1 — Astra One and full SDA qualification",
   "parent_count": 28,
-  "subtask_count": 163,
+  "subtask_count": 165,
   "parents": [
     {
       "parent_id": "SDA-001",
@@ -33,7 +33,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -168,7 +169,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -259,7 +261,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -364,7 +367,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -469,7 +473,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -589,7 +594,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -709,7 +715,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -830,7 +837,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -951,7 +959,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1073,7 +1082,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1194,7 +1204,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1314,7 +1325,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1435,7 +1447,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1556,7 +1569,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1676,7 +1690,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1766,7 +1781,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1857,6 +1873,21 @@
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-016.S07",
+          "sequence": 7,
+          "kind": "sandbox_security",
+          "title": "Prove hardened worker sandbox isolation and escape resistance",
+          "assignee_role": "worker",
+          "instruction": "Verify rootless disposable execution, AppArmor/seccomp or equivalent, minimal mounts, no Docker socket, no host credentials, no shared worker secrets and default-deny network. Test traversal, symlinks and attempted host access.",
+          "deliverable": "Sandbox threat-test matrix and host-level evidence.",
+          "done_when": "Worker cannot read host/home/SSH/cloud secrets, other worktrees or production DB; network denied unless task-scoped allowlist is granted.",
+          "depends_on": [
+            "SDA-016.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
         }
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
@@ -1887,7 +1918,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2008,7 +2040,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2129,7 +2162,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2265,7 +2299,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2385,7 +2420,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2505,7 +2541,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2641,7 +2678,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2763,7 +2801,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2870,7 +2909,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2991,6 +3031,21 @@
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-025.S09",
+          "sequence": 9,
+          "kind": "incident_drill",
+          "title": "Exercise active defence and incident containment during SDA faults",
+          "assignee_role": "worker",
+          "instruction": "Simulate malicious worker behavior, secret exposure, suspicious outbound traffic and compromised dependency. Exercise STOP, worker quarantine, network isolation, capability revocation, evidence preservation and clean restore.",
+          "deliverable": "Incident timeline, containment receipts, revoked-capability proof and restored-state SHA.",
+          "done_when": "Containment is deterministic; STOP/PAUSE persists; evidence is preserved; no unsafe auto-promotion or uncontrolled restart.",
+          "depends_on": [
+            "SDA-025.S08"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
         }
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
@@ -3022,7 +3077,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -3128,7 +3184,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [
         "The intended repository already exists: admindeveloper4562/A.R.C.H.O.N. Verify and record it as the destination; do not create a second repository. Preserve owner approval for migration scope."
@@ -3206,7 +3263,8 @@
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
         "Independent QC and serialized Merger are mandatory.",
         "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
-        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [
         "Verify/bootstrap the existing admindeveloper4562/A.R.C.H.O.N repository and main/develop policy; do not create a duplicate repository."
