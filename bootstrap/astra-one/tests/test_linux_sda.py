@@ -25,6 +25,7 @@ from astra_one.linux_runtime import (
     _check_commit_whitespace,
     ensure_integration,
     independent_qc,
+    independent_qc_report,
     make_prompt,
     review_failure_code,
     review_finding_codes,
@@ -455,6 +456,53 @@ class LinuxSDATests(unittest.TestCase):
         self.assertIn("Do not edit files, run tests, invoke network", captured["prompt"])
         self.assertIn("only concrete integration, security, or correctness defects", captured["prompt"])
         self.assertIn("Do not reject hypothetical risks", captured["prompt"])
+
+    def test_design_qc_prompt_does_not_require_downstream_implementation(self):
+        captured = {}
+        design = task(1)
+        design["task_id"] = "BASE-015"
+        design["execution_mode"] = "design"
+        design["objective"] = "Create a bounded design plan"
+        design["acceptance"] = ["Design maps the acceptance to future evidence"]
+
+        def fake_qc_call(*, output_file, **kwargs):
+            captured["prompt"] = kwargs["prompt"]
+            output_file.write_text('{"verdict":"PASS","findings":[]}')
+            return 0, 0, "ok"
+
+        with patch("astra_one.linux_runtime.codex_call", side_effect=fake_qc_call):
+            accepted, reason, _, _ = independent_qc_report(
+                self.state, self.repo, design, model="gpt-6.1-sol", effort="high",
+                changed_files=["docs/tasks/BASE-015-INDEX-DESIGN.md"],
+            )
+        self.assertTrue(accepted)
+        self.assertEqual(reason, "qc_pass")
+        self.assertIn("Design-mode review contract", captured["prompt"])
+        self.assertIn("Do not require runtime source", captured["prompt"])
+        self.assertIn("prerequisite are correct evidence", captured["prompt"])
+
+    def test_design_merger_prompt_preserves_documentation_boundary(self):
+        captured = {}
+        design = task(1)
+        design["task_id"] = "BASE-015"
+        design["execution_mode"] = "design"
+        design["objective"] = "Create a bounded design plan"
+        design["acceptance"] = ["Design maps the acceptance to future evidence"]
+
+        def fake_merger_call(*, output_file, **kwargs):
+            captured["prompt"] = kwargs["prompt"]
+            output_file.write_text('{"verdict":"PASS","findings":[]}')
+            return 0, 0, "ok"
+
+        with patch("astra_one.linux_runtime.codex_call", side_effect=fake_merger_call):
+            accepted, reason = merger_review_result(
+                self.state, self.repo, "BASE-015", b"design\n", model="gpt-6.1-sol",
+                effort="high", task=design,
+            )
+        self.assertTrue(accepted)
+        self.assertEqual(reason, "merger_pass")
+        self.assertIn("Design-mode merger contract", captured["prompt"])
+        self.assertIn("downstream runtime implementation", captured["prompt"])
 
     def test_merger_retries_once_after_invalid_findings_shape(self):
         calls = []

@@ -857,14 +857,24 @@ def independent_qc_report(state: State, worktree: Path, task: dict, *, model: st
             "child contract; inspect each child's dependencies and completion rule before returning PASS. "
             "Child contract JSON: " + child_packet + " Child IDs: " + ",".join(child_ids) + "."
         )
-    audit_context = ""
+    review_mode_context = ""
     if task.get("execution_mode") == "audit":
-        audit_context = (
+        review_mode_context = (
             "Audit-mode review contract: the expected candidate is a bounded Markdown or JSON report under "
             "docs/. Validate that it records facts versus unknowns, does not disclose sensitive contents, and "
             "does not claim inaccessible host or remote evidence. Host metadata paths, hashes, marker states and "
             "explicit unknowns are allowed evidence; they are not permission escalation by themselves. Reject "
             "source, executable, test, configuration, policy or host-state changes.\n"
+        )
+    elif task.get("execution_mode") == "design":
+        review_mode_context = (
+            "Design-mode review contract: the expected candidate is a bounded documentation design artifact under "
+            "docs/. Evaluate it against the objective, acceptance traceability and every ordered child deliverable. "
+            "Do not require runtime source, executable tests, fixtures, host execution, license approval or remote "
+            "evidence from a design task; an explicit specified/observed/unknown/verified distinction and a recorded "
+            "prerequisite are correct evidence, not an acceptance or integration defect. Reject only a concrete "
+            "missing design obligation, unsafe proposed boundary, undisclosed sensitive content, or unexpected "
+            "non-documentation change.\n"
         )
     prompt=("You are the independent SDA quality reviewer. Read the Git worktree diff and relevant files. "
             "Do NOT modify files or run tests. Check this task against objective and criteria, "
@@ -876,7 +886,7 @@ def independent_qc_report(state: State, worktree: Path, task: dict, *, model: st
             + (path_context or "- none") + "\n"
             + "Git's ordinary diff omits untracked files; inspect every listed path directly and do not reject "
             "a candidate solely because its untracked file is absent from `git diff`.\n"
-            + audit_context + child_contract
+            + review_mode_context + child_contract
             + "Task: "+task["task_id"]+"\nObjective: "+task["objective"]+"\nCriteria:\n"+
             "\n".join("- "+x for x in task["acceptance"]))
     try:
@@ -968,6 +978,15 @@ def merger_review_result(state: State, integration: Path, tid: str, patch: bytes
                 "resolve an owner/external approval. Do not require the worker to invent main, draft-PR or remote "
                 "evidence, and treat a clearly recorded limitation as acceptable evidence rather than an acceptance "
                 "gap. Reject any source, executable, test, configuration, policy or host-state change.\n"
+            )
+        elif task.get("execution_mode") == "design":
+            context += (
+                "Design-mode merger contract: this candidate is a bounded documentation design artifact, not the "
+                "downstream runtime implementation. Verify that it covers the ordered child deliverables, maps the "
+                "acceptance to concrete future evidence, preserves safety and ownership boundaries, and records "
+                "unknown prerequisites without inventing approval or execution evidence. Do not reject a design "
+                "because runtime code or tests belong to a later dependent task; reject only concrete omissions, "
+                "unsafe scope, sensitive disclosure or unexpected non-documentation changes.\n"
             )
     prompt=("You are the independent serial SDA Merger reviewer. Do not edit files, run tests, invoke network, "
             "change Git state, or write anything. You may use bounded read-only commands such as git diff, git show, "
