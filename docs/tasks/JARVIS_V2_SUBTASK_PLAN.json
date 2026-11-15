@@ -31,7 +31,7 @@
       "module": "MIG",
       "name": "M1b — Clean repository migration and self-host transition",
       "parent_count": 16,
-      "subtask_count": 87,
+      "subtask_count": 86,
       "path": "docs/tasks/subtasks/MIG.json"
     },
     {
