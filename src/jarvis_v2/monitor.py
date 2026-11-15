@@ -2,7 +2,8 @@
 
 No runner imports, no subprocesses, no daemon, no database initialization.
 Every SQLite connection uses mode=ro and PRAGMA query_only=ON. Compatible with
-Astra One Linux v0.2.0's sda.sqlite3 and the JARVIS v2 foundation Core queue.
+Astra One Linux v0.2/v0.3 sda.sqlite3 databases and the JARVIS v2 foundation
+Core queue.
 """
 from __future__ import annotations
 
@@ -156,8 +157,11 @@ def _fetch_astra(db: sqlite3.Connection, limit: int, event_limit: int, show_obje
         t['tools'] = r.get('tool_count', 0)
         t['elapsed'] = _age(r.get('started_at'))
     sha = settings.get('architecture_sha', '')
+    version = _safe(settings.get('version', '0.2.0'), 20)
+    if not version.startswith('v'):
+        version = 'v' + version
     return {
-        'engine': 'astra', 'schema': 'Astra One Linux v0.2',
+        'engine': 'astra', 'schema': f'Astra One Linux {version}',
         'architecture_approved': bool(sha and settings.get('approved_architecture_sha') == sha),
         'source_sha': settings.get('source_sha', ''),
         'integration_sha': settings.get('integration_sha', ''),
