@@ -393,7 +393,7 @@ class LinuxSDATests(unittest.TestCase):
 
         self.assertEqual(self.state.reopen_failed(["ASTRA-001"]), ["ASTRA-001"])
         claim = self.state.claim()
-        self.assertEqual(claim["attempt"], 1)
+        self.assertEqual(claim["attempt"], 3)
         self.assertEqual(claim["prior_error"], "")
         self.assertEqual(self.state.failure_codes("ASTRA-001"), [])
         with self.state.db() as db:

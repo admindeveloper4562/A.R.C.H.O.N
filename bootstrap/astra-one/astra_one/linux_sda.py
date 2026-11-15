@@ -1761,10 +1761,13 @@ class State:
                     ).fetchone():
                         raise ValueError("task has active recovery lease")
                     status = "approval_required" if row["owner_gate"] else ("pending" if row["project_id"] else "queued")
+                    prior_attempt = db.execute(
+                        "SELECT COALESCE(MAX(attempt),0) FROM runs WHERE task_id=?", (tid,)
+                    ).fetchone()[0]
                     db.execute(
-                        "UPDATE tasks SET status=?,attempt=0,available_at=0,last_run='',last_error='',"
+                        "UPDATE tasks SET status=?,attempt=?,available_at=0,last_run='',last_error='',"
                         "candidate_sha='',integrated_sha='',changed_files='[]',qc_evidence='',base_sha='',branch='',worktree='',updated_at=? "
-                        "WHERE id=?", (status, epoch, tid)
+                        "WHERE id=?", (status, prior_attempt, epoch, tid)
                     )
                     db.execute(
                         "INSERT INTO settings(key,value) VALUES(?,?) "
@@ -1780,6 +1783,22 @@ class State:
                             "INSERT INTO pending_queue(parent_id,project_id,enqueue_seq,available_at,created_at) "
                             "SELECT id,project_id,enqueue_seq,0,? FROM tasks WHERE id=? "
                             "ON CONFLICT(parent_id) DO UPDATE SET available_at=excluded.available_at",
+                            (epoch, tid),
+                        )
+                        # An explicit reopen is the authorized transition out
+                        # of a stale batch classification. Preserve the case
+                        # and cohort history, but make the current generation
+                        # claimable again.
+                        db.execute(
+                            "UPDATE supervisor_cases SET state='reopened',updated_at=? "
+                            "WHERE parent_id=? AND state='external_blocker'",
+                            (epoch, tid),
+                        )
+                        db.execute(
+                            "UPDATE batch_members SET state='admitted',updated_at=? "
+                            "WHERE parent_id=? AND state IN ('external_blocker','running') "
+                            "AND batch_id IN (SELECT batch_id FROM batch_epochs "
+                            "WHERE state IN ('running','draining'))",
                             (epoch, tid),
                         )
                     reopened.append(tid)

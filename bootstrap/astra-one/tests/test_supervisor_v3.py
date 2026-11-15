@@ -337,6 +337,34 @@ class SupervisorV3Tests(unittest.TestCase):
             self.assertEqual(db.execute("SELECT status FROM tasks WHERE id='V3-001'").fetchone()[0], "blocked")
             self.assertIsNone(db.execute("SELECT 1 FROM pending_queue WHERE parent_id='V3-001'").fetchone())
 
+    def test_reopen_failed_readmits_stale_batch_member_without_erasing_case(self):
+        batch = self.supervisor.start_batch("ARCHON-V3-TRIAL-001", limit=1)
+        self.assertEqual(batch["admitted"], ["V3-001"])
+        for member_state in ("external_blocker", "running"):
+            self.state.set_task("V3-001", "failed", error="quota_or_rate_limit")
+            case = self.supervisor.triage_failure("V3-001", "quota_or_rate_limit", generation=1)
+            with self.state.db() as db:
+                db.execute(
+                    "UPDATE batch_members SET state=? WHERE batch_id=? AND parent_id=?",
+                    (member_state, "ARCHON-V3-TRIAL-001", "V3-001"),
+                )
+
+            self.assertEqual(self.state.reopen_failed(["V3-001"]), ["V3-001"])
+            with self.state.db() as db:
+                task_row = db.execute("SELECT status FROM tasks WHERE id='V3-001'").fetchone()
+                case_row = db.execute(
+                    "SELECT state FROM supervisor_cases WHERE case_id=?", (case["case_id"],)
+                ).fetchone()
+                member_row = db.execute(
+                    "SELECT state FROM batch_members WHERE batch_id=? AND parent_id=?",
+                    ("ARCHON-V3-TRIAL-001", "V3-001"),
+                ).fetchone()
+                queue_row = db.execute("SELECT 1 FROM pending_queue WHERE parent_id='V3-001'").fetchone()
+            self.assertEqual(task_row["status"], "pending")
+            self.assertEqual(case_row["state"], "reopened")
+            self.assertEqual(member_row["state"], "admitted")
+            self.assertIsNotNone(queue_row)
+
     def test_expired_recovery_lease_is_fenced_after_process_loss(self):
         self.state.set_task("V3-001", "failed", error="no_file_changes")
         case = self.supervisor.triage_failure("V3-001", "no_file_changes", generation=1)

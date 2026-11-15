@@ -1,0 +1,62 @@
+{
+  "task_id": "SDA-003",
+  "source_sha": "b488c7331628dfb20278658905a3e0218f9a5a84",
+  "recorded_at_utc": "2026-11-15T17:23:43Z",
+  "environment": {
+    "platform": "Linux",
+    "cli_version": "codex-cli 0.169.0",
+    "model": "gpt-5.6-luna",
+    "effort": "medium",
+    "sandbox": "read-only",
+    "provider": "openai"
+  },
+  "preflight": {
+    "version_exit_code": 0,
+    "version_stdout_sha256": "f3807264176de3c20897352ed66cf258503bb4d52bf8428b5e8a3ac21c22cdcb",
+    "login_exit_code": 0,
+    "login_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "login_stderr_sha256": "16118df3eb3595e44a4721878cef0f79910e6564e10ff0e78e451e7c4e478947"
+  },
+  "live_profiles": [
+    {
+      "role": "supervisor",
+      "status": "VERIFIED",
+      "event_types": ["thread.started", "turn.started", "item.completed", "turn.completed"],
+      "stdout_sha256": "f5f5d123e67faa2adacb0f82cdc890684c0c5555354e4982ea536fce24c8262a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "role": "worker",
+      "status": "VERIFIED",
+      "event_types": ["thread.started", "turn.started", "item.completed", "turn.completed"],
+      "stdout_sha256": "5fd276564afeb583cc4365e003039e7f9cb180b5f1e2e958be0477f1cefb75b6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "role": "qc",
+      "status": "VERIFIED",
+      "event_types": ["thread.started", "turn.started", "item.completed", "turn.completed"],
+      "stdout_sha256": "5650f6e7660e3241320d85e395d2c324a18a8b003a539e897a408893fc7971f0",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "role": "merger",
+      "status": "VERIFIED",
+      "event_types": ["thread.started", "turn.started", "item.completed", "turn.completed"],
+      "stdout_sha256": "396437050f9b14cd4934e0796742666c938f5d6f5e0d06b16bd356c6c2d6c1bf",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "deterministic_test": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=bootstrap/astra-one python3 -m unittest discover -s tests -p test_sda_003_profiles.py -v",
+    "exit_code": 0,
+    "tests_passed": 7
+  },
+  "negative_alias": {
+    "status": "VERIFIED",
+    "behavior": "stop_without_fallback_or_later_role_calls",
+    "execution": "deterministic no-network fake"
+  },
+  "raw_model_output_retained": false,
+  "canonical_state_mutated_by_probe": false
+}
