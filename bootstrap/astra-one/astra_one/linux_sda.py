@@ -29,6 +29,7 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 
 from .full_plan import FullPlan, PROJECT_ID, payload_sha
+from .owner_approval import OwnerApprovalError, prepare_receipt, verify_receipt
 
 VERSION = "0.3.0"
 SCHEMA_VERSION = 3
@@ -43,6 +44,7 @@ TASK_EXECUTION_MODES = frozenset({
 })
 TASK_ID = re.compile(r"^[A-Z][A-Z0-9-]{2,47}$")
 SHA = re.compile(r"^[0-9a-f]{40}$")
+SHA256 = re.compile(r"^[0-9a-f]{64}$")
 SAFE = re.compile(r"^[a-z0-9_]{2,80}$")
 STAGE = {"queued", "preflight", "coding", "verifying", "awaiting_review", "approved", "completed", "failed", "stopped", "interrupted"}
 PROTECTED = {"AGENTS.md", "SECURITY.md", "DELETE-LOGS.md", ".env", ".gitignore", "CODEOWNERS"}
@@ -125,6 +127,35 @@ CREATE TABLE IF NOT EXISTS subtask_receipts(
   created_at TEXT NOT NULL,
   UNIQUE(subtask_id,candidate_sha));
 CREATE INDEX IF NOT EXISTS idx_subtask_receipts_parent ON subtask_receipts(parent_id,candidate_sha);
+CREATE TABLE IF NOT EXISTS owner_approval_receipts(
+  receipt_id TEXT PRIMARY KEY,
+  task_id TEXT NOT NULL REFERENCES tasks(id),
+  decision TEXT NOT NULL CHECK(decision IN ('APPROVE','REJECT','DEFER')),
+  packet_sha256 TEXT NOT NULL,
+  full_architecture_sha256 TEXT NOT NULL,
+  bounded_focus_sha256 TEXT NOT NULL,
+  parent_payload_sha256 TEXT NOT NULL,
+  source_sha TEXT NOT NULL,
+  integration_sha TEXT NOT NULL,
+  owner_identity TEXT NOT NULL,
+  receipt_path TEXT NOT NULL,
+  receipt_sha256 TEXT NOT NULL,
+  allowed_signers_sha256 TEXT NOT NULL,
+  signature_algorithm TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  UNIQUE(task_id,receipt_sha256));
+CREATE INDEX IF NOT EXISTS idx_owner_approval_receipts_task ON owner_approval_receipts(task_id,created_at);
+CREATE TABLE IF NOT EXISTS owner_subtask_receipts(
+  receipt_id TEXT PRIMARY KEY,
+  subtask_id TEXT NOT NULL REFERENCES subtasks(id),
+  parent_id TEXT NOT NULL REFERENCES tasks(id),
+  generation INTEGER NOT NULL,
+  owner_receipt_sha256 TEXT NOT NULL,
+  evidence_sha256 TEXT NOT NULL,
+  verifier TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  UNIQUE(subtask_id,owner_receipt_sha256));
+CREATE INDEX IF NOT EXISTS idx_owner_subtask_receipts_parent ON owner_subtask_receipts(parent_id,owner_receipt_sha256);
 CREATE TABLE IF NOT EXISTS supervisor_cases(
   case_id TEXT PRIMARY KEY,
   parent_id TEXT NOT NULL REFERENCES tasks(id),
@@ -254,6 +285,16 @@ def _ensure_v3_columns(db: sqlite3.Connection) -> None:
 
 def now() -> str:
     return dt.datetime.now(dt.timezone.utc).isoformat(timespec="microseconds")
+
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+def _canonical_json(value: object) -> bytes:
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
 
 def git(repo: Path, *args: str, timeout: int = 90) -> str:
     result = subprocess.run(["git", "-C", str(repo), *args], text=True,
@@ -705,8 +746,157 @@ class State:
             "subtask_index_sha256": project["subtask_index_sha256"],
         }
 
-    def approve_owner(self, tid: str) -> dict:
-        """Release one explicit owner-gated parent without changing its payload."""
+    def _owner_binding(self, row: sqlite3.Row, db: sqlite3.Connection) -> dict:
+        """Build the exact receipt fields from live state and immutable files."""
+        tid = row["id"]
+        spec = json.loads(row["spec"])
+        if tid != "BASE-008":
+            return {
+                "task_id": tid,
+                "decision": "APPROVE",
+                "scope": str(spec.get("objective") or spec.get("title") or tid),
+                "evidence": {
+                    "architecture_sha256": row["architecture_sha"],
+                    "parent_payload_sha256": row["payload_sha"],
+                },
+                "packet_sha256": "",
+                "full_architecture_sha256": "",
+                "bounded_focus_sha256": row["architecture_sha"],
+                "parent_payload_sha256": row["payload_sha"],
+                "source_sha": self.get("source_sha"),
+                "integration_sha": self.get("integration_sha"),
+            }
+        packet = self.home / "reports" / "BASE-008_OWNER_DECISION_PACKET.md"
+        packet_digest = self.home / "reports" / "BASE-008_OWNER_DECISION_PACKET.sha256"
+        source_value = self.get("source")
+        source = Path(source_value).expanduser().resolve()
+        architecture = source / "docs" / "architecture" / "JARVIS_V2_CONSOLIDATED.md"
+        focus_sha = self.get("architecture_sha")
+        approved_focus_sha = self.get("approved_architecture_sha")
+        if not packet.is_file() or not packet_digest.is_file() or not architecture.is_file():
+            raise ValueError("BASE-008 approval evidence file is missing")
+        actual_packet_sha = file_sha256(packet)
+        declared_packet_sha = packet_digest.read_text(encoding="utf-8").split()[0]
+        if declared_packet_sha != actual_packet_sha:
+            raise ValueError("BASE-008 owner packet digest mismatch")
+        packet_text = packet.read_text(encoding="utf-8")
+        full_architecture_sha = file_sha256(architecture)
+        if not SHA256.fullmatch(focus_sha) or focus_sha != approved_focus_sha:
+            raise ValueError("BASE-008 bounded architecture is not approved consistently")
+        if not SHA256.fullmatch(full_architecture_sha):
+            raise ValueError("BASE-008 full architecture digest is invalid")
+        parent_payload_sha = row["payload_sha"]
+        if not SHA256.fullmatch(parent_payload_sha):
+            raise ValueError("BASE-008 parent payload digest is invalid")
+        source_sha = self.get("source_sha")
+        integration_sha = self.get("integration_sha")
+        if not SHA.fullmatch(source_sha) or not SHA.fullmatch(integration_sha):
+            raise ValueError("BASE-008 source or integration checkpoint is invalid")
+        packet_values = {
+            "Full architecture SHA-256": full_architecture_sha,
+            "Approved bounded focus SHA-256": focus_sha,
+            "Parent task payload SHA": parent_payload_sha,
+            "Live source SHA": source_sha,
+            "Live integration SHA": integration_sha,
+        }
+        for label, value in packet_values.items():
+            if f"| {label} | `{value}` |" not in packet_text:
+                raise ValueError(f"BASE-008 packet binding mismatch: {label}")
+        return {
+            "task_id": tid,
+            "decision": "APPROVE",
+            "scope": "ten active modules; Business excluded/archived; no release/deployment/cutover",
+            "evidence": {
+                "packet_sha256": actual_packet_sha,
+                "full_architecture_sha256": full_architecture_sha,
+                "bounded_focus_sha256": focus_sha,
+                "parent_payload_sha256": parent_payload_sha,
+                "source_sha": source_sha,
+                "integration_sha": integration_sha,
+            },
+            "packet_sha256": actual_packet_sha,
+            "full_architecture_sha256": full_architecture_sha,
+            "bounded_focus_sha256": focus_sha,
+            "parent_payload_sha256": parent_payload_sha,
+            "source_sha": source_sha,
+            "integration_sha": integration_sha,
+        }
+
+    def owner_approval_request(self, tid: str, owner_identity: str,
+                               *, allowed_signers: Path | None = None,
+                               output: Path | None = None) -> dict:
+        """Prepare, but never approve, a digest-bound owner signing request."""
+        self.ensure_full_plan_schema()
+        with self.db() as db:
+            row = db.execute("SELECT * FROM tasks WHERE id=?", (tid,)).fetchone()
+            if not row or row["project_id"] != PROJECT_ID or not row["owner_gate"]:
+                raise ValueError("task is not an imported owner-gated parent")
+            if row["status"] != "approval_required":
+                raise ValueError("owner-gated task is not awaiting approval")
+            spec = json.loads(row["spec"])
+            statuses = [db.execute("SELECT status FROM tasks WHERE id=?", (dep,)).fetchone()[0]
+                        for dep in spec.get("depends_on", [])]
+            if any(status != "completed" for status in statuses):
+                raise ValueError("owner-gated task dependencies are not complete")
+            binding = self._owner_binding(row, db)
+        allowed = (allowed_signers or (self.home / "owner" / "allowed_signers")).expanduser()
+        if not allowed.is_absolute():
+            allowed = allowed.absolute()
+        receipt = (output or (self.home / "private" / "owner-approvals" / tid / f"{tid}.json")).expanduser()
+        payload = dict(binding)
+        payload["owner_identity"] = owner_identity
+        payload["decided_at_utc"] = now().replace("+00:00", "Z")
+        result = prepare_receipt(
+            payload, receipt_path=receipt, allowed_signers=allowed,
+            message_file=f"{tid}.message", signature_file=f"{tid}.message.sig",
+            trusted_root=self.home,
+        )
+        return {"prepared": True, "task_id": tid, "payload": payload,
+                "receipt": result["receipt"], "message": result["message"],
+                "allowed_signers": str(allowed),
+                "allowed_signers_sha256": result["allowed_signers_sha256"],
+                "sign_command": f"ssh-keygen -Y sign -f <OWNER_PRIVATE_KEY> -n archon-owner-approval-v1 {result['message']}"}
+
+    def _record_base008_owner_children(self, db: sqlite3.Connection, row: sqlite3.Row,
+                                       receipt_sha: str, verified: dict, timestamp: str) -> list[str]:
+        binding = verified["payload"]
+        evidence = {
+            "BASE-008.S01": (
+                f"Packet {binding['packet_sha256']} and full architecture {binding['full_architecture_sha256']} "
+                f"are bound to focus {binding['bounded_focus_sha256']}."),
+            "BASE-008.S02": (
+                "BASE-001 dependency is completed; packet/focus/architecture digests match live state; "
+                "the deterministic DB checkpoint and existing rollback evidence remain intact."),
+            "BASE-008.S03": (
+                f"Signed APPROVE receipt verified for owner principal {verified['principal']} "
+                f"at {binding['decided_at_utc']}; scope excludes Business and release/cutover."),
+        }
+        child_ids = [row[0] for row in db.execute(
+            "SELECT id FROM subtasks WHERE parent_id=? ORDER BY sequence", (row["id"],)
+        )]
+        if child_ids != ["BASE-008.S01", "BASE-008.S02", "BASE-008.S03"]:
+            raise ValueError("BASE-008 child packet differs from the approved three-step contract")
+        recorded = []
+        for cid in child_ids:
+            item = {"subtask_id": cid, "status": "PASS", "evidence": evidence[cid]}
+            evidence_sha = hashlib.sha256(_canonical_json(item)).hexdigest()
+            receipt_id = str(uuid.uuid4())
+            db.execute(
+                "INSERT INTO owner_subtask_receipts(receipt_id,subtask_id,parent_id,generation,"
+                "owner_receipt_sha256,evidence_sha256,verifier,created_at) VALUES(?,?,?,?,?,?,?,?)",
+                (receipt_id, cid, row["id"], row["attempt"], receipt_sha, evidence_sha,
+                 "deterministic_master", timestamp),
+            )
+            db.execute(
+                "UPDATE subtasks SET status='completed',evidence=?,updated_at=? WHERE id=?",
+                (json.dumps({"receipt_id": receipt_id, "owner_receipt_sha256": receipt_sha,
+                             "evidence_sha256": evidence_sha}, separators=(",", ":")), timestamp, cid),
+            )
+            recorded.append(receipt_id)
+        return recorded
+
+    def approve_owner(self, tid: str, *, owner_receipt: Path | None = None) -> dict:
+        """Verify a signed owner receipt, then transact the owner-gate release."""
         self.ensure_full_plan_schema()
         with self.master_lock():
             with self.db() as db:
@@ -724,11 +914,64 @@ class State:
                 if any(status != "completed" for status in statuses):
                     db.execute("ROLLBACK")
                     raise ValueError("owner-gated task dependencies are not complete")
-                db.execute("UPDATE tasks SET status='pending',updated_at=? WHERE id=?", (now(), tid))
+                if owner_receipt is None:
+                    db.execute("ROLLBACK")
+                    raise ValueError("authenticated owner receipt is required")
+                receipt_path = owner_receipt.expanduser()
+                if not receipt_path.is_absolute():
+                    receipt_path = receipt_path.absolute()
+                receipt_root = (self.home / "private" / "owner-approvals").resolve()
+                try:
+                    receipt_path.resolve().relative_to(receipt_root)
+                except ValueError as exc:
+                    db.execute("ROLLBACK")
+                    raise ValueError("owner receipt must be inside private/owner-approvals") from exc
+                binding = self._owner_binding(row, db)
+                try:
+                    verified = verify_receipt(
+                        receipt_path,
+                        allowed_signers=(self.home / "owner" / "allowed_signers"),
+                        expected=binding,
+                        trusted_root=self.home,
+                    )
+                except (OSError, OwnerApprovalError, subprocess.SubprocessError) as exc:
+                    db.execute("ROLLBACK")
+                    raise ValueError(f"owner receipt rejected: {exc}") from exc
+                receipt_sha = file_sha256(receipt_path)
+                payload = verified["payload"]
+                timestamp = now()
+                db.execute(
+                    "INSERT INTO owner_approval_receipts(receipt_id,task_id,decision,packet_sha256,"
+                    "full_architecture_sha256,bounded_focus_sha256,parent_payload_sha256,source_sha,"
+                    "integration_sha,owner_identity,receipt_path,receipt_sha256,allowed_signers_sha256,"
+                    "signature_algorithm,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (str(uuid.uuid4()), tid, payload["decision"], payload.get("packet_sha256", ""),
+                     payload.get("full_architecture_sha256", ""), payload["bounded_focus_sha256"],
+                     payload["parent_payload_sha256"], payload["source_sha"], payload["integration_sha"],
+                     verified["principal"], str(receipt_path), receipt_sha,
+                     verified["allowed_signers_sha256"], verified["signature_algorithm"], timestamp),
+                )
+                if tid == "BASE-008":
+                    child_receipts = self._record_base008_owner_children(
+                        db, row, receipt_sha, verified, timestamp)
+                    db.execute(
+                        "UPDATE tasks SET status='completed',qc_evidence=?,updated_at=? WHERE id=?",
+                        (json.dumps({"owner_receipt_sha256": receipt_sha,
+                                     "owner_identity": verified["principal"],
+                                     "child_receipts": child_receipts}, separators=(",", ":")),
+                         timestamp, tid),
+                    )
+                    for queue in ("pending_queue", "rebuild_queue", "review_queue", "merge_queue"):
+                        db.execute(f"DELETE FROM {queue} WHERE parent_id=?", (tid,))
+                    self._refresh_project_queues_db(db, PROJECT_ID)
+                    db.execute("COMMIT")
+                    return {"approved": tid, "status": "completed", "owner_receipt_sha256": receipt_sha,
+                            "child_receipts": child_receipts, "owner_identity": verified["principal"]}
+                db.execute("UPDATE tasks SET status='pending',updated_at=? WHERE id=?", (timestamp, tid))
                 db.execute(
                     "INSERT INTO pending_queue(parent_id,project_id,enqueue_seq,available_at,created_at) "
                     "VALUES(?,?,?,?,?) ON CONFLICT(parent_id) DO UPDATE SET available_at=excluded.available_at",
-                    (tid, PROJECT_ID, row["enqueue_seq"], 0, now()),
+                    (tid, PROJECT_ID, row["enqueue_seq"], 0, timestamp),
                 )
                 db.execute("COMMIT")
         return {"approved": tid, "status": "pending", "owner_approval_required": True}

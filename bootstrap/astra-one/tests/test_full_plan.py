@@ -218,11 +218,12 @@ class FullPlanImportTests(unittest.TestCase):
             stored = json.loads(db.execute("SELECT spec FROM tasks WHERE id='FULL-001'").fetchone()[0])
         self.assertEqual(stored["objective"], plan.parents[0]["spec"]["objective"])
 
-    def test_owner_gate_requires_explicit_release(self):
+    def test_owner_gate_requires_authenticated_release(self):
         self.state.import_full_plan(self.plan())
         self.assertEqual(self.state.full_plan_status()["parent_status"]["approval_required"], 1)
-        self.assertEqual(self.state.approve_owner("FULL-003")["status"], "pending")
-        self.assertEqual(self.state.full_plan_status()["parent_status"]["pending"], 2)
+        with self.assertRaisesRegex(ValueError, "authenticated owner receipt"):
+            self.state.approve_owner("FULL-003")
+        self.assertEqual(self.state.full_plan_status()["parent_status"]["approval_required"], 1)
 
 
 if __name__ == "__main__":

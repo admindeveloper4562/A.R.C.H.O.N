@@ -569,7 +569,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--test-image",default="");p.add_argument("--test-command-json",default='["python3","-m","unittest","discover","-s","tests","-p","test_*.py"]')
     p.add_argument("--max-seconds-per-task",type=int,default=1800)
     p=sub.add_parser("approve-task");p.add_argument("task_id")
-    p=sub.add_parser("approve-owner");p.add_argument("task_id")
+    p=sub.add_parser("owner-approval-request");p.add_argument("task_id");p.add_argument("--owner-id",required=True)
+    p.add_argument("--allowed-signers",type=Path);p.add_argument("--output",type=Path)
+    p=sub.add_parser("approve-owner");p.add_argument("task_id");p.add_argument("--owner-receipt",type=Path,required=True)
     p=sub.add_parser("integrate");p.add_argument("task_id");p.add_argument("--confirm",action="store_true")
     p=sub.add_parser("run")
     p.add_argument("--workers",type=int,default=5);p.add_argument("--max-tasks",type=int,default=100)
@@ -667,7 +669,11 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 report(supervisor.transition_upgrade(args.batch_id,args.state))
         elif args.command=="approve-task":state.approve(args.task_id);report({"approved":args.task_id})
-        elif args.command=="approve-owner":report(state.approve_owner(args.task_id))
+        elif args.command=="owner-approval-request":
+            report(state.owner_approval_request(args.task_id, args.owner_id,
+                                                allowed_signers=args.allowed_signers,
+                                                output=args.output))
+        elif args.command=="approve-owner":report(state.approve_owner(args.task_id, owner_receipt=args.owner_receipt))
         elif args.command=="integrate":
             if not args.confirm:raise ValueError("integration requires --confirm after diff review")
             with state.master_lock():report(integrate(state,args.task_id,merger_model=MODEL,merger_effort=EFFORT))
