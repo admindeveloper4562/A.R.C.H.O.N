@@ -1,11 +1,11 @@
 {
   "schema": "jarvis.v2.subtask-module/1",
   "created": "2026-11-14",
-  "source_parent_plan_blob_sha": "36e674f4e58fc19aa8158da42d802b9599a23763",
+  "source_parent_plan_blob_sha": "98e2b845d30253bcc47193b0cc79095f5fac5a12",
   "module": "FIN",
   "module_name": "M11 — Personal CFO and paper trading",
   "parent_count": 16,
-  "subtask_count": 86,
+  "subtask_count": 87,
   "parents": [
     {
       "parent_id": "FIN-001",
@@ -14,7 +14,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Audit Mira Personal-Management source/schema and actual auth boundaries",
-      "acceptance": "Owner-approved repo review; no assumed production DB access",
+      "acceptance": "Owner-approved repo review; no assumed production DB access; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Mira remains read-only with server-side per-person consent and row scoping; paper trading is isolated and has no real broker-write capability. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence. Financial paths also require consent and row-scope denial tests, exact ledger reconciliation and proof that no live broker/Mira write route exists.",
       "parent_dependencies": [
         "BACK-020",
         "BASE-011"
@@ -29,7 +29,9 @@
       "module_guardrails": [
         "Mira is read-only; enforce independent partner consent and server-side row scoping.",
         "Paper trading is segregated and has no broker-write capability.",
-        "Exact currency precision and explicit uncertainty."
+        "Exact currency precision and explicit uncertainty.",
+        "Finance boundary: Mira read-only, row-level consent, no live brokerage writes, paper ledger physically/logically separate.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -86,7 +88,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Define read-only scopes and independent partner consent enforcement",
-      "acceptance": "Unauthorized cross-person rows rejected server-side",
+      "acceptance": "Unauthorized cross-person rows rejected server-side; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Mira remains read-only with server-side per-person consent and row scoping; paper trading is isolated and has no real broker-write capability. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "FIN-001",
         "BACK-004"
@@ -101,7 +103,9 @@
       "module_guardrails": [
         "Mira is read-only; enforce independent partner consent and server-side row scoping.",
         "Paper trading is segregated and has no broker-write capability.",
-        "Exact currency precision and explicit uncertainty."
+        "Exact currency precision and explicit uncertainty.",
+        "Finance boundary: Mira read-only, row-level consent, no live brokerage writes, paper ledger physically/logically separate.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -188,7 +192,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement Mira-owned scoped read-only export/connector token",
-      "acceptance": "Short-lived revocable credential, audit and no shared D1 admin token",
+      "acceptance": "Short-lived revocable credential, audit and no shared D1 admin token; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Mira remains read-only with server-side per-person consent and row scoping; paper trading is isolated and has no real broker-write capability. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence. Financial paths also require consent and row-scope denial tests, exact ledger reconciliation and proof that no live broker/Mira write route exists.",
       "parent_dependencies": [
         "FIN-002"
       ],
@@ -202,7 +206,9 @@
       "module_guardrails": [
         "Mira is read-only; enforce independent partner consent and server-side row scoping.",
         "Paper trading is segregated and has no broker-write capability.",
-        "Exact currency precision and explicit uncertainty."
+        "Exact currency precision and explicit uncertainty.",
+        "Finance boundary: Mira read-only, row-level consent, no live brokerage writes, paper ledger physically/logically separate.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [
         "Use scoped revocable read-only credentials; no cookie scraping, shared D1 admin token or partner access without consent."
@@ -306,7 +312,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement idempotent transaction/account/category/budget ingestion",
-      "acceptance": "Exact satang, timestamps, original IDs preserved; sync deduplicates",
+      "acceptance": "Exact satang, timestamps, original IDs preserved; sync deduplicates; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Mira remains read-only with server-side per-person consent and row scoping; paper trading is isolated and has no real broker-write capability. Financial paths also require consent and row-scope denial tests, exact ledger reconciliation and proof that no live broker/Mira write route exists.",
       "parent_dependencies": [
         "FIN-003",
         "BACK-002"
@@ -321,7 +327,9 @@
       "module_guardrails": [
         "Mira is read-only; enforce independent partner consent and server-side row scoping.",
         "Paper trading is segregated and has no broker-write capability.",
-        "Exact currency precision and explicit uncertainty."
+        "Exact currency precision and explicit uncertainty.",
+        "Finance boundary: Mira read-only, row-level consent, no live brokerage writes, paper ledger physically/logically separate.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -423,7 +431,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement transfer/adjustment/reconciliation semantics",
-      "acceptance": "No double-counted transfer, savings or balance adjustment",
+      "acceptance": "No double-counted transfer, savings or balance adjustment; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Mira remains read-only with server-side per-person consent and row scoping; paper trading is isolated and has no real broker-write capability.",
       "parent_dependencies": [
         "FIN-004"
       ],
@@ -437,7 +445,9 @@
       "module_guardrails": [
         "Mira is read-only; enforce independent partner consent and server-side row scoping.",
         "Paper trading is segregated and has no broker-write capability.",
-        "Exact currency precision and explicit uncertainty."
+        "Exact currency precision and explicit uncertainty.",
+        "Finance boundary: Mira read-only, row-level consent, no live brokerage writes, paper ledger physically/logically separate.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -539,7 +549,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement cash, bank, wallet and per-person account dashboard",
-      "acceptance": "Balances labeled reconciled/estimated with source timestamps",
+      "acceptance": "Balances labeled reconciled/estimated with source timestamps; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Mira remains read-only with server-side per-person consent and row scoping; paper trading is isolated and has no real broker-write capability. Financial paths also require consent and row-scope denial tests, exact ledger reconciliation and proof that no live broker/Mira write route exists.",
       "parent_dependencies": [
         "FIN-005",
         "RUN-004"
@@ -554,7 +564,9 @@
       "module_guardrails": [
         "Mira is read-only; enforce independent partner consent and server-side row scoping.",
         "Paper trading is segregated and has no broker-write capability.",
-        "Exact currency precision and explicit uncertainty."
+        "Exact currency precision and explicit uncertainty.",
+        "Finance boundary: Mira read-only, row-level consent, no live brokerage writes, paper ledger physically/logically separate.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -656,7 +668,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement income, expense, trends, category and merchant reports",
-      "acceptance": "Summary totals match verified fixture ledger",
+      "acceptance": "Summary totals match verified fixture ledger; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Mira remains read-only with server-side per-person consent and row scoping; paper trading is isolated and has no real broker-write capability.",
       "parent_dependencies": [
         "FIN-005"
       ],
@@ -670,7 +682,9 @@
       "module_guardrails": [
         "Mira is read-only; enforce independent partner consent and server-side row scoping.",
         "Paper trading is segregated and has no broker-write capability.",
-        "Exact currency precision and explicit uncertainty."
+        "Exact currency precision and explicit uncertainty.",
+        "Finance boundary: Mira read-only, row-level consent, no live brokerage writes, paper ledger physically/logically separate.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -772,7 +786,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement budget goals, savings plans and forecasting",
-      "acceptance": "Forecasts labeled uncertain; goals do not double debit",
+      "acceptance": "Forecasts labeled uncertain; goals do not double debit; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Mira remains read-only with server-side per-person consent and row scoping; paper trading is isolated and has no real broker-write capability.",
       "parent_dependencies": [
         "FIN-007"
       ],
@@ -786,7 +800,9 @@
       "module_guardrails": [
         "Mira is read-only; enforce independent partner consent and server-side row scoping.",
         "Paper trading is segregated and has no broker-write capability.",
-        "Exact currency precision and explicit uncertainty."
+        "Exact currency precision and explicit uncertainty.",
+        "Finance boundary: Mira read-only, row-level consent, no live brokerage writes, paper ledger physically/logically separate.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -888,7 +904,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement recurring payment and unusual expense detection",
-      "acceptance": "Alerts source-linked, explainable and suppressible",
+      "acceptance": "Alerts source-linked, explainable and suppressible; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Mira remains read-only with server-side per-person consent and row scoping; paper trading is isolated and has no real broker-write capability. Financial paths also require consent and row-scope denial tests, exact ledger reconciliation and proof that no live broker/Mira write route exists.",
       "parent_dependencies": [
         "FIN-007"
       ],
@@ -902,7 +918,9 @@
       "module_guardrails": [
         "Mira is read-only; enforce independent partner consent and server-side row scoping.",
         "Paper trading is segregated and has no broker-write capability.",
-        "Exact currency precision and explicit uncertainty."
+        "Exact currency precision and explicit uncertainty.",
+        "Finance boundary: Mira read-only, row-level consent, no live brokerage writes, paper ledger physically/logically separate.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1004,7 +1022,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement read-only recommendation and approval-aware notifications",
-      "acceptance": "No writes to Mira, no inappropriate pressure, consent respected",
+      "acceptance": "No writes to Mira, no inappropriate pressure, consent respected; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Mira remains read-only with server-side per-person consent and row scoping; paper trading is isolated and has no real broker-write capability. Financial paths also require consent and row-scope denial tests, exact ledger reconciliation and proof that no live broker/Mira write route exists.",
       "parent_dependencies": [
         "FIN-008",
         "FIN-009"
@@ -1019,7 +1037,9 @@
       "module_guardrails": [
         "Mira is read-only; enforce independent partner consent and server-side row scoping.",
         "Paper trading is segregated and has no broker-write capability.",
-        "Exact currency precision and explicit uncertainty."
+        "Exact currency precision and explicit uncertainty.",
+        "Finance boundary: Mira read-only, row-level consent, no live brokerage writes, paper ledger physically/logically separate.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1121,7 +1141,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement time-stamped stock/company/market research adapter",
-      "acceptance": "Price data source/delay/exchange and uncertainty recorded",
+      "acceptance": "Price data source/delay/exchange and uncertainty recorded; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Mira remains read-only with server-side per-person consent and row scoping; paper trading is isolated and has no real broker-write capability.",
       "parent_dependencies": [
         "WIC-011",
         "FIN-002"
@@ -1136,7 +1156,9 @@
       "module_guardrails": [
         "Mira is read-only; enforce independent partner consent and server-side row scoping.",
         "Paper trading is segregated and has no broker-write capability.",
-        "Exact currency precision and explicit uncertainty."
+        "Exact currency precision and explicit uncertainty.",
+        "Finance boundary: Mira read-only, row-level consent, no live brokerage writes, paper ledger physically/logically separate.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1208,7 +1230,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement entirely separate paper account/order/position ledger",
-      "acceptance": "Hypothetical cash isolated from Mira and real accounts",
+      "acceptance": "Hypothetical cash isolated from Mira and real accounts; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Mira remains read-only with server-side per-person consent and row scoping; paper trading is isolated and has no real broker-write capability. Financial paths also require consent and row-scope denial tests, exact ledger reconciliation and proof that no live broker/Mira write route exists.",
       "parent_dependencies": [
         "FIN-011",
         "BACK-002"
@@ -1223,7 +1245,9 @@
       "module_guardrails": [
         "Mira is read-only; enforce independent partner consent and server-side row scoping.",
         "Paper trading is segregated and has no broker-write capability.",
-        "Exact currency precision and explicit uncertainty."
+        "Exact currency precision and explicit uncertainty.",
+        "Finance boundary: Mira read-only, row-level consent, no live brokerage writes, paper ledger physically/logically separate.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1325,7 +1349,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement paper fills with spreads, fees, slippage and order rules",
-      "acceptance": "Rejects invalid/no-liquidity orders and handles market hours",
+      "acceptance": "Rejects invalid/no-liquidity orders and handles market hours; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Mira remains read-only with server-side per-person consent and row scoping; paper trading is isolated and has no real broker-write capability.",
       "parent_dependencies": [
         "FIN-012"
       ],
@@ -1339,7 +1363,9 @@
       "module_guardrails": [
         "Mira is read-only; enforce independent partner consent and server-side row scoping.",
         "Paper trading is segregated and has no broker-write capability.",
-        "Exact currency precision and explicit uncertainty."
+        "Exact currency precision and explicit uncertainty.",
+        "Finance boundary: Mira read-only, row-level consent, no live brokerage writes, paper ledger physically/logically separate.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1441,7 +1467,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement paper performance, corporate actions and backtest bias checks",
-      "acceptance": "P&L/drawdown reproducible; no future-peeking bias",
+      "acceptance": "P&L/drawdown reproducible; no future-peeking bias; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Mira remains read-only with server-side per-person consent and row scoping; paper trading is isolated and has no real broker-write capability.",
       "parent_dependencies": [
         "FIN-013"
       ],
@@ -1455,7 +1481,9 @@
       "module_guardrails": [
         "Mira is read-only; enforce independent partner consent and server-side row scoping.",
         "Paper trading is segregated and has no broker-write capability.",
-        "Exact currency precision and explicit uncertainty."
+        "Exact currency precision and explicit uncertainty.",
+        "Finance boundary: Mira read-only, row-level consent, no live brokerage writes, paper ledger physically/logically separate.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1557,7 +1585,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Run leakage/consent/financial precision/adversarial tests",
-      "acceptance": "Other person's data denied; no real broker or Mira write endpoints",
+      "acceptance": "Other person's data denied; no real broker or Mira write endpoints; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Mira remains read-only with server-side per-person consent and row scoping; paper trading is isolated and has no real broker-write capability. Financial paths also require consent and row-scope denial tests, exact ledger reconciliation and proof that no live broker/Mira write route exists.",
       "parent_dependencies": [
         "FIN-010",
         "FIN-014"
@@ -1572,7 +1600,9 @@
       "module_guardrails": [
         "Mira is read-only; enforce independent partner consent and server-side row scoping.",
         "Paper trading is segregated and has no broker-write capability.",
-        "Exact currency precision and explicit uncertainty."
+        "Exact currency precision and explicit uncertainty.",
+        "Finance boundary: Mira read-only, row-level consent, no live brokerage writes, paper ledger physically/logically separate.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1648,6 +1678,21 @@
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
+        },
+        {
+          "id": "FIN-015.S06",
+          "sequence": 6,
+          "kind": "finance_defence",
+          "title": "Add active data-leakage and unauthorized financial-action tests",
+          "assignee_role": "worker",
+          "instruction": "Probe per-person row scope, consent revocation, Mira read-only connector, exported reports, logs, model context and paper-trading boundary. Attempt live broker or Mira write routes and prove denial.",
+          "deliverable": "Financial privacy threat tests, revocation receipt and endpoint inventory.",
+          "done_when": "Cross-person data is denied; Mira write and live broker routes are absent/blocked; sensitive values are redacted from logs and AI prompts.",
+          "depends_on": [
+            "FIN-015.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
         }
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
@@ -1659,7 +1704,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Conduct end-to-end Finance owner acceptance and revocation drill",
-      "acceptance": "Connector revoke stops sync; budgets and demo reports match fixtures",
+      "acceptance": "Connector revoke stops sync; budgets and demo reports match fixtures; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Mira remains read-only with server-side per-person consent and row scoping; paper trading is isolated and has no real broker-write capability. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence. Financial paths also require consent and row-scope denial tests, exact ledger reconciliation and proof that no live broker/Mira write route exists.",
       "parent_dependencies": [
         "FIN-006",
         "FIN-015"
@@ -1674,7 +1719,9 @@
       "module_guardrails": [
         "Mira is read-only; enforce independent partner consent and server-side row scoping.",
         "Paper trading is segregated and has no broker-write capability.",
-        "Exact currency precision and explicit uncertainty."
+        "Exact currency precision and explicit uncertainty.",
+        "Finance boundary: Mira read-only, row-level consent, no live brokerage writes, paper ledger physically/logically separate.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1724,5 +1771,8 @@
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
     }
-  ]
+  ],
+  "updated": "2026-11-15",
+  "security_architecture": "docs/architecture/SECURITY_ARCHITECTURE.md",
+  "security_policy_id": "ASEL-1.0"
 }
