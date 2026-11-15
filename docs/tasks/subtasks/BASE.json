@@ -5,7 +5,7 @@
   "module": "BASE",
   "module_name": "M0 — Source audit, safety, acceptance baseline",
   "parent_count": 16,
-  "subtask_count": 73,
+  "subtask_count": 71,
   "parents": [
     {
       "parent_id": "BASE-001",
@@ -321,21 +321,6 @@
           "done_when": "All required scanners execute locally or are explicitly marked deferred; secrets are redacted; Critical/High findings fail the gate; no fake green result.",
           "depends_on": [
             "BASE-003.S05"
-          ],
-          "evidence_required": true,
-          "remote_github_actions_allowed": false
-        },
-        {
-          "id": "BASE-003.S07",
-          "sequence": 7,
-          "kind": "security_scan",
-          "title": "Wire continuous security scanners into CI and scheduled checks",
-          "assignee_role": "worker",
-          "instruction": "Add reproducible SAST, dependency/SCA, secret, IaC/container, license and SBOM scans to local/PR pipeline; bind redacted evidence to commit SHA and define nightly re-scan/severity gates. Do not trigger remote Actions while quota is exhausted.",
-          "deliverable": "Scanner configuration, thresholds, sample findings and commit-bound scan receipt.",
-          "done_when": "Required scanners execute locally or are explicitly deferred; secrets are redacted; Critical/High findings fail the gate; no fake green result.",
-          "depends_on": [
-            "BASE-003.S06"
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
@@ -1117,21 +1102,6 @@
           "done_when": "Every module and external boundary has an owner, threat, control and test; active scans are restricted to inventoried owner-controlled targets.",
           "depends_on": [
             "BASE-011.S04"
-          ],
-          "evidence_required": true,
-          "remote_github_actions_allowed": false
-        },
-        {
-          "id": "BASE-011.S06",
-          "sequence": 6,
-          "kind": "threat_model",
-          "title": "Create cross-module threat model and authorized asset inventory",
-          "assignee_role": "worker",
-          "instruction": "Map trust boundaries, assets, entry points, data classes, threats, owners and containment actions for all ten modules, hosts, Cloudflare and integrations. Define authorized scan targets and prohibited third-party targets.",
-          "deliverable": "Versioned threat model, asset inventory, risk register and approved scan scope.",
-          "done_when": "Every module/external boundary has an owner, threat, control and test; scans are restricted to inventoried owner-controlled targets.",
-          "depends_on": [
-            "BASE-011.S05"
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
