@@ -301,7 +301,37 @@ def _check_ci_workflow_actions(worktree: Path, base_sha: str, path: str, target:
             raise ChangeValidationError("ci_workflow_unpinned_action")
 
 
-def _check_diff_whitespace(worktree: Path, untracked_paths: list[Path]) -> None:
+def _audit_markdown_paths(task: dict | None, paths: list[str] | set[str]) -> set[str]:
+    """Return only audit Markdown paths eligible for CommonMark hard breaks."""
+    return {
+        path for path in paths
+        if _task_allows_audit_report(task, path)
+        and PurePosixPath(path).suffix.lower() == ".md"
+    }
+
+
+def _check_markdown_hard_breaks(worktree: Path, paths: set[str]) -> None:
+    """Allow exactly two spaces at line ends only in bounded audit Markdown."""
+    for relative in sorted(paths):
+        target = worktree.joinpath(*PurePosixPath(relative).parts)
+        try:
+            lines = target.read_bytes().splitlines()
+        except (OSError, UnicodeError) as ex:
+            raise ChangeValidationError("git_diff_check_failed") from ex
+        for line in lines:
+            trailing = len(line) - len(line.rstrip(b" \t"))
+            if not trailing:
+                continue
+            # CommonMark hard breaks are exactly two spaces after non-whitespace
+            # content. Tabs, blank-line padding, and three or more spaces stay
+            # rejected so this exception cannot hide arbitrary whitespace.
+            if trailing == 2 and len(line) > 2 and line[-3] not in b" \t":
+                continue
+            raise ChangeValidationError("git_diff_check_failed")
+
+
+def _check_diff_whitespace(worktree: Path, untracked_paths: list[Path],
+                           *, allow_markdown_hard_breaks: set[str] | None = None) -> None:
     """Reject whitespace errors in tracked, staged, and untracked changes.
 
     ``git diff --check`` does not inspect untracked files, which allowed a
@@ -310,9 +340,11 @@ def _check_diff_whitespace(worktree: Path, untracked_paths: list[Path]) -> None:
     clean difference and 3 when it finds whitespace errors, so only 0/1 are
     accepted for each untracked file.
     """
+    allow = allow_markdown_hard_breaks or set()
+    pathspec = ["--", ".", *[f":(exclude){path}" for path in sorted(allow)]] if allow else []
     for args in (
-        ["git", "-C", str(worktree), "diff", "--check"],
-        ["git", "-C", str(worktree), "diff", "--cached", "--check"],
+        ["git", "-C", str(worktree), "diff", "--check", *pathspec],
+        ["git", "-C", str(worktree), "diff", "--cached", "--check", *pathspec],
     ):
         result = subprocess.run(
             args,
@@ -325,6 +357,9 @@ def _check_diff_whitespace(worktree: Path, untracked_paths: list[Path]) -> None:
             raise ChangeValidationError("git_diff_check_failed")
 
     for path in untracked_paths:
+        relative = path.relative_to(worktree).as_posix()
+        if relative in allow:
+            continue
         result = subprocess.run(
             ["git", "-C", str(worktree), "diff", "--no-index", "--check", "--", "/dev/null", str(path)],
             stdout=subprocess.DEVNULL,
@@ -334,6 +369,7 @@ def _check_diff_whitespace(worktree: Path, untracked_paths: list[Path]) -> None:
         )
         if result.returncode not in (0, 1):
             raise ChangeValidationError("git_diff_check_failed")
+    _check_markdown_hard_breaks(worktree, allow)
 
 
 def _git_common_dir(repo: Path) -> Path:
@@ -372,6 +408,7 @@ def check_changes(worktree: Path, base_sha: str, *, task: dict | None = None) ->
         raise ChangeValidationError("changed_file_limit_exceeded")
     paths=[]
     untracked_paths=[]
+    audit_markdown_paths=set()
     size=0
     for item in entries:
         if len(item) < 4 or item[2] != " ":
@@ -418,14 +455,31 @@ def check_changes(worktree: Path, base_sha: str, *, task: dict | None = None) ->
         except (SyntaxError, UnicodeError, json.JSONDecodeError, tomllib.TOMLDecodeError) as ex:
             raise ChangeValidationError("invalid_changed_file") from ex
         paths.append(path)
+        if audit_report and pure.suffix.lower() == ".md":
+            audit_markdown_paths.add(path)
         if code == "??":
             untracked_paths.append(target)
         if ci_workflow:
             _check_ci_workflow_actions(worktree, base_sha, path, target)
     if len(set(paths)) != len(paths):
         raise ChangeValidationError("git_status_invalid", "duplicate_paths")
-    _check_diff_whitespace(worktree, untracked_paths)
+    _check_diff_whitespace(worktree, untracked_paths,
+                           allow_markdown_hard_breaks=audit_markdown_paths)
     return paths
+
+
+def _check_commit_whitespace(worktree: Path, base_sha: str, candidate_sha: str,
+                             *, allow_markdown_hard_breaks: set[str] | None = None) -> None:
+    """Apply the same bounded whitespace policy to a committed candidate."""
+    allow = allow_markdown_hard_breaks or set()
+    pathspec = ["--", ".", *[f":(exclude){path}" for path in sorted(allow)]] if allow else []
+    result = subprocess.run(
+        ["git", "-C", str(worktree), "diff", "--check", base_sha, candidate_sha, *pathspec],
+        stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, check=False, timeout=30,
+    )
+    if result.returncode:
+        raise ChangeValidationError("git_diff_check_failed")
+    _check_markdown_hard_breaks(worktree, allow)
 
 
 def make_prompt(task: dict, sha: str, architecture_sha: str, role: str, previous_error: str = "") -> str:
@@ -1073,11 +1127,13 @@ def integrate(state: State, tid: str, *, merger_model: str | None = None, merger
         state.set_task(tid, "failed", error="subtask_evidence_incomplete",
                        run_id=data["last_run"], attempt=data["attempt"])
         raise ValueError("subtask_evidence_incomplete")
-    diff_check = subprocess.run(
-        ["git", "-C", str(candidate), "diff", "--check", data["base_sha"], data["candidate_sha"]],
-        stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, check=False, timeout=30,
-    )
-    if diff_check.returncode:
+    task_spec = json.loads(data["spec"])
+    changed_paths = json.loads(data.get("changed_files") or "[]")
+    allowed_audit_markdown = _audit_markdown_paths(task_spec, changed_paths)
+    try:
+        _check_commit_whitespace(candidate, data["base_sha"], data["candidate_sha"],
+                                 allow_markdown_hard_breaks=allowed_audit_markdown)
+    except ChangeValidationError:
         state.set_task(tid, "failed", error="git_diff_check_failed",
                        run_id=data["last_run"], attempt=data["attempt"])
         raise ChangeValidationError("git_diff_check_failed")

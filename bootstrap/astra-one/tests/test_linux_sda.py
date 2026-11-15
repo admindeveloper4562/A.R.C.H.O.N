@@ -22,6 +22,7 @@ from astra_one.linux_runtime import (
     integrate,
     merger_review_result,
     _bounded_patch_preview,
+    _check_commit_whitespace,
     ensure_integration,
     independent_qc,
     make_prompt,
@@ -390,8 +391,20 @@ class LinuxSDATests(unittest.TestCase):
         b=git(self.repo,"rev-parse","HEAD")
         report=self.repo/"docs"/"tasks"/"BASE-001_AUDIT.md"
         report.parent.mkdir(parents=True)
-        report.write_text("# bounded audit\n")
+        report.write_text("# bounded audit  \n\nFacts recorded.\n")
         self.assertEqual(check_changes(self.repo,b,task=audit_task()),["docs/tasks/BASE-001_AUDIT.md"])
+
+    def test_committed_audit_markdown_hard_breaks_use_same_bounded_policy(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        report=self.repo/"docs"/"tasks"/"BASE-001_AUDIT.md"
+        report.parent.mkdir(parents=True)
+        report.write_text("# bounded audit  \nFacts recorded.\n")
+        changed=check_changes(self.repo,b,task=audit_task())
+        git(self.repo,"add","--",*changed)
+        git(self.repo,"-c","user.name=as","-c","user.email=as@local.invalid","commit","-qm","audit")
+        candidate=git(self.repo,"rev-parse","HEAD")
+        _check_commit_whitespace(self.repo,b,candidate,
+                                 allow_markdown_hard_breaks={changed[0]})
 
     def test_audit_scope_rejects_executable_or_test_changes(self):
         b=git(self.repo,"rev-parse","HEAD")
