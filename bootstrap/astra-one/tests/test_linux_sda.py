@@ -32,7 +32,8 @@ from astra_one.linux_runtime import (
     review_finding_codes,
     worker_failure_code,
 )
-from astra_one.linux_cli import _upgrade_audit_brief, run_concurrent, run_master
+from astra_one.linux_cli import (_upgrade_audit_brief, inspect_repository, parse_requirements,
+                                 run_concurrent, run_master, supervise)
 from astra_one.supervisor import SupervisorController
 
 
@@ -83,12 +84,106 @@ class LinuxSDATests(unittest.TestCase):
         self.sha=self.state.import_architecture(arch)
         self.state.approve_architecture(self.sha)
 
+    def _add_supervisor_policy_files(self):
+        files = {
+            "AGENTS.md": "# Agent contract\n",
+            "SECURITY.md": "# Security contract\n",
+            "CODING_HANDBOOK.md": "# Handbook\n",
+            "docs/architecture/JARVIS_V2_CONSOLIDATED.md": "# Architecture\n",
+        }
+        for relative, content in files.items():
+            path = self.repo / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(content, encoding="utf-8")
+        git(self.repo, "add", "--", *files)
+        git(self.repo, "-c", "user.name=test", "-c", "user.email=test@local.invalid", "commit", "-qm", "policies")
+
     def test_worker_failure_categories_are_bounded(self):
         self.assertEqual(worker_failure_code(sqlite3.OperationalError("database is locked")),"state_database_locked")
         self.assertEqual(worker_failure_code(KeyError("passed")),"worker_result_invalid")
         self.assertEqual(worker_failure_code(UnicodeDecodeError("utf-8",b"\\xff",0,1,"bad")),"worker_output_invalid")
         self.assertEqual(worker_failure_code(ValueError("unexpected detail")),"worker_input_invalid")
         self.assertEqual(worker_failure_code(DockerTestError("docker_access_denied")),"docker_access_denied")
+
+    def test_supervisor_inspection_is_pinned_and_read_only(self):
+        self._add_supervisor_policy_files()
+        before = git(self.repo, "rev-parse", "HEAD")
+        result = inspect_repository(self.repo)
+        self.assertTrue(result["read_only"])
+        self.assertEqual(result["source_sha"], before)
+        self.assertEqual([item["path"] for item in result["citations"]], [
+            "AGENTS.md", "SECURITY.md", "CODING_HANDBOOK.md",
+            "docs/architecture/JARVIS_V2_CONSOLIDATED.md",
+        ])
+        self.assertTrue(all(len(item["blob_sha"]) == 40 for item in result["citations"]))
+        self.assertEqual(git(self.repo, "rev-parse", "HEAD"), before)
+        self.assertEqual(git(self.repo, "status", "--porcelain", "--untracked-files=all"), "")
+
+    def test_supervisor_inspection_rejects_missing_or_dirty_source(self):
+        minimal = git_repo(self.base / "minimal")
+        with self.assertRaisesRegex(ValueError, "supervisor_policy_missing"):
+            inspect_repository(minimal)
+        self._add_supervisor_policy_files()
+        (self.repo / "AGENTS.md").write_text("changed\n", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "dirty"):
+            inspect_repository(self.repo)
+
+    def test_requirements_parser_preserves_exact_acceptance_and_child_order(self):
+        packet = {
+            "id": "SDA-008",
+            "title": "Create Supervisor read-only repository inspection and requirements parser",
+            "acceptance": "Supervisor cites pinned repo contents and exact acceptance without editing code",
+            "dependencies": ["BASE-009", "SDA-003"],
+            "execution_mode": "implementation",
+            "suggested_scope_roots": ["bootstrap/astra-one/", "tests/"],
+            "module": "SDA",
+            "subtasks": [{
+                "id": "SDA-008.S01", "sequence": 1, "title": "Inspect source",
+                "instruction": "Read the pinned source and policies.",
+                "deliverable": "Baseline map", "done_when": "Pinned facts are recorded.",
+                "depends_on": [],
+            }],
+        }
+        result = parse_requirements(packet)
+        self.assertEqual(result["acceptance"], [packet["acceptance"]])
+        self.assertEqual(result["depends_on"], packet["dependencies"])
+        self.assertEqual(result["subtasks"][0]["id"], "SDA-008.S01")
+        self.assertEqual(len(result["requirements_sha256"]), 64)
+        self.assertEqual(result["requirements_sha256"], parse_requirements(packet)["requirements_sha256"])
+        invalid_scope = dict(packet, suggested_scope_roots=["../outside/"])
+        with self.assertRaisesRegex(ValueError, "requirements_scope_invalid"):
+            parse_requirements(invalid_scope)
+        invalid_child = dict(packet, subtasks=[dict(packet["subtasks"][0], sequence=2)])
+        with self.assertRaisesRegex(ValueError, "requirements_child_order_invalid"):
+            parse_requirements(invalid_child)
+
+    def test_supervise_prompt_binds_task_acceptance_and_repository_citations(self):
+        self._add_supervisor_policy_files()
+        self.state.add_tasks(task(1))
+        captured = {}
+
+        def fake_codex_call(*, output_file, prompt, **kwargs):
+            captured["prompt"] = prompt
+            output_file.write_text(json.dumps([{
+                "task_id": "ASTRA-101",
+                "objective": "Prepare a bounded repository inspection plan",
+                "acceptance": ["The plan cites the pinned repository"],
+                "depends_on": [],
+                "area": "foundation",
+            }]), encoding="utf-8")
+            return 0, 0, "ok"
+
+        output = self.base / "proposal.json"
+        with patch("astra_one.linux_cli.codex_call", side_effect=fake_codex_call):
+            result = supervise(
+                self.state, focus="SDA inspection", task_id="ASTRA-001", count=1,
+                output=output, model="gpt-5.6-luna", effort="medium",
+            )
+        self.assertIn("Must have working tests", captured["prompt"])
+        self.assertIn(result["repository_inspection"]["source_sha"], captured["prompt"])
+        self.assertTrue(result["repository_inspection"]["read_only"])
+        self.assertEqual(result["requirements"]["task_id"], "ASTRA-001")
+        self.assertEqual(git(self.repo, "status", "--porcelain", "--untracked-files=all"), "")
 
     def test_review_rejections_keep_only_bounded_repair_categories(self):
         findings = [

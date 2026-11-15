@@ -18,7 +18,8 @@ import time
 import uuid
 
 from .linux_sda import (DEFAULT_HOME, EFFORT, MAX_FAILURES, MAX_WORKERS, MODEL, State,
-                        assert_source, control_blocked, task_spec)
+                        TASK_EXECUTION_MODES, TASK_ID, assert_source, control_blocked,
+                        file_sha256, git, task_spec)
 from .linux_runtime import codex_call, ensure_integration, integrate, execute_claim, sandbox_status
 from .full_plan import load_full_plan
 from .supervisor import SupervisorController
@@ -54,7 +55,148 @@ def diagnose(source: Path | None) -> dict:
     return answer
 
 
-def supervise(state: State, *, focus: str, count: int, output: Path, model: str, effort: str):
+SUPERVISOR_POLICY_FILES = (
+    "AGENTS.md",
+    "SECURITY.md",
+    "CODING_HANDBOOK.md",
+    "docs/architecture/JARVIS_V2_CONSOLIDATED.md",
+)
+
+
+def inspect_repository(source: Path) -> dict:
+    """Return bounded, hash-only citations for a clean pinned checkout."""
+    root, source_sha = assert_source(source)
+    tree_sha = git(root, "rev-parse", f"{source_sha}^{{tree}}")
+    citations = []
+    for relative in SUPERVISOR_POLICY_FILES:
+        path = root / relative
+        if path.is_symlink() or not path.is_file():
+            raise ValueError("supervisor_policy_missing")
+        size = path.stat().st_size
+        if size > 64_000:
+            raise ValueError("supervisor_policy_too_large")
+        citations.append({
+            "path": relative,
+            "blob_sha": git(root, "rev-parse", f"{source_sha}:{relative}"),
+            "sha256": file_sha256(path),
+            "bytes": size,
+        })
+    if git(root, "rev-parse", "HEAD") != source_sha or git(
+            root, "status", "--porcelain", "--untracked-files=all"):
+        raise ValueError("repository_changed_during_inspection")
+    citation_sha = hashlib.sha256(
+        json.dumps(citations, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    return {
+        "read_only": True,
+        "source_sha": source_sha,
+        "tree_sha": tree_sha,
+        "branch": git(root, "branch", "--show-current") or "detached",
+        "citations": citations,
+        "citation_sha256": citation_sha,
+    }
+
+
+def _bounded_requirement_text(value: object, *, name: str, limit: int) -> str:
+    if not isinstance(value, str) or not value.strip() or len(value) > limit:
+        raise ValueError(f"requirements_{name}_invalid")
+    return value
+
+
+def parse_requirements(task: object) -> dict:
+    """Normalize one parent/child packet without changing its acceptance text."""
+    if not isinstance(task, dict):
+        raise ValueError("requirements_invalid")
+    task_id = task.get("task_id", task.get("id"))
+    if not isinstance(task_id, str) or not TASK_ID.fullmatch(task_id):
+        raise ValueError("requirements_task_id_invalid")
+    objective = task.get("objective") or task.get("description") or task.get("title")
+    objective = _bounded_requirement_text(objective, name="objective", limit=3_000)
+    acceptance = task.get("acceptance")
+    if isinstance(acceptance, str):
+        acceptance = [acceptance]
+    if (not isinstance(acceptance, list) or not 1 <= len(acceptance) <= 15
+            or any(not isinstance(item, str) or not 5 <= len(item) <= 500 for item in acceptance)):
+        raise ValueError("requirements_acceptance_invalid")
+    dependencies = task.get("depends_on", task.get("dependencies", []))
+    if (not isinstance(dependencies, list) or len(dependencies) > 20
+            or any(not isinstance(item, str) or not TASK_ID.fullmatch(item) for item in dependencies)
+            or len(set(dependencies)) != len(dependencies)):
+        raise ValueError("requirements_dependencies_invalid")
+    mode = task.get("execution_mode", "implementation")
+    if mode not in TASK_EXECUTION_MODES:
+        raise ValueError("requirements_execution_mode_invalid")
+    scope_roots = task.get("suggested_scope_roots", [])
+    if (not isinstance(scope_roots, list) or len(scope_roots) > 20
+            or any(not isinstance(item, str) or not item or item.startswith(("/", "\\"))
+                   or ".." in Path(item).parts or "\\" in item for item in scope_roots)):
+        raise ValueError("requirements_scope_invalid")
+    children = task.get("subtasks", []) or []
+    if not isinstance(children, list) or len(children) > 40:
+        raise ValueError("requirements_children_invalid")
+    parsed_children = []
+    sequences = []
+    for child in children:
+        if not isinstance(child, dict):
+            raise ValueError("requirements_child_invalid")
+        child_id = child.get("id", child.get("subtask_id"))
+        if not isinstance(child_id, str) or not re.fullmatch(r"[A-Za-z0-9_.-]{1,160}", child_id):
+            raise ValueError("requirements_child_invalid")
+        sequence = child.get("sequence")
+        if type(sequence) is not int or sequence < 1:
+            raise ValueError("requirements_child_invalid")
+        child_dependencies = child.get("depends_on", [])
+        if (not isinstance(child_dependencies, list)
+                or any(not isinstance(item, str) for item in child_dependencies)):
+            raise ValueError("requirements_child_invalid")
+        parsed_children.append({
+            "id": child_id,
+            "sequence": sequence,
+            "title": _bounded_requirement_text(child.get("title", child_id), name="child_title", limit=300),
+            "instruction": _bounded_requirement_text(child.get("instruction", ""), name="child_instruction", limit=1_200),
+            "deliverable": _bounded_requirement_text(child.get("deliverable", ""), name="child_deliverable", limit=500),
+            "done_when": _bounded_requirement_text(child.get("done_when", ""), name="child_done_when", limit=500),
+            "depends_on": child_dependencies,
+        })
+        sequences.append(sequence)
+    if sequences and sorted(sequences) != list(range(1, len(sequences) + 1)):
+        raise ValueError("requirements_child_order_invalid")
+    payload = {
+        "task_id": task_id,
+        "objective": objective,
+        "acceptance": acceptance,
+        "depends_on": dependencies,
+        "execution_mode": mode,
+        "scope_roots": scope_roots,
+        "priority": task.get("priority", ""),
+        "module": task.get("module", task.get("area", "")),
+        "owner_gate": bool(task.get("required_owner_gate", task.get("manual_owner_gate_required", False))),
+        "subtasks": parsed_children,
+    }
+    payload["requirements_sha256"] = hashlib.sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
+    ).hexdigest()
+    return payload
+
+
+def _task_requirements(state: State, task_id: str) -> dict:
+    if not TASK_ID.fullmatch(task_id):
+        raise ValueError("requirements_task_id_invalid")
+    with state.db() as db:
+        row = db.execute("SELECT spec FROM tasks WHERE id=?", (task_id,)).fetchone()
+        if not row:
+            raise ValueError("supervisor_task_missing")
+        task = json.loads(row[0])
+        children = [json.loads(child[0]) for child in db.execute(
+            "SELECT spec FROM subtasks WHERE parent_id=? ORDER BY sequence", (task_id,)
+        )]
+    if children:
+        task["subtasks"] = children
+    return parse_requirements(task)
+
+
+def supervise(state: State, *, focus: str, count: int, output: Path, model: str, effort: str,
+              task_id: str = ""):
     """Read-only model plan. Owner must explicitly enqueue output; never runs tasks."""
     state.ensure_approved()
     digest=state.get("architecture_sha")
@@ -69,12 +211,18 @@ def supervise(state: State, *, focus: str, count: int, output: Path, model: str,
     if output.exists():
         raise ValueError("output already exists; use a new path")
     source=Path(state.get("source"))
+    inspection = inspect_repository(source)
+    requirements = _task_requirements(state, task_id) if task_id else None
+    context = {"repository": inspection, "requirements": requirements}
     prompt=("You are Astra One's read-only SDA Supervisor. Prepare a small ordered coding-task plan for the "
             "final architecture below. DO NOT edit files or invoke nested agents. "
             f"Focus: {focus or 'first safe foundation milestone'}; at most {count} tasks. "
             "Return ONLY a JSON array; each task MUST have task_id (ASTRA-NNN), objective (10..3000 chars), "
             "acceptance (1..15 strings), depends_on (list of preceding task IDs) and area. "
             "Tasks should be independent when feasible. Do not propose unapproved destructive operations.\n"
+            "The repository citation and requirements packet below are pinned, read-only facts. "
+            "Preserve the exact acceptance text; do not invent approval or source evidence.\n"
+            + json.dumps(context, sort_keys=True, separators=(",", ":")) + "\n"
             f"Architecture SHA256 {digest}\n"+body)
     candidate=state.home/"private"/("plan-"+uuid.uuid4().hex+".json")
     try:
@@ -96,7 +244,11 @@ def supervise(state: State, *, focus: str, count: int, output: Path, model: str,
         with output.open("x",encoding="utf-8") as f:
             json.dump(tasks,f,indent=2,ensure_ascii=False)
         os.chmod(output,0o600)
-        return {"proposal":str(output),"tasks":len(tasks),"queued":False,"architecture_sha":digest}
+        post_inspection = inspect_repository(source)
+        if post_inspection["source_sha"] != inspection["source_sha"]:
+            raise ValueError("repository_changed_during_supervision")
+        return {"proposal":str(output),"tasks":len(tasks),"queued":False,"architecture_sha":digest,
+                "repository_inspection": inspection, "requirements": requirements}
     finally:
         candidate.unlink(missing_ok=True)
 
@@ -559,7 +711,7 @@ def main(argv: list[str] | None = None) -> int:
     p=sub.add_parser("doctor");p.add_argument("--source",type=Path)
     p=sub.add_parser("init");p.add_argument("--source",type=Path,required=True)
     p=sub.add_parser("architecture");p.add_argument("action",choices=["import","approve","status"]);p.add_argument("--file",type=Path);p.add_argument("--sha")
-    p=sub.add_parser("supervise");p.add_argument("--focus",default="");p.add_argument("--count",type=int,default=5);p.add_argument("--output",type=Path,required=True);p.add_argument("--model",default=MODEL);p.add_argument("--effort",default=EFFORT)
+    p=sub.add_parser("supervise");p.add_argument("--focus",default="");p.add_argument("--task-id",default="");p.add_argument("--count",type=int,default=5);p.add_argument("--output",type=Path,required=True);p.add_argument("--model",default=MODEL);p.add_argument("--effort",default=EFFORT)
     p=sub.add_parser("enqueue");p.add_argument("--file",type=Path,required=True)
     p=sub.add_parser("validate-full-plan");p.add_argument("--parent-plan",type=Path,required=True);p.add_argument("--subtask-index",type=Path,required=True);p.add_argument("--subtask-dir",type=Path,required=True);p.add_argument("--source-ref",default="");p.add_argument("--source-commit",default="")
     p=sub.add_parser("import-full-plan");p.add_argument("--parent-plan",type=Path,required=True);p.add_argument("--subtask-index",type=Path,required=True);p.add_argument("--subtask-dir",type=Path,required=True);p.add_argument("--source-ref",default="");p.add_argument("--source-commit",default="")
@@ -620,7 +772,7 @@ def main(argv: list[str] | None = None) -> int:
                 if not args.sha:raise ValueError("architecture approve needs --sha")
                 state.approve_architecture(args.sha);report({"approved":True,"engine":"not_started"})
             else:report({"sha256":state.get("architecture_sha"),"approved":state.get("approved_architecture_sha")==state.get("architecture_sha") and bool(state.get("architecture_sha"))})
-        elif args.command=="supervise":report(supervise(state,focus=args.focus,count=args.count,output=args.output,model=args.model,effort=args.effort))
+        elif args.command=="supervise":report(supervise(state,focus=args.focus,task_id=args.task_id,count=args.count,output=args.output,model=args.model,effort=args.effort))
         elif args.command=="enqueue":report({"enqueued":state.add_tasks(json.loads(args.file.read_text(encoding="utf-8"))),"started":False})
         elif args.command in ("validate-full-plan", "import-full-plan"):
             plan=load_full_plan(args.parent_plan,args.subtask_index,args.subtask_dir,

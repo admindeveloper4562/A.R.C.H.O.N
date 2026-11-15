@@ -10,7 +10,7 @@
     "astra_one/__main__.py": "131d50e7a0fee09d79d13c98590cc98d0366d150b881ec5091167d3b25d5806e",
     "astra_one/core.py": "63c6bedd7465bb963296dbee1610a9bdf6ea849aaf5e29b4aa6f4cb3a49b970f",
     "astra_one/full_plan.py": "0d75fe86d69972ab60e1ecb65422c6205d0a8f86cbe224373cd4b2b5bf32e1c9",
-    "astra_one/linux_cli.py": "7902d32a9f2081c9785c6a9fcbcd8621da1b24aaae28e226bc173d0ad69c6cbf",
+    "astra_one/linux_cli.py": "f31d0e634005501881f04cc596c2ea3eb291f1dedd5304f3b6e3737f68b29265",
     "astra_one/linux_runtime.py": "13337c26f6cbe602cca7b7c694fcaf59ae3ec1169ad5fcdbefc130318808bd2c",
     "astra_one/linux_sda.py": "564bdafe4f0a6af43122d27df4768cb1b20b90bcd5a5e7c91e004d0a6dc11075",
     "astra_one/owner_approval.py": "5f948322b0575feba159f16ce576d96093515f748d5c9e9b7d1538619a5aa60c",
@@ -40,7 +40,7 @@
     "scripts/verify_package.py": "445fab8bf3116b71b5c3822a66bbc3878d92c08fdacebaf80d58eedb32ccafec",
     "tests/test_core.py": "26cb1356c98ba763b7aaae7870f7a1066233e5a8cb55d70dcc03e4376fbed4c5",
     "tests/test_full_plan.py": "9222508e938fbd5190f5d8b7f73c9648f2ccfa76473d8cb8e1d5d02e1e25a525",
-    "tests/test_linux_sda.py": "184ddf36ed50ed563d0944b30680144828220c44848c2b2bf9a9b60d584b800a",
+    "tests/test_linux_sda.py": "1602891141853e54f85ebcabb73f893e0d234bcca533bffc27cab600bb1f2899",
     "tests/test_owner_approval.py": "9fce8dafcdc37dad7888e79646ba62cd8799282c4c4b25d017839f3b440dd6fc",
     "tests/test_owner_approval_state.py": "1e37c661b3c52c209f0b8bf22e0171a4d226738f74d9a77e96e94bf29673298b",
     "tests/test_supervisor_v3.py": "9f88b2fad36e2040e6d1085a23d0c379a767f312943728ad4de57c614a9c7783"
