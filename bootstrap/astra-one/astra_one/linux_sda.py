@@ -480,6 +480,18 @@ def _bounded_evidence(value: object, name: str) -> str:
     inspect(value)
     return raw
 
+
+def _validate_builder_child_evidence(child_ids: list[str], value: object) -> None:
+    """Reject an incomplete child envelope before it reaches the QC queue."""
+    if (not isinstance(value, list) or len(value) != len(child_ids)
+            or {item.get("subtask_id") for item in value if isinstance(item, dict)} != set(child_ids)):
+        raise ValueError("invalid_builder_child_evidence")
+    for item in value:
+        if (not isinstance(item, dict) or item.get("status") != "PASS"
+                or not isinstance(item.get("evidence"), str)
+                or not 1 <= len(item["evidence"]) <= 240):
+            raise ValueError("invalid_builder_child_evidence")
+
 class State:
     def __init__(self, home: Path = DEFAULT_HOME):
         self.home = home.expanduser().resolve()
@@ -1383,6 +1395,14 @@ class State:
             row = db.execute("SELECT * FROM tasks WHERE id=?", (task_id,)).fetchone()
         if not row or not row["project_id"]:
             raise ValueError("builder submission requires an imported project task")
+        child_ids: list[str] = []
+        if row["project_id"]:
+            with self.db() as db:
+                child_ids = [item[0] for item in db.execute(
+                    "SELECT id FROM subtasks WHERE parent_id=? ORDER BY sequence", (task_id,)
+                )]
+        if child_ids:
+            _validate_builder_child_evidence(child_ids, acceptance_evidence)
         if row["last_run"] != run_id or row["attempt"] != attempt:
             raise ValueError("stale_worker_lease")
         if row["status"] not in {"coding", "verifying"}:

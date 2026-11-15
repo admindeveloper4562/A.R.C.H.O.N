@@ -1180,6 +1180,13 @@ print(json.dumps({'type':'turn.completed','usage':{'input_tokens':17,'output_tok
             "acceptance_evidence": [{"subtask_id": "ASTRA-001.S01", "status": "PASS",
                                      "evidence": "focused builder test passed"}],
         }
+        malformed = dict(payload)
+        malformed["acceptance_evidence"] = [{"status": "PASS", "evidence": "missing child id"}]
+        with self.assertRaisesRegex(ValueError, "invalid_builder_child_evidence"):
+            self.state.submit_candidate(**malformed)
+        with self.state.db() as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM candidate_submissions").fetchone()[0], 0)
+            self.assertEqual(db.execute("SELECT status FROM tasks WHERE id='ASTRA-001'").fetchone()[0], "coding")
         first = self.state.submit_candidate(**payload)
         second = self.state.submit_candidate(**payload)
         self.assertFalse(first["idempotent"])
