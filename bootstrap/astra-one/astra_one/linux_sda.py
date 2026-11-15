@@ -1139,7 +1139,7 @@ class State:
         with self.db() as db:
             return [dict(r) for r in db.execute(
                 "SELECT id,status,attempt,project_id,module,priority,owner_gate,branch,base_sha,"
-                "candidate_sha,last_error,updated_at FROM tasks ORDER BY created_at,id"
+                "candidate_sha,worktree,last_error,updated_at FROM tasks ORDER BY created_at,id"
             )]
 
     def claim(self, model: str = MODEL, *, batch_id: str | None = None, lane: str = "normal") -> dict | None:

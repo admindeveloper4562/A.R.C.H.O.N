@@ -1121,7 +1121,14 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change'}}))
         self.assertEqual(result["failures_or_conflicts"],0)
         integrated=Path(self.state.get("integration_path"))
         self.assertEqual(len(list(integrated.glob("astra_*.py"))),5)
-        self.assertTrue(all(t["status"]=="completed" for t in self.state.list_tasks()))
+        tasks = self.state.list_tasks()
+        self.assertTrue(all(t["status"]=="completed" for t in tasks))
+        self.assertEqual(len({t["branch"] for t in tasks}), 5)
+        self.assertEqual(len({t["worktree"] for t in tasks}), 5)
+        self.assertTrue(all(t["branch"].startswith("feature/") for t in tasks))
+        self.assertTrue(all(Path(t["worktree"]).is_dir() for t in tasks))
+        self.assertTrue(all(git(Path(t["worktree"]), "branch", "--show-current") == t["branch"]
+                            for t in tasks))
         self.assertEqual(git(self.repo,"branch","--show-current"),"develop")
 
     def test_repeated_worker_failure_stops_before_retry_ceiling(self):
