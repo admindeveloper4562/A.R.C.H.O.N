@@ -1410,6 +1410,88 @@ print(json.dumps({'type':'turn.completed','usage':{'input_tokens':17,'output_tok
             self.assertEqual(db.execute("SELECT status FROM candidate_submissions").fetchone()[0], "merged")
             self.assertEqual(db.execute("SELECT count(*) FROM subtask_receipts WHERE parent_id='ASTRA-001'").fetchone()[0], 1)
 
+    def test_main_builder_qualifies_five_independent_candidates_serially(self):
+        """Qualify the single-builder handoff without launching coding workers."""
+        tasks = [task(i) for i in range(1, 6)]
+        self.state.add_tasks(tasks)
+        project_id = "PROJECT-5"
+        source_sha = self.state.get("source_sha")
+        with self.state.db() as db:
+            db.execute(
+                "INSERT INTO projects(id,name,source_repository,integration_branch,parent_task_count,subtask_count,"
+                "workers,model,reasoning,source_ref,source_commit,parent_plan_blob_sha,subtask_index_sha,payload_sha,"
+                "status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                (project_id, "qualification", "local", "develop", 5, 5, 1, "gpt-5.6-luna", "medium", "local",
+                 source_sha, "a" * 64, "b" * 64, "c" * 64, "pending", "now", "now"),
+            )
+            db.execute(
+                "INSERT INTO project_queue(project_id,status,enqueue_seq,created_at,updated_at) VALUES(?,?,?,?,?)",
+                (project_id, "pending", 0, "now", "now"),
+            )
+            for sequence, item in enumerate(tasks, start=1):
+                task_id = item["task_id"]
+                db.execute(
+                    "UPDATE tasks SET project_id=?,module=?,priority=?,enqueue_seq=? WHERE id=?",
+                    (project_id, "SDA", "P1", sequence, task_id),
+                )
+                child = {
+                    "id": f"{task_id}.S01", "sequence": 1, "kind": "implementation",
+                    "depends_on": [], "instruction": "Make the bounded qualification change.",
+                    "deliverable": "An isolated candidate commit.",
+                    "done_when": "The candidate passes independent QC.", "evidence_required": True,
+                }
+                db.execute(
+                    "INSERT INTO subtasks(id,project_id,parent_id,sequence,spec,status,payload_sha,created_at,updated_at) "
+                    "VALUES(?,?,?,?,?,?,?,?,?)",
+                    (child["id"], project_id, task_id, 1, json.dumps(child), "pending", "d" * 64, "now", "now"),
+                )
+
+        merged = []
+
+        def fake_docker(worktree, image, command, timeout=300, *, receipt_dir=None, receipt_context=None):
+            return _complete_test_receipt(
+                {"passed": True, "exit_code": 0, "sandbox": "docker_no_network", "tests_detected": True},
+                receipt_dir=receipt_dir, receipt_context=receipt_context,
+            )
+
+        with patch("astra_one.linux_cli.docker_test", side_effect=fake_docker):
+            for sequence in range(1, 6):
+                claim = self.state.builder_claim(model="gpt-5.6-luna")
+                self.assertIsNotNone(claim)
+                self.assertEqual(claim["role"], "main_builder")
+                self.assertEqual(claim["task"]["task_id"], f"ASTRA-{sequence:03}")
+                candidate = Path(claim["worktree"])
+                path = f"candidate_{sequence}.py"
+                (candidate / path).write_text(f"VALUE = {sequence}\n")
+                git(candidate, "add", "--", path)
+                git(candidate, "-c", "user.name=builder", "-c", "user.email=builder@local.invalid",
+                    "commit", "-m", "qualification candidate")
+                candidate_sha = git(candidate, "rev-parse", "HEAD")
+                self.state.submit_candidate(
+                    task_id=claim["task"]["task_id"], run_id=claim["run_id"], attempt=claim["attempt"],
+                    builder_session_id="main-builder-qualification", base_sha=claim["base_sha"],
+                    candidate_sha=candidate_sha, branch=claim["branch"], worktree=claim["worktree"],
+                    changed_files=[path], test_evidence=[{"command": "unittest", "exit_code": 0}],
+                    acceptance_evidence=[{
+                        "subtask_id": f"ASTRA-{sequence:03}.S01", "status": "PASS",
+                        "evidence": "isolated candidate handoff verified",
+                    }],
+                )
+                result = process_candidate_queue(
+                    self.state, limit=1, test_image="archon-python:3.12-git",
+                    test_command=["python3", "-m", "unittest"], timeout=60,
+                )
+                self.assertEqual(result["passed"], 1)
+                self.assertEqual(self.state.list_tasks()[sequence - 1]["status"], "completed")
+                merged.append(result["results"][0]["integration_sha"])
+
+        self.assertEqual(len(set(merged)), 5)
+        with self.state.db() as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM candidate_submissions WHERE status='merged'").fetchone()[0], 5)
+            self.assertEqual(db.execute("SELECT count(*) FROM subtask_receipts WHERE verifier='independent_qc'").fetchone()[0], 5)
+        self.assertEqual(git(Path(self.state.get("integration_path")), "rev-parse", "HEAD"),
+                         self.state.get("integration_sha"))
+
     def test_candidate_diff_validation_rejects_base_mismatch_and_scope_escape(self):
         self.state.add_tasks(task(1))
         base = self.state.get("integration_sha")
