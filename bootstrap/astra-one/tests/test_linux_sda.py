@@ -1088,7 +1088,8 @@ print(json.dumps({'type':'turn.completed','usage':{'input_tokens':17,'output_tok
                 return subprocess.CompletedProcess(args, 0, "Ran 1 test in 0.01s\nOK\n", "")
             return real_run(args, *rest, **kwargs)
 
-        with patch("astra_one.linux_runtime.subprocess.run", side_effect=fake_run):
+        with patch("astra_one.linux_runtime.subprocess.run", side_effect=fake_run), \
+             patch("astra_one.linux_runtime.shutil_which", return_value="/usr/bin/docker"):
             result = docker_test(candidate, "python:3.12-slim", ["python3", "-m", "unittest", "discover"])
 
         self.assertTrue(result["passed"])

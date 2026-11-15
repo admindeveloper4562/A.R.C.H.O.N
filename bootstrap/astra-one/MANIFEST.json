@@ -40,7 +40,7 @@
     "scripts/verify_package.py": "445fab8bf3116b71b5c3822a66bbc3878d92c08fdacebaf80d58eedb32ccafec",
     "tests/test_core.py": "26cb1356c98ba763b7aaae7870f7a1066233e5a8cb55d70dcc03e4376fbed4c5",
     "tests/test_full_plan.py": "c6b7df2184c890aa14acb45289277d4e682e4b04895b86f55384f3f38251daf3",
-    "tests/test_linux_sda.py": "5d34fa4e0b5ee6371f52eaa540df47ed88ff085120aab9165cc112810085fd6b",
+    "tests/test_linux_sda.py": "596d810335589bcd93b06b0d4dc83a8125976c5adaa1edefb6a64558b4be2462",
     "tests/test_owner_approval.py": "9fce8dafcdc37dad7888e79646ba62cd8799282c4c4b25d017839f3b440dd6fc",
     "tests/test_owner_approval_state.py": "1e37c661b3c52c209f0b8bf22e0171a4d226738f74d9a77e96e94bf29673298b",
     "tests/test_supervisor_v3.py": "9f88b2fad36e2040e6d1085a23d0c379a767f312943728ad4de57c614a9c7783"
