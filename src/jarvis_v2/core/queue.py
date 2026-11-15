@@ -7,6 +7,7 @@ from uuid import uuid4
 
 PRIORITIES = ("P0", "P1", "P2", "P3", "P4", "P5")
 STATES = ("pending", "leased", "completed", "failed", "cancelled")
+MAX_HISTORY_ENTRIES = 100
 
 class TaskQueue:
     def __init__(self, path: Path):
@@ -69,5 +70,18 @@ class TaskQueue:
 
     def status(self) -> list[dict]:
         return [dict(row) for row in self.db.execute("SELECT id,priority,module,state,receipt FROM tasks ORDER BY created_id")]
+
+    def history(self, task_id: str, *, limit: int = MAX_HISTORY_ENTRIES) -> list[dict]:
+        """Return bounded, chronological, non-sensitive event metadata for a task."""
+        if not isinstance(task_id, str) or not task_id:
+            raise ValueError("task_id required")
+        if not isinstance(limit, int) or isinstance(limit, bool) or limit < 1:
+            raise ValueError("limit must be a positive integer")
+        limit = min(limit, MAX_HISTORY_ENTRIES)
+        rows = self.db.execute(
+            "SELECT seq, task_id, kind FROM events WHERE task_id=? ORDER BY seq LIMIT ?",
+            (task_id, limit),
+        )
+        return [dict(row) for row in rows]
 
     def close(self): self.db.close()

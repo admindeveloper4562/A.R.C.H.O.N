@@ -1,10 +1,11 @@
+import hashlib
 import json
 from pathlib import Path
 import tempfile
 import unittest
 
 from astra_one.full_plan import FullPlan, PROJECT_ID, payload_sha
-from astra_one.linux_runtime import make_prompt
+from astra_one.linux_runtime import _write_receipt_artifact, make_prompt
 from astra_one.linux_sda import State
 
 
@@ -35,6 +36,44 @@ def child(cid: str, sequence: int, depends_on: list[str] | None = None) -> dict:
         "evidence_required": True,
         "remote_github_actions_allowed": False,
     }
+
+
+def bound_receipts(state: State, task_id: str, run_id: str, attempt: int, source_sha: str,
+                   changed_files: list[str], candidate_sha: str, contract_sha: str,
+                   child_evidence: list[dict]) -> tuple[dict, dict]:
+    context = {
+        "task_id": task_id, "run_id": run_id, "attempt": attempt, "source_sha": source_sha,
+        "candidate_sha": candidate_sha,
+        "changed_files_sha": hashlib.sha256(
+            json.dumps(changed_files, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest(),
+        "contract_sha": contract_sha,
+    }
+    test_payload = {"passed": True, "exit_code": 0, "sandbox": "docker_no_network", "tests_detected": True}
+    test_path, test_artifact_sha = _write_receipt_artifact(
+        state.home / "private" / "test-receipts", kind="docker_test_receipt",
+        context=context, payload=test_payload,
+    )
+    test_receipt = dict(test_payload)
+    test_receipt["receipt_sha"] = hashlib.sha256(
+        json.dumps(test_payload, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    test_receipt.update({"artifact_path": test_path, "artifact_sha": test_artifact_sha})
+    qc_payload = {"verdict": "PASS", "findings": [], "child_evidence": child_evidence}
+    qc_path, qc_artifact_sha = _write_receipt_artifact(
+        state.home / "private" / "qc-receipts", kind="independent_qc_receipt",
+        context=context, payload=qc_payload, extra={"source_output_sha": "b" * 64},
+    )
+    qc_receipt = {
+        "verdict": "PASS", "findings": [], "reviewer": "independent_qc", "candidate_sha": candidate_sha,
+        "qc_output_sha": "b" * 64, "qc_artifact_path": qc_path, "qc_artifact_sha": qc_artifact_sha,
+        "contract_sha": contract_sha,
+        "child_evidence_sha": hashlib.sha256(
+            json.dumps(child_evidence, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest(),
+        "changed_files_sha": context["changed_files_sha"],
+    }
+    return test_receipt, qc_receipt
 
 
 def parent(pid: str, module: str, dependencies: list[str] | None = None,
@@ -131,6 +170,26 @@ class FullPlanImportTests(unittest.TestCase):
     def test_completion_promotes_dependent_parent_and_children(self):
         self.state.import_full_plan(self.plan())
         claim = self.state.claim()
+        source_sha = self.state.get("integration_sha")
+        self.state.set_task("FULL-001", "coding", fields={"base_sha": source_sha, "candidate_sha": "d" * 40},
+                            run_id=claim["run_id"], attempt=claim["attempt"])
+        evidence = [
+            {"subtask_id": "FULL-001.S01", "status": "PASS", "evidence": "criterion checked"},
+            {"subtask_id": "FULL-001.S02", "status": "PASS", "evidence": "criterion checked"},
+        ]
+        changed = ["candidate.py"]
+        test_receipt, qc_receipt = bound_receipts(
+            self.state, "FULL-001", claim["run_id"], claim["attempt"], source_sha,
+            changed, "d" * 40, self.state.subtask_contract_sha("FULL-001"), evidence,
+        )
+        self.state.record_subtask_evidence(
+            "FULL-001", candidate_sha="d" * 40, source_sha=source_sha,
+            changed_files=changed,
+            test_receipt=test_receipt,
+            qc_receipt=qc_receipt,
+            child_evidence=evidence,
+            run_id=claim["run_id"], attempt=claim["attempt"],
+        )
         self.state.set_task("FULL-001", "completed", fields={"candidate_sha": "d" * 40})
         status = self.state.full_plan_status()
         self.assertEqual(status["parent_status"], {"approval_required": 1, "completed": 1, "pending": 1})

@@ -49,4 +49,4 @@ Do **not** run `run` until the final architecture is imported/approved, tasks ar
 
 ## Legacy v0.1 Windows lab
 
-The original Windows/Ollama single-worker CLI remains under `python -m astra_one` and `docs/WINDOWS_QUICKSTART.md` for compatibility, but **Linux users must invoke `python3 -m astra_one.linux_cli`**. Linux uses a separate `~/.local/state/astra-one-linux` database, not the Windows lab database or old JARVIS Workhorse. The Cloudflare dashboard source is shared with compatible event-schema metadata and has a Linux label in this release.
+The original Windows/Ollama single-worker CLI remains under `python -m astra_one` and `docs/WINDOWS_QUICKSTART.md` for compatibility, but **Linux users must invoke `python3 -m astra_one.linux_cli`**. Linux uses the canonical `~/.local/state/archon-astra` database, not the Windows lab database or old JARVIS Workhorse. The Cloudflare dashboard source is shared with compatible event-schema metadata and has a Linux label in this release.

@@ -14,6 +14,10 @@ for marker in STOP PAUSE PAUSED_QUOTA; do
 done
 [[ -f "$STATE/sda.sqlite3" ]] || { echo 'Astra state is not initialized' >&2; exit 1; }
 cd "$ASTRA_ROOT"
+# The durable Supervisor pass only classifies recorded failures and opens
+# bounded recovery cases; it never claims, approves, merges or starts a model.
+SUPERVISOR_OUTPUT=$("${CLI[@]}" supervisor-tick --limit 50)
+printf '%s\n' "$SUPERVISOR_OUTPUT"
 # Repeated calls are safe: the Python Master acquires an exclusive file lock.
 RUN_RC=0
 # Full imported parent plan with bounded repair claims; the Master still caps
@@ -23,11 +27,17 @@ RUN_OUTPUT=$("${CLI[@]}" run \
   --max-tasks 1000 --max-minutes 120 --max-seconds-per-task 1800 \
   --max-repairs 3 --auto-integrate --test-image "$TEST_IMAGE" 2>&1) || RUN_RC=$?
 printf '%s\n' "$RUN_OUTPUT"
+# Failed generations are repaired only after the normal Master releases its
+# lock. The recovery lanes are bounded and fenced by the same canonical state.
+RECOVERY_RC=0
+RECOVERY_OUTPUT=$("${CLI[@]}" supervisor-recover --limit 2 --model gpt-5.6-luna --effort medium \
+  --test-image "$TEST_IMAGE" --max-seconds-per-task 1800 2>&1) || RECOVERY_RC=$?
+printf '%s\n' "$RECOVERY_OUTPUT"
 # A refusal to start is an operational error. A completed batch with terminal
 # worker failures may still publish unrelated, already-QC-approved commits;
 # retain its nonzero status for systemd after the publication check.
-if (( RUN_RC == 2 )); then
-  exit "$RUN_RC"
+if (( RUN_RC == 2 || RECOVERY_RC == 2 )); then
+  exit 2
 fi
 # STOP, PAUSE or exhausted quota blocks Git publication.
 for marker in STOP PAUSE PAUSED_QUOTA; do
@@ -81,25 +91,10 @@ cd "$INTEGRATION"
 PYTHONPATH=src:. python3 -m unittest discover -s tests -p 'test_*.py' -q
 python3 tools/verify_foundation.py
 git diff --check HEAD^ HEAD
-REMOTE="https://github.com/admindeveloper4562/A.R.C.H.O.N.git"
-[[ "$(git config --get remote.origin.url)" == "$REMOTE" ]] || { echo 'Unexpected Git origin; refusing push' >&2; exit 1; }
-git fetch --no-tags origin develop
-REMOTE_SHA="$(git rev-parse refs/remotes/origin/develop)"
 LOCAL_SHA="$(git rev-parse HEAD)"
-if [[ "$REMOTE_SHA" == "$LOCAL_SHA" ]]; then
-  echo '[ARCHON/ATLAS] No new accepted commits to publish'
-  exit "$RUN_RC"
-fi
-if ! git merge-base --is-ancestor "$REMOTE_SHA" "$LOCAL_SHA"; then
-  echo '[ARCHON/ATLAS] Remote develop diverged: manual review required, no force push' >&2
-  touch "$STATE/PAUSE"
-  exit 1
-fi
-# Authorized by owner's request: develop only, never main.
-git push origin HEAD:refs/heads/develop || {
-  touch "$STATE/PAUSE"
-  echo '[ARCHON/ATLAS] Develop publication rejected; PAUSE set for operator review' >&2
-  exit 1
-}
-printf '[ARCHON/ATLAS] Published verified integration commit %s to develop\n' "$LOCAL_SHA"
+# GitHub Actions quota is exhausted for this project. Keep the durable local
+# integration checkpoint and require a separate owner-approved publication
+# operation after remote CI policy is reviewed; this unattended service never
+# fetches or pushes and therefore cannot consume remote CI quota.
+printf '[ARCHON/ATLAS] Remote develop publication deferred; local checkpoint=%s\n' "$LOCAL_SHA"
 exit "$RUN_RC"

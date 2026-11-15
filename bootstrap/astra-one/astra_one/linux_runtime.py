@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import ast
+import hashlib
 import json
 import os
 from pathlib import Path, PurePosixPath
@@ -619,7 +620,87 @@ def _docker_context(worktree: Path) -> tuple[tempfile.TemporaryDirectory, Path]:
         raise DockerTestError("docker_context_invalid") from ex
 
 
-def docker_test(worktree: Path, image: str, command: list[str], timeout: int = 300) -> dict:
+def _write_receipt_artifact(directory: Path, *, kind: str, context: dict,
+                            payload: dict, extra: dict | None = None) -> tuple[str, str]:
+    """Persist bounded execution metadata outside the Git worktree."""
+    directory.mkdir(mode=0o700, parents=True, exist_ok=True)
+    envelope = {"kind": kind, "context": dict(context), "payload": dict(payload)}
+    if extra:
+        envelope.update(extra)
+    raw = json.dumps(envelope, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    if len(raw) > 64_000:
+        raise ValueError("receipt artifact exceeds size limit")
+    path = directory / (kind.replace("_", "-") + "-" + uuid.uuid4().hex + ".json")
+    temporary = path.with_suffix(".tmp")
+    temporary.write_bytes(raw)
+    os.chmod(temporary, 0o600)
+    temporary.replace(path)
+    return str(path), hashlib.sha256(raw).hexdigest()
+
+
+def _complete_test_receipt(receipt: dict, *, receipt_dir: Path | None,
+                           receipt_context: dict | None) -> dict:
+    payload = dict(receipt)
+    receipt["receipt_sha"] = hashlib.sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    if receipt_dir is not None:
+        path, artifact_sha = _write_receipt_artifact(
+            receipt_dir, kind="docker_test_receipt", context=receipt_context or {}, payload=payload,
+        )
+        receipt.update({"artifact_path": path, "artifact_sha": artifact_sha})
+    return receipt
+
+
+def bind_execution_receipts(state: State, *, task_id: str, run_id: str, attempt: int,
+                            source_sha: str, candidate_sha: str, changed_files: list[str],
+                            test_receipt: dict, qc_receipt: dict) -> tuple[dict, dict]:
+    """Create final receipt artifacts after the candidate commit is known."""
+    test_payload = dict(test_receipt)
+    test_payload.pop("receipt_sha", None)
+    test_payload.pop("artifact_path", None)
+    test_payload.pop("artifact_sha", None)
+    original_test = state._read_receipt_artifact(
+        test_receipt, kind="docker_test_receipt", task_id=task_id,
+        run_id=run_id, attempt=attempt, source_sha=source_sha, payload=test_payload,
+    )
+    changed_files_sha = hashlib.sha256(
+        json.dumps(changed_files, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    if original_test["context"].get("changed_files_sha") != changed_files_sha:
+        raise ValueError("test artifact changed-file binding mismatch")
+    original_qc = state._read_receipt_artifact(
+        qc_receipt, kind="independent_qc_receipt", task_id=task_id,
+        run_id=run_id, attempt=attempt, source_sha=source_sha,
+    )
+    if (original_qc["payload"].get("verdict") != qc_receipt.get("verdict")
+            or original_qc["payload"].get("findings") != qc_receipt.get("findings")
+            or original_qc.get("source_output_sha") != qc_receipt.get("qc_output_sha")
+            or original_qc["context"].get("changed_files_sha") != changed_files_sha):
+        raise ValueError("QC artifact provenance mismatch")
+    test_context = dict(original_test["context"])
+    test_context["candidate_sha"] = candidate_sha
+    test_path, test_artifact_sha = _write_receipt_artifact(
+        state.home / "private" / "test-receipts", kind="docker_test_receipt",
+        context=test_context, payload=test_payload,
+    )
+    bound_test = dict(test_receipt)
+    bound_test.update({"artifact_path": test_path, "artifact_sha": test_artifact_sha})
+    qc_context = dict(original_qc["context"])
+    qc_context["candidate_sha"] = candidate_sha
+    qc_path, qc_artifact_sha = _write_receipt_artifact(
+        state.home / "private" / "qc-receipts", kind="independent_qc_receipt",
+        context=qc_context, payload=original_qc["payload"],
+        extra={"source_output_sha": qc_receipt["qc_output_sha"]},
+    )
+    bound_qc = dict(qc_receipt)
+    bound_qc.update({"candidate_sha": candidate_sha, "qc_artifact_path": qc_path,
+                     "qc_artifact_sha": qc_artifact_sha})
+    return bound_test, bound_qc
+
+
+def docker_test(worktree: Path, image: str, command: list[str], timeout: int = 300,
+                *, receipt_dir: Path | None = None, receipt_context: dict | None = None) -> dict:
     """Run candidate tests without network in an existing local Docker image."""
     if not image or not re.fullmatch(r"[a-zA-Z0-9_.:/@-]{1,160}",image):
         raise DockerTestError("docker_test_config_invalid")
@@ -652,9 +733,12 @@ def docker_test(worktree: Path, image: str, command: list[str], timeout: int = 3
             if len(command)>=3 and command[:3] in (["python3","-m","unittest"],["python","-m","unittest"]):
                 count=re.search(r"Ran (\d+) tests?",output)
                 ran=bool(count and int(count.group(1))>=1)
-            return {"passed":finished.returncode==0 and ran,"exit_code":finished.returncode,"sandbox":"docker_no_network","tests_detected":ran}
+            receipt = {"passed": finished.returncode == 0 and ran, "exit_code": finished.returncode,
+                       "sandbox": "docker_no_network", "tests_detected": ran}
+            return _complete_test_receipt(receipt, receipt_dir=receipt_dir, receipt_context=receipt_context)
         except subprocess.TimeoutExpired:
-            return {"passed":False,"exit_code":124,"sandbox":"docker_timeout"}
+            receipt = {"passed": False, "exit_code": 124, "sandbox": "docker_timeout", "tests_detected": False}
+            return _complete_test_receipt(receipt, receipt_dir=receipt_dir, receipt_context=receipt_context)
     finally:
         temporary.cleanup()
 
@@ -663,13 +747,35 @@ def shutil_which(name: str) -> str | None:
     return shutil.which(name)
 
 
-def independent_qc(state: State, worktree: Path, task: dict, *, model: str, effort: str,
-                   changed_files: list[str] | None = None, timeout: int = 600,
-                   danger_bypass: bool = False) -> tuple[bool,str]:
-    """Separate read-only Codex session. Fail closed if result is not parseable JSON."""
+def independent_qc_report(state: State, worktree: Path, task: dict, *, model: str, effort: str,
+                          changed_files: list[str] | None = None, child_ids: list[str] | None = None,
+                          timeout: int = 600, danger_bypass: bool = False,
+                          receipt_context: dict | None = None) -> tuple[bool, str, list[dict], dict]:
+    """Run independent QC and optionally return bounded per-child verdicts."""
     result_file=state.home/"private"/("qc-"+uuid.uuid4().hex+".json")
     validated_paths = changed_files or []
     path_context = "\n".join("- " + path for path in validated_paths)
+    child_ids = list(child_ids or [])
+    child_contract = ""
+    if child_ids:
+        child_rows = []
+        for child in task.get("subtasks", []):
+            if not isinstance(child, dict) or child.get("id") not in child_ids:
+                continue
+            child_rows.append({key: child.get(key) for key in (
+                "id", "sequence", "title", "instruction", "deliverable", "done_when",
+                "depends_on", "acceptance", "evidence_required", "kind",
+            ) if key in child})
+        child_packet = json.dumps(child_rows, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        if len(child_packet) > 40_000:
+            return False, "qc_invalid_child_evidence", [], {}
+        child_contract = (
+            " Include exactly one child_evidence object for every listed child, with keys "
+            "subtask_id, status and evidence. Each status must be PASS and evidence must be a concise "
+            "bounded reason tied to the inspected child criterion. The following is the complete persisted "
+            "child contract; inspect each child's dependencies and completion rule before returning PASS. "
+            "Child contract JSON: " + child_packet + " Child IDs: " + ",".join(child_ids) + "."
+        )
     audit_context = ""
     if task.get("execution_mode") == "audit":
         audit_context = (
@@ -682,13 +788,14 @@ def independent_qc(state: State, worktree: Path, task: dict, *, model: str, effo
     prompt=("You are the independent SDA quality reviewer. Read the Git worktree diff and relevant files. "
             "Do NOT modify files or run tests. Check this task against objective and criteria, "
             "security issues, tests, and unexpected changes. Return ONLY compact JSON: "
-            '{"verdict":"PASS" or "FAIL","findings":["short reason"]}. '
-            "PASS only if no concerns. You are not the implementer.\n"
+            + ('{"verdict":"PASS" or "FAIL","findings":["short reason"],"child_evidence":[...]}.' if child_ids else
+               '{"verdict":"PASS" or "FAIL","findings":["short reason"]}. ')
+            + "PASS only if no concerns. You are not the implementer.\n"
             "The deterministic change validator already accepted these changed paths:\n"
             + (path_context or "- none") + "\n"
-            "Git's ordinary diff omits untracked files; inspect every listed path directly and do not reject "
+            + "Git's ordinary diff omits untracked files; inspect every listed path directly and do not reject "
             "a candidate solely because its untracked file is absent from `git diff`.\n"
-            + audit_context
+            + audit_context + child_contract
             + "Task: "+task["task_id"]+"\nObjective: "+task["objective"]+"\nCriteria:\n"+
             "\n".join("- "+x for x in task["acceptance"]))
     try:
@@ -696,20 +803,60 @@ def independent_qc(state: State, worktree: Path, task: dict, *, model: str, effo
                                model=model,effort=effort,sandbox="read-only",timeout=timeout,
                                output_file=result_file,role="qc",danger_bypass=danger_bypass)
         if rc!=0 or reason!="ok" or not result_file.is_file() or result_file.stat().st_size>8000:
-            return False,"qc_agent_failed"
+            return False,"qc_agent_failed",[],{}
         parsed=json.loads(result_file.read_text(encoding="utf-8"))
-        if not isinstance(parsed,dict) or set(parsed)!={"verdict","findings"} or parsed["verdict"] not in {"PASS","FAIL"}:
-            return False,"qc_invalid_verdict"
+        qc_output_sha = hashlib.sha256(result_file.read_bytes()).hexdigest()
+        expected_keys = {"verdict", "findings"} | ({"child_evidence"} if child_ids else set())
+        if not isinstance(parsed,dict) or set(parsed) != expected_keys or parsed["verdict"] not in {"PASS","FAIL"}:
+            return False,"qc_invalid_verdict",[],{}
         findings=parsed["findings"]
         if not isinstance(findings,list) or len(findings)>20 or any(not isinstance(x,str) or len(x)>500 for x in findings):
-            return False,"qc_invalid_findings"
+            return False,"qc_invalid_findings",[],{}
+        evidence = parsed.get("child_evidence", [])
+        if child_ids:
+            if not isinstance(evidence, list) or len(evidence) != len(child_ids):
+                return False,"qc_invalid_child_evidence",[],{}
+            expected = set(child_ids)
+            seen = set()
+            for item in evidence:
+                if (not isinstance(item, dict) or set(item) != {"subtask_id", "status", "evidence"}
+                        or item["subtask_id"] not in expected or item["subtask_id"] in seen
+                        or item["status"] not in {"PASS", "FAIL"}
+                        or not isinstance(item["evidence"], str) or not 1 <= len(item["evidence"]) <= 240):
+                    return False,"qc_invalid_child_evidence",[],{}
+                seen.add(item["subtask_id"])
+            if seen != expected:
+                return False,"qc_invalid_child_evidence",[],{}
         if parsed["verdict"] == "PASS" and not findings:
-            return True, "qc_pass"
-        return False, review_failure_code("qc_rejected", findings)
+            if child_ids and any(item["status"] != "PASS" for item in evidence):
+                return False, "qc_rejected:child_acceptance", evidence, {"qc_output_sha": qc_output_sha}
+            qc_receipt = {
+                "verdict": "PASS", "findings": [], "reviewer": "independent_qc",
+                "qc_output_sha": qc_output_sha,
+            }
+            artifact_path, artifact_sha = _write_receipt_artifact(
+                state.home / "private" / "qc-receipts", kind="independent_qc_receipt",
+                context=receipt_context or {}, payload=parsed,
+                extra={"source_output_sha": qc_output_sha},
+            )
+            qc_receipt.update({"qc_artifact_path": artifact_path, "qc_artifact_sha": artifact_sha})
+            return True, "qc_pass", evidence, qc_receipt
+        return False, review_failure_code("qc_rejected", findings), evidence, {"qc_output_sha": qc_output_sha}
     except (OSError,ValueError,json.JSONDecodeError,subprocess.SubprocessError):
-        return False,"qc_runtime_error"
+        return False,"qc_runtime_error",[],{}
     finally:
         result_file.unlink(missing_ok=True)
+
+
+def independent_qc(state: State, worktree: Path, task: dict, *, model: str, effort: str,
+                   changed_files: list[str] | None = None, timeout: int = 600,
+                   danger_bypass: bool = False) -> tuple[bool,str]:
+    """Compatibility wrapper for callers that only need the parent verdict."""
+    accepted, reason, _, _receipt = independent_qc_report(
+        state, worktree, task, model=model, effort=effort, changed_files=changed_files,
+        timeout=timeout, danger_bypass=danger_bypass,
+    )
+    return accepted, reason
 
 
 
@@ -827,6 +974,7 @@ SAFE_WORKER_FAILURE_CODES = CHANGE_FAILURE_CODES | frozenset({
     "qc_agent_failed",
     "qc_invalid_verdict",
     "qc_invalid_findings",
+    "qc_invalid_child_evidence",
     "qc_rejected",
     "qc_runtime_error",
     "merger_agent_failed",
@@ -848,6 +996,7 @@ SAFE_WORKER_FAILURE_CODES = CHANGE_FAILURE_CODES | frozenset({
     "worker_runtime_error",
     "progress_event_invalid",
     "worker_state_update_failed",
+    "subtask_evidence_incomplete",
 })
 
 
@@ -872,6 +1021,8 @@ def worker_failure_code(error: BaseException) -> str:
     value = str(error)
     if value == "invalid progress event":
         return "progress_event_invalid"
+    if value == "subtask_evidence_incomplete":
+        return "subtask_evidence_incomplete"
     if value in SAFE_WORKER_FAILURE_CODES:
         return value
     if isinstance(error, OSError):
@@ -918,12 +1069,17 @@ def integrate(state: State, tid: str, *, merger_model: str | None = None, merger
         raise ValueError("candidate Git identity mismatch")
     if git(candidate,"status","--porcelain","--untracked-files=all"):
         raise ValueError("candidate dirty after QC")
+    if not state.subtask_evidence_ready(tid, data["candidate_sha"]):
+        state.set_task(tid, "failed", error="subtask_evidence_incomplete",
+                       run_id=data["last_run"], attempt=data["attempt"])
+        raise ValueError("subtask_evidence_incomplete")
     diff_check = subprocess.run(
         ["git", "-C", str(candidate), "diff", "--check", data["base_sha"], data["candidate_sha"]],
         stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, check=False, timeout=30,
     )
     if diff_check.returncode:
-        state.set_task(tid, "failed", error="git_diff_check_failed")
+        state.set_task(tid, "failed", error="git_diff_check_failed",
+                       run_id=data["last_run"], attempt=data["attempt"])
         raise ChangeValidationError("git_diff_check_failed")
     patch=subprocess.run(["git","-C",str(candidate),"diff","--binary",data["base_sha"],data["candidate_sha"]],
                          stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=30,check=False)
@@ -932,7 +1088,8 @@ def integrate(state: State, tid: str, *, merger_model: str | None = None, merger
     checked=subprocess.run(["git","-C",str(integration),"apply","--check","--index","-"],input=patch.stdout,
                            capture_output=True,timeout=30,check=False)
     if checked.returncode:
-        state.set_task(tid,"conflict",error="integration_patch_conflict")
+        state.set_task(tid,"conflict",error="integration_patch_conflict",
+                       run_id=data["last_run"], attempt=data["attempt"])
         raise ValueError("integration conflict; clean working tree preserved, task requires rebase")
     if merger_model:
         accepted, review_reason = merger_review_result(
@@ -940,24 +1097,28 @@ def integrate(state: State, tid: str, *, merger_model: str | None = None, merger
             task=json.loads(data["spec"]), danger_bypass=danger_bypass,
         )
         if not accepted:
-            state.set_task(tid, "failed", error=review_reason)
+            state.set_task(tid, "failed", error=review_reason,
+                           run_id=data["last_run"], attempt=data["attempt"])
             if review_reason.startswith("merger_rejected:"):
                 raise ReviewFailure(review_reason)
             raise ValueError(review_reason)
     applied=subprocess.run(["git","-C",str(integration),"apply","--index","-"],input=patch.stdout,
                            capture_output=True,timeout=30,check=False)
     if applied.returncode:
-        state.set_task(tid,"conflict",error="integration_apply_failed")
+        state.set_task(tid,"conflict",error="integration_apply_failed",
+                       run_id=data["last_run"], attempt=data["attempt"])
         raise ValueError("integration apply failed; inspect staging before proceeding")
     staged=git(integration,"diff","--cached","--name-status")
     if any(line.startswith(("D\t","R", "C")) for line in staged.splitlines()):
-        state.set_task(tid,"conflict",error="integration_forbidden_change")
+        state.set_task(tid,"conflict",error="integration_forbidden_change",
+                       run_id=data["last_run"], attempt=data["attempt"])
         raise ValueError("unexpected integration file operation")
     git(integration,"-c","user.name=Astra One","-c","user.email=astra-one@local.invalid",
         "commit","-m",f"feat(sda): integrate independently reviewed candidate [{tid}]",timeout=90)
     sha=git(integration,"rev-parse","HEAD")
     state.put("integration_sha",sha)
-    state.set_task(tid,"completed")
+    state.set_task(tid,"completed",fields={"integrated_sha": sha},
+                   run_id=data["last_run"],attempt=data["attempt"])
     state.emit(tid,data["last_run"],stage="completed",step="merger_local_commit",
                branch=data["branch"],base_sha=data["base_sha"],attempt=data["attempt"],result="local_only")
     return {"task_id":tid,"status":"completed","integration_sha":sha,"remote_push":False}
@@ -996,7 +1157,8 @@ def execute_claim(state: State, item: dict, *, slot: int, model: str, effort: st
         # An intentional parent-checkout validation, not a modification of its files.
         __import__("astra_one.linux_sda",fromlist=["assert_source"]).assert_source(Path(state.get("source")))
         git(Path(state.get("source")),"worktree","add","-b",branch,str(worktree),sha)
-        state.set_task(tid,"coding",fields={"base_sha":sha,"branch":branch,"worktree":str(worktree)})
+        state.set_task(tid,"coding",fields={"base_sha":sha,"branch":branch,"worktree":str(worktree)},
+                       run_id=run_id,attempt=attempt)
         emit("preflight",f"worker_{slot}_leased")
         emit("coding",f"{role}_{slot}_codex_start")
         prompt=make_prompt(task,sha,state.get("architecture_sha"),role,prior_error)
@@ -1006,16 +1168,30 @@ def execute_claim(state: State, item: dict, *, slot: int, model: str, effort: st
         if rc or reason!="ok":
             raise RuntimeError(reason if reason!="ok" else "codex_nonzero")
         emit("verifying","static_diff_review")
-        state.set_task(tid,"verifying",fields={"tool_count":tools})
+        state.set_task(tid,"verifying",fields={"tool_count":tools},run_id=run_id,attempt=attempt)
         changed=check_changes(worktree,sha,task=task)
         emit("verifying","docker_no_network_tests")
-        tests=docker_test(worktree,test_image,test_command)
+        child_ids = [child["id"] for child in task.get("subtasks", []) if isinstance(child, dict) and child.get("id")]
+        changed_files_sha = hashlib.sha256(
+            json.dumps(changed, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+        receipt_context = {
+            "task_id": tid, "run_id": run_id, "attempt": attempt, "source_sha": sha,
+            "changed_files_sha": changed_files_sha,
+        }
+        if child_ids:
+            receipt_context["contract_sha"] = state.subtask_contract_sha(tid)
+        tests=docker_test(
+            worktree, test_image, test_command,
+            receipt_dir=state.home / "private" / "test-receipts", receipt_context=receipt_context,
+        )
         if not tests["passed"]:
             raise RuntimeError("isolated_tests_failed")
         emit("verifying","independent_qc_start")
-        accepted,qc_reason=independent_qc(state,worktree,task,model=model,effort=effort,
-                                          changed_files=changed,
-                                          danger_bypass=danger_bypass)
+        accepted,qc_reason,child_evidence,qc_receipt=independent_qc_report(
+            state, worktree, task, model=model, effort=effort, changed_files=changed,
+            child_ids=child_ids, danger_bypass=danger_bypass, receipt_context=receipt_context,
+        )
         if not accepted:
             if qc_reason.startswith("qc_rejected:"):
                 raise ReviewFailure(qc_reason)
@@ -1023,15 +1199,46 @@ def execute_claim(state: State, item: dict, *, slot: int, model: str, effort: st
         # Commit only after independent QC and isolated tests have passed.
         git(worktree,"add","--",*changed)
         git(worktree,"-c","user.name=Astra One","-c","user.email=astra-one@local.invalid",
-            "commit","-m",f"astra: {tid} accepted candidate",timeout=90)
+            "commit","-m",f"feat(sda): accept task candidate [{tid}]",timeout=90)
         candidate_sha=git(worktree,"rev-parse","HEAD")
+        tests, qc_receipt = bind_execution_receipts(
+            state, task_id=tid, run_id=run_id, attempt=attempt, source_sha=sha,
+            candidate_sha=candidate_sha, changed_files=changed,
+            test_receipt=tests, qc_receipt=qc_receipt,
+        )
+        artifact_receipts = state.validate_execution_artifacts(
+            tid, source_sha=sha, candidate_sha=candidate_sha, changed_files=changed,
+            test_receipt=tests, qc_receipt=qc_receipt, run_id=run_id, attempt=attempt,
+        )
+        child_receipts = 0
+        if child_ids:
+            state.set_task(tid,"verifying",fields={"candidate_sha":candidate_sha,
+                                                     "changed_files":json.dumps(changed)},
+                           run_id=run_id,attempt=attempt)
+            qc_receipt.update({
+                "candidate_sha": candidate_sha,
+                "contract_sha": state.subtask_contract_sha(tid),
+                "child_evidence_sha": hashlib.sha256(
+                    json.dumps(child_evidence, sort_keys=True, separators=(",", ":")).encode()
+                ).hexdigest(),
+                "changed_files_sha": hashlib.sha256(
+                    json.dumps(changed, sort_keys=True, separators=(",", ":")).encode()
+                ).hexdigest(),
+            })
+            receipt = state.record_subtask_evidence(
+                tid, candidate_sha=candidate_sha, source_sha=sha, changed_files=changed,
+                test_receipt=tests, qc_receipt=qc_receipt,
+                child_evidence=child_evidence, locked=True, run_id=run_id, attempt=attempt,
+            )
+            child_receipts = receipt["children"]
         fields={"candidate_sha":candidate_sha,"changed_files":json.dumps(changed),
-                "qc_evidence":json.dumps({"static":"passed","tests":tests,"independent_qc":"passed"}),
+                "qc_evidence":json.dumps({"static":"passed","tests":tests,"independent_qc":"passed",
+                                           "child_receipts":child_receipts,"artifact_receipts":artifact_receipts}),
                 "tool_count":tools}
-        state.set_task(tid,"awaiting_review",fields=fields)
+        state.set_task(tid,"awaiting_review",fields=fields,run_id=run_id,attempt=attempt)
         emit("awaiting_review","qc_passed_candidate_ready")
         if auto_integrate:
-            state.approve(tid)
+            state.approve(tid,run_id=run_id,attempt=attempt)
             emit("approved","safe_auto_approval")
         return {"task_id":tid,"status":"approved" if auto_integrate else "awaiting_review","tools":tools}
     except Exception as ex:
@@ -1041,13 +1248,13 @@ def execute_claim(state: State, item: dict, *, slot: int, model: str, effort: st
             (state.home/"PAUSED_QUOTA").touch(exist_ok=True)
         stage="stopped" if (state.home/"STOP").exists() else "failed"
         try:
-            state.set_task(tid,stage,error=error,fields={"tool_count":tools})
+            state.set_task(tid,stage,error=error,fields={"tool_count":tools},run_id=run_id,attempt=attempt)
         except Exception:
             # A reporting failure must not escape the worker future and strand
             # sibling claims; the durable task DB remains the source of truth.
             error="worker_state_update_failed"
             try:
-                state.set_task(tid,stage,error=error,fields={"tool_count":tools})
+                state.set_task(tid,stage,error=error,fields={"tool_count":tools},run_id=run_id,attempt=attempt)
             except Exception:
                 pass
         try:

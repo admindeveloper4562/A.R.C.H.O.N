@@ -73,7 +73,7 @@ class MonitorTests(unittest.TestCase):
             writer=self._astra(p)
             try:
                 (p.parent/'PAUSE').touch()
-                snap=snapshot(p,source='astra')
+                snap=snapshot(p,source='astra',show_objectives=True)
                 self.assertEqual(snap['total'],6)
                 self.assertEqual(snap['counts']['coding'],1)
                 self.assertTrue(snap['architecture_approved'])
@@ -142,7 +142,7 @@ class MonitorTests(unittest.TestCase):
             q.add(task_id='BACK-009',priority='P1',module='backend',payload={'secret':'hidden-data'},title='Implement context compression')
             leased=q.lease_next()
             self.assertEqual(leased['id'],'BACK-009')
-            snap=snapshot(p,source='auto')
+            snap=snapshot(p,source='auto',show_objectives=True)
             self.assertEqual(snap['engine'],'atlas')
             self.assertEqual(snap['total'],2)
             self.assertEqual(len(snap['queued']),1)

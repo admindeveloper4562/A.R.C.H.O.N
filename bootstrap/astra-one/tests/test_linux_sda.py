@@ -18,6 +18,7 @@ from astra_one.linux_runtime import (
     codex_call,
     codex_command,
     docker_test,
+    _complete_test_receipt,
     integrate,
     merger_review_result,
     _bounded_patch_preview,
@@ -705,7 +706,12 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change'}}))
 """)
         executable.chmod(0o755)
         self.state.add_tasks([task(i) for i in range(1,6)])
-        with patch("astra_one.linux_cli.os.geteuid",return_value=1000), patch("astra_one.linux_cli.sandbox_status",return_value={"available":True,"reason":"test"}), patch.dict(os.environ,{"ASTRA_CODEX_BIN":str(executable)}), patch("astra_one.linux_runtime.sandbox_status",return_value={"available":True,"reason":"test"}), patch("astra_one.linux_runtime.docker_test",return_value={"passed":True,"exit_code":0,"sandbox":"mock_docker"}):
+        def fake_docker_test(worktree, image, command, timeout=300, *, receipt_dir=None, receipt_context=None):
+            return _complete_test_receipt(
+                {"passed": True, "exit_code": 0, "sandbox": "docker_no_network", "tests_detected": True},
+                receipt_dir=receipt_dir, receipt_context=receipt_context,
+            )
+        with patch("astra_one.linux_cli.os.geteuid",return_value=1000), patch("astra_one.linux_cli.sandbox_status",return_value={"available":True,"reason":"test"}), patch.dict(os.environ,{"ASTRA_CODEX_BIN":str(executable)}), patch("astra_one.linux_runtime.sandbox_status",return_value={"available":True,"reason":"test"}), patch("astra_one.linux_runtime.docker_test",side_effect=fake_docker_test):
             result=run_master(self.state,workers=5,max_tasks=5,max_minutes=2,model="gpt-5.6-luna",effort="medium",
                 test_image="python:3.12-slim",test_command=["python3","-m","unittest"],auto_integrate=True,max_repairs=0,timeout=60)
         self.assertEqual(result["qc_passed"],5)
@@ -729,10 +735,12 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change'}}))
         self.assertEqual(calls,[1,2])
         self.assertEqual(result["requeued"],1)
         self.assertEqual(result["terminal_failures"],1)
-        self.assertEqual(result["state"],"paused")
+        self.assertEqual(result["state"],"failed")
         self.assertEqual(self.state.list_tasks()[0]["status"],"failed")
         self.assertEqual(self.state.failure_codes("ASTRA-001"),["no_file_changes","no_file_changes"])
-        self.assertTrue((self.state.home/"PAUSE").is_file())
+        self.assertFalse((self.state.home/"PAUSE").is_file())
+        with self.state.db() as db:
+            self.assertEqual(db.execute("SELECT category FROM supervisor_cases WHERE parent_id='ASTRA-001'").fetchone()[0], "code_defect")
 
     def test_master_refuses_before_claim_when_sandbox_unavailable(self):
         self.state.add_tasks(task(1))

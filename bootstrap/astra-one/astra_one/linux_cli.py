@@ -17,6 +17,7 @@ import uuid
 from .linux_sda import DEFAULT_HOME, EFFORT, MAX_FAILURES, MAX_WORKERS, MODEL, State, assert_source, task_spec
 from .linux_runtime import codex_call, ensure_integration, integrate, execute_claim, sandbox_status
 from .full_plan import load_full_plan
+from .supervisor import SupervisorController
 
 LIVE_STATE = (Path.home() / ".local" / "state" / "archon-astra").resolve()
 LIVE_SOURCE = (Path.home() / "Projects" / "ARCHON-astra-source").resolve()
@@ -98,7 +99,7 @@ def supervise(state: State, *, focus: str, count: int, output: Path, model: str,
 
 def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, model: str, effort: str,
                test_image: str, test_command: list[str], auto_integrate: bool, max_repairs: int, timeout: int,
-               danger_bypass: bool = False) -> dict:
+               danger_bypass: bool = False, batch_id: str | None = None) -> dict:
     if not 1<=workers<=MAX_WORKERS or not 1<=max_tasks<=1000 or not 1<=max_minutes<=1440 or not 60<=timeout<=7200:
         raise ValueError("invalid worker/task/time limits")
     if not 0<=max_repairs<=MAX_FAILURES-1:
@@ -117,13 +118,14 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
         raise ValueError("sandbox_unavailable")
     if any((state.home/x).exists() for x in ("STOP","PAUSE","PAUSED_QUOTA")):
         raise ValueError("STOP/PAUSE/PAUSED_QUOTA prevents master start")
+    supervisor = SupervisorController(state)
+    supervisor.ensure_schema()
     attempted=0
     completed=0
     failed=0
     requeued=0
     terminal_failures=0
     blockers=[]
-    halt_after_current=False
 
     def retry_decision(tid: str, result: dict) -> str:
         """Return an empty string when a failed task may receive one repair attempt."""
@@ -139,7 +141,19 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
         return ""
 
     def maybe_requeue(tid: str, result: dict) -> str:
-        nonlocal requeued, terminal_failures, halt_after_current
+        nonlocal requeued, terminal_failures
+        with state.db() as db:
+            row = db.execute("SELECT attempt,base_sha,candidate_sha FROM tasks WHERE id=?", (tid,)).fetchone()
+        if row:
+            try:
+                supervisor.triage_failure(
+                    tid, result.get("error", "worker_runtime_error"), base_sha=row["base_sha"],
+                    candidate_sha=row["candidate_sha"], generation=row["attempt"],
+                )
+            except ValueError:
+                # The task failure remains durable even if a secondary case
+                # record cannot be created; do not expose model text.
+                pass
         markers=[x for x in ("STOP","PAUSE","PAUSED_QUOTA") if (state.home/x).exists()]
         if markers:
             blocker=result.get("error") or markers[0].lower()
@@ -149,13 +163,10 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
         decision=retry_decision(tid,result)
         if decision:
             terminal_failures+=1
-            halt_after_current=True
             if result.get("error") and decision not in blockers:
                 blockers.append(result["error"])
             return decision
-        with state.db() as db:
-            db.execute("UPDATE tasks SET status='queued',available_at=?,updated_at=? WHERE id=?",
-                       (int(time.time())+2, __import__('astra_one.linux_sda',fromlist=['now']).now(),tid))
+        state.retry(tid)
         requeued+=1
         return "requeued"
 
@@ -169,8 +180,8 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
                 while time.monotonic()<deadline:
                     stopped=(state.home/"STOP").exists()
                     paused=any((state.home/x).exists() for x in ("PAUSE","PAUSED_QUOTA"))
-                    while not stopped and not paused and not halt_after_current and len(pending)<workers and attempted<max_tasks:
-                        claim=state.claim(model=model)
+                    while not stopped and not paused and len(pending)<workers and attempted<max_tasks:
+                        claim=state.claim(model=model, batch_id=batch_id)
                         if not claim:break
                         attempted+=1
                         slot=next(i for i in range(1,workers+1) if i not in pending.values())
@@ -210,10 +221,6 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
                         else:
                             failed+=1
                             maybe_requeue(tid,result)
-                    if halt_after_current and not pending and not any(
-                        (state.home/x).exists() for x in ("STOP", "PAUSE", "PAUSED_QUOTA")
-                    ):
-                        (state.home/"PAUSE").touch(exist_ok=True)
                     if attempted % 5==0 or done:
                         state.sync(limit=25)
             except KeyboardInterrupt:
@@ -241,6 +248,102 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
             "source_unchanged":True,"no_remote_git_push":True}
 
 
+def run_recovery(state: State, *, limit: int, model: str, effort: str, test_image: str,
+                 test_command: list[str], timeout: int, danger_bypass: bool = False) -> dict:
+    """Execute at most two durable recovery leases, serializing integration."""
+    if not 1 <= limit <= 2 or not 60 <= timeout <= 7200:
+        raise ValueError("invalid recovery limits")
+    state.ensure_approved()
+    if not test_image:
+        raise ValueError("Docker test image required for independent QC")
+    if any((state.home / marker).exists() for marker in ("STOP", "PAUSE", "PAUSED_QUOTA")):
+        return {"claimed": 0, "resolved": 0, "qc_pending": 0, "blocked": 0, "state": "paused"}
+    supervisor = SupervisorController(state)
+    supervisor.ensure_schema()
+    results = []
+    with state.db() as db:
+        cases = db.execute(
+            "SELECT c.case_id,c.parent_id,c.state,t.status FROM supervisor_cases c "
+            "JOIN tasks t ON t.id=c.parent_id WHERE c.state IN ('triaged','qc_rejected','merge_rejected') "
+            "AND t.status IN ('failed','conflict','interrupted','stopped') "
+            "ORDER BY c.updated_at,c.case_id LIMIT ?", (limit,)
+        ).fetchall()
+    for case in cases:
+        lease = None
+        item = None
+        with state.db() as db:
+            lane = db.execute(
+                "SELECT lane_id FROM supervisor_lanes WHERE lane_id IN ('repair_1','repair_2') AND state='idle' "
+                "ORDER BY lane_id LIMIT 1"
+            ).fetchone()
+        if not lane:
+            break
+        try:
+            lease = supervisor.claim_recovery(case["case_id"], lane["lane_id"])
+            item = state.claim_recovery_task(lease, model=model)
+            slot = 1 if lease["lane_id"] == "repair_1" else 2
+            # The lock is held for the candidate lifecycle so no normal Master
+            # can claim or integrate around the recovery generation.
+            with state.master_lock():
+                result = execute_claim(
+                    state, item, slot=slot, model=model, effort=effort, timeout=timeout,
+                    test_image=test_image, test_command=test_command, auto_integrate=True,
+                    danger_bypass=danger_bypass,
+                )
+            if result.get("status") == "approved":
+                with state.db() as db:
+                    candidate_row = db.execute(
+                        "SELECT candidate_sha FROM tasks WHERE id=?", (case["parent_id"],)
+                    ).fetchone()
+                candidate_sha = candidate_row[0] if candidate_row else ""
+                supervisor.bind_recovery_candidate(
+                    lease["lane_id"], lease["case_id"], lease_token=lease["lease_token"],
+                    run_id=item["run_id"], generation=item["attempt"], candidate_sha=candidate_sha,
+                )
+                with state.master_lock():
+                    result = integrate(state, case["parent_id"], merger_model=model,
+                                       merger_effort=effort, danger_bypass=danger_bypass)
+            recovery_state = ("resolved" if result.get("status") in {"approved", "completed"} else
+                              "qc_pending" if result.get("status") == "awaiting_review" else "blocked")
+            with state.db() as db:
+                task_row = db.execute(
+                    "SELECT candidate_sha FROM tasks WHERE id=?", (case["parent_id"],)
+                ).fetchone()
+            supervisor.finish_recovery(
+                lease["lane_id"], lease["case_id"], lease_token=lease["lease_token"],
+                run_id=item["run_id"], generation=item["attempt"],
+                candidate_sha=(task_row[0] if task_row else ""), state=recovery_state,
+            )
+            results.append({"case_id": case["case_id"], "task_id": case["parent_id"],
+                            "lane_id": lease["lane_id"], "state": recovery_state,
+                            "worker_status": result.get("status"), "error": result.get("error", "")})
+        except (ValueError, OSError, subprocess.SubprocessError) as exc:
+            # A claimed lane is always returned to the ledger; the failure is
+            # bounded and the task remains failed for the next Supervisor tick.
+            try:
+                if lease is not None and item is not None:
+                    supervisor.finish_recovery(
+                        lease["lane_id"], lease["case_id"], lease_token=lease["lease_token"],
+                        run_id=item["run_id"], generation=item["attempt"], state="blocked",
+                    )
+                elif lease is not None:
+                    supervisor.release_unstarted_recovery(
+                        lease["lane_id"], lease["case_id"], lease_token=lease["lease_token"],
+                    )
+            except (ValueError, OSError):
+                pass
+            results.append({"case_id": case["case_id"], "task_id": case["parent_id"],
+                            "state": "blocked", "error": type(exc).__name__})
+    return {
+        "claimed": len(results),
+        "resolved": sum(item["state"] == "resolved" for item in results),
+        "qc_pending": sum(item["state"] == "qc_pending" for item in results),
+        "blocked": sum(item["state"] == "blocked" for item in results),
+        "results": results,
+        "state": "completed" if results else "idle",
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser=argparse.ArgumentParser(prog="python3 -m astra_one.linux_cli",description="Astra One Linux five-worker Codex SDA")
     parser.add_argument("--home",type=Path,default=DEFAULT_HOME)
@@ -257,6 +360,18 @@ def main(argv: list[str] | None = None) -> int:
     for name in ("stop","pause","resume","clear-quota","recover"):sub.add_parser(name)
     p=sub.add_parser("retry");p.add_argument("task_id")
     p=sub.add_parser("reopen");p.add_argument("task_ids",nargs="+")
+    sub.add_parser("supervisor-status")
+    p=sub.add_parser("supervisor-tick");p.add_argument("--limit",type=int,default=50)
+    p=sub.add_parser("batch-start");p.add_argument("batch_id");p.add_argument("--limit",type=int,default=20)
+    p=sub.add_parser("batch-status");p.add_argument("batch_id")
+    p=sub.add_parser("batch-replenish");p.add_argument("batch_id");p.add_argument("--target",type=int,default=20)
+    p=sub.add_parser("upgrade-create");p.add_argument("batch_id");p.add_argument("candidate_sha");p.add_argument("rollback_sha")
+    p=sub.add_parser("upgrade-check");p.add_argument("batch_id");p.add_argument("stage",choices=["TESTED","BACKUP","CANARY","HEALTH"]);p.add_argument("artifact_sha")
+    p=sub.add_parser("upgrade-transition");p.add_argument("batch_id");p.add_argument("state")
+    p=sub.add_parser("supervisor-recover");p.add_argument("--limit",type=int,default=2)
+    p.add_argument("--model",default=MODEL);p.add_argument("--effort",choices=["low","medium","high","xhigh"],default=EFFORT)
+    p.add_argument("--test-image",default="");p.add_argument("--test-command-json",default='["python3","-m","unittest","discover","-s","tests","-p","test_*.py"]')
+    p.add_argument("--max-seconds-per-task",type=int,default=1800)
     p=sub.add_parser("approve-task");p.add_argument("task_id")
     p=sub.add_parser("approve-owner");p.add_argument("task_id")
     p=sub.add_parser("integrate");p.add_argument("task_id");p.add_argument("--confirm",action="store_true")
@@ -266,6 +381,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--model",default=MODEL);p.add_argument("--effort",choices=["low","medium","high","xhigh"],default=EFFORT)
     p.add_argument("--test-image",default="");p.add_argument("--test-command-json",default='["python3","-m","unittest","discover","-s","tests","-p","test_*.py"]')
     p.add_argument("--max-repairs",type=int,default=3);p.add_argument("--auto-integrate",action="store_true")
+    p.add_argument("--batch-id",default=None,
+                   help="restrict claims to admitted members of one v3 batch cohort")
     p.add_argument("--danger-bypass",action="store_true",
                    help="supervised disposable development only; rejected for live state and systemd")
     args=parser.parse_args(argv)
@@ -307,6 +424,32 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command=="recover":report({"interrupted_tasks":state.recover(),"auto_restart":False})
         elif args.command=="retry":state.retry(args.task_id);report({"queued":args.task_id})
         elif args.command=="reopen":report({"reopened":state.reopen_failed(args.task_ids),"history_preserved":True})
+        elif args.command == "supervisor-recover":
+            command=json.loads(args.test_command_json)
+            if not isinstance(command,list):
+                raise ValueError("test command must be a JSON list")
+            report(run_recovery(state,limit=args.limit,model=args.model,effort=args.effort,
+                                test_image=args.test_image,test_command=command,
+                                timeout=args.max_seconds_per_task))
+        elif args.command in {"supervisor-status", "supervisor-tick", "batch-start", "batch-status", "batch-replenish", "upgrade-create", "upgrade-check", "upgrade-transition"}:
+            supervisor=SupervisorController(state)
+            supervisor.ensure_schema()
+            if args.command=="supervisor-status":
+                report(supervisor.status())
+            elif args.command=="supervisor-tick":
+                report(supervisor.tick(args.limit))
+            elif args.command=="batch-start":
+                report(supervisor.start_batch(args.batch_id,args.limit))
+            elif args.command=="batch-status":
+                report(supervisor.batch_status(args.batch_id))
+            elif args.command=="batch-replenish":
+                report(supervisor.replenish_batch(args.batch_id,args.target))
+            elif args.command=="upgrade-create":
+                report(supervisor.create_upgrade(args.batch_id,args.candidate_sha,args.rollback_sha))
+            elif args.command=="upgrade-check":
+                report(supervisor.run_upgrade_check(args.batch_id,args.stage,args.artifact_sha))
+            else:
+                report(supervisor.transition_upgrade(args.batch_id,args.state))
         elif args.command=="approve-task":state.approve(args.task_id);report({"approved":args.task_id})
         elif args.command=="approve-owner":report(state.approve_owner(args.task_id))
         elif args.command=="integrate":
@@ -318,7 +461,8 @@ def main(argv: list[str] | None = None) -> int:
             result=run_master(state,workers=args.workers,max_tasks=args.max_tasks,max_minutes=args.max_minutes,
                               model=args.model,effort=args.effort,test_image=args.test_image,test_command=command,
                               auto_integrate=args.auto_integrate,max_repairs=args.max_repairs,
-                              timeout=args.max_seconds_per_task,danger_bypass=args.danger_bypass)
+                              timeout=args.max_seconds_per_task,danger_bypass=args.danger_bypass,
+                              batch_id=args.batch_id)
             report(result)
             return 1 if result.get("terminal_failures") else 0
         return 0
