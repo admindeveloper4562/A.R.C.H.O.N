@@ -1,11 +1,11 @@
 {
   "schema": "jarvis.v2.subtask-module/1",
   "created": "2026-11-14",
-  "source_parent_plan_blob_sha": "36e674f4e58fc19aa8158da42d802b9599a23763",
+  "source_parent_plan_blob_sha": "98e2b845d30253bcc47193b0cc79095f5fac5a12",
   "module": "AUTO",
   "module_name": "M4 — Cloudflare always-on automation and observability",
   "parent_count": 13,
-  "subtask_count": 73,
+  "subtask_count": 74,
   "parents": [
     {
       "parent_id": "AUTO-001",
@@ -14,7 +14,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Audit deployed coordinator and Astra progress monitor resources",
-      "acceptance": "Current D1/Worker names, bindings, version, secrets and quota recorded",
+      "acceptance": "Current D1/Worker names, bindings, version, secrets and quota recorded; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Cloud endpoints enforce authenticated device identity, WAF/rate limits, strict schemas, replay protection, abuse detection and redacted metadata-only telemetry. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "BASE-013"
       ],
@@ -29,7 +29,9 @@
       "module_guardrails": [
         "Cloudflare is durable coordination/metadata monitoring, not local inference.",
         "Authenticated endpoints, least privilege, bounded retention and idempotent delivery.",
-        "Local jobs remain queued while PCs are offline."
+        "Local jobs remain queued while PCs are offline.",
+        "ASEL cloud boundary: authenticate every device/service, restrict origins/routes, rate-limit, validate schemas, prevent replay and redact telemetry.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -101,7 +103,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Adopt coordinator queue API with versioned schemas",
-      "acceptance": "Existing queue migration/compatibility tests pass without data loss",
+      "acceptance": "Existing queue migration/compatibility tests pass without data loss; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Cloud endpoints enforce authenticated device identity, WAF/rate limits, strict schemas, replay protection, abuse detection and redacted metadata-only telemetry. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence.",
       "parent_dependencies": [
         "AUTO-001",
         "BACK-001"
@@ -117,7 +119,9 @@
       "module_guardrails": [
         "Cloudflare is durable coordination/metadata monitoring, not local inference.",
         "Authenticated endpoints, least privilege, bounded retention and idempotent delivery.",
-        "Local jobs remain queued while PCs are offline."
+        "Local jobs remain queued while PCs are offline.",
+        "ASEL cloud boundary: authenticate every device/service, restrict origins/routes, rate-limit, validate schemas, prevent replay and redact telemetry.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -219,7 +223,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement independently authenticated device registration and rotation",
-      "acceptance": "Revoked/offline device cannot claim jobs; keys rotated securely",
+      "acceptance": "Revoked/offline device cannot claim jobs; keys rotated securely; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Cloud endpoints enforce authenticated device identity, WAF/rate limits, strict schemas, replay protection, abuse detection and redacted metadata-only telemetry. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "AUTO-002",
         "BACK-004"
@@ -235,7 +239,9 @@
       "module_guardrails": [
         "Cloudflare is durable coordination/metadata monitoring, not local inference.",
         "Authenticated endpoints, least privilege, bounded retention and idempotent delivery.",
-        "Local jobs remain queued while PCs are offline."
+        "Local jobs remain queued while PCs are offline.",
+        "ASEL cloud boundary: authenticate every device/service, restrict origins/routes, rate-limit, validate schemas, prevent replay and redact telemetry.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -337,7 +343,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement leased task claim, renew, completion and idempotency",
-      "acceptance": "Crash/retry cannot double-apply task effects",
+      "acceptance": "Crash/retry cannot double-apply task effects; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Cloud endpoints enforce authenticated device identity, WAF/rate limits, strict schemas, replay protection, abuse detection and redacted metadata-only telemetry.",
       "parent_dependencies": [
         "AUTO-002"
       ],
@@ -352,7 +358,9 @@
       "module_guardrails": [
         "Cloudflare is durable coordination/metadata monitoring, not local inference.",
         "Authenticated endpoints, least privilege, bounded retention and idempotent delivery.",
-        "Local jobs remain queued while PCs are offline."
+        "Local jobs remain queued while PCs are offline.",
+        "ASEL cloud boundary: authenticate every device/service, restrict origins/routes, rate-limit, validate schemas, prevent replay and redact telemetry.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -454,7 +462,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement long-term schedules with UTC and Asia/Bangkok semantics",
-      "acceptance": "Schedules survive both hosts offline and DST/timezone transitions",
+      "acceptance": "Schedules survive both hosts offline and DST/timezone transitions; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Cloud endpoints enforce authenticated device identity, WAF/rate limits, strict schemas, replay protection, abuse detection and redacted metadata-only telemetry.",
       "parent_dependencies": [
         "AUTO-002",
         "BACK-017"
@@ -470,7 +478,9 @@
       "module_guardrails": [
         "Cloudflare is durable coordination/metadata monitoring, not local inference.",
         "Authenticated endpoints, least privilege, bounded retention and idempotent delivery.",
-        "Local jobs remain queued while PCs are offline."
+        "Local jobs remain queued while PCs are offline.",
+        "ASEL cloud boundary: authenticate every device/service, restrict origins/routes, rate-limit, validate schemas, prevent replay and redact telemetry.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -572,7 +582,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement Cloudflare worker heartbeat and offline availability status",
-      "acceptance": "Missing heartbeat marks device offline, no fabricated local execution",
+      "acceptance": "Missing heartbeat marks device offline, no fabricated local execution; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Cloud endpoints enforce authenticated device identity, WAF/rate limits, strict schemas, replay protection, abuse detection and redacted metadata-only telemetry. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence.",
       "parent_dependencies": [
         "AUTO-003"
       ],
@@ -587,7 +597,9 @@
       "module_guardrails": [
         "Cloudflare is durable coordination/metadata monitoring, not local inference.",
         "Authenticated endpoints, least privilege, bounded retention and idempotent delivery.",
-        "Local jobs remain queued while PCs are offline."
+        "Local jobs remain queued while PCs are offline.",
+        "ASEL cloud boundary: authenticate every device/service, restrict origins/routes, rate-limit, validate schemas, prevent replay and redact telemetry.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -689,7 +701,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement safe wake/reconnect dispatch and bounded backlog drain",
-      "acceptance": "Queued jobs resume only when approved host online and capacity is free",
+      "acceptance": "Queued jobs resume only when approved host online and capacity is free; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Cloud endpoints enforce authenticated device identity, WAF/rate limits, strict schemas, replay protection, abuse detection and redacted metadata-only telemetry.",
       "parent_dependencies": [
         "AUTO-004",
         "AUTO-006"
@@ -705,7 +717,9 @@
       "module_guardrails": [
         "Cloudflare is durable coordination/metadata monitoring, not local inference.",
         "Authenticated endpoints, least privilege, bounded retention and idempotent delivery.",
-        "Local jobs remain queued while PCs are offline."
+        "Local jobs remain queued while PCs are offline.",
+        "ASEL cloud boundary: authenticate every device/service, restrict origins/routes, rate-limit, validate schemas, prevent replay and redact telemetry.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -807,7 +821,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement public/private SDA dashboard and module/task drilldowns",
-      "acceptance": "Shows actual worker, QC, merge, task, phase and failure evidence",
+      "acceptance": "Shows actual worker, QC, merge, task, phase and failure evidence; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Cloud endpoints enforce authenticated device identity, WAF/rate limits, strict schemas, replay protection, abuse detection and redacted metadata-only telemetry. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "SDA-023",
         "AUTO-002"
@@ -823,7 +837,9 @@
       "module_guardrails": [
         "Cloudflare is durable coordination/metadata monitoring, not local inference.",
         "Authenticated endpoints, least privilege, bounded retention and idempotent delivery.",
-        "Local jobs remain queued while PCs are offline."
+        "Local jobs remain queued while PCs are offline.",
+        "ASEL cloud boundary: authenticate every device/service, restrict origins/routes, rate-limit, validate schemas, prevent replay and redact telemetry.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -925,7 +941,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement audit event storage, retention, redaction and export",
-      "acceptance": "No source-code prompt or token leak; retention limits tested",
+      "acceptance": "No source-code prompt or token leak; retention limits tested; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Cloud endpoints enforce authenticated device identity, WAF/rate limits, strict schemas, replay protection, abuse detection and redacted metadata-only telemetry. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "AUTO-008",
         "BACK-004"
@@ -941,7 +957,9 @@
       "module_guardrails": [
         "Cloudflare is durable coordination/metadata monitoring, not local inference.",
         "Authenticated endpoints, least privilege, bounded retention and idempotent delivery.",
-        "Local jobs remain queued while PCs are offline."
+        "Local jobs remain queued while PCs are offline.",
+        "ASEL cloud boundary: authenticate every device/service, restrict origins/routes, rate-limit, validate schemas, prevent replay and redact telemetry.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1013,7 +1031,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement actionable notifications with approval and dedup policy",
-      "acceptance": "No duplicate notices; disabled rules respected",
+      "acceptance": "No duplicate notices; disabled rules respected; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Cloud endpoints enforce authenticated device identity, WAF/rate limits, strict schemas, replay protection, abuse detection and redacted metadata-only telemetry.",
       "parent_dependencies": [
         "AUTO-005",
         "AUTO-009"
@@ -1029,7 +1047,9 @@
       "module_guardrails": [
         "Cloudflare is durable coordination/metadata monitoring, not local inference.",
         "Authenticated endpoints, least privilege, bounded retention and idempotent delivery.",
-        "Local jobs remain queued while PCs are offline."
+        "Local jobs remain queued while PCs are offline.",
+        "ASEL cloud boundary: authenticate every device/service, restrict origins/routes, rate-limit, validate schemas, prevent replay and redact telemetry.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1116,7 +1136,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement Cloudflare security hardening and rate limits",
-      "acceptance": "Unauthorized calls denied; abuse, replay and schema validation tests pass",
+      "acceptance": "Unauthorized calls denied; abuse, replay and schema validation tests pass; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Cloud endpoints enforce authenticated device identity, WAF/rate limits, strict schemas, replay protection, abuse detection and redacted metadata-only telemetry. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence.",
       "parent_dependencies": [
         "AUTO-003",
         "AUTO-009"
@@ -1132,7 +1152,9 @@
       "module_guardrails": [
         "Cloudflare is durable coordination/metadata monitoring, not local inference.",
         "Authenticated endpoints, least privilege, bounded retention and idempotent delivery.",
-        "Local jobs remain queued while PCs are offline."
+        "Local jobs remain queued while PCs are offline.",
+        "ASEL cloud boundary: authenticate every device/service, restrict origins/routes, rate-limit, validate schemas, prevent replay and redact telemetry.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1223,6 +1245,21 @@
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
+        },
+        {
+          "id": "AUTO-011.S07",
+          "sequence": 7,
+          "kind": "api_defence",
+          "title": "Add Cloudflare edge/API active scanning and defensive controls",
+          "assignee_role": "worker",
+          "instruction": "Harden service identity, WAF/rate limits, strict input schemas, request bounds, replay protection and secret redaction. Run non-destructive authenticated DAST/API checks only against owner-controlled staging endpoints.",
+          "deliverable": "Cloudflare policy config, API scan report and abuse/replay test evidence.",
+          "done_when": "Unauthorized, malformed, replayed and abusive calls are denied; no production scan without explicit scope; private prompts/source/finance are never exposed.",
+          "depends_on": [
+            "AUTO-011.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
         }
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
@@ -1234,7 +1271,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement Cloudflare/host outage and D1 rollback drills",
-      "acceptance": "Offline retained jobs recovered without duplicate effects",
+      "acceptance": "Offline retained jobs recovered without duplicate effects; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Cloud endpoints enforce authenticated device identity, WAF/rate limits, strict schemas, replay protection, abuse detection and redacted metadata-only telemetry. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence.",
       "parent_dependencies": [
         "AUTO-007",
         "AUTO-011"
@@ -1250,7 +1287,9 @@
       "module_guardrails": [
         "Cloudflare is durable coordination/metadata monitoring, not local inference.",
         "Authenticated endpoints, least privilege, bounded retention and idempotent delivery.",
-        "Local jobs remain queued while PCs are offline."
+        "Local jobs remain queued while PCs are offline.",
+        "ASEL cloud boundary: authenticate every device/service, restrict origins/routes, rate-limit, validate schemas, prevent replay and redact telemetry.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1367,7 +1406,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Verify deployment against real Cloudflare account without altering prod prematurely",
-      "acceptance": "Versioned deployment, smoke, logs and explicit release approval recorded",
+      "acceptance": "Versioned deployment, smoke, logs and explicit release approval recorded; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Cloud endpoints enforce authenticated device identity, WAF/rate limits, strict schemas, replay protection, abuse detection and redacted metadata-only telemetry. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence. Financial paths also require consent and row-scope denial tests, exact ledger reconciliation and proof that no live broker/Mira write route exists.",
       "parent_dependencies": [
         "AUTO-012",
         "AUTO-010"
@@ -1383,7 +1422,9 @@
       "module_guardrails": [
         "Cloudflare is durable coordination/metadata monitoring, not local inference.",
         "Authenticated endpoints, least privilege, bounded retention and idempotent delivery.",
-        "Local jobs remain queued while PCs are offline."
+        "Local jobs remain queued while PCs are offline.",
+        "ASEL cloud boundary: authenticate every device/service, restrict origins/routes, rate-limit, validate schemas, prevent replay and redact telemetry.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1463,5 +1504,8 @@
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
     }
-  ]
+  ],
+  "updated": "2026-11-15",
+  "security_architecture": "docs/architecture/SECURITY_ARCHITECTURE.md",
+  "security_policy_id": "ASEL-1.0"
 }
