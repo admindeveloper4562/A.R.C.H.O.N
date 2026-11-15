@@ -32,6 +32,7 @@ from astra_one.linux_runtime import (
     worker_failure_code,
 )
 from astra_one.linux_cli import _upgrade_audit_brief, run_concurrent, run_master
+from astra_one.supervisor import SupervisorController
 
 
 def git_repo(root):
@@ -241,6 +242,32 @@ class LinuxSDATests(unittest.TestCase):
             )
         self.assertTrue(result["shared_master_lock"])
         self.assertEqual(set(calls[:2]), {"normal-start", "recovery-start"})
+
+    def test_concurrent_runner_initializes_schema_before_lane_threads(self):
+        calls = []
+        def fake_schema():
+            calls.append("schema")
+            return {"schema_version": 3}
+        def fake_normal(*args, **kwargs):
+            self.assertTrue(kwargs.pop("_schema_ready"))
+            calls.append("normal")
+            return {"terminal_failures": 0}
+        def fake_recovery(*args, **kwargs):
+            self.assertTrue(kwargs.pop("_schema_ready"))
+            calls.append("recovery")
+            return {"resolved": 0}
+        with patch.object(SupervisorController, "ensure_schema", side_effect=fake_schema), \
+             patch("astra_one.linux_cli.run_master", side_effect=fake_normal), \
+             patch("astra_one.linux_cli.run_recovery", side_effect=fake_recovery):
+            run_concurrent(
+                self.state, workers=1, max_tasks=1, max_minutes=1,
+                model="gpt-5.6-luna", effort="medium", recovery_limit=1,
+                recovery_model="gpt-6.1-sol", recovery_effort="high",
+                test_image="python:3.12-slim", test_command=["python3"],
+                auto_integrate=True, max_repairs=0, timeout=60,
+            )
+        self.assertEqual(calls[0], "schema")
+        self.assertEqual(set(calls[1:]), {"normal", "recovery"})
 
     def test_recover_no_replay(self):
         self.state.add_tasks(task(1));self.state.claim()

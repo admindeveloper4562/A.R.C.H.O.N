@@ -236,7 +236,8 @@ def run_upgrade_audit(state: State, *, task_id: str, model: str, effort: str,
 
 def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, model: str, effort: str,
                test_image: str, test_command: list[str], auto_integrate: bool, max_repairs: int, timeout: int,
-               danger_bypass: bool = False, batch_id: str | None = None) -> dict:
+               danger_bypass: bool = False, batch_id: str | None = None,
+               _schema_ready: bool = False) -> dict:
     if not 1<=workers<=MAX_WORKERS or not 1<=max_tasks<=1000 or not 1<=max_minutes<=1440 or not 60<=timeout<=7200:
         raise ValueError("invalid worker/task/time limits")
     if not 0<=max_repairs<=MAX_FAILURES-1:
@@ -256,7 +257,8 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
     if control_blocked(state.home, "normal"):
         raise ValueError("STOP/PAUSE/PAUSED_QUOTA prevents master start")
     supervisor = SupervisorController(state)
-    supervisor.ensure_schema()
+    if not _schema_ready:
+        supervisor.ensure_schema()
     attempted=0
     completed=0
     failed=0
@@ -400,7 +402,8 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
 
 
 def run_recovery(state: State, *, limit: int, model: str, effort: str, test_image: str,
-                 test_command: list[str], timeout: int, danger_bypass: bool = False) -> dict:
+                 test_command: list[str], timeout: int, danger_bypass: bool = False,
+                 _schema_ready: bool = False) -> dict:
     """Execute at most two durable recovery leases, serializing integration."""
     if not 1 <= limit <= 2 or not 60 <= timeout <= 7200:
         raise ValueError("invalid recovery limits")
@@ -410,7 +413,8 @@ def run_recovery(state: State, *, limit: int, model: str, effort: str, test_imag
     if control_blocked(state.home, "recovery"):
         return {"claimed": 0, "resolved": 0, "qc_pending": 0, "blocked": 0, "state": "paused"}
     supervisor = SupervisorController(state)
-    supervisor.ensure_schema()
+    if not _schema_ready:
+        supervisor.ensure_schema()
     results = []
     with state.db() as db:
         cases = db.execute(
@@ -507,16 +511,22 @@ def run_concurrent(state: State, *, workers: int, max_tasks: int, max_minutes: i
                     test_command: list[str], auto_integrate: bool,
                     max_repairs: int, timeout: int, batch_id: str | None = None) -> dict:
     """Run normal and recovery lanes under one process and one ledger fence."""
+    # Schema migration is a single-writer operation.  Perform it once before
+    # starting the lane threads; otherwise the normal and recovery entrypoints
+    # can race on the non-blocking Master lock and one lane is rejected before
+    # it can claim work.
+    state.ensure_approved()
+    SupervisorController(state).ensure_schema()
     with ThreadPoolExecutor(max_workers=2, thread_name_prefix="astra-lane") as pool:
         normal_future = pool.submit(
             run_master, state, workers=workers, max_tasks=max_tasks, max_minutes=max_minutes,
             model=model, effort=effort, test_image=test_image, test_command=test_command,
             auto_integrate=auto_integrate, max_repairs=max_repairs, timeout=timeout,
-            batch_id=batch_id,
+            batch_id=batch_id, _schema_ready=True,
         )
         recovery_future = pool.submit(
             run_recovery, state, limit=recovery_limit, model=recovery_model, effort=recovery_effort,
-            test_image=test_image, test_command=test_command, timeout=timeout,
+            test_image=test_image, test_command=test_command, timeout=timeout, _schema_ready=True,
         )
         normal = normal_future.result()
         recovery = recovery_future.result()
