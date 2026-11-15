@@ -1,11 +1,11 @@
 {
   "schema": "jarvis.v2.subtask-module/1",
   "created": "2026-11-14",
-  "source_parent_plan_blob_sha": "36e674f4e58fc19aa8158da42d802b9599a23763",
+  "source_parent_plan_blob_sha": "98e2b845d30253bcc47193b0cc79095f5fac5a12",
   "module": "GUARD",
   "module_name": "M6 — Guardian, integrity, recovery and priority",
   "parent_count": 19,
-  "subtask_count": 111,
+  "subtask_count": 114,
   "parents": [
     {
       "parent_id": "GUARD-001",
@@ -14,7 +14,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Select local Guardian model and verify tool-less deterministic fallback",
-      "acceptance": "Model fits host; monitored health independently; no model required for emergency stop",
+      "acceptance": "Model fits host; monitored health independently; no model required for emergency stop; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. AEGIS is advisory; external watchdog enforces signed artifact identity, STOP, fencing, containment and rollback; Guardian cannot approve or rewrite its own trust policy. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target. Recovery paths also require fencing, signed known-good artifacts, token revocation, preserved forensic evidence and independent rollback authorization.",
       "parent_dependencies": [
         "BASE-012",
         "BACK-006"
@@ -30,7 +30,9 @@
       "module_guardrails": [
         "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
         "No preemption of active token generation; deterministic emergency STOP works without a model.",
-        "Guardian cannot approve its own release, permissions, cutover or updates."
+        "Guardian cannot approve its own release, permissions, cutover or updates.",
+        "AEGIS boundary: model findings are advisory; deterministic controls and external watchdog enforce containment, signed releases, STOP and rollback.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [
         "AEGIS must use a verified local model; do not silently fall back to a hosted model. Deterministic emergency STOP must work without it."
@@ -119,7 +121,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement independent trusted minimal Guardian process/service manager",
-      "acceptance": "Guardian restarts controller only from trusted immutable version",
+      "acceptance": "Guardian restarts controller only from trusted immutable version; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. AEGIS is advisory; external watchdog enforces signed artifact identity, STOP, fencing, containment and rollback; Guardian cannot approve or rewrite its own trust policy. Host/file operations also require path and symlink/TOCTOU tests, bounded execution, per-file owner approval for deletion and an immutable action receipt. Recovery paths also require fencing, signed known-good artifacts, token revocation, preserved forensic evidence and independent rollback authorization.",
       "parent_dependencies": [
         "BACK-019",
         "GUARD-001"
@@ -135,7 +137,9 @@
       "module_guardrails": [
         "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
         "No preemption of active token generation; deterministic emergency STOP works without a model.",
-        "Guardian cannot approve its own release, permissions, cutover or updates."
+        "Guardian cannot approve its own release, permissions, cutover or updates.",
+        "AEGIS boundary: model findings are advisory; deterministic controls and external watchdog enforce containment, signed releases, STOP and rollback.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -226,6 +230,21 @@
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-002.S07",
+          "sequence": 7,
+          "kind": "aegis_security",
+          "title": "Integrate AEGIS security findings with deterministic containment and external watchdog",
+          "assignee_role": "worker",
+          "instruction": "AEGIS may classify and recommend. A deterministic controller handles policy-approved isolation, STOP, token revocation and recovery; an out-of-process watchdog verifies signed artifacts and cannot be modified by AEGIS.",
+          "deliverable": "AEGIS/ASEL event contract, watchdog boundary diagram and tamper/self-approval negative tests.",
+          "done_when": "AEGIS cannot change policy, approve its own release, disable sensors, clear STOP or promote an artifact without independent trust-root approval.",
+          "depends_on": [
+            "GUARD-002.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
         }
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
@@ -237,7 +256,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Define recoverable component manifest and dependency/failure-domain graph",
-      "acceptance": "Criticality, health, restart, state and owner approval fields validated",
+      "acceptance": "Criticality, health, restart, state and owner approval fields validated; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. AEGIS is advisory; external watchdog enforces signed artifact identity, STOP, fencing, containment and rollback; Guardian cannot approve or rewrite its own trust policy. Recovery paths also require fencing, signed known-good artifacts, token revocation, preserved forensic evidence and independent rollback authorization.",
       "parent_dependencies": [
         "BACK-001"
       ],
@@ -252,7 +271,9 @@
       "module_guardrails": [
         "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
         "No preemption of active token generation; deterministic emergency STOP works without a model.",
-        "Guardian cannot approve its own release, permissions, cutover or updates."
+        "Guardian cannot approve its own release, permissions, cutover or updates.",
+        "AEGIS boundary: model findings are advisory; deterministic controls and external watchdog enforce containment, signed releases, STOP and rollback.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -339,7 +360,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement bounded liveness/readiness probes and health evidence",
-      "acceptance": "Failed probe does not imply restart until dependency checked",
+      "acceptance": "Failed probe does not imply restart until dependency checked; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. AEGIS is advisory; external watchdog enforces signed artifact identity, STOP, fencing, containment and rollback; Guardian cannot approve or rewrite its own trust policy. Recovery paths also require fencing, signed known-good artifacts, token revocation, preserved forensic evidence and independent rollback authorization.",
       "parent_dependencies": [
         "GUARD-003",
         "BACK-019"
@@ -355,7 +376,9 @@
       "module_guardrails": [
         "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
         "No preemption of active token generation; deterministic emergency STOP works without a model.",
-        "Guardian cannot approve its own release, permissions, cutover or updates."
+        "Guardian cannot approve its own release, permissions, cutover or updates.",
+        "AEGIS boundary: model findings are advisory; deterministic controls and external watchdog enforce containment, signed releases, STOP and rollback.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -457,7 +480,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement P0 deterministic isolation and P1 Guardian model reservation",
-      "acceptance": "Guardian gets next available model call without interrupting safe in-flight generation",
+      "acceptance": "Guardian gets next available model call without interrupting safe in-flight generation; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. AEGIS is advisory; external watchdog enforces signed artifact identity, STOP, fencing, containment and rollback; Guardian cannot approve or rewrite its own trust policy. Recovery paths also require fencing, signed known-good artifacts, token revocation, preserved forensic evidence and independent rollback authorization.",
       "parent_dependencies": [
         "CORE-011",
         "GUARD-002"
@@ -473,7 +496,9 @@
       "module_guardrails": [
         "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
         "No preemption of active token generation; deterministic emergency STOP works without a model.",
-        "Guardian cannot approve its own release, permissions, cutover or updates."
+        "Guardian cannot approve its own release, permissions, cutover or updates.",
+        "AEGIS boundary: model findings are advisory; deterministic controls and external watchdog enforce containment, signed releases, STOP and rollback.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -575,7 +600,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement non-preemptive scheduler resource lock and starvation tests",
-      "acceptance": "No new lower-priority generation launches while Guardian waiting; other safe work continues",
+      "acceptance": "No new lower-priority generation launches while Guardian waiting; other safe work continues; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. AEGIS is advisory; external watchdog enforces signed artifact identity, STOP, fencing, containment and rollback; Guardian cannot approve or rewrite its own trust policy. Recovery paths also require fencing, signed known-good artifacts, token revocation, preserved forensic evidence and independent rollback authorization.",
       "parent_dependencies": [
         "GUARD-005"
       ],
@@ -590,7 +615,9 @@
       "module_guardrails": [
         "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
         "No preemption of active token generation; deterministic emergency STOP works without a model.",
-        "Guardian cannot approve its own release, permissions, cutover or updates."
+        "Guardian cannot approve its own release, permissions, cutover or updates.",
+        "AEGIS boundary: model findings are advisory; deterministic controls and external watchdog enforce containment, signed releases, STOP and rollback.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -692,7 +719,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement periodic read-only integrity scanner",
-      "acceptance": "Checks schemas, hashes, queues and versions without destructive scans",
+      "acceptance": "Checks schemas, hashes, queues and versions without destructive scans; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. AEGIS is advisory; external watchdog enforces signed artifact identity, STOP, fencing, containment and rollback; Guardian cannot approve or rewrite its own trust policy. Recovery paths also require fencing, signed known-good artifacts, token revocation, preserved forensic evidence and independent rollback authorization.",
       "parent_dependencies": [
         "GUARD-004",
         "BACK-018"
@@ -708,7 +735,9 @@
       "module_guardrails": [
         "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
         "No preemption of active token generation; deterministic emergency STOP works without a model.",
-        "Guardian cannot approve its own release, permissions, cutover or updates."
+        "Guardian cannot approve its own release, permissions, cutover or updates.",
+        "AEGIS boundary: model findings are advisory; deterministic controls and external watchdog enforce containment, signed releases, STOP and rollback.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -810,7 +839,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement severity classifier and upstream root cause correlation",
-      "acceptance": "Component vs dependency vs host outage distinguished and evidenced",
+      "acceptance": "Component vs dependency vs host outage distinguished and evidenced; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. AEGIS is advisory; external watchdog enforces signed artifact identity, STOP, fencing, containment and rollback; Guardian cannot approve or rewrite its own trust policy.",
       "parent_dependencies": [
         "GUARD-007"
       ],
@@ -825,7 +854,9 @@
       "module_guardrails": [
         "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
         "No preemption of active token generation; deterministic emergency STOP works without a model.",
-        "Guardian cannot approve its own release, permissions, cutover or updates."
+        "Guardian cannot approve its own release, permissions, cutover or updates.",
+        "AEGIS boundary: model findings are advisory; deterministic controls and external watchdog enforce containment, signed releases, STOP and rollback.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -927,7 +958,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement deduplicated findings, rate limit and acknowledgment",
-      "acceptance": "Recurring same error yields one tracked incident and bounded alerts",
+      "acceptance": "Recurring same error yields one tracked incident and bounded alerts; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. AEGIS is advisory; external watchdog enforces signed artifact identity, STOP, fencing, containment and rollback; Guardian cannot approve or rewrite its own trust policy.",
       "parent_dependencies": [
         "GUARD-008"
       ],
@@ -942,7 +973,9 @@
       "module_guardrails": [
         "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
         "No preemption of active token generation; deterministic emergency STOP works without a model.",
-        "Guardian cannot approve its own release, permissions, cutover or updates."
+        "Guardian cannot approve its own release, permissions, cutover or updates.",
+        "AEGIS boundary: model findings are advisory; deterministic controls and external watchdog enforce containment, signed releases, STOP and rollback.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1044,7 +1077,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement policy-gated SDA repair proposal queue bridge",
-      "acceptance": "Reproducer, minimal scope, source SHA and acceptance stored; no auto privilege",
+      "acceptance": "Reproducer, minimal scope, source SHA and acceptance stored; no auto privilege; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. AEGIS is advisory; external watchdog enforces signed artifact identity, STOP, fencing, containment and rollback; Guardian cannot approve or rewrite its own trust policy.",
       "parent_dependencies": [
         "GUARD-009",
         "SDA-021"
@@ -1060,7 +1093,9 @@
       "module_guardrails": [
         "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
         "No preemption of active token generation; deterministic emergency STOP works without a model.",
-        "Guardian cannot approve its own release, permissions, cutover or updates."
+        "Guardian cannot approve its own release, permissions, cutover or updates.",
+        "AEGIS boundary: model findings are advisory; deterministic controls and external watchdog enforce containment, signed releases, STOP and rollback.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1147,7 +1182,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement smallest-unit drain/quiesce/isolate control",
-      "acceptance": "Unaffected modules continue; in-flight effects reconciled",
+      "acceptance": "Unaffected modules continue; in-flight effects reconciled; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. AEGIS is advisory; external watchdog enforces signed artifact identity, STOP, fencing, containment and rollback; Guardian cannot approve or rewrite its own trust policy.",
       "parent_dependencies": [
         "GUARD-003",
         "GUARD-008"
@@ -1163,7 +1198,9 @@
       "module_guardrails": [
         "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
         "No preemption of active token generation; deterministic emergency STOP works without a model.",
-        "Guardian cannot approve its own release, permissions, cutover or updates."
+        "Guardian cannot approve its own release, permissions, cutover or updates.",
+        "AEGIS boundary: model findings are advisory; deterministic controls and external watchdog enforce containment, signed releases, STOP and rollback.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1265,7 +1302,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement bounded local restart and cooldown budget",
-      "acceptance": "Repeat failure stops/escales and preserves logs",
+      "acceptance": "Repeat failure stops/escales and preserves logs; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. AEGIS is advisory; external watchdog enforces signed artifact identity, STOP, fencing, containment and rollback; Guardian cannot approve or rewrite its own trust policy. Recovery paths also require fencing, signed known-good artifacts, token revocation, preserved forensic evidence and independent rollback authorization.",
       "parent_dependencies": [
         "GUARD-011"
       ],
@@ -1280,7 +1317,9 @@
       "module_guardrails": [
         "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
         "No preemption of active token generation; deterministic emergency STOP works without a model.",
-        "Guardian cannot approve its own release, permissions, cutover or updates."
+        "Guardian cannot approve its own release, permissions, cutover or updates.",
+        "AEGIS boundary: model findings are advisory; deterministic controls and external watchdog enforce containment, signed releases, STOP and rollback.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1382,7 +1421,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement repair candidate test and canary with route gate",
-      "acceptance": "Only independently accepted builds eligible for canary",
+      "acceptance": "Only independently accepted builds eligible for canary; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. AEGIS is advisory; external watchdog enforces signed artifact identity, STOP, fencing, containment and rollback; Guardian cannot approve or rewrite its own trust policy.",
       "parent_dependencies": [
         "GUARD-010",
         "GUARD-012",
@@ -1399,7 +1438,9 @@
       "module_guardrails": [
         "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
         "No preemption of active token generation; deterministic emergency STOP works without a model.",
-        "Guardian cannot approve its own release, permissions, cutover or updates."
+        "Guardian cannot approve its own release, permissions, cutover or updates.",
+        "AEGIS boundary: model findings are advisory; deterministic controls and external watchdog enforce containment, signed releases, STOP and rollback.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1486,7 +1527,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement last-known-good artifact selection and rollback",
-      "acceptance": "Bad canary reverts without loss of committed state",
+      "acceptance": "Bad canary reverts without loss of committed state; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. AEGIS is advisory; external watchdog enforces signed artifact identity, STOP, fencing, containment and rollback; Guardian cannot approve or rewrite its own trust policy. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "GUARD-013"
       ],
@@ -1501,7 +1542,9 @@
       "module_guardrails": [
         "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
         "No preemption of active token generation; deterministic emergency STOP works without a model.",
-        "Guardian cannot approve its own release, permissions, cutover or updates."
+        "Guardian cannot approve its own release, permissions, cutover or updates.",
+        "AEGIS boundary: model findings are advisory; deterministic controls and external watchdog enforce containment, signed releases, STOP and rollback.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1618,7 +1661,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Prototype critical standby with schema/state compatibility checks",
-      "acceptance": "A tested standby can start isolated; no assumption of automatic capacity",
+      "acceptance": "A tested standby can start isolated; no assumption of automatic capacity; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. AEGIS is advisory; external watchdog enforces signed artifact identity, STOP, fencing, containment and rollback; Guardian cannot approve or rewrite its own trust policy.",
       "parent_dependencies": [
         "GUARD-003",
         "BACK-018"
@@ -1634,7 +1677,9 @@
       "module_guardrails": [
         "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
         "No preemption of active token generation; deterministic emergency STOP works without a model.",
-        "Guardian cannot approve its own release, permissions, cutover or updates."
+        "Guardian cannot approve its own release, permissions, cutover or updates.",
+        "AEGIS boundary: model findings are advisory; deterministic controls and external watchdog enforce containment, signed releases, STOP and rollback.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1736,7 +1781,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement fencing leases and prevent split-brain writers",
-      "acceptance": "Only one canonical write authority through cutover",
+      "acceptance": "Only one canonical write authority through cutover; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. AEGIS is advisory; external watchdog enforces signed artifact identity, STOP, fencing, containment and rollback; Guardian cannot approve or rewrite its own trust policy. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "GUARD-015",
         "BACK-003"
@@ -1752,7 +1797,9 @@
       "module_guardrails": [
         "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
         "No preemption of active token generation; deterministic emergency STOP works without a model.",
-        "Guardian cannot approve its own release, permissions, cutover or updates."
+        "Guardian cannot approve its own release, permissions, cutover or updates.",
+        "AEGIS boundary: model findings are advisory; deterministic controls and external watchdog enforce containment, signed releases, STOP and rollback.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1843,6 +1890,21 @@
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-016.S07",
+          "sequence": 7,
+          "kind": "fencing_defence",
+          "title": "Add security-aware fencing and smallest-scope containment",
+          "assignee_role": "worker",
+          "instruction": "On compromised module/device, revoke leases/capabilities, fence its writer, isolate its network/process boundary and preserve unrelated modules. Require health and state compatibility before restore.",
+          "deliverable": "Containment state machine, fencing tests and module isolation evidence.",
+          "done_when": "No split-brain writer; only the smallest affected module is isolated; unrelated modules continue safely; recovery requires verified state and trust checks.",
+          "depends_on": [
+            "GUARD-016.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
         }
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
@@ -1854,7 +1916,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement guarded cutover and optional failback",
-      "acceptance": "Sync/readiness verified; failures degrade rather than fabricate availability",
+      "acceptance": "Sync/readiness verified; failures degrade rather than fabricate availability; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. AEGIS is advisory; external watchdog enforces signed artifact identity, STOP, fencing, containment and rollback; Guardian cannot approve or rewrite its own trust policy. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "GUARD-016",
         "GUARD-014"
@@ -1870,7 +1932,9 @@
       "module_guardrails": [
         "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
         "No preemption of active token generation; deterministic emergency STOP works without a model.",
-        "Guardian cannot approve its own release, permissions, cutover or updates."
+        "Guardian cannot approve its own release, permissions, cutover or updates.",
+        "AEGIS boundary: model findings are advisory; deterministic controls and external watchdog enforce containment, signed releases, STOP and rollback.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1987,7 +2051,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement independent Guardian boot/recovery and safe-mode semantics",
-      "acceptance": "STOP/quota/approval preserved even if controller crash loops",
+      "acceptance": "STOP/quota/approval preserved even if controller crash loops; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. AEGIS is advisory; external watchdog enforces signed artifact identity, STOP, fencing, containment and rollback; Guardian cannot approve or rewrite its own trust policy. Recovery paths also require fencing, signed known-good artifacts, token revocation, preserved forensic evidence and independent rollback authorization.",
       "parent_dependencies": [
         "GUARD-002",
         "GUARD-014"
@@ -2003,7 +2067,9 @@
       "module_guardrails": [
         "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
         "No preemption of active token generation; deterministic emergency STOP works without a model.",
-        "Guardian cannot approve its own release, permissions, cutover or updates."
+        "Guardian cannot approve its own release, permissions, cutover or updates.",
+        "AEGIS boundary: model findings are advisory; deterministic controls and external watchdog enforce containment, signed releases, STOP and rollback.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2105,7 +2171,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Run P0-P3 fault injection and host/service-manager recovery tests",
-      "acceptance": "No uncontrolled restarts, no lost records, no production split brain",
+      "acceptance": "No uncontrolled restarts, no lost records, no production split brain; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. AEGIS is advisory; external watchdog enforces signed artifact identity, STOP, fencing, containment and rollback; Guardian cannot approve or rewrite its own trust policy. Recovery paths also require fencing, signed known-good artifacts, token revocation, preserved forensic evidence and independent rollback authorization.",
       "parent_dependencies": [
         "GUARD-006",
         "GUARD-009",
@@ -2123,7 +2189,9 @@
       "module_guardrails": [
         "AEGIS local model receives next compatible inference slot after active generation finishes safely.",
         "No preemption of active token generation; deterministic emergency STOP works without a model.",
-        "Guardian cannot approve its own release, permissions, cutover or updates."
+        "Guardian cannot approve its own release, permissions, cutover or updates.",
+        "AEGIS boundary: model findings are advisory; deterministic controls and external watchdog enforce containment, signed releases, STOP and rollback.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2199,9 +2267,27 @@
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
+        },
+        {
+          "id": "GUARD-019.S06",
+          "sequence": 6,
+          "kind": "incident_response",
+          "title": "Run end-to-end incident response and recovery exercises",
+          "assignee_role": "worker",
+          "instruction": "Exercise detect, triage, contain, preserve, notify, eradicate, recover, verify and post-incident review for credential theft, prompt injection, worker escape, API abuse and artifact tampering.",
+          "deliverable": "Incident runbooks, event timeline, evidence hashes, revocation proof, restore receipt and lessons.",
+          "done_when": "No evidence loss, STOP bypass, duplicate external effect or untrusted auto-promotion; owner notification and explicit gates work.",
+          "depends_on": [
+            "GUARD-019.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
         }
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
     }
-  ]
+  ],
+  "updated": "2026-11-15",
+  "security_architecture": "docs/architecture/SECURITY_ARCHITECTURE.md",
+  "security_policy_id": "ASEL-1.0"
 }
