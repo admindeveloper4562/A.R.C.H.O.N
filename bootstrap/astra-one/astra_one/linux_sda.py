@@ -28,18 +28,26 @@ import urllib.request
 import uuid
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 
-VERSION = "0.2.1"
+from .full_plan import FullPlan, PROJECT_ID, payload_sha
+
+VERSION = "0.3.0"
+SCHEMA_VERSION = 3
 MODEL = "gpt-5.6-luna"
 EFFORT = "medium"
 MAX_WORKERS = 5
 MAX_FAILURES = 20
+QUEUE_NAMES = ("project_queue", "pending_queue", "rebuild_queue", "review_queue", "merge_queue")
+TASK_EXECUTION_MODES = frozenset({
+    "worker", "implementation", "audit", "verification", "migration", "design",
+    "owner_gate", "ci_local_only",
+})
 TASK_ID = re.compile(r"^[A-Z][A-Z0-9-]{2,47}$")
 SHA = re.compile(r"^[0-9a-f]{40}$")
 SAFE = re.compile(r"^[a-z0-9_]{2,80}$")
 STAGE = {"queued", "preflight", "coding", "verifying", "awaiting_review", "approved", "completed", "failed", "stopped", "interrupted"}
 PROTECTED = {"AGENTS.md", "SECURITY.md", "DELETE-LOGS.md", ".env", ".gitignore", "CODEOWNERS"}
 PROTECTED_PARTS = {".git", ".codex", ".github", ".ssh", ".aws", "node_modules", ".venv", "__pycache__"}
-DEFAULT_HOME = Path.home() / ".local" / "state" / "astra-one-linux"
+DEFAULT_HOME = Path.home() / ".local" / "state" / "archon-astra"
 SCHEMA = """
 PRAGMA foreign_keys=ON;
 CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY,value TEXT NOT NULL);
@@ -47,9 +55,14 @@ CREATE TABLE IF NOT EXISTS tasks(
   id TEXT PRIMARY KEY, spec TEXT NOT NULL, status TEXT NOT NULL, architecture_sha TEXT NOT NULL,
   attempt INTEGER NOT NULL DEFAULT 0, available_at INTEGER NOT NULL DEFAULT 0,
   last_run TEXT, last_error TEXT NOT NULL DEFAULT '', candidate_sha TEXT NOT NULL DEFAULT '',
+  integrated_sha TEXT NOT NULL DEFAULT '',
   branch TEXT NOT NULL DEFAULT '', worktree TEXT NOT NULL DEFAULT '',
   base_sha TEXT NOT NULL DEFAULT '', changed_files TEXT NOT NULL DEFAULT '[]',
-  qc_evidence TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+  qc_evidence TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+  project_id TEXT NOT NULL DEFAULT '', module TEXT NOT NULL DEFAULT '',
+  milestone TEXT NOT NULL DEFAULT '', priority TEXT NOT NULL DEFAULT 'P4',
+  owner_gate INTEGER NOT NULL DEFAULT 0, payload_sha TEXT NOT NULL DEFAULT '',
+  enqueue_seq INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE IF NOT EXISTS runs(
   id TEXT PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id),
   attempt INTEGER NOT NULL, role TEXT NOT NULL, status TEXT NOT NULL,
@@ -63,7 +76,181 @@ CREATE TABLE IF NOT EXISTS events(
   synced INTEGER NOT NULL DEFAULT 0,UNIQUE(run_id,seq));
 CREATE INDEX IF NOT EXISTS idx_task_status ON tasks(status,available_at);
 CREATE INDEX IF NOT EXISTS idx_event_sync ON events(synced,time);
+CREATE TABLE IF NOT EXISTS schema_migrations(version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS projects(
+  id TEXT PRIMARY KEY, name TEXT NOT NULL, source_repository TEXT NOT NULL,
+  integration_branch TEXT NOT NULL, parent_task_count INTEGER NOT NULL,
+  subtask_count INTEGER NOT NULL, workers INTEGER NOT NULL, model TEXT NOT NULL,
+  reasoning TEXT NOT NULL, source_ref TEXT NOT NULL, source_commit TEXT NOT NULL,
+  parent_plan_blob_sha TEXT NOT NULL, subtask_index_sha TEXT NOT NULL,
+  payload_sha TEXT NOT NULL, status TEXT NOT NULL, created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS project_queue(
+  project_id TEXT PRIMARY KEY REFERENCES projects(id), status TEXT NOT NULL,
+  enqueue_seq INTEGER NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS subtasks(
+  id TEXT PRIMARY KEY, project_id TEXT NOT NULL REFERENCES projects(id),
+  parent_id TEXT NOT NULL REFERENCES tasks(id), sequence INTEGER NOT NULL,
+  spec TEXT NOT NULL, status TEXT NOT NULL, payload_sha TEXT NOT NULL,
+  evidence TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+  UNIQUE(parent_id,sequence));
+CREATE TABLE IF NOT EXISTS pending_queue(
+  parent_id TEXT PRIMARY KEY REFERENCES tasks(id), project_id TEXT NOT NULL,
+  enqueue_seq INTEGER NOT NULL, available_at INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS rebuild_queue(
+  parent_id TEXT PRIMARY KEY REFERENCES tasks(id), project_id TEXT NOT NULL,
+  generation INTEGER NOT NULL, reason TEXT NOT NULL, created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS review_queue(
+  parent_id TEXT PRIMARY KEY REFERENCES tasks(id), project_id TEXT NOT NULL,
+  candidate_sha TEXT NOT NULL, created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS merge_queue(
+  parent_id TEXT PRIMARY KEY REFERENCES tasks(id), project_id TEXT NOT NULL,
+  candidate_sha TEXT NOT NULL, created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS subtask_receipts(
+  receipt_id TEXT PRIMARY KEY,
+  subtask_id TEXT NOT NULL REFERENCES subtasks(id),
+  parent_id TEXT NOT NULL REFERENCES tasks(id),
+  generation INTEGER NOT NULL,
+  source_sha TEXT NOT NULL,
+  candidate_sha TEXT NOT NULL,
+  changed_files TEXT NOT NULL,
+  test_ref TEXT NOT NULL,
+  test_artifact_sha TEXT NOT NULL DEFAULT '',
+  qc_receipt TEXT NOT NULL,
+  qc_artifact_sha TEXT NOT NULL DEFAULT '',
+  evidence_sha TEXT NOT NULL,
+  contract_sha TEXT NOT NULL,
+  verifier TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  UNIQUE(subtask_id,candidate_sha));
+CREATE INDEX IF NOT EXISTS idx_subtask_receipts_parent ON subtask_receipts(parent_id,candidate_sha);
+CREATE TABLE IF NOT EXISTS supervisor_cases(
+  case_id TEXT PRIMARY KEY,
+  parent_id TEXT NOT NULL REFERENCES tasks(id),
+  generation INTEGER NOT NULL,
+  state TEXT NOT NULL,
+  category TEXT NOT NULL,
+  failure_fingerprint TEXT NOT NULL,
+  failure_code TEXT NOT NULL,
+  base_sha TEXT NOT NULL DEFAULT '',
+  candidate_sha TEXT NOT NULL DEFAULT '',
+  updated_at TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  UNIQUE(parent_id,generation,failure_fingerprint));
+CREATE INDEX IF NOT EXISTS idx_supervisor_cases_state ON supervisor_cases(state,updated_at);
+CREATE TABLE IF NOT EXISTS supervisor_lanes(
+  lane_id TEXT PRIMARY KEY CHECK(lane_id IN ('repair_1','repair_2','upgrade_auditor')),
+  role TEXT NOT NULL,
+  task_id TEXT NOT NULL DEFAULT '',
+  case_id TEXT NOT NULL DEFAULT '',
+  state TEXT NOT NULL,
+  lease_token TEXT NOT NULL DEFAULT '',
+  generation INTEGER NOT NULL DEFAULT 0,
+  run_id TEXT NOT NULL DEFAULT '',
+  candidate_sha TEXT NOT NULL DEFAULT '',
+  updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS upgrade_batches(
+  batch_id TEXT PRIMARY KEY,
+  state TEXT NOT NULL,
+  candidate_sha TEXT NOT NULL DEFAULT '',
+  rollback_sha TEXT NOT NULL DEFAULT '',
+  updated_at TEXT NOT NULL,
+  created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS upgrade_checks(
+  batch_id TEXT NOT NULL REFERENCES upgrade_batches(batch_id),
+  stage TEXT NOT NULL,
+  result TEXT NOT NULL,
+  artifact_sha TEXT NOT NULL,
+  evidence_sha TEXT NOT NULL,
+  recorded_at TEXT NOT NULL,
+  verifier TEXT NOT NULL,
+  PRIMARY KEY(batch_id,stage));
+CREATE TABLE IF NOT EXISTS upgrade_rollbacks(
+  rollback_id TEXT PRIMARY KEY,
+  batch_id TEXT NOT NULL REFERENCES upgrade_batches(batch_id),
+  state TEXT NOT NULL,
+  rollback_sha TEXT NOT NULL,
+  current_head TEXT NOT NULL,
+  backup_path TEXT NOT NULL,
+  backup_sha TEXT NOT NULL,
+  created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS upgrade_audits(
+  audit_id TEXT PRIMARY KEY,
+  task_id TEXT NOT NULL REFERENCES tasks(id),
+  lane_id TEXT NOT NULL,
+  run_id TEXT NOT NULL,
+  model TEXT NOT NULL,
+  status TEXT NOT NULL,
+  report_path TEXT NOT NULL DEFAULT '',
+  report_sha TEXT NOT NULL DEFAULT '',
+  evidence_sha TEXT NOT NULL DEFAULT '',
+  failure_code TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS batch_epochs(
+  batch_id TEXT PRIMARY KEY,
+  state TEXT NOT NULL,
+  admitted_count INTEGER NOT NULL DEFAULT 0,
+  completed_count INTEGER NOT NULL DEFAULT 0,
+  target_count INTEGER NOT NULL DEFAULT 20,
+  updated_at TEXT NOT NULL,
+  created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS batch_members(
+  batch_id TEXT NOT NULL REFERENCES batch_epochs(batch_id),
+  parent_id TEXT NOT NULL REFERENCES tasks(id),
+  ordinal INTEGER NOT NULL,
+  state TEXT NOT NULL,
+  admitted_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY(batch_id,parent_id));
+CREATE INDEX IF NOT EXISTS idx_batch_members_parent ON batch_members(parent_id,batch_id);
+CREATE INDEX IF NOT EXISTS idx_pending_queue ON pending_queue(available_at,enqueue_seq);
+CREATE INDEX IF NOT EXISTS idx_subtasks_parent ON subtasks(parent_id,sequence);
+CREATE INDEX IF NOT EXISTS idx_project_tasks ON tasks(project_id,status,enqueue_seq);
 """
+
+LEGACY_TASK_COLUMNS = {
+    "project_id": "TEXT NOT NULL DEFAULT ''",
+    "module": "TEXT NOT NULL DEFAULT ''",
+    "milestone": "TEXT NOT NULL DEFAULT ''",
+    "priority": "TEXT NOT NULL DEFAULT 'P4'",
+    "owner_gate": "INTEGER NOT NULL DEFAULT 0",
+    "payload_sha": "TEXT NOT NULL DEFAULT ''",
+    "enqueue_seq": "INTEGER NOT NULL DEFAULT 0",
+    "integrated_sha": "TEXT NOT NULL DEFAULT ''",
+}
+
+
+def _full_plan_ddl() -> tuple[str, ...]:
+    """DDL for the additive v2 task-plan schema migration."""
+    return tuple(statement.strip() for statement in SCHEMA.split(";")
+                 if statement.strip() and not statement.strip().startswith("PRAGMA"))
+
+
+def _ensure_v3_columns(db: sqlite3.Connection) -> None:
+    """Apply only additive columns needed when a v3 table predates this build."""
+    receipt_columns = {row[1] for row in db.execute("PRAGMA table_info(subtask_receipts)")}
+    if receipt_columns and "contract_sha" not in receipt_columns:
+        db.execute("ALTER TABLE subtask_receipts ADD COLUMN contract_sha TEXT NOT NULL DEFAULT ''")
+    if receipt_columns and "test_artifact_sha" not in receipt_columns:
+        db.execute("ALTER TABLE subtask_receipts ADD COLUMN test_artifact_sha TEXT NOT NULL DEFAULT ''")
+    if receipt_columns and "qc_artifact_sha" not in receipt_columns:
+        db.execute("ALTER TABLE subtask_receipts ADD COLUMN qc_artifact_sha TEXT NOT NULL DEFAULT ''")
+    batch_columns = {row[1] for row in db.execute("PRAGMA table_info(batch_epochs)")}
+    if batch_columns and "target_count" not in batch_columns:
+        db.execute("ALTER TABLE batch_epochs ADD COLUMN target_count INTEGER NOT NULL DEFAULT 20")
+    check_columns = {row[1] for row in db.execute("PRAGMA table_info(upgrade_checks)")}
+    if check_columns and "evidence_sha" not in check_columns:
+        db.execute("ALTER TABLE upgrade_checks ADD COLUMN evidence_sha TEXT NOT NULL DEFAULT ''")
+    lane_columns = {row[1] for row in db.execute("PRAGMA table_info(supervisor_lanes)")}
+    if lane_columns:
+        if "generation" not in lane_columns:
+            db.execute("ALTER TABLE supervisor_lanes ADD COLUMN generation INTEGER NOT NULL DEFAULT 0")
+        if "run_id" not in lane_columns:
+            db.execute("ALTER TABLE supervisor_lanes ADD COLUMN run_id TEXT NOT NULL DEFAULT ''")
+        if "candidate_sha" not in lane_columns:
+            db.execute("ALTER TABLE supervisor_lanes ADD COLUMN candidate_sha TEXT NOT NULL DEFAULT ''")
 
 def now() -> str:
     return dt.datetime.now(dt.timezone.utc).isoformat(timespec="microseconds")
@@ -89,7 +276,8 @@ def assert_source(source: Path) -> tuple[Path, str]:
     return source, sha
 
 def task_spec(obj: object) -> dict:
-    if not isinstance(obj, dict) or set(obj) - {"task_id", "objective", "acceptance", "depends_on", "area"}:
+    allowed = {"task_id", "objective", "acceptance", "depends_on", "area", "execution_mode", "subtasks"}
+    if not isinstance(obj, dict) or set(obj) - allowed:
         raise ValueError("task has unknown fields")
     tid = obj.get("task_id")
     objective = obj.get("objective")
@@ -106,7 +294,72 @@ def task_spec(obj: object) -> dict:
         raise ValueError("invalid dependencies")
     if not isinstance(area, str) or not re.fullmatch(r"[a-z][a-z0-9-]{0,30}", area):
         raise ValueError("invalid area")
-    return {"task_id": tid, "objective": objective, "acceptance": acceptance, "depends_on": deps, "area": area}
+    result = {"task_id": tid, "objective": objective, "acceptance": acceptance,
+              "depends_on": deps, "area": area}
+    if "execution_mode" in obj:
+        result["execution_mode"] = obj["execution_mode"]
+    if "subtasks" in obj:
+        result["subtasks"] = obj["subtasks"]
+    if "execution_mode" in result or "subtasks" in result:
+        validate_task_type(result)
+    return result
+
+
+def validate_task_type(task: object) -> str:
+    """Validate the persisted task packet before assigning any worker lane."""
+    if not isinstance(task, dict):
+        raise ValueError("task_type_invalid")
+    mode = task.get("execution_mode", "worker")
+    if mode not in TASK_EXECUTION_MODES:
+        raise ValueError("task_type_invalid")
+    children = task.get("subtasks", [])
+    if children is None:
+        children = []
+    if not isinstance(children, list):
+        raise ValueError("task_type_invalid")
+    if children:
+        sequences = []
+        identifiers = set()
+        for child in children:
+            if not isinstance(child, dict):
+                raise ValueError("task_type_invalid")
+            child_id = child.get("id")
+            sequence = child.get("sequence")
+            if (not isinstance(child_id, str) or not re.fullmatch(r"[A-Za-z0-9_.-]{1,160}", child_id)
+                    or child_id in identifiers or type(sequence) is not int or sequence < 1):
+                raise ValueError("task_type_invalid")
+            if any(not isinstance(child.get(key), str) or not child.get(key)
+                   for key in ("instruction", "deliverable", "done_when")):
+                raise ValueError("task_type_invalid")
+            deps = child.get("depends_on", [])
+            if not isinstance(deps, list) or any(not isinstance(dep, str) or not dep for dep in deps):
+                raise ValueError("task_type_invalid")
+            identifiers.add(child_id)
+            sequences.append(sequence)
+        if sorted(sequences) != list(range(1, len(sequences) + 1)):
+            raise ValueError("task_type_invalid")
+        if any(dep not in identifiers or dep == child_id
+               for child in children for dep in child.get("depends_on", [])
+               for child_id in (child.get("id"),)):
+            raise ValueError("task_type_invalid")
+    roots = task.get("suggested_scope_roots", [])
+    if roots is not None:
+        if (not isinstance(roots, list) or len(roots) > 20
+                or any(not isinstance(root, str) or not root or root.startswith(("/", "\\"))
+                       or ".." in Path(root).parts or "\\" in root for root in roots)):
+            raise ValueError("task_type_invalid")
+    if mode == "design" and not children:
+        raise ValueError("task_type_invalid")
+    return mode
+
+
+def control_blocked(home: Path, lane: str) -> bool:
+    """Return whether deterministic controls block a new claim for one lane."""
+    if lane not in {"normal", "recovery"}:
+        raise ValueError("invalid control lane")
+    global_markers = ("STOP", "PAUSE", "PAUSED_QUOTA")
+    lane_marker = "PAUSE_NORMAL" if lane == "normal" else "PAUSE_RECOVERY"
+    return any((home / marker).exists() for marker in (*global_markers, lane_marker))
 
 class State:
     def __init__(self, home: Path = DEFAULT_HOME):
@@ -128,19 +381,80 @@ class State:
             db.close()
 
     @contextlib.contextmanager
-    def master_lock(self, blocking: bool = False):
+    def master_lock(self, blocking: bool = False, timeout: float = 30.0):
+        if timeout <= 0 or timeout > 300:
+            raise ValueError("invalid master lock timeout")
         self.home.mkdir(mode=0o700, parents=True, exist_ok=True)
         fd = os.open(self.home / "master.lock", os.O_CREAT | os.O_RDWR, 0o600)
         try:
-            op = fcntl.LOCK_EX | (0 if blocking else fcntl.LOCK_NB)
-            try:
-                fcntl.flock(fd, op)
-            except BlockingIOError as ex:
-                raise ValueError("another Astra Linux master is running") from ex
+            deadline = time.monotonic() + timeout
+            while True:
+                try:
+                    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    break
+                except BlockingIOError as ex:
+                    if not blocking or time.monotonic() >= deadline:
+                        raise ValueError("another Astra Linux master is running") from ex
+                    time.sleep(0.05)
             yield
         finally:
             fcntl.flock(fd, fcntl.LOCK_UN)
             os.close(fd)
+
+    def ensure_full_plan_schema(self) -> dict:
+        """Apply only the additive, reversible full-plan schema migration."""
+        with self.master_lock():
+            with self.db() as db:
+                current = int(db.execute("PRAGMA user_version").fetchone()[0])
+                if current > SCHEMA_VERSION:
+                    raise ValueError("database schema is newer than this Astra One runtime")
+                if current == SCHEMA_VERSION:
+                    for statement in _full_plan_ddl():
+                        db.execute(statement)
+                    _ensure_v3_columns(db)
+                    db.executemany(
+                        "INSERT OR IGNORE INTO supervisor_lanes(lane_id,role,state,updated_at) VALUES(?,?,?,?)",
+                        (("repair_1", "recovery_coder", "idle", now()),
+                         ("repair_2", "recovery_coder", "idle", now()),
+                         ("upgrade_auditor", "upgrade_auditor", "idle", now())),
+                    )
+                    db.execute(
+                        "INSERT INTO settings(key,value) VALUES('version',?) "
+                        "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                        (VERSION,),
+                    )
+                    return {"schema_version": current, "migrated": False}
+                db.execute("BEGIN IMMEDIATE")
+                columns = {row[1] for row in db.execute("PRAGMA table_info(tasks)")}
+                for name, declaration in LEGACY_TASK_COLUMNS.items():
+                    if name not in columns:
+                        db.execute(f"ALTER TABLE tasks ADD COLUMN {name} {declaration}")
+                for statement in _full_plan_ddl():
+                    db.execute(statement)
+                _ensure_v3_columns(db)
+                db.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
+                db.execute(
+                    "INSERT INTO settings(key,value) VALUES('schema_version',?) "
+                    "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                    (str(SCHEMA_VERSION),),
+                )
+                db.execute(
+                    "INSERT INTO settings(key,value) VALUES('version',?) "
+                    "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+                    (VERSION,),
+                )
+                db.execute(
+                    "INSERT OR IGNORE INTO schema_migrations(version,applied_at) VALUES(?,?)",
+                    (SCHEMA_VERSION, now()),
+                )
+                db.executemany(
+                    "INSERT OR IGNORE INTO supervisor_lanes(lane_id,role,state,updated_at) VALUES(?,?,?,?)",
+                    (("repair_1", "recovery_coder", "idle", now()),
+                     ("repair_2", "recovery_coder", "idle", now()),
+                     ("upgrade_auditor", "upgrade_auditor", "idle", now())),
+                )
+                db.execute("COMMIT")
+                return {"schema_version": SCHEMA_VERSION, "migrated": True}
 
     def init(self, source: Path) -> dict:
         if sys.platform != "linux":
@@ -156,11 +470,21 @@ class State:
         db = sqlite3.connect(self.database)
         try:
             db.executescript("PRAGMA journal_mode=WAL;" + SCHEMA)
+            db.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
             cfg = {"source":str(source),"source_sha":sha,"integration_sha":sha,
                    "integration_branch":"feature/astra-linux-integration-" + uuid.uuid4().hex[:10],
                    "integration_path":str(self.home / "integration"),
-                   "architecture_sha":"","approved_architecture_sha":"","version":VERSION}
+                   "architecture_sha":"","approved_architecture_sha":"","version":VERSION,
+                   "schema_version":str(SCHEMA_VERSION)}
             db.executemany("INSERT INTO settings VALUES(?,?)", cfg.items())
+            db.execute("INSERT OR IGNORE INTO schema_migrations(version,applied_at) VALUES(?,?)",
+                       (SCHEMA_VERSION, now()))
+            db.executemany(
+                "INSERT OR IGNORE INTO supervisor_lanes(lane_id,role,state,updated_at) VALUES(?,?,?,?)",
+                (("repair_1", "recovery_coder", "idle", now()),
+                 ("repair_2", "recovery_coder", "idle", now()),
+                 ("upgrade_auditor", "upgrade_auditor", "idle", now())),
+            )
             db.commit()
         finally:
             db.close()
@@ -223,54 +547,512 @@ class State:
             db.execute("COMMIT")
         return [t["task_id"] for t in tasks]
 
+    @staticmethod
+    def _refresh_project_queues_db(db: sqlite3.Connection, project_id: str) -> None:
+        """Reconcile dependency-ready parents into the canonical pending queue."""
+        rows = db.execute(
+            "SELECT * FROM tasks WHERE project_id=? ORDER BY enqueue_seq,id", (project_id,)
+        ).fetchall()
+        by_id = {row["id"]: row for row in rows}
+        external_blockers = {
+            row[0] for row in db.execute(
+                "SELECT parent_id FROM supervisor_cases WHERE state='external_blocker'"
+            )
+        }
+        active = {"preflight", "coding", "verifying", "awaiting_review", "approved"}
+        terminal = {"completed", "archived"}
+        for row in rows:
+            current = row["status"]
+            if current in active or current in terminal or current == "failed":
+                continue
+            spec = json.loads(row["spec"])
+            dependencies = spec.get("depends_on", [])
+            dependency_statuses = [by_id.get(dep, {"status": "blocked"})["status"] for dep in dependencies]
+            if row["id"] in external_blockers:
+                # An explicit external blocker is a durable fence.  It must
+                # win over dependency readiness so a stale pending row cannot
+                # silently hand the task back to a coding worker.
+                desired = "blocked"
+            elif any(status in {"failed", "blocked", "stopped", "interrupted"} for status in dependency_statuses):
+                desired = "blocked"
+            elif row["owner_gate"]:
+                desired = "approval_required"
+            elif all(status == "completed" for status in dependency_statuses):
+                desired = "pending"
+            else:
+                desired = "waiting"
+            if current != desired:
+                db.execute("UPDATE tasks SET status=?,updated_at=? WHERE id=?", (desired, now(), row["id"]))
+            if desired == "pending":
+                db.execute(
+                    "INSERT INTO pending_queue(parent_id,project_id,enqueue_seq,available_at,created_at) "
+                    "VALUES(?,?,?,?,?) ON CONFLICT(parent_id) DO UPDATE SET available_at=excluded.available_at",
+                    (row["id"], project_id, row["enqueue_seq"], 0, now()),
+                )
+                child_rows = db.execute(
+                    "SELECT id,sequence,spec,status FROM subtasks WHERE parent_id=? ORDER BY sequence",
+                    (row["id"],),
+                ).fetchall()
+                first_incomplete = next((child for child in child_rows
+                                         if child["status"] not in {"completed", "archived"}), None)
+                if first_incomplete and first_incomplete["status"] not in {"running", "pending"}:
+                    child_spec = json.loads(first_incomplete["spec"])
+                    child_statuses = {child["id"]: child["status"] for child in child_rows}
+                    if all(child_statuses.get(dep) == "completed"
+                           for dep in child_spec.get("depends_on", [])):
+                        db.execute("UPDATE subtasks SET status='pending',updated_at=? WHERE id=?",
+                                   (now(), first_incomplete["id"]))
+            else:
+                db.execute("DELETE FROM pending_queue WHERE parent_id=?", (row["id"],))
+
+    def import_full_plan(self, plan: FullPlan) -> dict:
+        """Idempotently import the reviewed 247-parent/1,359-child plan."""
+        self.ensure_approved()
+        self.ensure_full_plan_schema()
+        project = plan.project
+        project_payload = payload_sha({"project": project, "validation": plan.validation})
+        inserted_parents = 0
+        inserted_children = 0
+        with self.master_lock():
+            with self.db() as db:
+                db.execute("BEGIN IMMEDIATE")
+                existing_project = db.execute(
+                    "SELECT payload_sha FROM projects WHERE id=?", (PROJECT_ID,)
+                ).fetchone()
+                if existing_project and existing_project[0] != project_payload:
+                    db.execute("ROLLBACK")
+                    raise ValueError("full-build project exists with a conflicting payload; reconciliation required")
+                timestamp = now()
+                if not existing_project:
+                    db.execute(
+                        "INSERT INTO projects(id,name,source_repository,integration_branch,parent_task_count,"
+                        "subtask_count,workers,model,reasoning,source_ref,source_commit,parent_plan_blob_sha,"
+                        "subtask_index_sha,payload_sha,status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                        (PROJECT_ID, project["project_name"], project["source_repository"],
+                         project["integration_branch"], project["parent_task_count"], project["subtask_count"],
+                         project["workers"], project["model"], project["reasoning"], project["source_ref"],
+                         project["source_commit"], project["parent_plan_blob_sha"], project["subtask_index_sha256"],
+                         project_payload, "pending", timestamp, timestamp),
+                    )
+                    db.execute(
+                        "INSERT INTO project_queue(project_id,status,enqueue_seq,created_at,updated_at) VALUES(?,?,?,?,?)",
+                        (PROJECT_ID, "pending", 0, timestamp, timestamp),
+                    )
+                else:
+                    db.execute("UPDATE projects SET updated_at=? WHERE id=?", (timestamp, PROJECT_ID))
+
+                architecture_sha = db.execute(
+                    "SELECT value FROM settings WHERE key='approved_architecture_sha'"
+                ).fetchone()[0]
+                for enqueue_seq, parent in enumerate(plan.parents, start=1):
+                    pid = parent["task_id"]
+                    spec_json = json.dumps(parent["spec"], ensure_ascii=False, sort_keys=True)
+                    existing = db.execute(
+                        "SELECT project_id,payload_sha FROM tasks WHERE id=?", (pid,)
+                    ).fetchone()
+                    if existing:
+                        if existing[0] != PROJECT_ID or existing[1] != parent["payload_sha"]:
+                            db.execute("ROLLBACK")
+                            raise ValueError(f"parent task {pid} conflicts with existing history")
+                    else:
+                        owner_gate = int(parent["owner_gate"])
+                        initial = "approval_required" if owner_gate else (
+                            "waiting" if parent["dependencies"] else "pending"
+                        )
+                        db.execute(
+                            "INSERT INTO tasks(id,spec,status,architecture_sha,available_at,created_at,updated_at,"
+                            "project_id,module,milestone,priority,owner_gate,payload_sha,enqueue_seq) "
+                            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                            (pid, spec_json, initial, architecture_sha, 0, timestamp, timestamp, PROJECT_ID,
+                             parent["module"], parent["milestone"], parent["priority"], owner_gate,
+                             parent["payload_sha"], enqueue_seq),
+                        )
+                        inserted_parents += 1
+                    for child in parent["children"]:
+                        child_id = child["id"]
+                        child_json = json.dumps(child, ensure_ascii=False, sort_keys=True)
+                        child_hash = payload_sha(child)
+                        child_existing = db.execute(
+                            "SELECT project_id,parent_id,payload_sha FROM subtasks WHERE id=?", (child_id,)
+                        ).fetchone()
+                        if child_existing:
+                            if (child_existing[0], child_existing[1], child_existing[2]) != (
+                                PROJECT_ID, pid, child_hash
+                            ):
+                                db.execute("ROLLBACK")
+                                raise ValueError(f"child task {child_id} conflicts with existing history")
+                            continue
+                        parent_row = db.execute("SELECT status FROM tasks WHERE id=?", (pid,)).fetchone()
+                        child_status = "pending" if parent_row[0] == "pending" and child["sequence"] == 1 else "waiting"
+                        db.execute(
+                            "INSERT INTO subtasks(id,project_id,parent_id,sequence,spec,status,payload_sha,created_at,updated_at) "
+                            "VALUES(?,?,?,?,?,?,?,?,?)",
+                            (child_id, PROJECT_ID, pid, child["sequence"], child_json, child_status,
+                             child_hash, timestamp, timestamp),
+                        )
+                        inserted_children += 1
+                self._refresh_project_queues_db(db, PROJECT_ID)
+                db.execute("UPDATE projects SET updated_at=? WHERE id=?", (now(), PROJECT_ID))
+                db.execute("COMMIT")
+        return self.full_plan_status() | {
+            "project_id": PROJECT_ID,
+            "idempotent": inserted_parents == 0 and inserted_children == 0,
+            "inserted_parents": inserted_parents,
+            "inserted_children": inserted_children,
+            "source_ref": project["source_ref"],
+            "source_commit": project["source_commit"],
+            "parent_plan_blob_sha": project["parent_plan_blob_sha"],
+            "subtask_index_sha256": project["subtask_index_sha256"],
+        }
+
+    def approve_owner(self, tid: str) -> dict:
+        """Release one explicit owner-gated parent without changing its payload."""
+        self.ensure_full_plan_schema()
+        with self.master_lock():
+            with self.db() as db:
+                db.execute("BEGIN IMMEDIATE")
+                row = db.execute("SELECT * FROM tasks WHERE id=?", (tid,)).fetchone()
+                if not row or row["project_id"] != PROJECT_ID or not row["owner_gate"]:
+                    db.execute("ROLLBACK")
+                    raise ValueError("task is not an imported owner-gated parent")
+                if row["status"] != "approval_required":
+                    db.execute("ROLLBACK")
+                    raise ValueError("owner-gated task is not awaiting approval")
+                spec = json.loads(row["spec"])
+                statuses = [db.execute("SELECT status FROM tasks WHERE id=?", (dep,)).fetchone()[0]
+                            for dep in spec.get("depends_on", [])]
+                if any(status != "completed" for status in statuses):
+                    db.execute("ROLLBACK")
+                    raise ValueError("owner-gated task dependencies are not complete")
+                db.execute("UPDATE tasks SET status='pending',updated_at=? WHERE id=?", (now(), tid))
+                db.execute(
+                    "INSERT INTO pending_queue(parent_id,project_id,enqueue_seq,available_at,created_at) "
+                    "VALUES(?,?,?,?,?) ON CONFLICT(parent_id) DO UPDATE SET available_at=excluded.available_at",
+                    (tid, PROJECT_ID, row["enqueue_seq"], 0, now()),
+                )
+                db.execute("COMMIT")
+        return {"approved": tid, "status": "pending", "owner_approval_required": True}
+
+    def full_plan_status(self) -> dict:
+        with self.db() as db:
+            if int(db.execute("PRAGMA user_version").fetchone()[0]) < SCHEMA_VERSION:
+                return {"imported": False, "schema_ready": False,
+                        "queues": {name: 0 for name in QUEUE_NAMES}}
+            project = db.execute("SELECT * FROM projects WHERE id=?", (PROJECT_ID,)).fetchone()
+            if not project:
+                return {"imported": False, "schema_ready": True,
+                        "queues": {name: 0 for name in QUEUE_NAMES}}
+            task_counts = {row[0]: row[1] for row in db.execute(
+                "SELECT status,count(*) FROM tasks WHERE project_id=? GROUP BY status", (PROJECT_ID,)
+            )}
+            child_counts = {row[0]: row[1] for row in db.execute(
+                "SELECT status,count(*) FROM subtasks WHERE project_id=? GROUP BY status", (PROJECT_ID,)
+            )}
+            verified_receipts = db.execute(
+                "SELECT count(*) FROM subtask_receipts WHERE parent_id IN "
+                "(SELECT id FROM tasks WHERE project_id=?) AND verifier='independent_qc'",
+                (PROJECT_ID,),
+            ).fetchone()[0]
+            queues = {}
+            for name in QUEUE_NAMES:
+                queues[name] = db.execute(f"SELECT count(*) FROM {name} WHERE "
+                                          f"{'project_id=?' if name != 'project_queue' else 'project_id=?'}",
+                                          (PROJECT_ID,)).fetchone()[0]
+            return {
+                "imported": True,
+                "schema_ready": True,
+                "project_id": PROJECT_ID,
+                "project_status": project["status"],
+                "parent_count": project["parent_task_count"],
+                "subtask_count": project["subtask_count"],
+                "parent_status": task_counts,
+                "child_status": child_counts,
+                "verified_subtask_receipts": verified_receipts,
+                "child_evidence_mode": "receipt_backed",
+                "queues": queues,
+                "payload_sha": project["payload_sha"],
+            }
+
     def list_tasks(self) -> list[dict]:
         with self.db() as db:
-            return [dict(r) for r in db.execute("SELECT id,status,attempt,branch,base_sha,candidate_sha,last_error,updated_at FROM tasks ORDER BY created_at,id")]
+            return [dict(r) for r in db.execute(
+                "SELECT id,status,attempt,project_id,module,priority,owner_gate,branch,base_sha,"
+                "candidate_sha,last_error,updated_at FROM tasks ORDER BY created_at,id"
+            )]
 
-    def claim(self, model: str = MODEL) -> dict | None:
+    def claim(self, model: str = MODEL, *, batch_id: str | None = None, lane: str = "normal") -> dict | None:
         self.ensure_approved()
-        if any((self.home / x).exists() for x in ("STOP","PAUSE","PAUSED_QUOTA")):
+        if control_blocked(self.home, lane):
             return None
+        if batch_id is not None and not re.fullmatch(r"[A-Z0-9_.-]{3,80}", batch_id):
+            raise ValueError("invalid batch id")
         with self.db() as db:
             db.execute("BEGIN IMMEDIATE")
-            rows=db.execute("SELECT * FROM tasks WHERE status='queued' AND architecture_sha=? AND available_at<=? ORDER BY created_at,id",(self.get("approved_architecture_sha"),int(time.time()))).fetchall()
+            approved_architecture = db.execute(
+                "SELECT value FROM settings WHERE key='approved_architecture_sha'"
+            ).fetchone()[0]
+            query = (
+                "SELECT * FROM tasks WHERE status IN ('queued','pending') AND architecture_sha=? "
+                "AND available_at<=?"
+            )
+            query_params: list[object] = [approved_architecture, int(time.time())]
+            if batch_id is not None:
+                query += (
+                    " AND id IN (SELECT parent_id FROM batch_members "
+                    "WHERE batch_id=? AND state IN ('admitted','running'))"
+                )
+                query_params.append(batch_id)
+            else:
+                # An active fixed cohort is authoritative. The ordinary
+                # full-queue runner cannot consume its members behind the
+                # cohort controller's back.
+                query += (
+                    " AND NOT EXISTS (SELECT 1 FROM batch_members bm "
+                    "JOIN batch_epochs be ON be.batch_id=bm.batch_id "
+                    "WHERE bm.parent_id=tasks.id AND be.state IN ('running','draining'))"
+                )
+            # A recovery lease owns the failed generation. Normal dispatch must
+            # not claim the same parent while R1/R2 is repairing it. Keep
+            # direct legacy callers compatible until the additive migration is
+            # applied.
+            if db.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='supervisor_lanes'"
+            ).fetchone():
+                query += (
+                    " AND NOT EXISTS (SELECT 1 FROM supervisor_lanes sl "
+                    "WHERE sl.task_id=tasks.id AND sl.state<>'idle')"
+                )
+            query += (
+                " ORDER BY CASE priority WHEN 'P0' THEN 0 WHEN 'P1' THEN 1 "
+                "WHEN 'P2' THEN 2 WHEN 'P3' THEN 3 WHEN 'P4' THEN 4 ELSE 5 END, "
+                "enqueue_seq,created_at,id"
+            )
+            rows=db.execute(query, tuple(query_params)).fetchall()
             for row in rows:
                 t=json.loads(row["spec"])
+                try:
+                    validate_task_type(t)
+                except ValueError:
+                    # Do not assign malformed packets. Make the defect visible
+                    # to Supervisor triage and continue with unrelated work.
+                    db.execute(
+                        "UPDATE tasks SET status='failed',last_error='task_type_invalid',updated_at=? WHERE id=?",
+                        (now(), row["id"]),
+                    )
+                    db.execute("DELETE FROM pending_queue WHERE parent_id=?", (row["id"],))
+                    db.execute("DELETE FROM rebuild_queue WHERE parent_id=?", (row["id"],))
+                    continue
                 deps=t["depends_on"]
                 if any((found:=db.execute("SELECT status FROM tasks WHERE id=?",(d,)).fetchone()) is None or found[0] != "completed" for d in deps):
                     continue
+                if row["owner_gate"]:
+                    continue
+                if row["project_id"]:
+                    t["subtasks"] = [json.loads(child["spec"]) for child in db.execute(
+                        "SELECT spec FROM subtasks WHERE parent_id=? ORDER BY sequence", (row["id"],)
+                    )]
                 attempt=row["attempt"]+1
                 rid=str(uuid.uuid4())
                 role="worker" if attempt==1 else "repairer"
                 db.execute("""UPDATE tasks SET status='preflight',attempt=?,last_run=?,last_error='',
-                           candidate_sha='',changed_files='[]',qc_evidence='',base_sha='',branch='',worktree='',updated_at=?
+                           candidate_sha='',integrated_sha='',changed_files='[]',qc_evidence='',base_sha='',branch='',worktree='',updated_at=?
                            WHERE id=?""",(attempt,rid,now(),t["task_id"]))
+                db.execute("DELETE FROM pending_queue WHERE parent_id=?", (t["task_id"],))
+                db.execute("DELETE FROM rebuild_queue WHERE parent_id=?", (t["task_id"],))
+                if row["project_id"]:
+                    # A new candidate generation must earn a fresh receipt for
+                    # every child; prior receipts remain historical evidence.
+                    db.execute(
+                        "UPDATE subtasks SET status='waiting',evidence='',updated_at=? WHERE parent_id=?",
+                        (now(), t["task_id"]),
+                    )
+                    db.execute(
+                        "UPDATE subtasks SET status='running',updated_at=? WHERE parent_id=? "
+                        "AND sequence=(SELECT MIN(sequence) FROM subtasks WHERE parent_id=?)",
+                        (now(), t["task_id"], t["task_id"]),
+                    )
                 db.execute("INSERT INTO runs(id,task_id,attempt,role,status,started_at,model) VALUES (?,?,?,?,?,?,?)",
                            (rid,t["task_id"],attempt,role,"preflight",now(),model))
+                if batch_id is not None:
+                    db.execute(
+                        "UPDATE batch_members SET state='running',updated_at=? WHERE batch_id=? AND parent_id=?",
+                        (now(), batch_id, t["task_id"]),
+                    )
                 db.execute("COMMIT")
                 return {"task":t,"run_id":rid,"attempt":attempt,"role":role,"prior_error":row["last_error"]}
             db.execute("COMMIT")
         return None
 
-    def set_task(self, tid: str, status: str, *, error: str = "", fields: dict | None = None):
-        if status not in {"queued","preflight","coding","verifying","awaiting_review","approved","completed","failed","interrupted","conflict","stopped"}:
+    def claim_recovery_task(self, lease: dict, *, model: str = MODEL) -> dict:
+        """Atomically transfer one failed generation to a leased recovery lane."""
+        lane_id = str(lease.get("lane_id", ""))
+        case_id = str(lease.get("case_id", ""))
+        token = str(lease.get("lease_token", ""))
+        if lane_id not in {"repair_1", "repair_2"} or not re.fullmatch(r"[a-f0-9]{24}", token):
+            raise ValueError("invalid recovery lease")
+        with self.master_lock(blocking=True):
+            with self.db() as db:
+                db.execute("BEGIN IMMEDIATE")
+                if control_blocked(self.home, "recovery"):
+                    db.execute("ROLLBACK")
+                    raise ValueError("recovery_lane_paused")
+                lane = db.execute(
+                    "SELECT task_id,case_id,state,lease_token FROM supervisor_lanes WHERE lane_id=?", (lane_id,)
+                ).fetchone()
+                if (not lane or lane["case_id"] != case_id or lane["state"] != "leased"
+                        or lane["lease_token"] != token):
+                    db.execute("ROLLBACK")
+                    raise ValueError("recovery lease mismatch")
+                row = db.execute("SELECT * FROM tasks WHERE id=?", (lane["task_id"],)).fetchone()
+                if not row or row["status"] not in {"failed", "conflict", "interrupted", "stopped"}:
+                    db.execute("ROLLBACK")
+                    raise ValueError("recovery task is not claimable")
+                if row["attempt"] >= MAX_FAILURES:
+                    db.execute("ROLLBACK")
+                    raise ValueError("recovery retry ceiling reached")
+                task = json.loads(row["spec"])
+                validate_task_type(task)
+                if row["project_id"]:
+                    task["subtasks"] = [json.loads(child["spec"]) for child in db.execute(
+                        "SELECT spec FROM subtasks WHERE parent_id=? ORDER BY sequence", (row["id"],)
+                    )]
+                attempt = row["attempt"] + 1
+                run_id = str(uuid.uuid4())
+                timestamp = now()
+                db.execute(
+                    "UPDATE tasks SET status='preflight',attempt=?,last_run=?,last_error='',candidate_sha='',integrated_sha='',"
+                    "changed_files='[]',qc_evidence='',base_sha='',branch='',worktree='',updated_at=? WHERE id=?",
+                    (attempt, run_id, timestamp, row["id"]),
+                )
+                if row["project_id"]:
+                    db.execute("UPDATE subtasks SET status='waiting',evidence='',updated_at=? WHERE parent_id=?",
+                               (timestamp, row["id"]))
+                    db.execute(
+                        "UPDATE subtasks SET status='running',updated_at=? WHERE parent_id=? "
+                        "AND sequence=(SELECT MIN(sequence) FROM subtasks WHERE parent_id=?)",
+                        (timestamp, row["id"], row["id"]),
+                    )
+                db.execute(
+                    "INSERT INTO runs(id,task_id,attempt,role,status,started_at,model) VALUES (?,?,?,?,?,?,?)",
+                    (run_id, row["id"], attempt, "recovery", "preflight", timestamp, model),
+                )
+                db.execute(
+                    "UPDATE supervisor_lanes SET generation=?,run_id=?,candidate_sha='',updated_at=? "
+                    "WHERE lane_id=? AND case_id=? AND lease_token=?",
+                    (attempt, run_id, timestamp, lane_id, case_id, token),
+                )
+                db.execute("COMMIT")
+                return {"task": task, "run_id": run_id, "attempt": attempt,
+                        "role": "repairer", "prior_error": row["last_error"],
+                        "recovery_lane": lane_id, "recovery_case": case_id, "recovery_token": token}
+
+    def set_task(self, tid: str, status: str, *, error: str = "", fields: dict | None = None,
+                 run_id: str | None = None, attempt: int | None = None):
+        if status not in {"queued","waiting","blocked","approval_required","pending","running",
+                          "paused_quota","preflight","coding","verifying","awaiting_review",
+                          "approved","completed","failed","interrupted","conflict","stopped","archived"}:
             raise ValueError("unknown task state")
         params = {"status":status,"updated_at":now()}
         error_code = ""
         if error:
             error_code = error[:160]
             params["last_error"] = error_code
+        run_tool_count = None
         if fields:
+            fields = dict(fields)
+            if "tool_count" in fields:
+                run_tool_count = fields.pop("tool_count")
+                if not isinstance(run_tool_count, int) or run_tool_count < 0:
+                    raise ValueError("tool_count must be a non-negative integer")
             params.update(fields)
         columns=", ".join(f"{k}=?" for k in params)
         with self.db() as db:
+            db.execute("BEGIN IMMEDIATE")
+            current = db.execute("SELECT last_run,attempt FROM tasks WHERE id=?", (tid,)).fetchone()
+            if not current:
+                db.execute("ROLLBACK")
+                raise ValueError("unknown task")
+            if run_id is not None and (current["last_run"] != run_id or
+                                       (attempt is not None and current["attempt"] != attempt)):
+                db.execute("ROLLBACK")
+                raise ValueError("stale_worker_lease")
             db.execute(f"UPDATE tasks SET {columns} WHERE id=?",tuple(params.values())+(tid,))
-            terminal = int(status in {"awaiting_review","approved","completed","failed","interrupted","conflict","stopped"})
+            row = db.execute("SELECT * FROM tasks WHERE id=?", (tid,)).fetchone()
+            terminal = int(status in {"awaiting_review","approved","completed","failed","interrupted","conflict","stopped","archived"})
             db.execute("""UPDATE runs SET status=?,
                        error_code=CASE WHEN ? <> '' THEN ? ELSE error_code END,
+                       tool_count=COALESCE(?,tool_count),
                        finished_at=CASE WHEN ? THEN ? ELSE finished_at END
                        WHERE id=(SELECT last_run FROM tasks WHERE id=?)""",
-                       (status,error_code,error_code,terminal,now(),tid))
+                       (status,error_code,error_code,run_tool_count,terminal,now(),tid))
+            if row and row["project_id"]:
+                project_id = row["project_id"]
+                if status == "completed":
+                    child_count = db.execute(
+                        "SELECT count(*) FROM subtasks WHERE parent_id=?", (tid,)
+                    ).fetchone()[0]
+                    receipt_count = 0
+                    if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='subtask_receipts'").fetchone():
+                        receipt_count = db.execute(
+                            "SELECT count(*) FROM subtask_receipts WHERE parent_id=? AND candidate_sha=? "
+                            "AND verifier='independent_qc'",
+                            (tid, row["candidate_sha"]),
+                        ).fetchone()[0]
+                    incomplete = db.execute(
+                        "SELECT count(*) FROM subtasks WHERE parent_id=? "
+                        "AND status NOT IN ('completed','archived')", (tid,)
+                    ).fetchone()[0]
+                    if child_count and (incomplete or receipt_count != child_count):
+                        db.execute("ROLLBACK")
+                        raise ValueError("subtask_evidence_incomplete")
+                    for queue in ("pending_queue", "rebuild_queue", "review_queue", "merge_queue"):
+                        db.execute(f"DELETE FROM {queue} WHERE parent_id=?", (tid,))
+                    if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='batch_members'").fetchone():
+                        db.execute(
+                            "UPDATE batch_members SET state='completed',updated_at=? WHERE parent_id=?",
+                            (now(), tid),
+                        )
+                        db.execute(
+                            "UPDATE batch_epochs SET completed_count=(SELECT count(*) FROM batch_members "
+                            "WHERE batch_id=batch_epochs.batch_id AND state='completed'),updated_at=? "
+                            "WHERE batch_id IN (SELECT batch_id FROM batch_members WHERE parent_id=?)",
+                            (now(), tid),
+                        )
+                        db.execute(
+                            "UPDATE batch_epochs SET state='drained',updated_at=? "
+                            "WHERE admitted_count >= target_count AND completed_count >= target_count "
+                            "AND batch_id IN (SELECT batch_id FROM batch_members WHERE parent_id=?)",
+                            (now(), tid),
+                        )
+                    self._refresh_project_queues_db(db, project_id)
+                elif status == "failed":
+                    db.execute(
+                        "UPDATE subtasks SET status='failed',updated_at=? WHERE parent_id=? AND status='running'",
+                        (now(), tid),
+                    )
+                    for queue in ("review_queue", "merge_queue"):
+                        db.execute(f"DELETE FROM {queue} WHERE parent_id=?", (tid,))
+                    db.execute(
+                        "INSERT INTO rebuild_queue(parent_id,project_id,generation,reason,created_at) VALUES(?,?,?,?,?) "
+                        "ON CONFLICT(parent_id) DO UPDATE SET generation=excluded.generation,reason=excluded.reason,created_at=excluded.created_at",
+                        (tid, project_id, row["attempt"], error_code[:160], now()),
+                    )
+                elif status == "awaiting_review":
+                    db.execute(
+                        "INSERT INTO review_queue(parent_id,project_id,candidate_sha,created_at) VALUES(?,?,?,?) "
+                        "ON CONFLICT(parent_id) DO UPDATE SET candidate_sha=excluded.candidate_sha",
+                        (tid, project_id, row["candidate_sha"], now()),
+                    )
+                elif status == "approved":
+                    db.execute("DELETE FROM review_queue WHERE parent_id=?", (tid,))
+                    db.execute(
+                        "INSERT INTO merge_queue(parent_id,project_id,candidate_sha,created_at) VALUES(?,?,?,?) "
+                        "ON CONFLICT(parent_id) DO UPDATE SET candidate_sha=excluded.candidate_sha",
+                        (tid, project_id, row["candidate_sha"], now()),
+                    )
+                elif status in {"queued", "pending"}:
+                    self._refresh_project_queues_db(db, project_id)
+            db.execute("COMMIT")
 
     def failure_codes(self, tid: str) -> list[str]:
         """Return bounded failure codes in attempt order; never returns model text."""
@@ -288,6 +1070,311 @@ class State:
                 )
             return [str(row[0])[:160] for row in rows]
 
+    def subtask_contract_sha(self, tid: str) -> str:
+        """Hash the exact persisted child packet used for independent QC."""
+        with self.db() as db:
+            children = []
+            for child in db.execute(
+                "SELECT id,sequence,spec,payload_sha FROM subtasks WHERE parent_id=? ORDER BY sequence", (tid,)
+            ):
+                children.append({"id": child["id"], "sequence": child["sequence"],
+                                 "spec": json.loads(child["spec"]), "payload_sha": child["payload_sha"]})
+        if not children:
+            raise ValueError("task has no imported subtasks")
+        return payload_sha({"parent_id": tid, "children": children})
+
+    def _read_receipt_artifact(self, receipt: dict, *, kind: str, task_id: str,
+                               run_id: str, attempt: int, source_sha: str,
+                               payload: dict | None = None,
+                               candidate_sha: str | None = None) -> dict:
+        """Read a bounded receipt written by the controlled runtime.
+
+        The ledger never treats a caller-provided hash as execution evidence:
+        the referenced regular file must exist below this state's private
+        artifact directory, match its digest, carry the exact task lease
+        context, and contain the expected bounded payload.
+        """
+        path_value = receipt.get("artifact_path") or receipt.get("qc_artifact_path")
+        artifact_sha = receipt.get("artifact_sha") or receipt.get("qc_artifact_sha")
+        if (not isinstance(path_value, str)
+                or not re.fullmatch(r"[0-9a-f]{64}", str(artifact_sha))):
+            raise ValueError("receipt artifact reference missing")
+        raw = Path(path_value).expanduser()
+        private = (self.home / "private").resolve()
+        if raw.is_symlink() or not raw.is_file():
+            raise ValueError("receipt artifact unavailable")
+        resolved = raw.resolve(strict=True)
+        try:
+            resolved.relative_to(private)
+        except ValueError as exc:
+            raise ValueError("receipt artifact outside private state") from exc
+        if resolved.stat().st_size > 64_000:
+            raise ValueError("receipt artifact exceeds size limit")
+        raw_bytes = resolved.read_bytes()
+        if hashlib.sha256(raw_bytes).hexdigest() != artifact_sha:
+            raise ValueError("receipt artifact hash mismatch")
+        try:
+            artifact = json.loads(raw_bytes.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ValueError("receipt artifact is not bounded JSON") from exc
+        if not isinstance(artifact, dict) or artifact.get("kind") != kind:
+            raise ValueError("receipt artifact kind mismatch")
+        context = artifact.get("context")
+        if (not isinstance(context, dict) or context.get("task_id") != task_id
+                or context.get("run_id") != run_id or context.get("attempt") != attempt
+                or context.get("source_sha") != source_sha):
+            raise ValueError("receipt artifact lease mismatch")
+        if candidate_sha is not None and context.get("candidate_sha") != candidate_sha:
+            raise ValueError("receipt artifact candidate binding mismatch")
+        if payload is not None and artifact.get("payload") != payload:
+            raise ValueError("receipt artifact payload mismatch")
+        artifact["artifact_sha"] = artifact_sha
+        return artifact
+
+    def validate_execution_artifacts(self, tid: str, *, source_sha: str, candidate_sha: str,
+                                     changed_files: list[str], test_receipt: dict,
+                                     qc_receipt: dict, run_id: str, attempt: int) -> dict:
+        """Validate Docker and independent-QC artifacts for every accepted run."""
+        if not SHA.fullmatch(candidate_sha) or not SHA.fullmatch(source_sha):
+            raise ValueError("invalid execution artifact SHA")
+        if not isinstance(changed_files, list) or not 1 <= len(changed_files) <= 30:
+            raise ValueError("invalid execution artifact changed files")
+        if (not isinstance(test_receipt, dict) or test_receipt.get("passed") is not True
+                or test_receipt.get("exit_code") != 0
+                or test_receipt.get("tests_detected") is not True
+                or test_receipt.get("sandbox") != "docker_no_network"
+                or not re.fullmatch(r"[0-9a-f]{64}", str(test_receipt.get("receipt_sha", "")))):
+            raise ValueError("test receipt did not pass")
+        test_payload = dict(test_receipt)
+        provided_test_sha = test_payload.pop("receipt_sha")
+        expected_test_sha = hashlib.sha256(
+            json.dumps({key: value for key, value in test_payload.items()
+                        if key not in {"artifact_path", "artifact_sha"}},
+                       sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+        if provided_test_sha != expected_test_sha:
+            raise ValueError("test receipt provenance mismatch")
+        test_artifact = self._read_receipt_artifact(
+            test_receipt, kind="docker_test_receipt", task_id=tid,
+            run_id=run_id, attempt=attempt, source_sha=source_sha,
+            payload={key: value for key, value in test_payload.items()
+                     if key not in {"artifact_path", "artifact_sha"}},
+            candidate_sha=candidate_sha,
+        )
+        expected_files_sha = hashlib.sha256(
+            json.dumps(changed_files, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+        if test_artifact["context"].get("changed_files_sha") != expected_files_sha:
+            raise ValueError("test artifact changed-file binding mismatch")
+        if (not isinstance(qc_receipt, dict) or qc_receipt.get("verdict") != "PASS"
+                or qc_receipt.get("reviewer") != "independent_qc"
+                or qc_receipt.get("candidate_sha") != candidate_sha
+                or not re.fullmatch(r"[0-9a-f]{64}", str(qc_receipt.get("qc_output_sha", "")))):
+            raise ValueError("QC receipt did not pass")
+        qc_artifact = self._read_receipt_artifact(
+            qc_receipt, kind="independent_qc_receipt", task_id=tid,
+            run_id=run_id, attempt=attempt, source_sha=source_sha,
+            candidate_sha=candidate_sha,
+        )
+        qc_result = qc_artifact.get("payload")
+        if (not isinstance(qc_result, dict)
+                or qc_result.get("verdict") != qc_receipt.get("verdict")
+                or qc_result.get("findings") != qc_receipt.get("findings")
+                or qc_artifact.get("source_output_sha") != qc_receipt.get("qc_output_sha")
+                or qc_artifact["context"].get("changed_files_sha") != expected_files_sha):
+            raise ValueError("QC artifact provenance mismatch")
+        return {"test_artifact_sha": test_artifact["artifact_sha"],
+                "qc_artifact_sha": qc_artifact["artifact_sha"]}
+
+    def subtask_evidence_ready(self, tid: str, candidate_sha: str) -> bool:
+        """Return whether one candidate has a receipt for every required child."""
+        with self.db() as db:
+            has_receipts = db.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='subtask_receipts'"
+            ).fetchone()
+            row = db.execute(
+                "SELECT count(*) AS children, "
+                "sum(CASE WHEN status IN ('completed','archived') THEN 1 ELSE 0 END) AS complete, "
+                "? AS receipts "
+                "FROM subtasks WHERE parent_id=?",
+                (0, tid),
+            ).fetchone()
+            if has_receipts:
+                row = dict(row)
+                row["receipts"] = db.execute(
+                    "SELECT count(*) FROM subtask_receipts r WHERE r.parent_id=? "
+                    "AND r.candidate_sha=? AND r.verifier='independent_qc'",
+                    (tid, candidate_sha),
+                ).fetchone()[0]
+            return (not row["children"] or
+                    (row["children"] == row["complete"] == row["receipts"]))
+
+    def record_subtask_evidence(
+        self,
+        tid: str,
+        *,
+        candidate_sha: str,
+        source_sha: str,
+        changed_files: list[str],
+        test_receipt: dict,
+        qc_receipt: dict,
+        child_evidence: list[dict],
+        locked: bool = False,
+        run_id: str | None = None,
+        attempt: int | None = None,
+    ) -> dict:
+        """Record one bounded receipt per child after independent QC.
+
+        Model prose is untrusted input and is reduced to a hash. The live
+        ledger retains bounded receipt metadata only; parent completion requires
+        these exact candidate-bound receipts.
+        """
+        if not SHA.fullmatch(candidate_sha) or not SHA.fullmatch(source_sha):
+            raise ValueError("invalid receipt SHA")
+        if not run_id or attempt is None or attempt < 1:
+            raise ValueError("receipt run binding required")
+        if not isinstance(changed_files, list) or not 1 <= len(changed_files) <= 30:
+            raise ValueError("invalid receipt changed files")
+        if any(not isinstance(path, str) or not path or len(path) > 250 for path in changed_files):
+            raise ValueError("invalid receipt path")
+        if (not isinstance(test_receipt, dict) or test_receipt.get("passed") is not True
+                or test_receipt.get("exit_code") != 0
+                or test_receipt.get("tests_detected") is not True
+                or test_receipt.get("sandbox") != "docker_no_network"
+                or not re.fullmatch(r"[0-9a-f]{64}", str(test_receipt.get("receipt_sha", "")))):
+            raise ValueError("test receipt did not pass")
+        test_payload = dict(test_receipt)
+        provided_test_sha = test_payload.pop("receipt_sha", "")
+        expected_test_sha = hashlib.sha256(
+            json.dumps({key: value for key, value in test_payload.items()
+                        if key not in {"artifact_path", "artifact_sha"}},
+                       sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+        if provided_test_sha != expected_test_sha:
+            raise ValueError("test receipt provenance mismatch")
+        test_artifact = self._read_receipt_artifact(
+            test_receipt, kind="docker_test_receipt", task_id=tid,
+            run_id=run_id, attempt=attempt, source_sha=source_sha,
+            payload={key: value for key, value in test_payload.items()
+                     if key not in {"artifact_path", "artifact_sha"}},
+            candidate_sha=candidate_sha,
+        )
+        if (not isinstance(qc_receipt, dict) or qc_receipt.get("verdict") != "PASS"
+                or qc_receipt.get("reviewer") != "independent_qc"
+                or qc_receipt.get("candidate_sha") != candidate_sha
+                or not re.fullmatch(r"[0-9a-f]{64}", str(qc_receipt.get("qc_output_sha", "")))):
+            raise ValueError("QC receipt did not pass")
+        if not isinstance(child_evidence, list) or len(child_evidence) > 2000:
+            raise ValueError("invalid child evidence")
+
+        test_ref = hashlib.sha256(
+            json.dumps(test_receipt, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+        by_id: dict[str, dict] = {}
+        for item in child_evidence:
+            if not isinstance(item, dict) or set(item) != {"subtask_id", "status", "evidence"}:
+                raise ValueError("invalid child evidence item")
+            cid = item["subtask_id"]
+            if not isinstance(cid, str) or not re.fullmatch(r"[A-Za-z0-9_.-]{1,160}", cid):
+                raise ValueError("invalid child evidence ID")
+            if item["status"] != "PASS" or not isinstance(item["evidence"], str) or not 1 <= len(item["evidence"]) <= 240:
+                raise ValueError("child evidence is not accepted")
+            if cid in by_id:
+                raise ValueError("duplicate child evidence")
+            by_id[cid] = item
+
+        lock_context = self.master_lock() if not locked else contextlib.nullcontext()
+        with lock_context:
+            with self.db() as db:
+                db.execute("BEGIN IMMEDIATE")
+                task = db.execute(
+                    "SELECT project_id,attempt,last_run,status,base_sha,candidate_sha FROM tasks WHERE id=?", (tid,)
+                ).fetchone()
+                if not task or not task["project_id"]:
+                    db.execute("ROLLBACK")
+                    raise ValueError("task has no imported subtasks")
+                if run_id is not None and (task["last_run"] != run_id or
+                                           (attempt is not None and task["attempt"] != attempt)):
+                    db.execute("ROLLBACK")
+                    raise ValueError("stale_worker_lease")
+                if not task["base_sha"] or source_sha != task["base_sha"]:
+                    db.execute("ROLLBACK")
+                    raise ValueError("receipt source checkpoint mismatch")
+                if task["candidate_sha"] != candidate_sha:
+                    db.execute("ROLLBACK")
+                    raise ValueError("receipt candidate checkpoint mismatch")
+                children = db.execute(
+                    "SELECT id FROM subtasks WHERE parent_id=? ORDER BY sequence", (tid,)
+                ).fetchall()
+                ids = [row[0] for row in children]
+                if set(ids) != set(by_id) or len(ids) != len(by_id):
+                    db.execute("ROLLBACK")
+                    raise ValueError("child evidence does not cover every child")
+                contract_payload = []
+                for child in db.execute(
+                    "SELECT id,sequence,spec,payload_sha FROM subtasks WHERE parent_id=? ORDER BY sequence", (tid,)
+                ):
+                    contract_payload.append({"id": child["id"], "sequence": child["sequence"],
+                                             "spec": json.loads(child["spec"]), "payload_sha": child["payload_sha"]})
+                contract_sha = payload_sha({"parent_id": tid, "children": contract_payload})
+                expected_child_sha = hashlib.sha256(
+                    json.dumps(child_evidence, sort_keys=True, separators=(",", ":")).encode()
+                ).hexdigest()
+                expected_files_sha = hashlib.sha256(
+                    json.dumps(changed_files, sort_keys=True, separators=(",", ":")).encode()
+                ).hexdigest()
+                if test_artifact["context"].get("changed_files_sha") != expected_files_sha:
+                    db.execute("ROLLBACK")
+                    raise ValueError("test artifact changed-file binding mismatch")
+                if (qc_receipt.get("contract_sha") != contract_sha
+                        or qc_receipt.get("child_evidence_sha") != expected_child_sha
+                        or qc_receipt.get("changed_files_sha") != expected_files_sha):
+                    db.execute("ROLLBACK")
+                    raise ValueError("QC receipt provenance mismatch")
+                qc_artifact = self._read_receipt_artifact(
+                    qc_receipt, kind="independent_qc_receipt", task_id=tid,
+                    run_id=run_id, attempt=attempt, source_sha=source_sha,
+                    candidate_sha=candidate_sha,
+                )
+                qc_result = qc_artifact["payload"]
+                if (qc_result.get("verdict") != qc_receipt.get("verdict")
+                        or qc_result.get("findings") != qc_receipt.get("findings")
+                        or qc_artifact.get("source_output_sha") != qc_receipt.get("qc_output_sha")
+                        or qc_artifact["context"].get("contract_sha") != contract_sha
+                        or qc_artifact["context"].get("changed_files_sha") != expected_files_sha):
+                    db.execute("ROLLBACK")
+                    raise ValueError("QC artifact provenance mismatch")
+                qc_ref = hashlib.sha256(
+                    json.dumps(qc_receipt, sort_keys=True, separators=(",", ":")).encode()
+                ).hexdigest()
+                timestamp = now()
+                for cid in ids:
+                    item = by_id[cid]
+                    evidence_sha = hashlib.sha256(
+                        json.dumps(item, sort_keys=True, separators=(",", ":")).encode()
+                    ).hexdigest()
+                    receipt_id = str(uuid.uuid4())
+                    db.execute(
+                        "INSERT INTO subtask_receipts(receipt_id,subtask_id,parent_id,generation,source_sha,candidate_sha,"
+                        "changed_files,test_ref,test_artifact_sha,qc_receipt,qc_artifact_sha,evidence_sha,contract_sha,verifier,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) "
+                        "ON CONFLICT(subtask_id,candidate_sha) DO UPDATE SET receipt_id=excluded.receipt_id,"
+                        "generation=excluded.generation,source_sha=excluded.source_sha,changed_files=excluded.changed_files,"
+                        "test_ref=excluded.test_ref,test_artifact_sha=excluded.test_artifact_sha,qc_receipt=excluded.qc_receipt,"
+                        "qc_artifact_sha=excluded.qc_artifact_sha,evidence_sha=excluded.evidence_sha,"
+                        "verifier=excluded.verifier,created_at=excluded.created_at",
+                        (receipt_id, cid, tid, task["attempt"], source_sha, candidate_sha,
+                        json.dumps(changed_files, separators=(",", ":")), test_ref, test_artifact["artifact_sha"], qc_ref,
+                         qc_artifact["artifact_sha"], evidence_sha, contract_sha, "independent_qc", timestamp),
+                    )
+                    db.execute(
+                        "UPDATE subtasks SET status='completed',evidence=?,updated_at=? WHERE id=?",
+                        (json.dumps({"receipt_id": receipt_id, "candidate_sha": candidate_sha,
+                                     "test_ref": test_ref, "qc_receipt": qc_ref}, separators=(",", ":")),
+                         timestamp, cid),
+                    )
+                db.execute("COMMIT")
+        return {"parent_id": tid, "candidate_sha": candidate_sha, "children": len(ids), "test_ref": test_ref}
+
     def emit(self, tid: str, run_id: str, *, stage: str, step: str, branch: str, base_sha: str,
              tools: int = 0, attempt: int = 1, elapsed: int = 0, result: str = ""):
         if stage not in STAGE or not SAFE.fullmatch(step) or not branch.startswith(("feature/", "feat/")) or not SHA.fullmatch(base_sha):
@@ -296,6 +1383,12 @@ class State:
             try:
                 with self.db() as db:
                     db.execute("BEGIN IMMEDIATE")
+                    lease = db.execute(
+                        "SELECT last_run,attempt FROM tasks WHERE id=?", (tid,)
+                    ).fetchone()
+                    if not lease or lease["last_run"] != run_id or lease["attempt"] != attempt:
+                        db.execute("ROLLBACK")
+                        raise ValueError("stale_worker_lease")
                     seq = db.execute("SELECT COALESCE(MAX(seq),0)+1 FROM events WHERE run_id=?",(run_id,)).fetchone()[0]
                     values = (str(uuid.uuid4()),run_id,tid,seq,now(),stage,step,branch[:100],base_sha,max(0,tools),result[:100],max(0,int(elapsed)),attempt)
                     db.execute("INSERT INTO events(event_id,run_id,task_id,seq,time,stage,step,branch,base_sha,tool_count,result,elapsed_s,attempt) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",values)
@@ -334,18 +1427,38 @@ class State:
     def recover(self) -> list[str]:
         with self.master_lock():
             with self.db() as db:
-                rows=db.execute("SELECT id FROM tasks WHERE status IN ('preflight','coding','verifying')").fetchall()
+                rows=db.execute("SELECT id,last_run FROM tasks WHERE status IN ('preflight','coding','verifying')").fetchall()
                 for r in rows:
-                    db.execute("UPDATE tasks SET status='interrupted',last_error='master_restart_review_required',updated_at=? WHERE id=?",(now(),r["id"]))
-                    db.execute("UPDATE runs SET status='interrupted',finished_at=? WHERE id=(SELECT last_run FROM tasks WHERE id=?)",(now(),r["id"]))
+                    db.execute("UPDATE runs SET status='interrupted',finished_at=? WHERE id=?",(now(),r["last_run"]))
+                    db.execute("UPDATE tasks SET status='interrupted',last_run='',last_error='master_restart_review_required',updated_at=? WHERE id=?",(now(),r["id"]))
                 return [r["id"] for r in rows]
 
     def retry(self, tid: str):
         with self.db() as db:
-            row=db.execute("SELECT status,attempt FROM tasks WHERE id=?",(tid,)).fetchone()
+            db.execute("BEGIN IMMEDIATE")
+            row=db.execute("SELECT status,attempt,project_id,owner_gate FROM tasks WHERE id=?",(tid,)).fetchone()
             if not row or row["status"] not in {"failed","interrupted","conflict","stopped"} or row["attempt"]>=MAX_FAILURES:
+                db.execute("ROLLBACK")
                 raise ValueError("only failed/interrupted/conflict/stopped tasks below retry ceiling can retry")
-            db.execute("UPDATE tasks SET status='queued',available_at=0,updated_at=? WHERE id=?",(now(),tid))
+            if db.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='supervisor_lanes'"
+            ).fetchone() and db.execute(
+                "SELECT 1 FROM supervisor_lanes WHERE task_id=? AND state<>'idle'", (tid,)
+            ).fetchone():
+                db.execute("ROLLBACK")
+                raise ValueError("task has active recovery lease")
+            status = "pending" if row["project_id"] and not row["owner_gate"] else "queued"
+            db.execute("UPDATE tasks SET status=?,available_at=0,last_run='',integrated_sha='',updated_at=? WHERE id=?",(status,now(),tid))
+            if row["project_id"]:
+                for queue in ("review_queue", "merge_queue"):
+                    db.execute(f"DELETE FROM {queue} WHERE parent_id=?", (tid,))
+                db.execute(
+                    "INSERT INTO pending_queue(parent_id,project_id,enqueue_seq,available_at,created_at) "
+                    "SELECT id,project_id,enqueue_seq,0,? FROM tasks WHERE id=? "
+                    "ON CONFLICT(parent_id) DO UPDATE SET available_at=excluded.available_at",
+                    (now(), tid),
+                )
+            db.execute("COMMIT")
 
     def reopen_failed(self, task_ids: list[str]) -> list[str]:
         """Start an explicit new bounded repair generation without erasing history."""
@@ -357,33 +1470,71 @@ class State:
                 reopened = []
                 epoch = now()
                 for tid in task_ids:
-                    row = db.execute("SELECT status FROM tasks WHERE id=?", (tid,)).fetchone()
+                    row = db.execute("SELECT status,project_id,owner_gate FROM tasks WHERE id=?", (tid,)).fetchone()
                     if not row or row["status"] != "failed":
                         raise ValueError("only failed tasks can start a new repair generation")
+                    if row["project_id"] and db.execute(
+                        "SELECT 1 FROM supervisor_lanes WHERE task_id=? AND state<>'idle'", (tid,)
+                    ).fetchone():
+                        raise ValueError("task has active recovery lease")
+                    status = "approval_required" if row["owner_gate"] else ("pending" if row["project_id"] else "queued")
                     db.execute(
-                        "UPDATE tasks SET status='queued',attempt=0,available_at=0,last_error='',"
-                        "candidate_sha='',changed_files='[]',qc_evidence='',base_sha='',branch='',worktree='',updated_at=? "
-                        "WHERE id=?", (epoch, tid)
+                        "UPDATE tasks SET status=?,attempt=0,available_at=0,last_run='',last_error='',"
+                        "candidate_sha='',integrated_sha='',changed_files='[]',qc_evidence='',base_sha='',branch='',worktree='',updated_at=? "
+                        "WHERE id=?", (status, epoch, tid)
                     )
                     db.execute(
                         "INSERT INTO settings(key,value) VALUES(?,?) "
                         "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
                         (f"retry_epoch:{tid}", epoch),
                     )
+                    if row["project_id"] and not row["owner_gate"]:
+                        db.execute(
+                            "UPDATE subtasks SET status='waiting',evidence='',updated_at=? WHERE parent_id=?",
+                            (epoch, tid),
+                        )
+                        db.execute(
+                            "INSERT INTO pending_queue(parent_id,project_id,enqueue_seq,available_at,created_at) "
+                            "SELECT id,project_id,enqueue_seq,0,? FROM tasks WHERE id=? "
+                            "ON CONFLICT(parent_id) DO UPDATE SET available_at=excluded.available_at",
+                            (epoch, tid),
+                        )
                     reopened.append(tid)
                 db.execute("COMMIT")
                 return reopened
 
-    def approve(self, tid: str):
+    def approve(self, tid: str, *, run_id: str | None = None, attempt: int | None = None):
         with self.db() as db:
-            row=db.execute("SELECT status,qc_evidence FROM tasks WHERE id=?",(tid,)).fetchone()
+            db.execute("BEGIN IMMEDIATE")
+            row=db.execute(
+                "SELECT status,qc_evidence,project_id,candidate_sha,last_run,attempt FROM tasks WHERE id=?", (tid,)
+            ).fetchone()
             if not row or row["status"]!="awaiting_review" or not row["qc_evidence"]:
+                db.execute("ROLLBACK")
                 raise ValueError("task must pass independent QC before approval")
+            if run_id is not None and (row["last_run"] != run_id or
+                                       (attempt is not None and row["attempt"] != attempt)):
+                db.execute("ROLLBACK")
+                raise ValueError("stale_worker_lease")
             db.execute("UPDATE tasks SET status='approved',updated_at=? WHERE id=?",(now(),tid))
+            if row["project_id"]:
+                db.execute("DELETE FROM review_queue WHERE parent_id=?", (tid,))
+                db.execute(
+                    "INSERT INTO merge_queue(parent_id,project_id,candidate_sha,created_at) VALUES(?,?,?,?) "
+                    "ON CONFLICT(parent_id) DO UPDATE SET candidate_sha=excluded.candidate_sha",
+                    (tid, row["project_id"], row["candidate_sha"], now()),
+                )
+            db.execute("COMMIT")
 
     def overview(self) -> dict:
         with self.db() as db:
             counts={r[0]:r[1] for r in db.execute("SELECT status,count(*) FROM tasks GROUP BY status")}
             pending=db.execute("SELECT count(*) FROM events WHERE synced=0").fetchone()[0]
-        return {"version":VERSION,"state_version":self.get("version"),"approved_architecture":bool(self.get("approved_architecture_sha")),"workers_max":MAX_WORKERS,"integration_sha":self.get("integration_sha"),"tasks":counts,"monitor_pending":pending,
+        answer={"version":VERSION,"state_version":self.get("version"),"approved_architecture":bool(self.get("approved_architecture_sha")),"workers_max":MAX_WORKERS,"integration_sha":self.get("integration_sha"),"tasks":counts,"monitor_pending":pending,
                 "stop":(self.home/"STOP").exists(),"pause":(self.home/"PAUSE").exists(),"quota_pause":(self.home/"PAUSED_QUOTA").exists()}
+        if self.database.exists():
+            try:
+                answer["full_plan"] = self.full_plan_status()
+            except (sqlite3.OperationalError, ValueError):
+                answer["full_plan"] = {"imported": False, "schema_ready": False}
+        return answer

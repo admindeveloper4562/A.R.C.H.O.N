@@ -2,7 +2,8 @@
 
 No runner imports, no subprocesses, no daemon, no database initialization.
 Every SQLite connection uses mode=ro and PRAGMA query_only=ON. Compatible with
-Astra One Linux v0.2.0's sda.sqlite3 and the JARVIS v2 foundation Core queue.
+Astra One Linux v0.2/v0.3 sda.sqlite3 databases and the JARVIS v2 foundation
+Core queue.
 """
 from __future__ import annotations
 
@@ -18,7 +19,10 @@ import sys
 import time
 from typing import Any
 
-ASTRA_DEFAULT = Path.home() / '.local' / 'state' / 'astra-one-linux' / 'sda.sqlite3'
+from .monitor_supervision import collect as collect_supervision, render_lines as render_supervision, safe_failure_code
+
+ASTRA_DEFAULT = Path.home() / '.local' / 'state' / 'archon-astra' / 'sda.sqlite3'
+ASTRA_LEGACY = Path.home() / '.local' / 'state' / 'astra-one-linux' / 'sda.sqlite3'
 ATLAS_DEFAULT = Path.home() / '.local' / 'state' / 'archon' / 'atlas.sqlite3'
 ACTIVE = {'preflight', 'coding', 'verifying', 'leased', 'running'}
 WAITING_REVIEW = {'awaiting_review'}
@@ -126,7 +130,7 @@ def _fetch_astra(db: sqlite3.Connection, limit: int, event_limit: int, show_obje
         task['objective'] = _safe(spec.get('objective', ''), 150) if show_objectives else '(hidden)'
         task['area'] = _safe(spec.get('area', ''), 24)
         task['branch'] = _safe(task.get('branch', ''), 75)
-        task['last_error'] = _safe(task.get('last_error', ''), 85)
+        task['last_error'] = safe_failure_code(task.get('last_error', ''), 85)
         current_events = [e for e in by_run.get(task.get('last_run') or '', [])
                           if e['task_id'] == task['id']]
         slot = None
@@ -153,8 +157,11 @@ def _fetch_astra(db: sqlite3.Connection, limit: int, event_limit: int, show_obje
         t['tools'] = r.get('tool_count', 0)
         t['elapsed'] = _age(r.get('started_at'))
     sha = settings.get('architecture_sha', '')
+    version = _safe(settings.get('version', '0.2.0'), 20)
+    if not version.startswith('v'):
+        version = 'v' + version
     return {
-        'engine': 'astra', 'schema': 'Astra One Linux v0.2',
+        'engine': 'astra', 'schema': f'Astra One Linux {version}',
         'architecture_approved': bool(sha and settings.get('approved_architecture_sha') == sha),
         'source_sha': settings.get('source_sha', ''),
         'integration_sha': settings.get('integration_sha', ''),
@@ -163,8 +170,10 @@ def _fetch_astra(db: sqlite3.Connection, limit: int, event_limit: int, show_obje
         'active': active[:limit], 'queued': queued[:limit],
         'review': review[:limit], 'merging': merging[:limit],
         'blocked': blocked[:limit],
-        'events': [{k: _safe(e.get(k,''), 90) for k in ('task_id','time','stage','step','result')} for e in events[:event_limit]],
-        'recent_runs': [{k: _safe(r.get(k,''), 70) for k in ('task_id','role','status','model','started_at','finished_at','error_code')} for r in runs[:limit]],
+        'events': [{k: (safe_failure_code(e.get(k,''), 70) if k == 'result' else _safe(e.get(k,''), 90))
+                    for k in ('task_id','time','stage','step','result')} for e in events[:event_limit]],
+        'recent_runs': [{k: (safe_failure_code(r.get(k,''), 70) if k == 'error_code' else _safe(r.get(k,''), 70)) for k in ('task_id','role','status','model','started_at','finished_at','error_code')} for r in runs[:limit]],
+        'supervision': collect_supervision(db, limit),
     }
 
 
@@ -196,7 +205,7 @@ def _fetch_atlas(db: sqlite3.Connection, limit: int, event_limit: int, show_obje
 
 
 def snapshot(db_path: Path, *, source: str = 'auto', limit: int = 10,
-             event_limit: int = 8, show_objectives: bool = True) -> dict:
+             event_limit: int = 8, show_objectives: bool = False) -> dict:
     """Snapshot one transactionally consistent read-only view. Never creates DB."""
     if not (1 <= limit <= 100 and 0 <= event_limit <= 100):
         raise ValueError('invalid display limit')
@@ -208,7 +217,8 @@ def snapshot(db_path: Path, *, source: str = 'auto', limit: int = 10,
         data = (_fetch_astra if detected == 'astra' else _fetch_atlas)(db, limit, event_limit, show_objectives)
         db.execute('ROLLBACK')
     home = Path(db_path).expanduser().absolute().parent
-    data['controls'] = [s for s in ('STOP', 'PAUSE', 'PAUSED_QUOTA') if (home / s).is_file()]
+    data['controls'] = [s for s in ('STOP', 'PAUSE', 'PAUSED_QUOTA', 'PAUSE_NORMAL', 'PAUSE_RECOVERY')
+                        if (home / s).is_file()]
     data['db'] = str(Path(db_path).expanduser().absolute())
     data['updated_at'] = datetime.now().astimezone().strftime('%Y-%m-%d %H:%M:%S %Z')
     return data
@@ -254,6 +264,7 @@ def render(data: dict, *, ansi: bool = False, title: str = 'ATLAS Monitor') -> s
            _line('Integration', _safe(data.get('integration_branch') or '—', 72)),
            _line('Commit', _safe(data.get('integration_sha', '')[:12] or '—', 30))]
     if data['engine'] == 'astra':
+        out.extend(render_supervision(data.get('supervision', {})))
         out.extend(['', 'FIVE-WORKER SNAPSHOT (recorded slots; not a process-liveness check)'])
         by_slot = {str(x.get('slot')): x for x in data['active'] if x.get('slot')}
         for n in range(1,6):
@@ -301,11 +312,13 @@ def _choose_db(source: str, given: Path | None) -> Path:
     if given is not None:
         return given
     if source == 'astra':
-        return ASTRA_DEFAULT
+        return ASTRA_DEFAULT if ASTRA_DEFAULT.exists() else ASTRA_LEGACY
     if source == 'atlas':
         return ATLAS_DEFAULT
     if ASTRA_DEFAULT.exists():
         return ASTRA_DEFAULT
+    if ASTRA_LEGACY.exists():
+        return ASTRA_LEGACY
     return ATLAS_DEFAULT
 
 
@@ -318,6 +331,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--limit', type=int, default=10, help='Max tasks per section (1..100)')
     parser.add_argument('--events', type=int, default=8, help='Recent events (0..100)')
     parser.add_argument('--json', action='store_true', help='Print one JSON snapshot and exit')
+    parser.add_argument('--show-objectives', action='store_true', help='Explicitly show bounded task summaries')
     parser.add_argument('--no-objectives', action='store_true', help='Hide private task descriptions')
     parser.add_argument('--no-color', action='store_true', help='Disable ANSI headings')
     args = parser.parse_args(argv)
@@ -329,7 +343,7 @@ def main(argv: list[str] | None = None) -> int:
     while True:
         try:
             data = snapshot(path, source=args.source, limit=args.limit, event_limit=args.events,
-                            show_objectives=not args.no_objectives)
+                            show_objectives=args.show_objectives and not args.no_objectives)
             if args.json:
                 print(json.dumps(data, indent=2, ensure_ascii=False))
             else:

@@ -7,6 +7,7 @@ REMOTE="https://github.com/${REPO}.git"
 ASTRA="$ROOT/bootstrap/astra-one"
 SRC="$HOME/Projects/ARCHON-astra-source"
 STATE="$HOME/.local/state/archon-astra"
+TEST_IMAGE="${ARCHON_ASTRA_TEST_IMAGE:-archon-python:3.12-git-20261114}"
 for bin in git gh python3 codex docker systemctl; do
   command -v "$bin" >/dev/null || { echo "Missing dependency: $bin" >&2; exit 2; }
 done
@@ -86,7 +87,7 @@ codex exec --ephemeral --sandbox read-only -C "$SRC" \
   -m gpt-5.6-luna -c model_reasoning_effort=medium \
   'Reply with exactly ARCHON_READY'
 docker info >/dev/null
-docker image inspect python:3.12-slim >/dev/null || docker pull python:3.12-slim
+docker image inspect "$TEST_IMAGE" >/dev/null || { echo "Missing Docker test image: $TEST_IMAGE" >&2; exit 2; }
 # No system-wide service. Timer runs under the current authenticated user.
 UNIT="$HOME/.config/systemd/user"
 mkdir -p "$UNIT"
@@ -100,6 +101,7 @@ Type=oneshot
 WorkingDirectory=$ASTRA
 Environment=PATH=$PATH
 Environment=ARCHON_ASTRA_HOME=$STATE
+Environment=ARCHON_ASTRA_TEST_IMAGE=$TEST_IMAGE
 ExecStart=/usr/bin/env bash $ROOT/tools/astra_batch_cycle.sh
 TimeoutStartSec=0
 KillMode=control-group

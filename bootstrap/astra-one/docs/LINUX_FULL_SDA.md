@@ -1,10 +1,20 @@
-# Astra One Linux — Full SDA orchestration (v0.2.1)
+# Astra One Linux — Full SDA orchestration (v0.3.0)
 
 ## Scope and status
 
 This Linux edition uses **normal authenticated OpenAI Codex**, NOT Ollama, with the requested default **`gpt-5.6-luna` at `medium` reasoning** and **five concurrent coding-worker slots**. It is a standalone lab orchestrator, not the released JARVIS v2 runtime. Every Codex role is a separate CLI invocation and is constrained to an isolated Git worktree where applicable. The AI model must be accessible to the account signed in with `codex login`; the launcher does not silently switch to another model or an API key.
 
 **Implementation:** local SQLite task DAG, Supervisor planning, a five-slot parallel Master, fresh worker worktrees and retries, separate read-only QC Codex invocations, tests in a Docker container with network disabled, separate read-only Merger Codex review, Git apply/check + serialized local integration, owner STOP/PAUSE/PAUSED_QUOTA, crash recovery, no remote Git push, and optional metadata-only Cloudflare progress events.
+
+v0.3 adds additive schema-3 Supervisor telemetry and control records. Failed
+implementation/QC/integration cases are classified without storing model text;
+`repair_1` and `repair_2` are durable recovery leases and `upgrade_auditor` is
+an audit lane. Parent completion requires a candidate-bound receipt for every
+child subtask; a parent status update alone cannot complete its children. Batch
+cohorts and upgrade checkpoints are recorded by the deterministic controller,
+while the separate `tools/astra_watchdog.py` can validate a checkpoint or record
+a staged-upgrade rollback. None of these records approve code, merge Git, clear
+owner controls, or switch protected releases.
 
 **Verification so far:** unit tests, deterministic failure/recovery tests, and an end-to-end **mock Codex** pipeline on Linux. Actual CLI account entitlements, cloud quota, the Docker daemon, the JARVIS repository's full tests, failure handling under real network loss, and long-run scheduling must be verified on the target Linux host before unattended use. It is not a production-ready self-updater and does not autonomously restart host services.
 
@@ -68,9 +78,13 @@ cd "$HOME/Projects/astra-one-linux/Astra-One"
 python3 -m astra_one.linux_cli doctor --source "$HOME/Projects/astra-jarvis-source"
 python3 -m astra_one.linux_cli init --source "$HOME/Projects/astra-jarvis-source"
 python3 -m astra_one.linux_cli status
+
+# Inspect v3 recovery/upgrade state (read-only status)
+python3 -m astra_one.linux_cli supervisor-status
+python3 -m astra_one.linux_cli supervisor-tick --limit 50
 ```
 
-Use a fresh path if the clone already exists; don't clean/reset the existing checkout. The new Linux DB lives at `~/.local/state/astra-one-linux/sda.sqlite3` (mode 0600), outside Git, with private architecture and review artifacts. The primary Git checkout remains unchanged. Astra creates a *separate local integration worktree* only when the Master starts. The legacy `~/.local/state/jarvis/workhorse-v2` Master is not launched or altered. Ensure that you have not already started another Workhorse targeting the same underlying Git repository and shared state.
+Use a fresh path if the clone already exists; don't clean/reset the existing checkout. The canonical Linux DB lives at `~/.local/state/archon-astra/sda.sqlite3` (mode 0600), outside Git, with private architecture, receipt and review artifacts. The primary Git checkout remains unchanged. Astra creates a *separate local integration worktree* only when the Master starts. The legacy `~/.local/state/jarvis/workhorse-v2` Master is not launched or altered. Ensure that you have not already started another Workhorse targeting the same underlying Git repository and shared state.
 
 ## 4. Final architecture and owner approval
 

@@ -3,13 +3,14 @@ import os
 from pathlib import Path
 import sqlite3
 import subprocess
+import sys
 import tempfile
 import threading
 import time
 import unittest
 from unittest.mock import patch
 
-from astra_one.linux_sda import State, task_spec, git, assert_source
+from astra_one.linux_sda import State, assert_source, control_blocked, git, task_spec, validate_task_type
 from astra_one.linux_runtime import (
     ChangeValidationError,
     DockerTestError,
@@ -17,14 +18,22 @@ from astra_one.linux_runtime import (
     check_changes,
     codex_call,
     codex_command,
+    docker_test,
+    _complete_test_receipt,
     integrate,
+    merger_review_result,
+    _bounded_patch_preview,
+    _check_commit_whitespace,
     ensure_integration,
+    independent_qc,
+    independent_qc_report,
     make_prompt,
     review_failure_code,
     review_finding_codes,
     worker_failure_code,
 )
-from astra_one.linux_cli import run_master
+from astra_one.linux_cli import _upgrade_audit_brief, run_concurrent, run_master
+from astra_one.supervisor import SupervisorController
 
 
 def git_repo(root):
@@ -40,6 +49,26 @@ def git_repo(root):
 
 def task(i, deps=None):
     return {"task_id":f"ASTRA-{i:03}","objective":"Build a tiny independent implementation slice", "acceptance":["Must have working tests"],"depends_on":deps or [],"area":"foundation"}
+
+
+def audit_task(i=1):
+    return {
+        "task_id": f"BASE-{i:03}",
+        "objective": "Capture bounded repository and host metadata",
+        "acceptance": ["The report distinguishes facts from unknowns"],
+        "area": "base",
+        "execution_mode": "audit",
+        "subtasks": [{
+            "id": f"BASE-{i:03}.S01",
+            "kind": "record",
+            "sequence": 1,
+            "depends_on": [],
+            "instruction": "Write the bounded report.",
+            "deliverable": "Versioned report",
+            "done_when": "Facts and unknowns are explicit",
+            "evidence_required": True,
+        }],
+    }
 
 class LinuxSDATests(unittest.TestCase):
     def setUp(self):
@@ -86,6 +115,74 @@ class LinuxSDATests(unittest.TestCase):
         self.assertIn("exact approved source identity", prompt)
         self.assertNotIn("private payload may be exposed", prompt)
 
+    def test_repair_prompt_covers_merge_and_scope_failures(self):
+        prompt = make_prompt(
+            task(1),
+            "a" * 40,
+            "b" * 64,
+            "repairer",
+            "git_diff_check_failed;protected_file_modified",
+        )
+        self.assertIn("remove trailing whitespace", prompt)
+        self.assertIn("do not modify protected policy files", prompt)
+
+    def test_worker_prompt_renders_task_type_and_scope_contract(self):
+        scoped = task(2)
+        scoped["execution_mode"] = "implementation"
+        scoped["suggested_scope_roots"] = ["src/jarvis_v2/backend/", "tests/"]
+        prompt = make_prompt(scoped, "a" * 40, "b" * 64, "recovery", "")
+        self.assertIn("execution_mode=implementation", prompt)
+        self.assertIn("src/jarvis_v2/backend/", prompt)
+        self.assertIn("tests/", prompt)
+        self.assertIn("validator will reject files outside", prompt)
+
+    def test_upgrade_audit_brief_is_task_specific_and_bounded(self):
+        win = _upgrade_audit_brief("WIN-002")
+        self.assertIn("config_contract", win)
+        self.assertIn("infra/windows/", win)
+        self.assertIn("Do not fabricate Windows/GPU evidence", win)
+        self.assertNotIn("private/", win)
+        base = _upgrade_audit_brief("BASE-015")
+        self.assertIn("design task", base)
+        self.assertNotEqual(win, base)
+
+    def test_ci_local_only_prompt_preserves_quota_boundary(self):
+        ci_task = task(1)
+        ci_task["execution_mode"] = "ci_local_only"
+        ci_task["task_id"] = "BASE-003"
+        prompt = make_prompt(ci_task, "a" * 40, "b" * 64, "worker")
+        self.assertIn("do not trigger GitHub Actions", prompt)
+        self.assertIn("DEFERRED_QUOTA", prompt)
+        self.assertIn("network-dependent downloads", prompt)
+        self.assertIn("full immutable commit SHA", prompt)
+
+    def test_task_specific_packaging_guidance_requires_manifest_update(self):
+        packaging_task = task(1)
+        packaging_task["task_id"] = "BASE-010"
+        prompt = make_prompt(packaging_task, "a" * 40, "b" * 64, "repairer")
+        self.assertIn("manifest hash for every new tracked package file", prompt)
+
+    def test_task_specific_code_index_guidance_targets_qc_findings(self):
+        index_task = task(1)
+        index_task["task_id"] = "BASE-015"
+        index_task["execution_mode"] = "design"
+        prompt = make_prompt(index_task, "a" * 40, "b" * 64, "repairer",
+                             "qc_rejected:correctness_risk,ordering_semantics,payload_exposure,test_gap")
+        self.assertIn("bounded", prompt)
+        self.assertIn("blob-SHA keyed", prompt)
+        self.assertIn("secret canaries", prompt)
+        self.assertIn("execution_mode=design", prompt)
+        self.assertIn("one bounded Markdown design artifact", prompt)
+        self.assertIn("do not add source, tests, fixtures", prompt)
+        self.assertIn("do not claim implementation", prompt)
+
+    def test_audit_prompt_is_report_only_and_metadata_bounded(self):
+        prompt = make_prompt(audit_task(), "a" * 40, "b" * 64, "worker")
+        self.assertIn("Audit-mode contract", prompt)
+        self.assertIn("candidate change is a versioned Markdown or JSON report below docs/", prompt)
+        self.assertIn("Record inaccessible or unavailable evidence as unknown", prompt)
+        self.assertIn("Do not add tools, tests, source", prompt)
+
     def test_source_dirty_refused(self):
         (self.repo/"README.md").write_text("modified\n")
         with self.assertRaisesRegex(ValueError,"dirty"):
@@ -113,6 +210,95 @@ class LinuxSDATests(unittest.TestCase):
             (self.state.home/marker).unlink()
         self.assertIsNotNone(self.state.claim())
 
+    def test_lane_pause_does_not_cross_block_the_other_lane(self):
+        (self.state.home / "PAUSE_NORMAL").touch()
+        self.assertTrue(control_blocked(self.state.home, "normal"))
+        self.assertFalse(control_blocked(self.state.home, "recovery"))
+        (self.state.home / "PAUSE_NORMAL").unlink()
+        (self.state.home / "PAUSE_RECOVERY").touch()
+        self.assertTrue(control_blocked(self.state.home, "recovery"))
+        self.assertFalse(control_blocked(self.state.home, "normal"))
+
+    def test_normal_and_recovery_lane_runner_overlap_without_second_master(self):
+        barrier = threading.Barrier(2)
+        calls = []
+        def fake_normal(*args, **kwargs):
+            calls.append("normal-start")
+            barrier.wait(timeout=2)
+            calls.append("normal-end")
+            return {"terminal_failures": 0}
+        def fake_recovery(*args, **kwargs):
+            calls.append("recovery-start")
+            barrier.wait(timeout=2)
+            calls.append("recovery-end")
+            return {"resolved": 1}
+        with patch("astra_one.linux_cli.run_master", side_effect=fake_normal), \
+             patch("astra_one.linux_cli.run_recovery", side_effect=fake_recovery):
+            result = run_concurrent(
+                self.state, workers=5, max_tasks=1, max_minutes=1,
+                model="gpt-5.6-luna", effort="medium", recovery_limit=2,
+                recovery_model="gpt-6.1-sol", recovery_effort="high",
+                test_image="python:3.12-slim", test_command=["python3"],
+                auto_integrate=True, max_repairs=0, timeout=60,
+            )
+        self.assertTrue(result["shared_master_lock"])
+        self.assertEqual(set(calls[:2]), {"normal-start", "recovery-start"})
+
+    def test_concurrent_runner_initializes_schema_before_lane_threads(self):
+        calls = []
+        def fake_schema():
+            calls.append("schema")
+            return {"schema_version": 3}
+        def fake_normal(*args, **kwargs):
+            self.assertTrue(kwargs.pop("_schema_ready"))
+            calls.append("normal")
+            return {"terminal_failures": 0}
+        def fake_recovery(*args, **kwargs):
+            self.assertTrue(kwargs.pop("_schema_ready"))
+            calls.append("recovery")
+            return {"resolved": 0}
+        with patch.object(SupervisorController, "ensure_schema", side_effect=fake_schema), \
+             patch("astra_one.linux_cli.run_master", side_effect=fake_normal), \
+             patch("astra_one.linux_cli.run_recovery", side_effect=fake_recovery):
+            run_concurrent(
+                self.state, workers=1, max_tasks=1, max_minutes=1,
+                model="gpt-5.6-luna", effort="medium", recovery_limit=1,
+                recovery_model="gpt-6.1-sol", recovery_effort="high",
+                test_image="python:3.12-slim", test_command=["python3"],
+                auto_integrate=True, max_repairs=0, timeout=60,
+            )
+        self.assertEqual(calls[0], "schema")
+        self.assertEqual(set(calls[1:]), {"normal", "recovery"})
+
+    def test_lane_critical_section_waits_for_master_lock_without_inference_locking(self):
+        script = (
+            "import sys,time\n"
+            "from pathlib import Path\n"
+            "from astra_one.linux_sda import State\n"
+            "with State(Path(sys.argv[1])).master_lock():\n"
+            "    print('held', flush=True)\n"
+            "    time.sleep(0.35)\n"
+        )
+        env = os.environ.copy()
+        env["PYTHONPATH"] = str(Path(__file__).resolve().parents[1])
+        process = subprocess.Popen(
+            [sys.executable, "-c", script, str(self.state.home)],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, env=env,
+        )
+        try:
+            self.assertEqual(process.stdout.readline().strip(), "held")
+            started = time.monotonic()
+            with self.state.master_lock(blocking=True, timeout=2):
+                pass
+            self.assertGreaterEqual(time.monotonic() - started, 0.20)
+            self.assertEqual(process.wait(timeout=2), 0)
+        finally:
+            if process.poll() is None:
+                process.terminate()
+                process.wait(timeout=2)
+            if process.stdout is not None:
+                process.stdout.close()
+
     def test_recover_no_replay(self):
         self.state.add_tasks(task(1));self.state.claim()
         self.assertEqual(self.state.recover(),["ASTRA-001"])
@@ -134,6 +320,36 @@ class LinuxSDATests(unittest.TestCase):
             row=db.execute("SELECT last_error,candidate_sha,changed_files,qc_evidence,base_sha,branch,worktree FROM tasks WHERE id='ASTRA-001'").fetchone()
         self.assertEqual(tuple(row),("","","[]","","","",""))
         self.assertEqual(self.state.failure_codes("ASTRA-001"),["no_file_changes"])
+
+    def test_failed_and_retried_tasks_leave_no_stale_review_or_merge_queue(self):
+        self.state.add_tasks(task(1))
+        self.state.claim()
+        self.state.set_task("ASTRA-001", "awaiting_review", fields={
+            "candidate_sha": "a" * 40,
+            "changed_files": '["candidate.py"]',
+            "qc_evidence": "reviewed",
+            "project_id": "PROJECT-1",
+        })
+        with self.state.db() as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM review_queue WHERE parent_id='ASTRA-001'").fetchone()[0], 1)
+        self.state.set_task("ASTRA-001", "failed", error="git_diff_check_failed")
+        with self.state.db() as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM review_queue WHERE parent_id='ASTRA-001'").fetchone()[0], 0)
+            self.assertEqual(db.execute("SELECT count(*) FROM merge_queue WHERE parent_id='ASTRA-001'").fetchone()[0], 0)
+        self.state.retry("ASTRA-001")
+        with self.state.db() as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM review_queue WHERE parent_id='ASTRA-001'").fetchone()[0], 0)
+            self.assertEqual(db.execute("SELECT count(*) FROM merge_queue WHERE parent_id='ASTRA-001'").fetchone()[0], 0)
+
+    def test_tool_count_is_persisted_on_run_transitions(self):
+        self.state.add_tasks(task(1))
+        self.state.claim()
+        self.state.set_task("ASTRA-001", "verifying", fields={"tool_count": 7})
+        with self.state.db() as db:
+            self.assertEqual(db.execute("SELECT tool_count FROM runs WHERE task_id='ASTRA-001'").fetchone()[0], 7)
+        self.state.set_task("ASTRA-001", "failed", error="no_file_changes", fields={"tool_count": 8})
+        with self.state.db() as db:
+            self.assertEqual(db.execute("SELECT tool_count FROM runs WHERE task_id='ASTRA-001'").fetchone()[0], 8)
 
     def test_reopen_failed_starts_new_generation_without_erasing_history(self):
         self.state.add_tasks(task(1))
@@ -162,6 +378,37 @@ class LinuxSDATests(unittest.TestCase):
         obj=task(1);obj["api_key"]="secret"
         with self.assertRaises(ValueError):task_spec(obj)
 
+    def test_task_type_validation_rejects_malformed_design_packet(self):
+        malformed = task(1)
+        malformed["execution_mode"] = "design"
+        with self.assertRaisesRegex(ValueError, "task_type_invalid"):
+            validate_task_type(malformed)
+
+    def test_task_spec_preserves_valid_design_metadata_for_assignment(self):
+        child = {
+            "id": "BASE-015.S01", "sequence": 1, "instruction": "Write the design.",
+            "deliverable": "Design document", "done_when": "The design is bounded.",
+            "depends_on": [],
+        }
+        packet = task(1)
+        packet.update({"execution_mode": "design", "subtasks": [child]})
+        normalized = task_spec(packet)
+        self.assertEqual(normalized["execution_mode"], "design")
+        self.assertEqual(normalized["subtasks"][0]["id"], "BASE-015.S01")
+
+    def test_task_type_validation_requires_ordered_child_contract(self):
+        packet = audit_task()
+        self.assertEqual(validate_task_type(packet), "audit")
+        packet["subtasks"][0]["sequence"] = 2
+        with self.assertRaisesRegex(ValueError, "task_type_invalid"):
+            validate_task_type(packet)
+
+    def test_task_type_validation_rejects_unsafe_scope_root(self):
+        packet = task(1)
+        packet["suggested_scope_roots"] = ["../outside/"]
+        with self.assertRaisesRegex(ValueError, "task_type_invalid"):
+            validate_task_type(packet)
+
     def test_model_cli_is_codex_cloud_not_oss(self):
         cmd=codex_command(self.repo,"gpt-5.6-luna","medium",None,"workspace-write")
         self.assertNotIn("--oss",cmd)
@@ -185,6 +432,36 @@ class LinuxSDATests(unittest.TestCase):
         (self.repo/"two.json").write_text('{"value": 2}\n')
         self.assertEqual(check_changes(self.repo,b),["one.py","two.json"])
 
+    def test_static_change_accepts_javascript_module_files(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        (self.repo/"worker.test.mjs").write_text("export const ok = true;\n")
+        self.assertEqual(check_changes(self.repo,b),["worker.test.mjs"])
+
+    def test_static_change_rejects_generated_artifact_paths(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        output=self.repo/"ci-artifacts"/"report.json"
+        output.parent.mkdir()
+        output.write_text('{"status":"passed"}\n')
+        with self.assertRaisesRegex(ChangeValidationError,"generated_artifact"):
+            check_changes(self.repo,b)
+
+    def test_static_change_rejects_paths_outside_task_scope(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        (self.repo/"docs").mkdir()
+        (self.repo/"docs"/"outside.md").write_text("not in scope\n")
+        scoped_task={"suggested_scope_roots":["src/"]}
+        with self.assertRaisesRegex(ChangeValidationError,"outside_task_scope"):
+            check_changes(self.repo,b,task=scoped_task)
+
+    def test_static_change_rejects_secret_bearing_env_profile(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        profile=self.repo/"infra"/"windows"/"qwen3-8b.env"
+        profile.parent.mkdir(parents=True)
+        profile.write_text("OLLAMA_HOST=127.0.0.1\n")
+        scoped_task={"suggested_scope_roots":["infra/windows/"]}
+        with self.assertRaisesRegex(ChangeValidationError,"hidden_or_unsupported_path"):
+            check_changes(self.repo,b,task=scoped_task)
+
     def test_static_change_rejects_zero_files_with_specific_code(self):
         b=git(self.repo,"rev-parse","HEAD")
         with self.assertRaises(ChangeValidationError) as caught:
@@ -207,6 +484,19 @@ class LinuxSDATests(unittest.TestCase):
         (self.repo/"staged.py").write_text("value = 2\n")
         self.assertEqual(check_changes(self.repo,b),["staged.py"])
 
+    def test_static_change_rejects_trailing_whitespace_in_untracked_and_staged_files(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        report=self.repo/"report.md"
+        report.write_text("# report  \n")
+        with self.assertRaises(ChangeValidationError) as caught:
+            check_changes(self.repo,b)
+        self.assertEqual(caught.exception.code,"git_diff_check_failed")
+
+        git(self.repo,"add","--","report.md")
+        with self.assertRaises(ChangeValidationError) as caught:
+            check_changes(self.repo,b)
+        self.assertEqual(caught.exception.code,"git_diff_check_failed")
+
     def test_static_change_rejects_delete(self):
         b=git(self.repo,"rev-parse","HEAD")
         (self.repo/"README.md").unlink()
@@ -224,6 +514,211 @@ class LinuxSDATests(unittest.TestCase):
         (self.repo/"AGENTS.md").write_text("fake policy")
         with self.assertRaisesRegex(ValueError,"protected"):
             check_changes(self.repo,b)
+
+    def test_scoped_ci_workflow_repair_can_change_only_workflow_yaml(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        workflow=self.repo/".github"/"workflows"/"ci.yml"
+        workflow.parent.mkdir(parents=True)
+        workflow.write_text("name: local\n")
+        scoped_task={
+            "suggested_scope_roots":[".github/"],
+            "subtasks":[{"kind":"repair"}],
+        }
+        self.assertEqual(check_changes(self.repo,b,task=scoped_task),[".github/workflows/ci.yml"])
+
+    def test_scoped_ci_workflow_rejects_new_floating_action_ref(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        workflow=self.repo/".github"/"workflows"/"ci.yml"
+        workflow.parent.mkdir(parents=True)
+        workflow.write_text("jobs:\n  test:\n    steps:\n      - uses: actions/checkout@v4\n")
+        scoped_task={
+            "suggested_scope_roots":[".github/"],
+            "subtasks":[{"kind":"repair"}],
+        }
+        with self.assertRaisesRegex(ChangeValidationError,"ci_workflow_unpinned_action"):
+            check_changes(self.repo,b,task=scoped_task)
+
+    def test_scoped_ci_workflow_accepts_immutable_action_ref(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        workflow=self.repo/".github"/"workflows"/"ci.yml"
+        workflow.parent.mkdir(parents=True)
+        workflow.write_text("jobs:\n  test:\n    steps:\n      - uses: actions/checkout@0123456789abcdef0123456789abcdef01234567\n")
+        scoped_task={
+            "suggested_scope_roots":[".github/"],
+            "subtasks":[{"kind":"repair"}],
+        }
+        self.assertEqual(check_changes(self.repo,b,task=scoped_task),[".github/workflows/ci.yml"])
+
+    def test_ci_workflow_scope_does_not_allow_other_hidden_paths(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        policy=self.repo/".github"/"CODEOWNERS"
+        policy.parent.mkdir(parents=True)
+        policy.write_text("* @owner\n")
+        scoped_task={
+            "suggested_scope_roots":[".github/"],
+            "subtasks":[{"kind":"repair"}],
+        }
+        with self.assertRaisesRegex(ValueError,"protected"):
+            check_changes(self.repo,b,task=scoped_task)
+
+    def test_audit_scope_accepts_only_documentation_receipts(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        report=self.repo/"docs"/"tasks"/"BASE-001_AUDIT.md"
+        report.parent.mkdir(parents=True)
+        report.write_text("# bounded audit  \n\nFacts recorded.\n")
+        self.assertEqual(check_changes(self.repo,b,task=audit_task()),["docs/tasks/BASE-001_AUDIT.md"])
+
+    def test_committed_audit_markdown_hard_breaks_use_same_bounded_policy(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        report=self.repo/"docs"/"tasks"/"BASE-001_AUDIT.md"
+        report.parent.mkdir(parents=True)
+        report.write_text("# bounded audit  \nFacts recorded.\n")
+        changed=check_changes(self.repo,b,task=audit_task())
+        git(self.repo,"add","--",*changed)
+        git(self.repo,"-c","user.name=as","-c","user.email=as@local.invalid","commit","-qm","audit")
+        candidate=git(self.repo,"rev-parse","HEAD")
+        _check_commit_whitespace(self.repo,b,candidate,
+                                 allow_markdown_hard_breaks={changed[0]})
+
+    def test_audit_scope_rejects_executable_or_test_changes(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        tool=self.repo/"tools"/"audit.py"
+        tool.parent.mkdir(parents=True)
+        tool.write_text("print('not an audit receipt')\n")
+        with self.assertRaisesRegex(ChangeValidationError,"audit_report_only"):
+            check_changes(self.repo,b,task=audit_task())
+
+    def test_design_scope_accepts_only_documentation(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        design = {"execution_mode": "design"}
+        report=self.repo/"docs"/"tasks"/"DESIGN.md"
+        report.parent.mkdir(parents=True)
+        report.write_text("# bounded design\n")
+        self.assertEqual(check_changes(self.repo,b,task=design),["docs/tasks/DESIGN.md"])
+        (self.repo/"src").mkdir()
+        (self.repo/"src"/"runtime.py").write_text("VALUE = 1\n")
+        with self.assertRaisesRegex(ChangeValidationError,"design_documentation_only"):
+            check_changes(self.repo,b,task=design)
+
+    def test_merger_preview_preserves_bounded_patch_tail(self):
+        preview = _bounded_patch_preview(b"A" * 8_000 + b"TAIL-EVIDENCE", limit=8_000)
+        self.assertIn("[middle of patch omitted]", preview)
+        self.assertIn("TAIL-EVIDENCE", preview)
+        self.assertLess(len(preview), 8_100)
+
+    def test_audit_merger_prompt_accepts_explicit_unknowns(self):
+        captured = {}
+
+        def fake_merger_call(*, output_file, **kwargs):
+            captured["prompt"] = kwargs["prompt"]
+            output_file.write_text('{"verdict":"PASS","findings":[]}')
+            return 0, 0, "ok"
+
+        with patch("astra_one.linux_runtime.codex_call", side_effect=fake_merger_call):
+            accepted, reason = merger_review_result(
+                self.state, self.repo, "BASE-001", b"report\n" + b"x" * 20,
+                model="gpt-5.6-luna", effort="medium", task=audit_task(),
+            )
+        self.assertTrue(accepted)
+        self.assertEqual(reason, "merger_pass")
+        self.assertIn("bounded Markdown or JSON evidence receipt", captured["prompt"])
+        self.assertIn("Do not require the worker to invent main", captured["prompt"])
+        self.assertIn("bounded read-only commands", captured["prompt"])
+        self.assertIn("Do not edit files, run tests, invoke network", captured["prompt"])
+        self.assertIn("only concrete integration, security, or correctness defects", captured["prompt"])
+        self.assertIn("Do not reject hypothetical risks", captured["prompt"])
+
+    def test_design_qc_prompt_does_not_require_downstream_implementation(self):
+        captured = {}
+        design = task(1)
+        design["task_id"] = "BASE-015"
+        design["execution_mode"] = "design"
+        design["objective"] = "Create a bounded design plan"
+        design["acceptance"] = ["Design maps the acceptance to future evidence"]
+
+        def fake_qc_call(*, output_file, **kwargs):
+            captured["prompt"] = kwargs["prompt"]
+            output_file.write_text('{"verdict":"PASS","findings":[]}')
+            return 0, 0, "ok"
+
+        with patch("astra_one.linux_runtime.codex_call", side_effect=fake_qc_call):
+            accepted, reason, _, _ = independent_qc_report(
+                self.state, self.repo, design, model="gpt-6.1-sol", effort="high",
+                changed_files=["docs/tasks/BASE-015-INDEX-DESIGN.md"],
+            )
+        self.assertTrue(accepted)
+        self.assertEqual(reason, "qc_pass")
+        self.assertIn("Design-mode review contract", captured["prompt"])
+        self.assertIn("Do not require runtime source", captured["prompt"])
+        self.assertIn("prerequisite are correct evidence", captured["prompt"])
+
+    def test_design_merger_prompt_preserves_documentation_boundary(self):
+        captured = {}
+        design = task(1)
+        design["task_id"] = "BASE-015"
+        design["execution_mode"] = "design"
+        design["objective"] = "Create a bounded design plan"
+        design["acceptance"] = ["Design maps the acceptance to future evidence"]
+
+        def fake_merger_call(*, output_file, **kwargs):
+            captured["prompt"] = kwargs["prompt"]
+            output_file.write_text('{"verdict":"PASS","findings":[]}')
+            return 0, 0, "ok"
+
+        with patch("astra_one.linux_runtime.codex_call", side_effect=fake_merger_call):
+            accepted, reason = merger_review_result(
+                self.state, self.repo, "BASE-015", b"design\n", model="gpt-6.1-sol",
+                effort="high", task=design,
+            )
+        self.assertTrue(accepted)
+        self.assertEqual(reason, "merger_pass")
+        self.assertIn("Design-mode merger contract", captured["prompt"])
+        self.assertIn("downstream runtime implementation", captured["prompt"])
+
+    def test_merger_retries_once_after_invalid_findings_shape(self):
+        calls = []
+
+        def fake_merger_call(*, output_file, **kwargs):
+            calls.append(kwargs["prompt"])
+            if len(calls) == 1:
+                output_file.write_text('{"verdict":"PASS","findings":{"invalid":"shape"}}')
+            else:
+                output_file.write_text('{"verdict":"PASS","findings":[]}')
+            return 0, 0, "ok"
+
+        with patch("astra_one.linux_runtime.codex_call", side_effect=fake_merger_call):
+            accepted, reason = merger_review_result(
+                self.state, self.repo, "BASE-001", b"candidate\n",
+                model="gpt-5.6-luna", effort="medium",
+            )
+        self.assertTrue(accepted)
+        self.assertEqual(reason, "merger_pass")
+        self.assertEqual(len(calls), 2)
+        self.assertIn("Schema retry", calls[1])
+
+    def test_merger_adjudicates_one_concrete_rejection(self):
+        calls = []
+
+        def fake_merger_call(*, output_file, **kwargs):
+            calls.append(kwargs["prompt"])
+            if len(calls) == 1:
+                output_file.write_text(
+                    '{"verdict":"FAIL","findings":[".github/workflows/ci.yml has a concrete integration defect"]}'
+                )
+            else:
+                output_file.write_text('{"verdict":"PASS","findings":[]}')
+            return 0, 0, "ok"
+
+        with patch("astra_one.linux_runtime.codex_call", side_effect=fake_merger_call):
+            accepted, reason = merger_review_result(
+                self.state, self.repo, "BASE-001", b"candidate\n",
+                model="gpt-5.6-luna", effort="medium",
+            )
+        self.assertTrue(accepted)
+        self.assertEqual(reason, "merger_pass_after_adjudication")
+        self.assertEqual(len(calls), 2)
+        self.assertIn("Adjudication review", calls[1])
+        self.assertIn("integration_risk", calls[1])
 
     def test_static_change_rejects_invalid_python(self):
         b=git(self.repo,"rev-parse","HEAD")
@@ -246,6 +741,28 @@ print(json.dumps({'type':'turn.completed'}))
         with self.assertRaisesRegex(ChangeValidationError,"no_file_changes"):
             check_changes(self.repo,git(self.repo,"rev-parse","HEAD"))
 
+    def test_independent_qc_receives_validated_untracked_paths(self):
+        candidate = self.repo / "candidate.py"
+        candidate.write_text("WORKER_ID = 'QUAL-001'\n")
+        base = git(self.repo,"rev-parse","HEAD")
+        changed = check_changes(self.repo,base)
+        captured = {}
+
+        def fake_qc_call(*, output_file, **kwargs):
+            captured["prompt"] = kwargs["prompt"]
+            output_file.write_text('{"verdict":"PASS","findings":[]}')
+            return 0, 0, "ok"
+
+        with patch("astra_one.linux_runtime.codex_call", side_effect=fake_qc_call):
+            accepted, reason = independent_qc(
+                self.state, self.repo, task(1), model="gpt-5.6-luna", effort="medium",
+                changed_files=changed,
+            )
+        self.assertTrue(accepted)
+        self.assertEqual(reason,"qc_pass")
+        self.assertIn("candidate.py", captured["prompt"])
+        self.assertIn("ordinary diff omits untracked files", captured["prompt"])
+
     def test_codex_failed_file_change_event_is_reported(self):
         executable=self.base/"failed-edit-codex"
         executable.write_text("""#!/usr/bin/env python3
@@ -265,6 +782,35 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change','status':
                               model="gpt-5.6-luna",effort="medium",sandbox="workspace-write",timeout=60)
         self.assertEqual(result,(126,0,"sandbox_unavailable"))
         start.assert_not_called()
+
+    def test_docker_qc_stages_linked_worktree_with_private_git_index(self):
+        candidate = self.base / "linked-candidate"
+        candidate.mkdir()
+        (candidate / ".git").write_text("gitdir: /outside/metadata\n")
+        (candidate / "tests").mkdir()
+        (candidate / "tests" / "test_candidate.py").write_text(
+            "import unittest\nclass T(unittest.TestCase):\n    def test_ok(self): pass\n"
+        )
+        docker_calls = []
+        real_run = subprocess.run
+
+        def fake_run(args, *rest, **kwargs):
+            if args and args[0] == "docker":
+                docker_calls.append(list(args))
+                if args[1:3] == ["image", "inspect"]:
+                    return subprocess.CompletedProcess(args, 0, "", "")
+                return subprocess.CompletedProcess(args, 0, "Ran 1 test in 0.01s\nOK\n", "")
+            return real_run(args, *rest, **kwargs)
+
+        with patch("astra_one.linux_runtime.subprocess.run", side_effect=fake_run):
+            result = docker_test(candidate, "python:3.12-slim", ["python3", "-m", "unittest", "discover"])
+
+        self.assertTrue(result["passed"])
+        mount = docker_calls[1][docker_calls[1].index("--mount") + 1]
+        staged = Path(mount.split(",", 2)[1].split("=", 1)[1])
+        self.assertNotEqual(staged, candidate.resolve())
+        self.assertFalse(staged.exists())
+        self.assertIn("GIT_CONFIG_VALUE_0=/src", docker_calls[1])
 
     def test_five_worker_parallel_scheduler(self):
         self.state.add_tasks([task(i) for i in range(1,6)])
@@ -308,6 +854,76 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change','status':
         self.assertEqual(git(self.repo,"branch","--show-current"),"develop")
         self.assertNotEqual(self.state.get("integration_sha"),self.state.get("source_sha"))
 
+    def test_project_approval_moves_candidate_to_serial_merge_queue(self):
+        self.state.add_tasks(task(1))
+        self.state.claim()
+        candidate_sha = "a" * 40
+        self.state.set_task("ASTRA-001", "awaiting_review", fields={
+            "project_id": "PROJECT-1", "candidate_sha": candidate_sha, "qc_evidence": "{\"independent_qc\":\"passed\"}",
+        })
+        self.state.approve("ASTRA-001")
+        with self.state.db() as db:
+            self.assertEqual(db.execute("SELECT status FROM tasks WHERE id='ASTRA-001'").fetchone()[0], "approved")
+            self.assertEqual(db.execute("SELECT count(*) FROM review_queue WHERE parent_id='ASTRA-001'").fetchone()[0], 0)
+            self.assertEqual(db.execute("SELECT candidate_sha FROM merge_queue WHERE parent_id='ASTRA-001'").fetchone()[0], candidate_sha)
+
+    def test_merger_rejection_fails_task_and_preserves_rebuild_queue(self):
+        self.state.add_tasks(task(1))
+        claim=self.state.claim()
+        base=self.state.get("integration_sha")
+        branch="feature/astra-test-merger-rejection"
+        candidate=self.state.home/"worktrees"/"candidate-merger-rejection"
+        git(self.repo,"worktree","add","-b",branch,str(candidate),base)
+        (candidate/"added.py").write_text("VALUE = 1\n")
+        changed=check_changes(candidate,base)
+        git(candidate,"add","--",*changed)
+        git(candidate,"-c","user.name=as","-c","user.email=as@local.invalid","commit","-m","candidate")
+        sha=git(candidate,"rev-parse","HEAD")
+        self.state.set_task("ASTRA-001","awaiting_review",fields={
+            "worktree":str(candidate),"branch":branch,"base_sha":base,
+            "candidate_sha":sha,"changed_files":json.dumps(changed),
+            "qc_evidence":'{"independent_qc":"passed"}',
+        })
+        self.state.approve("ASTRA-001")
+        with patch("astra_one.linux_runtime.merger_review_result",return_value=(False,"merger_rejected:payload_exposure")):
+            with self.assertRaisesRegex(ReviewFailure,"merger_rejected:payload_exposure"):
+                integrate(self.state,"ASTRA-001",merger_model="gpt-5.6-luna")
+        row=self.state.list_tasks()[0]
+        self.assertEqual(row["status"],"failed")
+        self.assertEqual(row["last_error"],"merger_rejected:payload_exposure")
+        with self.state.db() as db:
+            self.assertIsNone(db.execute("SELECT 1 FROM merge_queue WHERE parent_id='ASTRA-001'").fetchone())
+
+    def test_merger_rejects_candidate_trailing_whitespace_before_apply(self):
+        self.state.add_tasks(task(1))
+        claim=self.state.claim()
+        base=self.state.get("integration_sha")
+        branch="feature/astra-test-whitespace"
+        candidate=self.state.home/"worktrees"/"candidate-whitespace"
+        git(self.repo,"worktree","add","-b",branch,str(candidate),base)
+        (candidate/"audit.md").write_text("# audit  \n")
+        git(candidate,"add","--","audit.md")
+        git(candidate,"-c","user.name=as","-c","user.email=as@local.invalid","commit","-m","candidate")
+        sha=git(candidate,"rev-parse","HEAD")
+        self.state.set_task("ASTRA-001","awaiting_review",fields={
+            "worktree":str(candidate),"branch":branch,"base_sha":base,
+            "candidate_sha":sha,"qc_evidence":"{\"independent_qc\":\"passed\"}",
+        })
+        self.state.approve("ASTRA-001")
+        with self.assertRaisesRegex(ValueError,"git_diff_check_failed"):
+            integrate(self.state,"ASTRA-001")
+        self.assertEqual(self.state.list_tasks()[0]["status"],"failed")
+        self.assertEqual(self.state.list_tasks()[0]["last_error"],"git_diff_check_failed")
+        self.assertEqual(git(self.repo,"rev-parse","HEAD"),base)
+
+    def test_integration_rejects_worktree_from_different_repository(self):
+        other = git_repo(self.base/"other-source")
+        self.state.put("integration_path",str(other))
+        self.state.put("integration_branch",git(other,"branch","--show-current"))
+        self.state.put("integration_sha",git(other,"rev-parse","HEAD"))
+        with self.assertRaisesRegex(ValueError,"integration repository mismatch"):
+            ensure_integration(self.state)
+
     def test_architecture_change_invalidates_old_queued_tasks(self):
         self.state.add_tasks(task(1))
         other=self.base/"updated-architecture.md"
@@ -336,7 +952,12 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change'}}))
 """)
         executable.chmod(0o755)
         self.state.add_tasks([task(i) for i in range(1,6)])
-        with patch("astra_one.linux_cli.os.geteuid",return_value=1000), patch("astra_one.linux_cli.sandbox_status",return_value={"available":True,"reason":"test"}), patch.dict(os.environ,{"ASTRA_CODEX_BIN":str(executable)}), patch("astra_one.linux_runtime.sandbox_status",return_value={"available":True,"reason":"test"}), patch("astra_one.linux_runtime.docker_test",return_value={"passed":True,"exit_code":0,"sandbox":"mock_docker"}):
+        def fake_docker_test(worktree, image, command, timeout=300, *, receipt_dir=None, receipt_context=None):
+            return _complete_test_receipt(
+                {"passed": True, "exit_code": 0, "sandbox": "docker_no_network", "tests_detected": True},
+                receipt_dir=receipt_dir, receipt_context=receipt_context,
+            )
+        with patch("astra_one.linux_cli.os.geteuid",return_value=1000), patch("astra_one.linux_cli.sandbox_status",return_value={"available":True,"reason":"test"}), patch.dict(os.environ,{"ASTRA_CODEX_BIN":str(executable)}), patch("astra_one.linux_runtime.sandbox_status",return_value={"available":True,"reason":"test"}), patch("astra_one.linux_runtime.docker_test",side_effect=fake_docker_test):
             result=run_master(self.state,workers=5,max_tasks=5,max_minutes=2,model="gpt-5.6-luna",effort="medium",
                 test_image="python:3.12-slim",test_command=["python3","-m","unittest"],auto_integrate=True,max_repairs=0,timeout=60)
         self.assertEqual(result["qc_passed"],5)
@@ -363,6 +984,9 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change'}}))
         self.assertEqual(result["state"],"failed")
         self.assertEqual(self.state.list_tasks()[0]["status"],"failed")
         self.assertEqual(self.state.failure_codes("ASTRA-001"),["no_file_changes","no_file_changes"])
+        self.assertFalse((self.state.home/"PAUSE").is_file())
+        with self.state.db() as db:
+            self.assertEqual(db.execute("SELECT category FROM supervisor_cases WHERE parent_id='ASTRA-001'").fetchone()[0], "code_defect")
 
     def test_master_refuses_before_claim_when_sandbox_unavailable(self):
         self.state.add_tasks(task(1))

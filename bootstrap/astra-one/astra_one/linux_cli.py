@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -14,8 +16,11 @@ import sys
 import time
 import uuid
 
-from .linux_sda import DEFAULT_HOME, EFFORT, MAX_FAILURES, MAX_WORKERS, MODEL, State, assert_source, task_spec
+from .linux_sda import (DEFAULT_HOME, EFFORT, MAX_FAILURES, MAX_WORKERS, MODEL, State,
+                        assert_source, control_blocked, task_spec)
 from .linux_runtime import codex_call, ensure_integration, integrate, execute_claim, sandbox_status
+from .full_plan import load_full_plan
+from .supervisor import SupervisorController
 
 LIVE_STATE = (Path.home() / ".local" / "state" / "archon-astra").resolve()
 LIVE_SOURCE = (Path.home() / "Projects" / "ARCHON-astra-source").resolve()
@@ -95,9 +100,144 @@ def supervise(state: State, *, focus: str, count: int, output: Path, model: str,
         candidate.unlink(missing_ok=True)
 
 
+def _upgrade_audit_brief(task_id: str) -> str:
+    """Return bounded, task-specific U1 context without exposing private artifacts."""
+    if task_id == "BASE-015":
+        return (
+            "Investigate the BASE-015 failure pattern and the task-type preparation defect. Earlier generations "
+            "attempted unrelated runtime source changes for a design task; a later generation succeeded after "
+            "design-only repair guidance and design-aware QC. Verify the current implementation and identify the "
+            "smallest tested runtime improvement."
+        )
+    if task_id == "WIN-002":
+        return (
+            "Investigate the WIN-002 task preparation and QC failure pattern. The parent is an implementation task "
+            "with scope roots infra/windows/, src/jarvis_v2/backend/ and tests/. The first real worker wrote "
+            "bootstrap/astra-one files outside scope; the next recovery wrote a secret-bearing .env artifact that "
+            "the validator rejected; a later backend candidate passed deterministic tests but independent QC "
+            "returned acceptance_gap, config_contract, correctness_risk, payload_exposure and test_gap. Inspect "
+            "the current backend contract and tests, reproduce the preparation/validation defect in isolation, "
+            "and identify the smallest tested improvement. Do not fabricate Windows/GPU evidence."
+        )
+    return (
+        "Investigate the supplied task's recent bounded failure pattern in the current source and tests. Reproduce "
+        "only a concrete runtime or task-preparation defect and identify the smallest tested improvement; do not "
+        "infer success from model text or unavailable external evidence."
+    )
+
+
+def run_upgrade_audit(state: State, *, task_id: str, model: str, effort: str,
+                      timeout: int) -> dict:
+    """Run one bounded, read-only U1 investigation and persist sanitized evidence."""
+    if not 60 <= timeout <= 3600 or not re.fullmatch(r"[A-Za-z0-9_.:-]{1,80}", model):
+        raise ValueError("invalid upgrade audit limits")
+    if (state.home / "STOP").exists():
+        raise ValueError("STOP prevents upgrade audit")
+    supervisor = SupervisorController(state)
+    supervisor.ensure_schema()
+    lease = supervisor.claim_upgrade_audit(task_id, model=model)
+    raw_path = state.home / "private" / "upgrade-audits" / ("." + lease["audit_id"] + ".model.json")
+    final_path = state.home / "private" / "upgrade-audits" / (lease["audit_id"] + ".json")
+    raw_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    os.chmod(raw_path.parent, 0o700)
+    astra_root = Path(__file__).resolve().parents[1]
+    repository = astra_root.parents[1]
+    prompt = (
+        "You are U1, Astra One's read-only upgrade auditor. Inspect the current ARCHON Astra One source and "
+        "tests in this checkout; do not edit files, invoke agents, access the network, or print source, prompts, "
+        "secrets, credentials, private paths, or raw logs. " + _upgrade_audit_brief(task_id) + " Return ONLY one JSON object "
+        "with these keys: root_cause, reproduction, runtime_component, improvement, tests, risk. Values must be "
+        "short bounded strings except tests, which is a list of at most 5 short strings. Explicitly distinguish "
+        "observed, inferred and unknown facts. Do not claim a change was implemented unless it is present in the "
+        "checkout.\n"
+        f"Audit task: {task_id}\nAudit ID: {lease['audit_id']}\n"
+        "Known safe categories: task_type_invalid, no_file_changes, qc_rejected, integration_patch_conflict, "
+        "worker_runtime_error.\n"
+    )
+    try:
+        rc, tools, reason = codex_call(
+            worktree=repository, prompt=prompt, home=state.home, state=state,
+            model=model, effort=effort, sandbox="read-only", timeout=timeout,
+            output_file=raw_path, role="upgrade_auditor",
+        )
+        if rc or reason != "ok" or not raw_path.is_file() or raw_path.stat().st_size > 24_000:
+            raise ValueError("audit_model_error")
+        raw = raw_path.read_text(encoding="utf-8").strip()
+        if raw.startswith("```"):
+            raw = raw.split("\n", 1)[1].rsplit("\n", 1)[0].strip()
+        parsed = json.loads(raw)
+        if not isinstance(parsed, dict):
+            raise ValueError("audit_output_invalid")
+        required = ("root_cause", "reproduction", "runtime_component", "improvement", "tests", "risk")
+        if set(parsed) != set(required) or not isinstance(parsed["tests"], list) or len(parsed["tests"]) > 5:
+            raise ValueError("audit_output_invalid")
+        secret_pattern = re.compile(r"(?i)(?:sk-[A-Za-z0-9]{12,}|gh[pousr]_[A-Za-z0-9]{12,}|AKIA[0-9A-Z]{12,}|BEGIN [A-Z ]*PRIVATE KEY)")
+        def bounded(value: object, limit: int = 700) -> str:
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError("audit_output_invalid")
+            value = " ".join(value.split())
+            if len(value) > limit or secret_pattern.search(value):
+                raise ValueError("audit_output_invalid")
+            return value
+        report = {
+            "audit_id": lease["audit_id"], "task_id": task_id, "lane": "upgrade_auditor",
+            "model": model, "effort": effort, "tools": int(tools),
+            "root_cause": bounded(parsed["root_cause"]),
+            "reproduction": bounded(parsed["reproduction"]),
+            "runtime_component": bounded(parsed["runtime_component"], 240),
+            "improvement": bounded(parsed["improvement"]),
+            "tests": [bounded(item, 300) for item in parsed["tests"]],
+            "risk": bounded(parsed["risk"], 400),
+        }
+        checks = []
+        env = dict(os.environ)
+        env["PYTHONPATH"] = str(astra_root)
+        for name in ("test_supervisor_v3.py", "test_linux_sda.py"):
+            result = subprocess.run(
+                [sys.executable, "-m", "unittest", "discover", "-s", "tests", "-p", name, "-q"],
+                cwd=astra_root, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                text=True, check=False, timeout=600,
+            )
+            match = re.search(r"Ran\s+([0-9]+)\s+tests?", result.stdout)
+            checks.append({"name": name, "exit_code": result.returncode,
+                           "tests_observed": int(match.group(1)) if match else 0,
+                           "status": "passed" if result.returncode == 0 and match else "failed"})
+        if any(item["status"] != "passed" for item in checks):
+            raise ValueError("audit_checks_failed")
+        report["deterministic_checks"] = checks
+        report["evidence_sha"] = hashlib.sha256(
+            json.dumps(checks, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+        encoded = json.dumps(report, sort_keys=True, separators=(",", ":")).encode()
+        if len(encoded) > 12_000:
+            raise ValueError("audit_output_invalid")
+        final_path.write_bytes(encoded + b"\n")
+        os.chmod(final_path, 0o600)
+        report_sha = hashlib.sha256(final_path.read_bytes()).hexdigest()
+        result = supervisor.finish_upgrade_audit(
+            lease["audit_id"], run_id=lease["run_id"], status="completed",
+            report_path=str(final_path), report_sha=report_sha,
+            evidence_sha=report["evidence_sha"],
+        )
+        return {**result, "report_path": str(final_path), "checks": checks}
+    except (OSError, ValueError, json.JSONDecodeError, subprocess.SubprocessError) as exc:
+        code = str(exc) if str(exc) in {"audit_model_error", "audit_output_invalid", "audit_checks_failed"} else "audit_failed"
+        try:
+            supervisor.finish_upgrade_audit(
+                lease["audit_id"], run_id=lease["run_id"], status="failed", failure_code=code,
+            )
+        finally:
+            raw_path.unlink(missing_ok=True)
+            final_path.unlink(missing_ok=True)
+        raise
+    finally:
+        raw_path.unlink(missing_ok=True)
+
+
 def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, model: str, effort: str,
                test_image: str, test_command: list[str], auto_integrate: bool, max_repairs: int, timeout: int,
-               danger_bypass: bool = False) -> dict:
+               danger_bypass: bool = False, batch_id: str | None = None,
+               _schema_ready: bool = False) -> dict:
     if not 1<=workers<=MAX_WORKERS or not 1<=max_tasks<=1000 or not 1<=max_minutes<=1440 or not 60<=timeout<=7200:
         raise ValueError("invalid worker/task/time limits")
     if not 0<=max_repairs<=MAX_FAILURES-1:
@@ -114,8 +254,11 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
             raise ValueError("danger_bypass_forbidden_in_service")
     elif not sandbox_status()["available"]:
         raise ValueError("sandbox_unavailable")
-    if any((state.home/x).exists() for x in ("STOP","PAUSE","PAUSED_QUOTA")):
+    if control_blocked(state.home, "normal"):
         raise ValueError("STOP/PAUSE/PAUSED_QUOTA prevents master start")
+    supervisor = SupervisorController(state)
+    if not _schema_ready:
+        supervisor.ensure_schema()
     attempted=0
     completed=0
     failed=0
@@ -138,7 +281,19 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
 
     def maybe_requeue(tid: str, result: dict) -> str:
         nonlocal requeued, terminal_failures
-        markers=[x for x in ("STOP","PAUSE","PAUSED_QUOTA") if (state.home/x).exists()]
+        with state.db() as db:
+            row = db.execute("SELECT attempt,base_sha,candidate_sha FROM tasks WHERE id=?", (tid,)).fetchone()
+        if row:
+            try:
+                supervisor.triage_failure(
+                    tid, result.get("error", "worker_runtime_error"), base_sha=row["base_sha"],
+                    candidate_sha=row["candidate_sha"], generation=row["attempt"],
+                )
+            except ValueError:
+                # The task failure remains durable even if a secondary case
+                # record cannot be created; do not expose model text.
+                pass
+        markers=[x for x in ("STOP","PAUSE","PAUSED_QUOTA","PAUSE_NORMAL") if (state.home/x).exists()]
         if markers:
             blocker=result.get("error") or markers[0].lower()
             if blocker not in blockers:
@@ -150,14 +305,24 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
             if result.get("error") and decision not in blockers:
                 blockers.append(result["error"])
             return decision
-        with state.db() as db:
-            db.execute("UPDATE tasks SET status='queued',available_at=?,updated_at=? WHERE id=?",
-                       (int(time.time())+2, __import__('astra_one.linux_sda',fromlist=['now']).now(),tid))
+        try:
+            state.retry(tid)
+        except ValueError as exc:
+            # A concurrent recovery controller may have atomically leased the
+            # failure after triage.  Leave that generation to recovery rather
+            # than converting a valid ownership race into a terminal error.
+            if str(exc) == "task has active recovery lease":
+                return "recovery_claimed"
+            raise
         requeued+=1
         return "requeued"
 
-    with state.master_lock():
-        ensure_integration(state)
+    # The file lock protects short ledger/checkpoint operations only.  Model
+    # execution and Docker QC must run outside it so recovery lanes can make
+    # progress concurrently under the same deterministic database.
+    with contextlib.nullcontext():
+        with state.master_lock(blocking=True):
+            ensure_integration(state)
         deadline=time.monotonic()+max_minutes*60
         pending={}
         # Each task has its own worktree and subprocess; max 5 coding agents.
@@ -165,9 +330,10 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
             try:
                 while time.monotonic()<deadline:
                     stopped=(state.home/"STOP").exists()
-                    paused=any((state.home/x).exists() for x in ("PAUSE","PAUSED_QUOTA"))
+                    paused=control_blocked(state.home, "normal")
                     while not stopped and not paused and len(pending)<workers and attempted<max_tasks:
-                        claim=state.claim(model=model)
+                        with state.master_lock(blocking=True):
+                            claim=state.claim(model=model, batch_id=batch_id, lane="normal")
                         if not claim:break
                         attempted+=1
                         slot=next(i for i in range(1,workers+1) if i not in pending.values())
@@ -190,11 +356,12 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
                         tid=result["task_id"]
                         if result["status"]=="approved":
                             try:
-                                integrate(state,tid,merger_model=model,merger_effort=effort,
-                                          danger_bypass=danger_bypass)
+                                with state.master_lock(blocking=True):
+                                    integrate(state,tid,merger_model=model,merger_effort=effort,
+                                              danger_bypass=danger_bypass, lane="normal")
                                 completed+=1
                             except (ValueError,OSError,subprocess.SubprocessError) as ex:
-                                error = getattr(ex, "failure_code", "merger_failed")
+                                error = getattr(ex, "failure_code", getattr(ex, "code", "merger_failed"))
                                 with state.db() as db:
                                     row=db.execute("SELECT status FROM tasks WHERE id=?",(tid,)).fetchone()
                                 if row and row[0]=="approved":
@@ -221,17 +388,150 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
                 state.sync(limit=100)
     with state.db() as db:
         task_counts={row[0]:row[1] for row in db.execute("SELECT status,count(*) FROM tasks GROUP BY status")}
-    markers={x for x in ("STOP","PAUSE","PAUSED_QUOTA") if (state.home/x).exists()}
-    state_name=("failed" if terminal_failures else
-                "paused_quota" if "PAUSED_QUOTA" in markers else
+    markers={x for x in ("STOP","PAUSE","PAUSED_QUOTA","PAUSE_NORMAL") if (state.home/x).exists()}
+    state_name=("paused_quota" if "PAUSED_QUOTA" in markers else
                 "paused" if "PAUSE" in markers else
                 "stopped" if "STOP" in markers or task_counts.get("stopped",0) else
+                "failed" if terminal_failures else
                 "queued" if task_counts.get("queued",0) else "idle")
     return {"attempts":attempted,"qc_passed":completed,"failures_or_conflicts":failed,
             "requeued":requeued,"terminal_failures":terminal_failures,
             "queued_remaining":task_counts.get("queued",0),"task_counts":task_counts,
             "blockers":blockers,"state":state_name,"worker_limit":workers,"engine":"stopped",
             "source_unchanged":True,"no_remote_git_push":True}
+
+
+def run_recovery(state: State, *, limit: int, model: str, effort: str, test_image: str,
+                 test_command: list[str], timeout: int, danger_bypass: bool = False,
+                 _schema_ready: bool = False) -> dict:
+    """Execute at most two durable recovery leases, serializing integration."""
+    if not 1 <= limit <= 2 or not 60 <= timeout <= 7200:
+        raise ValueError("invalid recovery limits")
+    state.ensure_approved()
+    if not test_image:
+        raise ValueError("Docker test image required for independent QC")
+    if control_blocked(state.home, "recovery"):
+        return {"claimed": 0, "resolved": 0, "qc_pending": 0, "blocked": 0, "state": "paused"}
+    supervisor = SupervisorController(state)
+    if not _schema_ready:
+        supervisor.ensure_schema()
+    results = []
+    with state.db() as db:
+        cases = db.execute(
+            "SELECT c.case_id,c.parent_id,c.state,t.status FROM supervisor_cases c "
+            "JOIN tasks t ON t.id=c.parent_id WHERE c.state IN ('triaged','qc_rejected','merge_rejected') "
+            "AND t.status IN ('failed','conflict','interrupted','stopped') "
+            "ORDER BY c.updated_at,c.case_id LIMIT ?", (limit,)
+        ).fetchall()
+    for case in cases:
+        lease = None
+        item = None
+        with state.db() as db:
+            lane = db.execute(
+                "SELECT lane_id FROM supervisor_lanes WHERE lane_id IN ('repair_1','repair_2') AND state='idle' "
+                "ORDER BY lane_id LIMIT 1"
+            ).fetchone()
+        if not lane:
+            break
+        try:
+            lease = supervisor.claim_recovery(case["case_id"], lane["lane_id"])
+            item = state.claim_recovery_task(lease, model=model)
+            slot = 1 if lease["lane_id"] == "repair_1" else 2
+            # The recovery lease fences the task in SQLite.  Keep model
+            # execution and QC outside the Master lock; only the Merger needs
+            # the short serialized integration critical section below.
+            result = execute_claim(
+                state, item, slot=slot, model=model, effort=effort, timeout=timeout,
+                test_image=test_image, test_command=test_command, auto_integrate=True,
+                danger_bypass=danger_bypass,
+            )
+            if result.get("status") == "approved":
+                with state.db() as db:
+                    candidate_row = db.execute(
+                        "SELECT candidate_sha FROM tasks WHERE id=?", (case["parent_id"],)
+                    ).fetchone()
+                candidate_sha = candidate_row[0] if candidate_row else ""
+                supervisor.bind_recovery_candidate(
+                    lease["lane_id"], lease["case_id"], lease_token=lease["lease_token"],
+                    run_id=item["run_id"], generation=item["attempt"], candidate_sha=candidate_sha,
+                )
+                with state.master_lock(blocking=True):
+                    result = integrate(state, case["parent_id"], merger_model=model,
+                                       merger_effort=effort, danger_bypass=danger_bypass,
+                                       lane="recovery")
+            recovery_state = ("resolved" if result.get("status") in {"approved", "completed"} else
+                              "qc_pending" if result.get("status") == "awaiting_review" else "blocked")
+            with state.db() as db:
+                task_row = db.execute(
+                    "SELECT candidate_sha FROM tasks WHERE id=?", (case["parent_id"],)
+                ).fetchone()
+            supervisor.finish_recovery(
+                lease["lane_id"], lease["case_id"], lease_token=lease["lease_token"],
+                run_id=item["run_id"], generation=item["attempt"],
+                candidate_sha=(task_row[0] if task_row else ""), state=recovery_state,
+            )
+            results.append({"case_id": case["case_id"], "task_id": case["parent_id"],
+                            "lane_id": lease["lane_id"], "state": recovery_state,
+                            "worker_status": result.get("status"), "error": result.get("error", "")})
+        except (ValueError, OSError, subprocess.SubprocessError) as exc:
+            # A claimed lane is always returned to the ledger; the failure is
+            # bounded and the task remains failed for the next Supervisor tick.
+            try:
+                if lease is not None and item is not None:
+                    supervisor.finish_recovery(
+                        lease["lane_id"], lease["case_id"], lease_token=lease["lease_token"],
+                        run_id=item["run_id"], generation=item["attempt"], state="blocked",
+                    )
+                elif lease is not None:
+                    supervisor.release_unstarted_recovery(
+                        lease["lane_id"], lease["case_id"], lease_token=lease["lease_token"],
+                    )
+            except (ValueError, OSError):
+                pass
+            if lease is None:
+                # Normal dispatch may have reclaimed the task between the
+                # snapshot and this lane claim.  It is neither a recovery
+                # failure nor a blocked task.
+                continue
+            results.append({"case_id": case["case_id"], "task_id": case["parent_id"],
+                            "state": "blocked", "error": type(exc).__name__})
+    return {
+        "claimed": len(results),
+        "resolved": sum(item["state"] == "resolved" for item in results),
+        "qc_pending": sum(item["state"] == "qc_pending" for item in results),
+        "blocked": sum(item["state"] == "blocked" for item in results),
+        "results": results,
+        "state": "completed" if results else "idle",
+    }
+
+
+def run_concurrent(state: State, *, workers: int, max_tasks: int, max_minutes: int,
+                    model: str, effort: str, recovery_limit: int,
+                    recovery_model: str, recovery_effort: str, test_image: str,
+                    test_command: list[str], auto_integrate: bool,
+                    max_repairs: int, timeout: int, batch_id: str | None = None) -> dict:
+    """Run normal and recovery lanes under one process and one ledger fence."""
+    # Schema migration is a single-writer operation.  Perform it once before
+    # starting the lane threads; otherwise the normal and recovery entrypoints
+    # can race on the non-blocking Master lock and one lane is rejected before
+    # it can claim work.
+    state.ensure_approved()
+    SupervisorController(state).ensure_schema()
+    with ThreadPoolExecutor(max_workers=2, thread_name_prefix="astra-lane") as pool:
+        normal_future = pool.submit(
+            run_master, state, workers=workers, max_tasks=max_tasks, max_minutes=max_minutes,
+            model=model, effort=effort, test_image=test_image, test_command=test_command,
+            auto_integrate=auto_integrate, max_repairs=max_repairs, timeout=timeout,
+            batch_id=batch_id, _schema_ready=True,
+        )
+        recovery_future = pool.submit(
+            run_recovery, state, limit=recovery_limit, model=recovery_model, effort=recovery_effort,
+            test_image=test_image, test_command=test_command, timeout=timeout, _schema_ready=True,
+        )
+        normal = normal_future.result()
+        recovery = recovery_future.result()
+    return {"normal": normal, "recovery": recovery, "engine": "stopped",
+            "shared_master_lock": True, "no_remote_git_push": True}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -243,11 +543,33 @@ def main(argv: list[str] | None = None) -> int:
     p=sub.add_parser("architecture");p.add_argument("action",choices=["import","approve","status"]);p.add_argument("--file",type=Path);p.add_argument("--sha")
     p=sub.add_parser("supervise");p.add_argument("--focus",default="");p.add_argument("--count",type=int,default=5);p.add_argument("--output",type=Path,required=True);p.add_argument("--model",default=MODEL);p.add_argument("--effort",default=EFFORT)
     p=sub.add_parser("enqueue");p.add_argument("--file",type=Path,required=True)
+    p=sub.add_parser("validate-full-plan");p.add_argument("--parent-plan",type=Path,required=True);p.add_argument("--subtask-index",type=Path,required=True);p.add_argument("--subtask-dir",type=Path,required=True);p.add_argument("--source-ref",default="");p.add_argument("--source-commit",default="")
+    p=sub.add_parser("import-full-plan");p.add_argument("--parent-plan",type=Path,required=True);p.add_argument("--subtask-index",type=Path,required=True);p.add_argument("--subtask-dir",type=Path,required=True);p.add_argument("--source-ref",default="");p.add_argument("--source-commit",default="")
+    sub.add_parser("full-plan-status")
     sub.add_parser("status");sub.add_parser("tasks");sub.add_parser("sync")
-    for name in ("stop","pause","resume","clear-quota","recover"):sub.add_parser(name)
+    for name in ("stop","pause","resume","clear-quota","recover",
+                 "pause-normal","pause-recovery","resume-normal","resume-recovery"):
+        sub.add_parser(name)
+    p=sub.add_parser("supervisor-block");p.add_argument("case_id");p.add_argument("--category",required=True);p.add_argument("--failure-code",default="")
     p=sub.add_parser("retry");p.add_argument("task_id")
     p=sub.add_parser("reopen");p.add_argument("task_ids",nargs="+")
+    sub.add_parser("supervisor-status")
+    p=sub.add_parser("supervisor-tick");p.add_argument("--limit",type=int,default=50)
+    p=sub.add_parser("batch-start");p.add_argument("batch_id");p.add_argument("--limit",type=int,default=20)
+    p=sub.add_parser("batch-status");p.add_argument("batch_id")
+    p=sub.add_parser("batch-replenish");p.add_argument("batch_id");p.add_argument("--target",type=int,default=20)
+    p=sub.add_parser("upgrade-create");p.add_argument("batch_id");p.add_argument("candidate_sha");p.add_argument("rollback_sha")
+    p=sub.add_parser("upgrade-check");p.add_argument("batch_id");p.add_argument("stage",choices=["TESTED","BACKUP","CANARY","HEALTH"]);p.add_argument("artifact_sha")
+    p=sub.add_parser("upgrade-transition");p.add_argument("batch_id");p.add_argument("state")
+    p=sub.add_parser("upgrade-audit");p.add_argument("task_id");p.add_argument("--model",default="gpt-6.1-sol")
+    p.add_argument("--effort",choices=["low","medium","high","xhigh"],default="high")
+    p.add_argument("--max-seconds",type=int,default=900)
+    p=sub.add_parser("supervisor-recover");p.add_argument("--limit",type=int,default=2)
+    p.add_argument("--model",default=MODEL);p.add_argument("--effort",choices=["low","medium","high","xhigh"],default=EFFORT)
+    p.add_argument("--test-image",default="");p.add_argument("--test-command-json",default='["python3","-m","unittest","discover","-s","tests","-p","test_*.py"]')
+    p.add_argument("--max-seconds-per-task",type=int,default=1800)
     p=sub.add_parser("approve-task");p.add_argument("task_id")
+    p=sub.add_parser("approve-owner");p.add_argument("task_id")
     p=sub.add_parser("integrate");p.add_argument("task_id");p.add_argument("--confirm",action="store_true")
     p=sub.add_parser("run")
     p.add_argument("--workers",type=int,default=5);p.add_argument("--max-tasks",type=int,default=100)
@@ -255,6 +577,13 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--model",default=MODEL);p.add_argument("--effort",choices=["low","medium","high","xhigh"],default=EFFORT)
     p.add_argument("--test-image",default="");p.add_argument("--test-command-json",default='["python3","-m","unittest","discover","-s","tests","-p","test_*.py"]')
     p.add_argument("--max-repairs",type=int,default=3);p.add_argument("--auto-integrate",action="store_true")
+    p.add_argument("--batch-id",default=None,
+                   help="restrict claims to admitted members of one v3 batch cohort")
+    p.add_argument("--concurrent-recovery",action="store_true",
+                   help="run the two bounded recovery lanes concurrently with normal workers")
+    p.add_argument("--recovery-limit",type=int,default=2)
+    p.add_argument("--recovery-model",default="gpt-6.1-sol")
+    p.add_argument("--recovery-effort",choices=["low","medium","high","xhigh"],default="high")
     p.add_argument("--danger-bypass",action="store_true",
                    help="supervised disposable development only; rejected for live state and systemd")
     args=parser.parse_args(argv)
@@ -273,32 +602,94 @@ def main(argv: list[str] | None = None) -> int:
             else:report({"sha256":state.get("architecture_sha"),"approved":state.get("approved_architecture_sha")==state.get("architecture_sha") and bool(state.get("architecture_sha"))})
         elif args.command=="supervise":report(supervise(state,focus=args.focus,count=args.count,output=args.output,model=args.model,effort=args.effort))
         elif args.command=="enqueue":report({"enqueued":state.add_tasks(json.loads(args.file.read_text(encoding="utf-8"))),"started":False})
+        elif args.command in ("validate-full-plan", "import-full-plan"):
+            plan=load_full_plan(args.parent_plan,args.subtask_index,args.subtask_dir,
+                                source_ref=args.source_ref,source_commit=args.source_commit)
+            if args.command=="validate-full-plan":
+                report(plan.validation)
+            else:
+                report(state.import_full_plan(plan))
+        elif args.command=="full-plan-status":report(state.full_plan_status())
         elif args.command=="status":report(state.overview())
         elif args.command=="tasks":report(state.list_tasks())
         elif args.command=="sync":report(state.sync(limit=500))
-        elif args.command in ("stop","pause"):
-            marker=state.home/args.command.upper();marker.parent.mkdir(parents=True,exist_ok=True)
-            marker.touch(exist_ok=True);report({"control":args.command,"existing_jobs":"stop terminates, pause drains"})
+        elif args.command in ("stop","pause","pause-normal","pause-recovery"):
+            marker_name = {
+                "stop": "STOP", "pause": "PAUSE", "pause-normal": "PAUSE_NORMAL",
+                "pause-recovery": "PAUSE_RECOVERY",
+            }[args.command]
+            marker=state.home/marker_name;marker.parent.mkdir(parents=True,exist_ok=True)
+            marker.touch(exist_ok=True)
+            report({"control":args.command,"marker":marker_name,
+                    "existing_jobs":"stop terminates; lane pause drains only that lane"})
         elif args.command=="resume":
             for x in ("STOP","PAUSE"):(state.home/x).unlink(missing_ok=True)
             report({"controls":"owner_cleared","engine":"not_started"})
+        elif args.command in ("resume-normal", "resume-recovery"):
+            marker = "PAUSE_NORMAL" if args.command == "resume-normal" else "PAUSE_RECOVERY"
+            (state.home / marker).unlink(missing_ok=True)
+            report({"control":args.command,"marker":marker,"engine":"not_started"})
         elif args.command=="clear-quota":
             (state.home/"PAUSED_QUOTA").unlink(missing_ok=True)
             report({"quota_pause":"owner_cleared","engine":"not_started"})
         elif args.command=="recover":report({"interrupted_tasks":state.recover(),"auto_restart":False})
         elif args.command=="retry":state.retry(args.task_id);report({"queued":args.task_id})
         elif args.command=="reopen":report({"reopened":state.reopen_failed(args.task_ids),"history_preserved":True})
+        elif args.command == "supervisor-block":
+            report(SupervisorController(state).mark_external_blocker(args.case_id, args.category, args.failure_code))
+        elif args.command == "supervisor-recover":
+            command=json.loads(args.test_command_json)
+            if not isinstance(command,list):
+                raise ValueError("test command must be a JSON list")
+            report(run_recovery(state,limit=args.limit,model=args.model,effort=args.effort,
+                                test_image=args.test_image,test_command=command,
+                                timeout=args.max_seconds_per_task))
+        elif args.command == "upgrade-audit":
+            report(run_upgrade_audit(state, task_id=args.task_id, model=args.model,
+                                     effort=args.effort, timeout=args.max_seconds))
+        elif args.command in {"supervisor-status", "supervisor-tick", "batch-start", "batch-status", "batch-replenish", "upgrade-create", "upgrade-check", "upgrade-transition"}:
+            supervisor=SupervisorController(state)
+            supervisor.ensure_schema()
+            if args.command=="supervisor-status":
+                report(supervisor.status())
+            elif args.command=="supervisor-tick":
+                report(supervisor.tick(args.limit))
+            elif args.command=="batch-start":
+                report(supervisor.start_batch(args.batch_id,args.limit))
+            elif args.command=="batch-status":
+                report(supervisor.batch_status(args.batch_id))
+            elif args.command=="batch-replenish":
+                report(supervisor.replenish_batch(args.batch_id,args.target))
+            elif args.command=="upgrade-create":
+                report(supervisor.create_upgrade(args.batch_id,args.candidate_sha,args.rollback_sha))
+            elif args.command=="upgrade-check":
+                report(supervisor.run_upgrade_check(args.batch_id,args.stage,args.artifact_sha))
+            else:
+                report(supervisor.transition_upgrade(args.batch_id,args.state))
         elif args.command=="approve-task":state.approve(args.task_id);report({"approved":args.task_id})
+        elif args.command=="approve-owner":report(state.approve_owner(args.task_id))
         elif args.command=="integrate":
             if not args.confirm:raise ValueError("integration requires --confirm after diff review")
             with state.master_lock():report(integrate(state,args.task_id,merger_model=MODEL,merger_effort=EFFORT))
         elif args.command=="run":
             command=json.loads(args.test_command_json)
             if not isinstance(command,list):raise ValueError("test command must be a JSON list")
+            if args.concurrent_recovery:
+                result=run_concurrent(
+                    state, workers=args.workers, max_tasks=args.max_tasks, max_minutes=args.max_minutes,
+                    model=args.model, effort=args.effort, recovery_limit=args.recovery_limit,
+                    recovery_model=args.recovery_model, recovery_effort=args.recovery_effort,
+                    test_image=args.test_image, test_command=command, auto_integrate=args.auto_integrate,
+                    max_repairs=args.max_repairs, timeout=args.max_seconds_per_task, batch_id=args.batch_id,
+                )
+                report(result)
+                normal_result=result["normal"]
+                return 1 if normal_result.get("terminal_failures") else 0
             result=run_master(state,workers=args.workers,max_tasks=args.max_tasks,max_minutes=args.max_minutes,
                               model=args.model,effort=args.effort,test_image=args.test_image,test_command=command,
                               auto_integrate=args.auto_integrate,max_repairs=args.max_repairs,
-                              timeout=args.max_seconds_per_task,danger_bypass=args.danger_bypass)
+                              timeout=args.max_seconds_per_task,danger_bypass=args.danger_bypass,
+                              batch_id=args.batch_id)
             report(result)
             return 1 if result.get("terminal_failures") else 0
         return 0

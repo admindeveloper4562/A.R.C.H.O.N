@@ -73,7 +73,7 @@ class MonitorTests(unittest.TestCase):
             writer=self._astra(p)
             try:
                 (p.parent/'PAUSE').touch()
-                snap=snapshot(p,source='astra')
+                snap=snapshot(p,source='astra',show_objectives=True)
                 self.assertEqual(snap['total'],6)
                 self.assertEqual(snap['counts']['coding'],1)
                 self.assertTrue(snap['architecture_approved'])
@@ -105,6 +105,16 @@ class MonitorTests(unittest.TestCase):
                 self.assertIsNone(task['slot'])
                 self.assertEqual(task['step'],'')
                 self.assertEqual(task['role'],'repairer')
+            finally:writer.close()
+
+    def test_astra_runtime_version_comes_from_read_only_settings(self):
+        with tempfile.TemporaryDirectory() as temp:
+            p=Path(temp)/'sda.sqlite3'
+            writer=self._astra(p)
+            try:
+                writer.execute("INSERT INTO settings VALUES ('version','0.3.0')")
+                writer.commit()
+                self.assertEqual(snapshot(p, source='astra')['schema'], 'Astra One Linux v0.3.0')
             finally:writer.close()
 
     def test_no_raw_spec_in_json_and_no_objectives(self):
@@ -142,7 +152,7 @@ class MonitorTests(unittest.TestCase):
             q.add(task_id='BACK-009',priority='P1',module='backend',payload={'secret':'hidden-data'},title='Implement context compression')
             leased=q.lease_next()
             self.assertEqual(leased['id'],'BACK-009')
-            snap=snapshot(p,source='auto')
+            snap=snapshot(p,source='auto',show_objectives=True)
             self.assertEqual(snap['engine'],'atlas')
             self.assertEqual(snap['total'],2)
             self.assertEqual(len(snap['queued']),1)
