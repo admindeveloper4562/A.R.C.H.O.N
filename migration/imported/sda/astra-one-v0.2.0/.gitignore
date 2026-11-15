@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+.env
+*.local
+node_modules/
+.wrangler/
+cloudflare/astra-one-monitor/wrangler.toml
+cloudflare/astra-one-monitor/.dev.vars
