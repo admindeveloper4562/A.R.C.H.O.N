@@ -1142,6 +1142,49 @@ print(json.dumps({'type':'turn.completed','usage':{'input_tokens':17,'output_tok
         self.assertEqual(git(self.repo,"branch","--show-current"),"develop")
         self.assertNotEqual(self.state.get("integration_sha"),self.state.get("source_sha"))
 
+    def test_merger_rejects_non_ancestor_candidate_base_before_apply(self):
+        self.state.add_tasks(task(1))
+        claim = self.state.claim()
+        integration = ensure_integration(self.state)
+        empty_tree = subprocess.check_output(
+            ["git", "-C", str(self.repo), "hash-object", "-t", "tree", "/dev/null"],
+            text=True,
+        ).strip()
+        env = os.environ.copy()
+        env.update({
+            "GIT_AUTHOR_NAME": "as", "GIT_AUTHOR_EMAIL": "as@local.invalid",
+            "GIT_COMMITTER_NAME": "as", "GIT_COMMITTER_EMAIL": "as@local.invalid",
+        })
+        unrelated = subprocess.run(
+            ["git", "-C", str(self.repo), "commit-tree", empty_tree], input="unrelated base\n",
+            text=True, capture_output=True, env=env, check=True,
+        ).stdout.strip()
+        branch = "feature/astra-stale-candidate"
+        candidate = self.state.home / "worktrees" / "candidate-stale-base"
+        git(self.repo, "worktree", "add", "-b", branch, str(candidate), unrelated)
+        (candidate / "candidate.py").write_text("VALUE = 1\n")
+        git(candidate, "add", "--", "candidate.py")
+        git(candidate, "-c", "user.name=as", "-c", "user.email=as@local.invalid", "commit", "-m", "candidate")
+        candidate_sha = git(candidate, "rev-parse", "HEAD")
+        self.state.set_task("ASTRA-001", "awaiting_review", fields={
+            "worktree": str(candidate), "branch": branch, "base_sha": unrelated,
+            "candidate_sha": candidate_sha, "changed_files": json.dumps(["candidate.py"]),
+            "qc_evidence": '{"independent_qc":"passed"}',
+        }, run_id=claim["run_id"], attempt=claim["attempt"])
+        self.state.approve("ASTRA-001", run_id=claim["run_id"], attempt=claim["attempt"])
+
+        (integration / "already-integrated.py").write_text("VALUE = 2\n")
+        git(integration, "add", "--", "already-integrated.py")
+        git(integration, "-c", "user.name=as", "-c", "user.email=as@local.invalid", "commit", "-m", "fresh integration")
+        fresh_sha = git(integration, "rev-parse", "HEAD")
+        self.state.put("integration_sha", fresh_sha)
+
+        with self.assertRaisesRegex(ValueError, "integration candidate base is stale"):
+            integrate(self.state, "ASTRA-001")
+        self.assertEqual(self.state.list_tasks()[0]["status"], "conflict")
+        self.assertEqual(git(integration, "rev-parse", "HEAD"), fresh_sha)
+        self.assertFalse((integration / "candidate.py").exists())
+
     def test_main_builder_handoff_is_idempotent_and_merges_through_qc(self):
         self.state.add_tasks(task(1))
         with self.state.db() as db:

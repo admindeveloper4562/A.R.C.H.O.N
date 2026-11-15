@@ -1449,6 +1449,17 @@ def integrate(state: State, tid: str, *, merger_model: str | None = None, merger
             raise ValueError("task is not QC-passed and approved")
         data=dict(row)
     integration=ensure_integration(state)
+    integration_sha = state.get("integration_sha")
+    if data["base_sha"] != integration_sha:
+        lineage = subprocess.run(
+            ["git", "-C", str(integration), "merge-base", "--is-ancestor",
+             data["base_sha"], integration_sha],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30, check=False,
+        )
+        if lineage.returncode:
+            state.set_task(tid, "conflict", error="integration_stale_base",
+                           run_id=data["last_run"], attempt=data["attempt"])
+            raise ValueError("integration candidate base is stale; rebase required")
     candidate=Path(data["worktree"]).resolve(strict=True)
     if candidate.parent!=(state.home/"worktrees").resolve() or candidate.is_symlink():
         raise ValueError("candidate outside isolated worktrees")
