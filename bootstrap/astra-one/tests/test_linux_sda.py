@@ -124,6 +124,16 @@ class LinuxSDATests(unittest.TestCase):
         self.assertIn("remove trailing whitespace", prompt)
         self.assertIn("do not modify protected policy files", prompt)
 
+    def test_worker_prompt_renders_task_type_and_scope_contract(self):
+        scoped = task(2)
+        scoped["execution_mode"] = "implementation"
+        scoped["suggested_scope_roots"] = ["src/jarvis_v2/backend/", "tests/"]
+        prompt = make_prompt(scoped, "a" * 40, "b" * 64, "recovery", "")
+        self.assertIn("execution_mode=implementation", prompt)
+        self.assertIn("src/jarvis_v2/backend/", prompt)
+        self.assertIn("tests/", prompt)
+        self.assertIn("validator will reject files outside", prompt)
+
     def test_upgrade_audit_brief_is_task_specific_and_bounded(self):
         win = _upgrade_audit_brief("WIN-002")
         self.assertIn("config_contract", win)

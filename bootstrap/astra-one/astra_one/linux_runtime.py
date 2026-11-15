@@ -136,8 +136,13 @@ TASK_REPAIR_GUIDANCE = {
         "eval_count/eval_duration counters, bounded numeric receipts, strict endpoint validation and focused "
         "fake-request tests. Do not expose prompts, model output, credentials or a public Ollama listener; do not "
         "create .env or other secret-bearing files; use a checked-in TOML/JSON profile under the allowed roots. "
-        "Start Ollama or change host state from the Linux worker. Treat unavailable Windows/GPU evidence as an "
-        "explicit prerequisite or external blocker, not as a fabricated pass."
+        "Do not start Ollama or change host state from the Linux worker. Treat unavailable Windows/GPU evidence as "
+        "an explicit prerequisite or external blocker, not as a fabricated pass. Keep the checked-in profile as the "
+        "configuration source of truth, honor its bounded timeout in the client, and do not duplicate a divergent "
+        "second configuration contract in code. A Linux mock can verify request shape and counter arithmetic only; "
+        "return acceptance_verified=false until separately supplied host evidence proves Q8 KV, Flash Attention, "
+        "Windows identity and measured performance. Never include prompt, response, thinking, context, task packet "
+        "or raw server payloads in receipts."
     ),
 }
 
@@ -568,10 +573,18 @@ def make_prompt(task: dict, sha: str, architecture_sha: str, role: str, previous
             "copy private task, receipt, prompt, model or source contents into the plan.\n"
         )
     task_guidance = TASK_REPAIR_GUIDANCE.get(task.get("task_id"), "")
+    execution_mode = task.get("execution_mode", "implementation")
+    scope_roots = task.get("suggested_scope_roots", [])
+    scope_packet = (
+        "Task type and scope contract: execution_mode=" + str(execution_mode) + "; allowed scope roots="
+        + (", ".join(str(root) for root in scope_roots) if scope_roots else "not specified; do not infer additional roots")
+        + ". The deterministic validator will reject files outside this contract.\n"
+    )
     return (f"You are Astra One SDA {role}, an implementation agent in an isolated Linux Git worktree.\n"
             f"Task: {task['task_id']} (area {task['area']})\n"
             f"Pinned source commit: {sha}; approved architecture SHA256: {architecture_sha}.\n"
-            f"Objective: {task['objective']}\n"
+            + scope_packet
+            + f"Objective: {task['objective']}\n"
             "Acceptance criteria:\n" + "\n".join("- " + x for x in task["acceptance"]) + "\n"
             + child_packet
             + ("Previous bounded failure categories (for targeted repair): " + previous_error[:160] + "\n" if previous_error else "")
