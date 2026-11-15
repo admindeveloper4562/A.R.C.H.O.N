@@ -135,7 +135,8 @@ TASK_REPAIR_GUIDANCE = {
         "GPU or throughput result that was not measured. Provide a loopback-only benchmark using Ollama's "
         "eval_count/eval_duration counters, bounded numeric receipts, strict endpoint validation and focused "
         "fake-request tests. Do not expose prompts, model output, credentials or a public Ollama listener; do not "
-        "start Ollama or change host state from the Linux worker. Treat unavailable Windows/GPU evidence as an "
+        "create .env or other secret-bearing files; use a checked-in TOML/JSON profile under the allowed roots. "
+        "Start Ollama or change host state from the Linux worker. Treat unavailable Windows/GPU evidence as an "
         "explicit prerequisite or external blocker, not as a fabricated pass."
     ),
 }

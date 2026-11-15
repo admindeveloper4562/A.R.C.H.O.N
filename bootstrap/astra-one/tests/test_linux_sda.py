@@ -376,6 +376,15 @@ class LinuxSDATests(unittest.TestCase):
         with self.assertRaisesRegex(ChangeValidationError,"outside_task_scope"):
             check_changes(self.repo,b,task=scoped_task)
 
+    def test_static_change_rejects_secret_bearing_env_profile(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        profile=self.repo/"infra"/"windows"/"qwen3-8b.env"
+        profile.parent.mkdir(parents=True)
+        profile.write_text("OLLAMA_HOST=127.0.0.1\n")
+        scoped_task={"suggested_scope_roots":["infra/windows/"]}
+        with self.assertRaisesRegex(ChangeValidationError,"hidden_or_unsupported_path"):
+            check_changes(self.repo,b,task=scoped_task)
+
     def test_static_change_rejects_zero_files_with_specific_code(self):
         b=git(self.repo,"rev-parse","HEAD")
         with self.assertRaises(ChangeValidationError) as caught:
