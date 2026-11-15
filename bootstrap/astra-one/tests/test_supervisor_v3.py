@@ -314,6 +314,29 @@ class SupervisorV3Tests(unittest.TestCase):
         with self.state.db() as db:
             self.assertIsNone(db.execute("SELECT 1 FROM rebuild_queue WHERE parent_id='V3-001'").fetchone())
 
+    def test_external_blocker_clears_stale_pending_claim_and_survives_refresh(self):
+        with self.state.db() as db:
+            db.execute(
+                "INSERT INTO pending_queue(parent_id,project_id,enqueue_seq,available_at,created_at) "
+                "SELECT id,project_id,1,0,? FROM tasks WHERE id='V3-001' "
+                "ON CONFLICT(parent_id) DO UPDATE SET available_at=excluded.available_at",
+                ("2026-01-01T00:00:00+00:00",),
+            )
+        case = self.supervisor.triage_failure("V3-001", "credential_required", generation=1)
+        with self.state.db() as db:
+            db.execute("UPDATE tasks SET status='pending',last_error='credential_required' WHERE id='V3-001'")
+        result = self.supervisor.mark_external_blocker(
+            case["case_id"], "credential_required", "credential_required",
+        )
+        self.assertEqual(result["state"], "external_blocker")
+        with self.state.db() as db:
+            self.assertEqual(db.execute("SELECT status FROM tasks WHERE id='V3-001'").fetchone()[0], "blocked")
+            self.assertIsNone(db.execute("SELECT 1 FROM pending_queue WHERE parent_id='V3-001'").fetchone())
+            db.execute("UPDATE tasks SET status='pending' WHERE id='V3-001'")
+            self.state._refresh_project_queues_db(db, "ARCHON-JARVIS-V2")
+            self.assertEqual(db.execute("SELECT status FROM tasks WHERE id='V3-001'").fetchone()[0], "blocked")
+            self.assertIsNone(db.execute("SELECT 1 FROM pending_queue WHERE parent_id='V3-001'").fetchone())
+
     def test_expired_recovery_lease_is_fenced_after_process_loss(self):
         self.state.set_task("V3-001", "failed", error="no_file_changes")
         case = self.supervisor.triage_failure("V3-001", "no_file_changes", generation=1)

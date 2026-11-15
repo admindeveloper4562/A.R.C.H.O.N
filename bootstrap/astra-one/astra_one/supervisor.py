@@ -272,7 +272,7 @@ class SupervisorController:
                 if not row or row["state"] not in {"triaged", "qc_rejected", "merge_rejected", "external_blocker"}:
                     db.execute("ROLLBACK")
                     raise ValueError("case is not externally classifiable")
-                if row["status"] not in {"failed", "conflict", "interrupted", "stopped", "blocked"}:
+                if row["status"] not in {"failed", "conflict", "interrupted", "stopped", "blocked", "pending"}:
                     db.execute("ROLLBACK")
                     raise ValueError("task is not blocked or failed")
                 timestamp = now()

@@ -548,6 +548,11 @@ class State:
             "SELECT * FROM tasks WHERE project_id=? ORDER BY enqueue_seq,id", (project_id,)
         ).fetchall()
         by_id = {row["id"]: row for row in rows}
+        external_blockers = {
+            row[0] for row in db.execute(
+                "SELECT parent_id FROM supervisor_cases WHERE state='external_blocker'"
+            )
+        }
         active = {"preflight", "coding", "verifying", "awaiting_review", "approved"}
         terminal = {"completed", "archived"}
         for row in rows:
@@ -557,7 +562,12 @@ class State:
             spec = json.loads(row["spec"])
             dependencies = spec.get("depends_on", [])
             dependency_statuses = [by_id.get(dep, {"status": "blocked"})["status"] for dep in dependencies]
-            if any(status in {"failed", "blocked", "stopped", "interrupted"} for status in dependency_statuses):
+            if row["id"] in external_blockers:
+                # An explicit external blocker is a durable fence.  It must
+                # win over dependency readiness so a stale pending row cannot
+                # silently hand the task back to a coding worker.
+                desired = "blocked"
+            elif any(status in {"failed", "blocked", "stopped", "interrupted"} for status in dependency_statuses):
                 desired = "blocked"
             elif row["owner_gate"]:
                 desired = "approval_required"
