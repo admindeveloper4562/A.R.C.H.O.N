@@ -203,6 +203,50 @@ class SupervisorController:
         return {"case_id": case_id, "task_id": task_id, "generation": generation,
                 "category": category, "state": state, "fingerprint": fingerprint}
 
+    def mark_external_blocker(self, case_id: str, category: str, failure_code: str = "") -> dict:
+        """Fence a non-coding blocker without consuming another worker generation."""
+        if category not in EXTERNAL_CATEGORIES:
+            raise ValueError("invalid external blocker category")
+        failure_code = failure_code or category
+        if not _SAFE_CODE.fullmatch(failure_code):
+            raise ValueError("failure code must be a bounded category")
+        with self.state.master_lock():
+            with self.state.db() as db:
+                db.execute("BEGIN IMMEDIATE")
+                row = db.execute(
+                    "SELECT c.parent_id,c.state,t.status,t.last_run FROM supervisor_cases c "
+                    "JOIN tasks t ON t.id=c.parent_id WHERE c.case_id=?",
+                    (case_id,),
+                ).fetchone()
+                if not row or row["state"] not in {"triaged", "qc_rejected", "merge_rejected", "external_blocker"}:
+                    db.execute("ROLLBACK")
+                    raise ValueError("case is not externally classifiable")
+                if row["status"] not in {"failed", "conflict", "interrupted", "stopped", "blocked"}:
+                    db.execute("ROLLBACK")
+                    raise ValueError("task is not blocked or failed")
+                timestamp = now()
+                db.execute(
+                    "UPDATE tasks SET status='blocked',last_error=?,updated_at=? WHERE id=?",
+                    (failure_code[:160], timestamp, row["parent_id"]),
+                )
+                if row["last_run"]:
+                    db.execute(
+                        "UPDATE runs SET status='blocked',error_code=?,finished_at=COALESCE(finished_at,?) "
+                        "WHERE id=? AND status NOT IN ('completed','failed','interrupted','blocked')",
+                        (failure_code[:160], timestamp, row["last_run"]),
+                    )
+                for queue in ("pending_queue", "rebuild_queue", "review_queue", "merge_queue"):
+                    db.execute(f"DELETE FROM {queue} WHERE parent_id=?", (row["parent_id"],))
+                db.execute(
+                    "UPDATE supervisor_cases SET state='external_blocker',category=?,failure_code=?,updated_at=? "
+                    "WHERE case_id=?",
+                    (category, failure_code[:160], timestamp, case_id),
+                )
+                db.execute("COMMIT")
+        return {"case_id": case_id, "task_id": row["parent_id"],
+                "state": "external_blocker", "category": category,
+                "failure_code": failure_code[:160]}
+
     def claim_recovery(self, case_id: str, lane_id: str) -> dict:
         if lane_id not in RECOVERY_LANES or not _SAFE_CODE.fullmatch(case_id):
             raise ValueError("invalid recovery lane or case")

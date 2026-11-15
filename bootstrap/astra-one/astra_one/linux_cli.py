@@ -358,6 +358,7 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("full-plan-status")
     sub.add_parser("status");sub.add_parser("tasks");sub.add_parser("sync")
     for name in ("stop","pause","resume","clear-quota","recover"):sub.add_parser(name)
+    p=sub.add_parser("supervisor-block");p.add_argument("case_id");p.add_argument("--category",required=True);p.add_argument("--failure-code",default="")
     p=sub.add_parser("retry");p.add_argument("task_id")
     p=sub.add_parser("reopen");p.add_argument("task_ids",nargs="+")
     sub.add_parser("supervisor-status")
@@ -424,6 +425,8 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command=="recover":report({"interrupted_tasks":state.recover(),"auto_restart":False})
         elif args.command=="retry":state.retry(args.task_id);report({"queued":args.task_id})
         elif args.command=="reopen":report({"reopened":state.reopen_failed(args.task_ids),"history_preserved":True})
+        elif args.command == "supervisor-block":
+            report(SupervisorController(state).mark_external_blocker(args.case_id, args.category, args.failure_code))
         elif args.command == "supervisor-recover":
             command=json.loads(args.test_command_json)
             if not isinstance(command,list):

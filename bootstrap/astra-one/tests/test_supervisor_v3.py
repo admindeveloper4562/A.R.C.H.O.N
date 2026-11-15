@@ -212,6 +212,18 @@ class SupervisorV3Tests(unittest.TestCase):
         }])
         self.assertEqual(self.supervisor.status()["cases"], {"resolved": 1})
 
+    def test_external_blocker_fences_task_without_recovery_generation(self):
+        self.state.set_task("V3-001", "failed", error="qc_rejected")
+        case = self.supervisor.triage_failure("V3-001", "qc_rejected", generation=1)
+        result = self.supervisor.mark_external_blocker(
+            case["case_id"], "credential_required", "credential_required",
+        )
+        self.assertEqual(result["state"], "external_blocker")
+        self.assertEqual(self.state.list_tasks()[0]["status"], "blocked")
+        self.assertEqual(self.supervisor.status()["cases"], {"external_blocker": 1})
+        with self.state.db() as db:
+            self.assertIsNone(db.execute("SELECT 1 FROM rebuild_queue WHERE parent_id='V3-001'").fetchone())
+
     def test_expired_recovery_lease_is_fenced_after_process_loss(self):
         self.state.set_task("V3-001", "failed", error="no_file_changes")
         case = self.supervisor.triage_failure("V3-001", "no_file_changes", generation=1)
