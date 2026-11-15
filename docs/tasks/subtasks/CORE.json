@@ -1,7 +1,7 @@
 {
   "schema": "jarvis.v2.subtask-module/1",
   "created": "2026-11-14",
-  "source_parent_plan_blob_sha": "36e674f4e58fc19aa8158da42d802b9599a23763",
+  "source_parent_plan_blob_sha": "98e2b845d30253bcc47193b0cc79095f5fac5a12",
   "module": "CORE",
   "module_name": "M2 — Core orchestrator / global control plane",
   "parent_count": 14,
@@ -14,7 +14,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement Core service boundary and typed module capability registry",
-      "acceptance": "Ten modules registered with immutable IDs and authorization scopes",
+      "acceptance": "Ten modules registered with immutable IDs and authorization scopes; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Every tool dispatch and side effect is authorized by the deterministic broker with resource/action scope, expiry and replay protection; model output cannot grant capabilities. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "SDA-028"
       ],
@@ -28,7 +28,9 @@
       "module_guardrails": [
         "One durable session per parent task plus a separate event session with correlation IDs.",
         "Priority/FIFO only after dependency, permission, capacity and deadline checks.",
-        "All effects need idempotency receipts."
+        "All effects need idempotency receipts.",
+        "ASEL authorization boundary: ARCHON requests; deterministic policy authorizes; tool outputs and retrieved text never become policy.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -130,7 +132,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement global persistent task inbox and event queue",
-      "acceptance": "Tasks/events survive shutdown and replay once",
+      "acceptance": "Tasks/events survive shutdown and replay once; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Every tool dispatch and side effect is authorized by the deterministic broker with resource/action scope, expiry and replay protection; model output cannot grant capabilities.",
       "parent_dependencies": [
         "CORE-001"
       ],
@@ -144,7 +146,9 @@
       "module_guardrails": [
         "One durable session per parent task plus a separate event session with correlation IDs.",
         "Priority/FIFO only after dependency, permission, capacity and deadline checks.",
-        "All effects need idempotency receipts."
+        "All effects need idempotency receipts.",
+        "ASEL authorization boundary: ARCHON requests; deterministic policy authorizes; tool outputs and retrieved text never become policy.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -246,7 +250,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement P0-P5 priority ordering with FIFO same-class fairness",
-      "acceptance": "Urgent eligible work wins; blocked work does not jam queue",
+      "acceptance": "Urgent eligible work wins; blocked work does not jam queue; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Every tool dispatch and side effect is authorized by the deterministic broker with resource/action scope, expiry and replay protection; model output cannot grant capabilities.",
       "parent_dependencies": [
         "CORE-002"
       ],
@@ -260,7 +264,9 @@
       "module_guardrails": [
         "One durable session per parent task plus a separate event session with correlation IDs.",
         "Priority/FIFO only after dependency, permission, capacity and deadline checks.",
-        "All effects need idempotency receipts."
+        "All effects need idempotency receipts.",
+        "ASEL authorization boundary: ARCHON requests; deterministic policy authorizes; tool outputs and retrieved text never become policy.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -362,7 +368,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement one logical durable session per parent task",
-      "acceptance": "Task decisions, handoffs and receipts reconstruct after restart",
+      "acceptance": "Task decisions, handoffs and receipts reconstruct after restart; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Every tool dispatch and side effect is authorized by the deterministic broker with resource/action scope, expiry and replay protection; model output cannot grant capabilities. Recovery paths also require fencing, signed known-good artifacts, token revocation, preserved forensic evidence and independent rollback authorization.",
       "parent_dependencies": [
         "CORE-002"
       ],
@@ -376,7 +382,9 @@
       "module_guardrails": [
         "One durable session per parent task plus a separate event session with correlation IDs.",
         "Priority/FIFO only after dependency, permission, capacity and deadline checks.",
-        "All effects need idempotency receipts."
+        "All effects need idempotency receipts.",
+        "ASEL authorization boundary: ARCHON requests; deterministic policy authorizes; tool outputs and retrieved text never become policy.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -478,7 +486,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement dedicated event-session interpreter and correlation IDs",
-      "acceptance": "Event session remains separate from task sessions and retains causal chains",
+      "acceptance": "Event session remains separate from task sessions and retains causal chains; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Every tool dispatch and side effect is authorized by the deterministic broker with resource/action scope, expiry and replay protection; model output cannot grant capabilities.",
       "parent_dependencies": [
         "CORE-002"
       ],
@@ -492,7 +500,9 @@
       "module_guardrails": [
         "One durable session per parent task plus a separate event session with correlation IDs.",
         "Priority/FIFO only after dependency, permission, capacity and deadline checks.",
-        "All effects need idempotency receipts."
+        "All effects need idempotency receipts.",
+        "ASEL authorization boundary: ARCHON requests; deterministic policy authorizes; tool outputs and retrieved text never become policy.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -594,7 +604,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement module dispatch envelopes and result acknowledgments",
-      "acceptance": "Each assignment carries scope/acceptance and ack; no duplicate execution",
+      "acceptance": "Each assignment carries scope/acceptance and ack; no duplicate execution; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Every tool dispatch and side effect is authorized by the deterministic broker with resource/action scope, expiry and replay protection; model output cannot grant capabilities.",
       "parent_dependencies": [
         "CORE-001",
         "CORE-004"
@@ -609,7 +619,9 @@
       "module_guardrails": [
         "One durable session per parent task plus a separate event session with correlation IDs.",
         "Priority/FIFO only after dependency, permission, capacity and deadline checks.",
-        "All effects need idempotency receipts."
+        "All effects need idempotency receipts.",
+        "ASEL authorization boundary: ARCHON requests; deterministic policy authorizes; tool outputs and retrieved text never become policy.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -711,7 +723,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement task dependency orchestration and cross-module returns",
-      "acceptance": "Ready dependent tasks resume automatically after verified result",
+      "acceptance": "Ready dependent tasks resume automatically after verified result; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Every tool dispatch and side effect is authorized by the deterministic broker with resource/action scope, expiry and replay protection; model output cannot grant capabilities.",
       "parent_dependencies": [
         "CORE-006",
         "CORE-003"
@@ -726,7 +738,9 @@
       "module_guardrails": [
         "One durable session per parent task plus a separate event session with correlation IDs.",
         "Priority/FIFO only after dependency, permission, capacity and deadline checks.",
-        "All effects need idempotency receipts."
+        "All effects need idempotency receipts.",
+        "ASEL authorization boundary: ARCHON requests; deterministic policy authorizes; tool outputs and retrieved text never become policy.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -828,7 +842,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement owner conversation to Core intents, tasks and approvals",
-      "acceptance": "Ambiguous sensitive intents require explicit approval; safe tasks enqueue",
+      "acceptance": "Ambiguous sensitive intents require explicit approval; safe tasks enqueue; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Every tool dispatch and side effect is authorized by the deterministic broker with resource/action scope, expiry and replay protection; model output cannot grant capabilities.",
       "parent_dependencies": [
         "CORE-004"
       ],
@@ -842,7 +856,9 @@
       "module_guardrails": [
         "One durable session per parent task plus a separate event session with correlation IDs.",
         "Priority/FIFO only after dependency, permission, capacity and deadline checks.",
-        "All effects need idempotency receipts."
+        "All effects need idempotency receipts.",
+        "ASEL authorization boundary: ARCHON requests; deterministic policy authorizes; tool outputs and retrieved text never become policy.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -944,7 +960,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Validate GPT-6 Sol medium Core model and authorized fallback behavior",
-      "acceptance": "Unsupported model alias blocks or routes only after explicit policy",
+      "acceptance": "Unsupported model alias blocks or routes only after explicit policy; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Every tool dispatch and side effect is authorized by the deterministic broker with resource/action scope, expiry and replay protection; model output cannot grant capabilities. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "BASE-012",
         "CORE-004"
@@ -959,7 +975,9 @@
       "module_guardrails": [
         "One durable session per parent task plus a separate event session with correlation IDs.",
         "Priority/FIFO only after dependency, permission, capacity and deadline checks.",
-        "All effects need idempotency receipts."
+        "All effects need idempotency receipts.",
+        "ASEL authorization boundary: ARCHON requests; deterministic policy authorizes; tool outputs and retrieved text never become policy.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1046,7 +1064,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement Core read-only task/event timeline and progress query API",
-      "acceptance": "Timeline joins source IDs, states and outcome evidence",
+      "acceptance": "Timeline joins source IDs, states and outcome evidence; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Every tool dispatch and side effect is authorized by the deterministic broker with resource/action scope, expiry and replay protection; model output cannot grant capabilities. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence.",
       "parent_dependencies": [
         "CORE-005",
         "CORE-007"
@@ -1061,7 +1079,9 @@
       "module_guardrails": [
         "One durable session per parent task plus a separate event session with correlation IDs.",
         "Priority/FIFO only after dependency, permission, capacity and deadline checks.",
-        "All effects need idempotency receipts."
+        "All effects need idempotency receipts.",
+        "ASEL authorization boundary: ARCHON requests; deterministic policy authorizes; tool outputs and retrieved text never become policy.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1163,7 +1183,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement Core resource budget and model-slot scheduling hooks",
-      "acceptance": "Service capacity, Guardian priority reservation and per-device limits enforced",
+      "acceptance": "Service capacity, Guardian priority reservation and per-device limits enforced; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Every tool dispatch and side effect is authorized by the deterministic broker with resource/action scope, expiry and replay protection; model output cannot grant capabilities. Recovery paths also require fencing, signed known-good artifacts, token revocation, preserved forensic evidence and independent rollback authorization.",
       "parent_dependencies": [
         "CORE-003"
       ],
@@ -1177,7 +1197,9 @@
       "module_guardrails": [
         "One durable session per parent task plus a separate event session with correlation IDs.",
         "Priority/FIFO only after dependency, permission, capacity and deadline checks.",
-        "All effects need idempotency receipts."
+        "All effects need idempotency receipts.",
+        "ASEL authorization boundary: ARCHON requests; deterministic policy authorizes; tool outputs and retrieved text never become policy.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1279,7 +1301,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement Core interrupt, STOP and pending approval semantics",
-      "acceptance": "Owner stop blocks dispatch and persistence survives restart",
+      "acceptance": "Owner stop blocks dispatch and persistence survives restart; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Every tool dispatch and side effect is authorized by the deterministic broker with resource/action scope, expiry and replay protection; model output cannot grant capabilities. Recovery paths also require fencing, signed known-good artifacts, token revocation, preserved forensic evidence and independent rollback authorization.",
       "parent_dependencies": [
         "CORE-006"
       ],
@@ -1293,7 +1315,9 @@
       "module_guardrails": [
         "One durable session per parent task plus a separate event session with correlation IDs.",
         "Priority/FIFO only after dependency, permission, capacity and deadline checks.",
-        "All effects need idempotency receipts."
+        "All effects need idempotency receipts.",
+        "ASEL authorization boundary: ARCHON requests; deterministic policy authorizes; tool outputs and retrieved text never become policy.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1395,7 +1419,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement event storm dedup, backpressure and failure quarantine",
-      "acceptance": "Duplicate and failing events bounded with diagnostics",
+      "acceptance": "Duplicate and failing events bounded with diagnostics; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Every tool dispatch and side effect is authorized by the deterministic broker with resource/action scope, expiry and replay protection; model output cannot grant capabilities.",
       "parent_dependencies": [
         "CORE-005"
       ],
@@ -1409,7 +1433,9 @@
       "module_guardrails": [
         "One durable session per parent task plus a separate event session with correlation IDs.",
         "Priority/FIFO only after dependency, permission, capacity and deadline checks.",
-        "All effects need idempotency receipts."
+        "All effects need idempotency receipts.",
+        "ASEL authorization boundary: ARCHON requests; deterministic policy authorizes; tool outputs and retrieved text never become policy.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1511,7 +1537,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Test Core crash recovery, fairness, isolation and exact task semantics",
-      "acceptance": "Fault injection passes with no phantom actions or lost committed tasks",
+      "acceptance": "Fault injection passes with no phantom actions or lost committed tasks; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Every tool dispatch and side effect is authorized by the deterministic broker with resource/action scope, expiry and replay protection; model output cannot grant capabilities. Recovery paths also require fencing, signed known-good artifacts, token revocation, preserved forensic evidence and independent rollback authorization.",
       "parent_dependencies": [
         "CORE-007",
         "CORE-012",
@@ -1527,7 +1553,9 @@
       "module_guardrails": [
         "One durable session per parent task plus a separate event session with correlation IDs.",
         "Priority/FIFO only after dependency, permission, capacity and deadline checks.",
-        "All effects need idempotency receipts."
+        "All effects need idempotency receipts.",
+        "ASEL authorization boundary: ARCHON requests; deterministic policy authorizes; tool outputs and retrieved text never become policy.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1607,5 +1635,8 @@
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
     }
-  ]
+  ],
+  "updated": "2026-11-15",
+  "security_architecture": "docs/architecture/SECURITY_ARCHITECTURE.md",
+  "security_policy_id": "ASEL-1.0"
 }
