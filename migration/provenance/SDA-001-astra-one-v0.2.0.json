@@ -48,6 +48,17 @@
     "symlinks": 0,
     "destination_preexisting": false,
     "destination_writes": 0,
+    "applied_regular_files_after_pass": 33,
+    "result": "passed"
+  },
+  "rollback": {
+    "candidate_source_sha": "78dc3faec4758d32e605dcc9311e878724831750",
+    "rollback_sha": "b2fb308501bad992ecdb84baac313fae812d0f7f",
+    "candidate_checkpoint_manifest_matches": "32/32",
+    "rollback_runtime_version": "0.3.0",
+    "rollback_import_target_exists": false,
+    "bootstrap_diff_base_to_candidate_files": 0,
+    "candidate_restored_manifest_matches": "32/32",
     "result": "passed"
   },
   "review_boundary": {

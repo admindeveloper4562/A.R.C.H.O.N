@@ -4,6 +4,7 @@ Task: `SDA-001`
 Generation: `2`
 Source commit: `5227b91d2725bf4be4336a5ad26189fdf1034704`
 Candidate base: `b2fb308501bad992ecdb84baac313fae812d0f7f`
+Source candidate commit: `78dc3faec4758d32e605dcc9311e878724831750`
 Branch: `recovery/sda/SDA-001-provenance-recovery-g2`
 
 ## Result
@@ -59,13 +60,15 @@ regular files and excluded the staging directory's generated `.pyc` artifacts.
 
 ## Rollback and review boundary
 
-Rollback target is the candidate base SHA above. The rollback probe must verify
-that the v0.3.0 runtime remains available at that SHA and that restoring the
-candidate commit reproduces the imported package hashes. The candidate remains
-review-only until independent QC and the serialized Merger bind their receipts
-to the final candidate SHA. No canonical SQLite transaction or task-status
-transition is performed by this preparation step.
+Rollback target was the candidate base SHA above. In a disposable clone, the
+probe checked out `78dc3fa…`, verified the v0.3.0 runtime and 32/32 imported
+hashes, switched to `b2fb308…`, verified that the import target was absent, the
+v0.3.0 runtime remained present, and the base-to-candidate bootstrap diff was
+zero files, then restored `78dc3fa…` and reverified 32/32 hashes. The candidate
+remains review-only until independent QC and the serialized Merger bind their
+receipts to the final candidate SHA. No canonical SQLite transaction or
+task-status transition is performed by this preparation step.
 
 Required handoff receipt fields:
 
-`SDA-001 | child_receipts pending Master registration | start_sha b2fb308501bad992ecdb84baac313fae812d0f7f | candidate_sha pending commit | integration_sha pending Merger | branch recovery/sda/SDA-001-provenance-recovery-g2 | files migration/imported/sda/astra-one-v0.2.0/**, migration/provenance/SDA-001-astra-one-v0.2.0.json, docs/tasks/SDA-001-PROVENANCE-RECOVERY-20261115.md | test_evidence 32 manifest hashes + 49 historical Python tests + dry-run | independent_qc pending | merger_result pending | runtime_lane recovery | retries 1 prior generation, current generation 2 | blockers license review, independent QC, serialized merge and deterministic Master reconciliation`
+`SDA-001 | child_receipts pending Master registration | start_sha b2fb308501bad992ecdb84baac313fae812d0f7f | source_candidate_sha 78dc3faec4758d32e605dcc9311e878724831750 | final_candidate_sha pending handoff commit | integration_sha pending Merger | branch recovery/sda/SDA-001-provenance-recovery-g2 | files migration/imported/sda/astra-one-v0.2.0/**, migration/provenance/SDA-001-astra-one-v0.2.0.json, docs/tasks/SDA-001-PROVENANCE-RECOVERY-20261115.md | test_evidence 32 manifest hashes + 49 historical Python tests + root 48-test suite + dry-run + rollback | independent_qc pending | merger_result pending | runtime_lane recovery | retries 1 prior generation, current generation 2 | blockers license review, independent QC, serialized merge and deterministic Master reconciliation`
