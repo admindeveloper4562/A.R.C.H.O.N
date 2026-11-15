@@ -1,0 +1,169 @@
+{
+  "source_sha": "f482e846855285aa7eeefe595530156eb06f2e3f",
+  "environment": {
+    "python": "3.12.3",
+    "platform": "linux",
+    "machine": "x86_64",
+    "sqlite": "3.45.1",
+    "model": "NOT_INVOKED",
+    "provider": "NOT_INVOKED",
+    "target_device": "Linux local test process; Windows/GPU/cloud NOT_EXERCISED"
+  },
+  "commands": [
+    {
+      "argv": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_acceptance_evidence.py",
+        "-v"
+      ],
+      "environment": {
+        "PYTHONPATH": "src:.",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "cwd": "assigned_worktree",
+      "started_utc": "2026-11-15T10:07:09.212192+00:00",
+      "ended_utc": "2026-11-15T10:07:09.634181+00:00",
+      "exit_code": 0,
+      "case_count": 9,
+      "artifact": "/tmp/base014-e6fcd9da-evidence/01.log",
+      "sha256": "822819c7e4f77efb06d8caddd9b0a66979ef5978a403c0b2741ea4c07f80d618"
+    },
+    {
+      "argv": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_atlas_core_events.py",
+        "-v"
+      ],
+      "environment": {
+        "PYTHONPATH": "src:.",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "cwd": "assigned_worktree",
+      "started_utc": "2026-11-15T10:07:09.634885+00:00",
+      "ended_utc": "2026-11-15T10:07:09.818033+00:00",
+      "exit_code": 0,
+      "case_count": 3,
+      "artifact": "/tmp/base014-e6fcd9da-evidence/02.log",
+      "sha256": "3e0b6bce2de396b04835cb7a58fb0c9bb6104ca4849b94fe2075d04c95c59098"
+    },
+    {
+      "argv": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_backend_manifest.py",
+        "-v"
+      ],
+      "environment": {
+        "PYTHONPATH": "src:.",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "cwd": "assigned_worktree",
+      "started_utc": "2026-11-15T10:07:09.818431+00:00",
+      "ended_utc": "2026-11-15T10:07:09.879804+00:00",
+      "exit_code": 0,
+      "case_count": 4,
+      "artifact": "/tmp/base014-e6fcd9da-evidence/03.log",
+      "sha256": "2c311f13a82407c7f417cc393dd4d013098a4a90122d7154056a2fcbfa730170"
+    },
+    {
+      "argv": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_foundation.py",
+        "-v"
+      ],
+      "environment": {
+        "PYTHONPATH": "src:.",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "cwd": "assigned_worktree",
+      "started_utc": "2026-11-15T10:07:09.880195+00:00",
+      "ended_utc": "2026-11-15T10:07:10.111383+00:00",
+      "exit_code": 0,
+      "case_count": 7,
+      "artifact": "/tmp/base014-e6fcd9da-evidence/04.log",
+      "sha256": "1e0769edd5e2e0dc41d0a648d21af241f35ae0919e0afb68ea35aefd47a969e1"
+    },
+    {
+      "argv": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_sda_shadow_handoff.py",
+        "-v"
+      ],
+      "environment": {
+        "PYTHONPATH": "src:.",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "cwd": "assigned_worktree",
+      "started_utc": "2026-11-15T10:07:10.111767+00:00",
+      "ended_utc": "2026-11-15T10:07:10.167589+00:00",
+      "exit_code": 0,
+      "case_count": 3,
+      "artifact": "/tmp/base014-e6fcd9da-evidence/05.log",
+      "sha256": "c6e0a6f28fda3fdeee53e44d8012f7b130d02057fe7e40ba6abd65bcd3b9e43d"
+    },
+    {
+      "argv": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-p",
+        "test_monitor_supervision.py",
+        "-v"
+      ],
+      "environment": {
+        "PYTHONPATH": "src:.",
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "cwd": "assigned_worktree",
+      "started_utc": "2026-11-15T10:07:10.167962+00:00",
+      "ended_utc": "2026-11-15T10:07:10.414397+00:00",
+      "exit_code": 0,
+      "case_count": 3,
+      "artifact": "/tmp/base014-e6fcd9da-evidence/06.log",
+      "sha256": "b1762ddb4bd942026cb0025de1dc226b872a6dbafe17b1454bb3330d2a36b3ad"
+    }
+  ],
+  "execution_mode": "verification",
+  "candidate_sha": null,
+  "integration_sha": null,
+  "independent_qc": "PENDING",
+  "full_host_gate_state": "NOT_VERIFIED",
+  "hosted_ci_state": "DEFERRED_QUOTA",
+  "candidate_inputs": {
+    "docs/engineering/PROJECT_ACCEPTANCE.md": "15f16cc64c437565484426e386ae9bed240d9d77057fbf9f48ec8fec9060d498",
+    "tests/fixtures/base014.json": "033c444acffb9f7a5163ff5fcb7459705b20fdfdc1465a352c835bc8181d12ac",
+    "tests/test_acceptance_evidence.py": "9bdbd10e197db8209e48c939434c156913b7fcffbb69058b56605856a6a4ff31"
+  }
+}

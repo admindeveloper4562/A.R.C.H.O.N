@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "synthetic_only": true,
+  "task_id": "FIXTURE-014",
+  "other_task_id": "FIXTURE-OTHER",
+  "payload": {"text": "synthetic-private-task-canary"},
+  "receipt": "synthetic-private-receipt-canary",
+  "model_text": "synthetic-private-model-canary",
+  "events": [
+    {"seq": 8, "task_id": "FIXTURE-014", "kind": "completed"},
+    {"seq": 2, "task_id": "FIXTURE-OTHER", "kind": "pending"},
+    {"seq": 3, "task_id": "FIXTURE-014", "kind": "leased"},
+    {"seq": 1, "task_id": "FIXTURE-014", "kind": "pending"}
+  ],
+  "expected_sequences": [1, 3, 8],
+  "invalid_limits": [0, -1, true, false, null, "2", 1.5]
+}
