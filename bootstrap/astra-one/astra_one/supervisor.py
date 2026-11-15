@@ -134,6 +134,30 @@ class SupervisorController:
                             "task_id": lane["task_id"], "state": case_state})
         return expired
 
+    @staticmethod
+    def _reconcile_completed_cases_locked(db: sqlite3.Connection) -> list[dict]:
+        """Close historical failure cases only after the task has durable completion."""
+        rows = db.execute(
+            "SELECT c.case_id,c.parent_id,c.generation,t.candidate_sha,t.integrated_sha "
+            "FROM supervisor_cases c JOIN tasks t ON t.id=c.parent_id "
+            "WHERE t.status='completed' AND c.state<>'resolved' "
+            "ORDER BY c.updated_at,c.case_id"
+        ).fetchall()
+        resolved = []
+        timestamp = now()
+        for row in rows:
+            db.execute(
+                "UPDATE supervisor_cases SET state='resolved',candidate_sha=COALESCE(NULLIF(?,''),candidate_sha),"
+                "updated_at=? WHERE case_id=? AND state<>'resolved'",
+                (row["candidate_sha"] or "", timestamp, row["case_id"]),
+            )
+            resolved.append({
+                "case_id": row["case_id"], "parent_id": row["parent_id"],
+                "generation": row["generation"], "candidate_sha": row["candidate_sha"],
+                "integrated_sha": row["integrated_sha"],
+            })
+        return resolved
+
     def reconcile_recovery_leases(self, max_age_seconds: int = RECOVERY_LEASE_TTL_SECONDS) -> dict:
         with self.state.master_lock():
             with self.state.db() as db:
@@ -686,10 +710,12 @@ class SupervisorController:
                 ).fetchall()
                 db.execute("BEGIN IMMEDIATE")
                 expired = self._reconcile_recovery_leases_locked(db)
+                resolved = self._reconcile_completed_cases_locked(db)
                 db.execute("COMMIT")
             for row in failures:
                 if row["last_error"]:
                     opened.append(self.triage_failure(row["id"], row["last_error"], base_sha=row["base_sha"],
                                                       candidate_sha=row["candidate_sha"], generation=row["attempt"]))
         return {"scanned": len(failures), "opened": opened, "expired_leases": expired,
+                "resolved_cases": resolved,
                 "status": self.status()}

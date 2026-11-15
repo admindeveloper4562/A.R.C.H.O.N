@@ -194,6 +194,24 @@ class SupervisorV3Tests(unittest.TestCase):
         status = self.supervisor.status()
         self.assertEqual(status["lanes"][0]["state"], "idle")
 
+    def test_tick_resolves_historical_case_only_after_task_completion(self):
+        self.state.set_task("V3-001", "failed", error="no_file_changes")
+        case = self.supervisor.triage_failure("V3-001", "no_file_changes", generation=1)
+        self.assertEqual(self.supervisor.status()["cases"], {"triaged": 1})
+        head = self.state.get("integration_sha")
+        candidate = "d" * 40
+        with self.state.db() as db:
+            db.execute(
+                "UPDATE tasks SET status='completed',candidate_sha=?,integrated_sha=? WHERE id=?",
+                (candidate, head, "V3-001"),
+            )
+        tick = self.supervisor.tick(limit=1)
+        self.assertEqual(tick["resolved_cases"], [{
+            "case_id": case["case_id"], "parent_id": "V3-001", "generation": 1,
+            "candidate_sha": candidate, "integrated_sha": head,
+        }])
+        self.assertEqual(self.supervisor.status()["cases"], {"resolved": 1})
+
     def test_expired_recovery_lease_is_fenced_after_process_loss(self):
         self.state.set_task("V3-001", "failed", error="no_file_changes")
         case = self.supervisor.triage_failure("V3-001", "no_file_changes", generation=1)
