@@ -5,7 +5,7 @@
   "module": "SDA",
   "module_name": "M1 — Astra One and full SDA qualification",
   "parent_count": 28,
-  "subtask_count": 164,
+  "subtask_count": 163,
   "parents": [
     {
       "parent_id": "SDA-001",
@@ -1870,21 +1870,6 @@
           "done_when": "Worker cannot read host/home/SSH/Cloudflare secrets, other worktrees or production DB; network remains denied unless a task-scoped allowlist is explicitly granted.",
           "depends_on": [
             "SDA-016.S05"
-          ],
-          "evidence_required": true,
-          "remote_github_actions_allowed": false
-        },
-        {
-          "id": "SDA-016.S07",
-          "sequence": 7,
-          "kind": "sandbox_security",
-          "title": "Prove hardened worker sandbox isolation and escape resistance",
-          "assignee_role": "worker",
-          "instruction": "Verify rootless disposable execution, AppArmor/seccomp or equivalent, minimal mounts, no Docker socket, no host credentials, no shared worker secrets and default-deny network. Test traversal, symlinks and attempted host access.",
-          "deliverable": "Sandbox threat-test matrix and host-level evidence.",
-          "done_when": "Worker cannot read host/home/SSH/cloud secrets, other worktrees or production DB; network denied unless task-scoped allowlist is granted.",
-          "depends_on": [
-            "SDA-016.S06"
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
