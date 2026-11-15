@@ -26,6 +26,9 @@ ALLOWED_SUFFIXES = {".py", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".json", ".toml
 MAX_FILES = 30
 MAX_BYTES = 2_000_000
 STOP_POLL = 0.3
+CODEX_JSONL_LINE_MAX = 64_000
+CODEX_TOOL_EFFECT_MAX = 128
+CODEX_TOKEN_MAX = 1_000_000_000
 AUDIT_REPORT_SUFFIXES = frozenset({".md", ".json"})
 GENERATED_CHANGE_PARTS = frozenset({"__pycache__", ".pytest_cache", ".test-output", "build", "dist", "node_modules", "ci-artifacts"})
 CHANGE_FAILURE_CODES = frozenset({
@@ -666,9 +669,55 @@ def codex_command(worktree: Path, model: str, effort: str, output_file: Path | N
     return cmd
 
 
+def _codex_event_metadata(line: str) -> dict:
+    """Extract bounded receipt fields without retaining model payloads or commands."""
+    if not isinstance(line, str) or len(line) > CODEX_JSONL_LINE_MAX:
+        return {}
+    try:
+        event = json.loads(line)
+    except (TypeError, json.JSONDecodeError):
+        return {}
+    if not isinstance(event, dict):
+        return {}
+    result = {"thread_id": "", "input_tokens": 0, "output_tokens": 0,
+              "tool_effect": None, "error_category": ""}
+    thread = event.get("thread_id")
+    if thread is None and isinstance(event.get("thread"), dict):
+        thread = event["thread"].get("id")
+    if isinstance(thread, str) and 0 < len(thread) <= 160 and thread.isprintable():
+        result["thread_id"] = thread
+    usage = event.get("usage")
+    if not isinstance(usage, dict) and isinstance(event.get("response"), dict):
+        usage = event["response"].get("usage")
+    if isinstance(usage, dict):
+        for key in ("input_tokens", "output_tokens"):
+            value = usage.get(key)
+            if isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= CODEX_TOKEN_MAX:
+                result[key] = value
+    kind = event.get("type")
+    item = event.get("item")
+    if kind == "item.completed" and isinstance(item, dict):
+        item_type = item.get("type")
+        if item_type in {"command_execution", "file_change", "mcp_tool_call"}:
+            effect = {"type": item_type, "status": item.get("status", "completed")}
+            if not isinstance(effect["status"], str) or not re.fullmatch(r"[A-Za-z0-9_.:-]{1,80}", effect["status"]):
+                effect["status"] = "completed"
+            exit_code = item.get("exit_code")
+            if isinstance(exit_code, int) and not isinstance(exit_code, bool) and 0 <= exit_code <= 255:
+                effect["exit_code"] = exit_code
+            if effect["status"] in {"failed", "error", "cancelled"}:
+                effect["error_category"] = (
+                    "codex_file_change_failed" if item_type == "file_change" else "tool_effect_failed"
+                )
+            result["tool_effect"] = effect
+    if kind in {"turn.failed", "error"}:
+        result["error_category"] = "model_error"
+    return result
+
+
 def codex_call(*, worktree: Path, prompt: str, home: Path, state: State, model: str, effort: str,
                sandbox: str, timeout: int, output_file: Path | None = None, role: str = "worker",
-               danger_bypass: bool = False) -> tuple[int,int,str]:
+               danger_bypass: bool = False, run_id: str | None = None) -> tuple[int,int,str]:
     """Execute one bounded Codex turn, parse only event types, never write raw model logs."""
     if sandbox not in ("workspace-write","read-only"):
         raise ValueError("unsupported sandbox")
@@ -681,12 +730,33 @@ def codex_call(*, worktree: Path, prompt: str, home: Path, state: State, model: 
     proc.stdin.write(prompt)
     proc.stdin.close()
     messages:queue.Queue[str] = queue.Queue(maxsize=100)
+    receipt = {"thread_id": "", "input_tokens": 0, "output_tokens": 0,
+               "tool_effects": [], "error_category": ""}
+    receipt_lock = threading.Lock()
+
+    def record_event(line: str) -> None:
+        parsed = _codex_event_metadata(line)
+        if not parsed:
+            return
+        with receipt_lock:
+            if parsed["thread_id"]:
+                receipt["thread_id"] = parsed["thread_id"]
+            for key in ("input_tokens", "output_tokens"):
+                if parsed[key]:
+                    receipt[key] = parsed[key]
+            effect = parsed["tool_effect"]
+            if effect and len(receipt["tool_effects"]) < CODEX_TOOL_EFFECT_MAX:
+                receipt["tool_effects"].append(effect)
+            if parsed["error_category"]:
+                receipt["error_category"] = parsed["error_category"]
+
     def reader(stream, tag):
         for line in stream:
             # Do not store prompts/code/output; only bounded error category signals.
             if tag=="stdout":
+                record_event(line)
                 try:
-                    obj=json.loads(line[:100_000])
+                    obj=json.loads(line[:CODEX_JSONL_LINE_MAX])
                     kind=str(obj.get("type", ""))
                     item=obj.get("item") or {}
                     tool = isinstance(item,dict) and item.get("type") in ("command_execution","file_change","mcp_tool_call")
@@ -747,6 +817,21 @@ def codex_call(*, worktree: Path, prompt: str, home: Path, state: State, model: 
         if key=="error" and reason=="ok":reason="model_error"
     if code and reason=="ok":
         reason="codex_nonzero"
+    with receipt_lock:
+        tools = max(tools, len(receipt["tool_effects"]))
+        receipt["error_category"] = receipt["error_category"] or (reason if reason != "ok" else "")
+        receipt_payload = dict(receipt)
+    if run_id:
+        try:
+            state.record_codex_receipt(
+                run_id, thread_id=receipt_payload["thread_id"],
+                input_tokens=receipt_payload["input_tokens"],
+                output_tokens=receipt_payload["output_tokens"], tool_count=tools,
+                tool_effects=receipt_payload["tool_effects"],
+                error_category=receipt_payload["error_category"],
+            )
+        except (OSError, ValueError, sqlite3.Error):
+            return code or 1, tools, "receipt_persist_failed"
     return code,tools,reason
 
 
@@ -1351,7 +1436,7 @@ def execute_claim(state: State, item: dict, *, slot: int, model: str, effort: st
         prompt=make_prompt(task,sha,state.get("architecture_sha"),role,prior_error)
         rc,tools,reason=codex_call(worktree=worktree,prompt=prompt,home=state.home,state=state,
                                    model=model,effort=effort,sandbox="workspace-write",timeout=timeout,role=role,
-                                   danger_bypass=danger_bypass)
+                                   danger_bypass=danger_bypass,run_id=run_id)
         if rc or reason!="ok":
             raise RuntimeError(reason if reason!="ok" else "codex_nonzero")
         emit("verifying","static_diff_review")

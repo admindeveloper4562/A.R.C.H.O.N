@@ -15,6 +15,7 @@ from astra_one.linux_runtime import (
     ChangeValidationError,
     DockerTestError,
     ReviewFailure,
+    _codex_event_metadata,
     check_changes,
     check_candidate_changes,
     codex_call,
@@ -494,6 +495,18 @@ class LinuxSDATests(unittest.TestCase):
         with self.state.db() as db:
             self.assertEqual(db.execute("SELECT tool_count FROM runs WHERE task_id='ASTRA-001'").fetchone()[0], 8)
 
+    def test_codex_receipt_columns_migrate_additively_from_v4(self):
+        with self.state.db() as db:
+            for column in ("thread_id", "input_tokens", "output_tokens", "tool_effects", "error_category"):
+                db.execute(f"ALTER TABLE runs DROP COLUMN {column}")
+            db.execute("PRAGMA user_version=4")
+        result = self.state.ensure_full_plan_schema()
+        self.assertTrue(result["migrated"])
+        with self.state.db() as db:
+            columns = {row[1] for row in db.execute("PRAGMA table_info(runs)")}
+            self.assertTrue({"thread_id", "input_tokens", "output_tokens", "tool_effects", "error_category"} <= columns)
+            self.assertEqual(db.execute("PRAGMA user_version").fetchone()[0], 5)
+
     def test_reopen_failed_starts_new_generation_without_erasing_history(self):
         self.state.add_tasks(task(1))
         for code in ("qc_rejected:input_validation", "qc_rejected:permission_scope"):
@@ -956,6 +969,70 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change','status':
                                        model="gpt-5.6-luna",effort="medium",sandbox="workspace-write",timeout=60)
         self.assertEqual(rc,0)
         self.assertEqual(reason,"codex_file_change_failed")
+
+    def test_codex_jsonl_receipt_persists_bounded_metadata(self):
+        self.state.add_tasks(task(1))
+        claim = self.state.claim()
+        executable = self.base / "receipt-codex"
+        executable.write_text("""#!/usr/bin/env python3
+import json
+print(json.dumps({'type':'thread.started','thread_id':'thread-123'}))
+print(json.dumps({'type':'item.completed','item':{'type':'command_execution','status':'completed','exit_code':0,'command':'echo SECRET'}}))
+print(json.dumps({'type':'item.completed','item':{'type':'file_change','status':'failed'}}))
+print(json.dumps({'type':'turn.completed','usage':{'input_tokens':17,'output_tokens':23}}))
+""")
+        executable.chmod(0o755)
+        with patch.dict(os.environ, {"ASTRA_CODEX_BIN": str(executable)}), patch(
+                "astra_one.linux_runtime.sandbox_status", return_value={"available": True, "reason": "test"}):
+            rc, tools, reason = codex_call(
+                worktree=self.repo, prompt="receipt", home=self.state.home, state=self.state,
+                model="gpt-5.6-luna", effort="medium", sandbox="workspace-write", timeout=60,
+                run_id=claim["run_id"],
+            )
+        self.assertEqual((rc, tools, reason), (0, 2, "codex_file_change_failed"))
+        with self.state.db() as db:
+            row = db.execute(
+                "SELECT thread_id,input_tokens,output_tokens,tool_count,tool_effects,error_category "
+                "FROM runs WHERE id=?", (claim["run_id"],)
+            ).fetchone()
+        self.assertEqual(tuple(row[:4]), ("thread-123", 17, 23, 2))
+        self.assertEqual(row[5], "codex_file_change_failed")
+        effects = json.loads(row[4])
+        self.assertEqual(len(effects), 2)
+        self.assertEqual(effects[0], {"exit_code": 0, "status": "completed", "type": "command_execution"})
+        self.assertEqual(effects[1], {"error_category": "codex_file_change_failed", "status": "failed", "type": "file_change"})
+        self.assertNotIn("SECRET", row[4])
+        self.assertNotIn("echo", row[4])
+
+    def test_codex_jsonl_parser_redacts_payloads_and_bounds_lines(self):
+        self.state.add_tasks(task(1))
+        claim = self.state.claim()
+        parsed = [
+            _codex_event_metadata(json.dumps({"type": "thread.started", "thread_id": "thread-456"})),
+            _codex_event_metadata(json.dumps({
+                "type": "item.completed",
+                "item": {"type": "command_execution", "status": "completed", "exit_code": 0,
+                          "command": "echo SECRET"},
+            })),
+            _codex_event_metadata(json.dumps({
+                "type": "turn.completed", "usage": {"input_tokens": 31, "output_tokens": 47},
+            })),
+        ]
+        effects = [item["tool_effect"] for item in parsed if item.get("tool_effect")]
+        self.state.record_codex_receipt(
+            claim["run_id"], thread_id=parsed[0]["thread_id"],
+            input_tokens=parsed[2]["input_tokens"], output_tokens=parsed[2]["output_tokens"],
+            tool_count=len(effects), tool_effects=effects,
+        )
+        self.assertEqual(_codex_event_metadata("x" * 64_001), {})
+        with self.state.db() as db:
+            row = db.execute(
+                "SELECT thread_id,input_tokens,output_tokens,tool_effects FROM runs WHERE id=?",
+                (claim["run_id"],),
+            ).fetchone()
+        self.assertEqual(tuple(row[:3]), ("thread-456", 31, 47))
+        self.assertNotIn("SECRET", row[3])
+        self.assertNotIn("echo", row[3])
 
     def test_codex_sandbox_failure_is_reported_before_process_start(self):
         with patch("astra_one.linux_runtime.sandbox_status",return_value={"available":False,"reason":"user_namespace_unavailable"}), patch("astra_one.linux_runtime.subprocess.Popen") as start:

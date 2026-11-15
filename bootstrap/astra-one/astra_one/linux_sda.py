@@ -33,7 +33,7 @@ from .full_plan import (FullPlan, PROJECT_ID, payload_sha, render_task_markdown,
 from .owner_approval import OwnerApprovalError, prepare_receipt, verify_receipt
 
 VERSION = "0.3.0"
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 MODEL = "gpt-5.6-luna"
 EFFORT = "medium"
 MAX_WORKERS = 5
@@ -71,7 +71,10 @@ CREATE TABLE IF NOT EXISTS runs(
   id TEXT PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id),
   attempt INTEGER NOT NULL, role TEXT NOT NULL, status TEXT NOT NULL,
   started_at TEXT NOT NULL, finished_at TEXT, model TEXT NOT NULL,
-  tool_count INTEGER NOT NULL DEFAULT 0, error_code TEXT NOT NULL DEFAULT '');
+  tool_count INTEGER NOT NULL DEFAULT 0, error_code TEXT NOT NULL DEFAULT '',
+  thread_id TEXT NOT NULL DEFAULT '', input_tokens INTEGER NOT NULL DEFAULT 0,
+  output_tokens INTEGER NOT NULL DEFAULT 0, tool_effects TEXT NOT NULL DEFAULT '[]',
+  error_category TEXT NOT NULL DEFAULT '');
 CREATE TABLE IF NOT EXISTS events(
   event_id TEXT PRIMARY KEY, run_id TEXT NOT NULL, task_id TEXT NOT NULL,
   seq INTEGER NOT NULL, time TEXT NOT NULL, stage TEXT NOT NULL,step TEXT NOT NULL,
@@ -304,6 +307,20 @@ def _ensure_v3_columns(db: sqlite3.Connection) -> None:
             db.execute("ALTER TABLE supervisor_lanes ADD COLUMN run_id TEXT NOT NULL DEFAULT ''")
         if "candidate_sha" not in lane_columns:
             db.execute("ALTER TABLE supervisor_lanes ADD COLUMN candidate_sha TEXT NOT NULL DEFAULT ''")
+
+def _ensure_codex_receipt_columns(db: sqlite3.Connection) -> None:
+    """Add bounded Codex receipt fields without rewriting existing run history."""
+    run_columns = {row[1] for row in db.execute("PRAGMA table_info(runs)")}
+    additions = {
+        "thread_id": "TEXT NOT NULL DEFAULT ''",
+        "input_tokens": "INTEGER NOT NULL DEFAULT 0",
+        "output_tokens": "INTEGER NOT NULL DEFAULT 0",
+        "tool_effects": "TEXT NOT NULL DEFAULT '[]'",
+        "error_category": "TEXT NOT NULL DEFAULT ''",
+    }
+    for name, declaration in additions.items():
+        if run_columns and name not in run_columns:
+            db.execute(f"ALTER TABLE runs ADD COLUMN {name} {declaration}")
 
 def now() -> str:
     return dt.datetime.now(dt.timezone.utc).isoformat(timespec="microseconds")
@@ -552,6 +569,7 @@ class State:
                     for statement in _full_plan_ddl():
                         db.execute(statement)
                     _ensure_v3_columns(db)
+                    _ensure_codex_receipt_columns(db)
                     db.executemany(
                         "INSERT OR IGNORE INTO supervisor_lanes(lane_id,role,state,updated_at) VALUES(?,?,?,?)",
                         (("repair_1", "recovery_coder", "idle", now()),
@@ -572,6 +590,7 @@ class State:
                 for statement in _full_plan_ddl():
                     db.execute(statement)
                 _ensure_v3_columns(db)
+                _ensure_codex_receipt_columns(db)
                 db.execute(f"PRAGMA user_version={SCHEMA_VERSION}")
                 db.execute(
                     "INSERT INTO settings(key,value) VALUES('schema_version',?) "
@@ -1644,6 +1663,52 @@ class State:
                 elif status in {"queued", "pending"}:
                     self._refresh_project_queues_db(db, project_id)
             db.execute("COMMIT")
+
+    def record_codex_receipt(self, run_id: str, *, thread_id: str = "",
+                             input_tokens: int = 0, output_tokens: int = 0,
+                             tool_count: int = 0, tool_effects: list[dict] | None = None,
+                             error_category: str = "") -> None:
+        """Persist bounded JSONL metadata while excluding model payloads and commands."""
+        if not re.fullmatch(r"[a-f0-9-]{20,80}", run_id):
+            raise ValueError("invalid run ID")
+        if not isinstance(thread_id, str) or len(thread_id) > 160 or not thread_id.isprintable():
+            raise ValueError("invalid thread ID")
+        if any(not isinstance(value, int) or isinstance(value, bool) or not 0 <= value <= 1_000_000_000
+               for value in (input_tokens, output_tokens, tool_count)):
+            raise ValueError("invalid Codex usage")
+        if not isinstance(error_category, str) or len(error_category) > 80 or (
+                error_category and not re.fullmatch(r"[A-Za-z0-9_:-]+", error_category)):
+            raise ValueError("invalid error category")
+        safe_effects = []
+        for effect in list(tool_effects or [])[:128]:
+            if not isinstance(effect, dict):
+                continue
+            item = {}
+            for key in ("type", "status", "error_category"):
+                value = effect.get(key, "")
+                if isinstance(value, str) and len(value) <= 80 and (not value or re.fullmatch(r"[A-Za-z0-9_.:-]+", value)):
+                    if value:
+                        item[key] = value
+            exit_code = effect.get("exit_code")
+            if isinstance(exit_code, int) and not isinstance(exit_code, bool) and 0 <= exit_code <= 255:
+                item["exit_code"] = exit_code
+            if item:
+                safe_effects.append(item)
+        effects_json = json.dumps(safe_effects, sort_keys=True, separators=(",", ":"))
+        if len(effects_json) > 16_000:
+            raise ValueError("Codex tool receipt exceeds bound")
+        with self.master_lock(blocking=True):
+            with self.db() as db:
+                db.execute("BEGIN IMMEDIATE")
+                if not db.execute("SELECT 1 FROM runs WHERE id=?", (run_id,)).fetchone():
+                    db.execute("ROLLBACK")
+                    raise ValueError("unknown run")
+                db.execute(
+                    "UPDATE runs SET thread_id=?,input_tokens=?,output_tokens=?,tool_count=?,"
+                    "tool_effects=?,error_category=? WHERE id=?",
+                    (thread_id, input_tokens, output_tokens, tool_count, effects_json, error_category, run_id),
+                )
+                db.execute("COMMIT")
 
     def failure_codes(self, tid: str) -> list[str]:
         """Return bounded failure codes in attempt order; never returns model text."""
