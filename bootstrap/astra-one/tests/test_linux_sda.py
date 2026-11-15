@@ -139,6 +139,15 @@ class LinuxSDATests(unittest.TestCase):
         prompt = make_prompt(packaging_task, "a" * 40, "b" * 64, "repairer")
         self.assertIn("manifest hash for every new tracked package file", prompt)
 
+    def test_task_specific_code_index_guidance_targets_qc_findings(self):
+        index_task = task(1)
+        index_task["task_id"] = "BASE-015"
+        prompt = make_prompt(index_task, "a" * 40, "b" * 64, "repairer",
+                             "qc_rejected:correctness_risk,ordering_semantics,payload_exposure,test_gap")
+        self.assertIn("bounded", prompt)
+        self.assertIn("blob-SHA keyed", prompt)
+        self.assertIn("secret canaries", prompt)
+
     def test_audit_prompt_is_report_only_and_metadata_bounded(self):
         prompt = make_prompt(audit_task(), "a" * 40, "b" * 64, "worker")
         self.assertIn("Audit-mode contract", prompt)

@@ -109,6 +109,16 @@ TASK_REPAIR_GUIDANCE = {
         "entries), reject unlisted files, actual casefold collisions, generated directories and symlinks, and must "
         "not add a caller-selected root CLI that expands the inspection boundary."
     ),
+    "BASE-015": (
+        "Code-index recovery: keep Git object reads read-only and bounded; validate the repository root, branch "
+        "ref and regular blob type before reading, reject oversized or undecodable content, and use argument-list "
+        "Git calls with bounded timeouts. Apply generated, license/provenance and secret-path/content exclusions "
+        "before persistence; never return secret-shaped content, task payloads or unbounded source text in results. "
+        "Make refresh atomic and blob-SHA keyed, preserve the last good branch snapshot on failure, and make search "
+        "and symbol results deterministically ordered with strict query/limit validation. Add negative tests for "
+        "path traversal, branch/ref injection, malformed/large blobs, secret canaries, license/generated files, "
+        "query escaping, stable ordering and rollback/refresh idempotency."
+    ),
 }
 
 

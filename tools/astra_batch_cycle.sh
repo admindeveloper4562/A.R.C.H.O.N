@@ -5,6 +5,8 @@ ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 ASTRA_ROOT="$ROOT/bootstrap/astra-one"
 STATE="${ARCHON_ASTRA_HOME:-$HOME/.local/state/archon-astra}"
 TEST_IMAGE="${ARCHON_ASTRA_TEST_IMAGE:-archon-python:3.12-git-20261114}"
+RECOVERY_MODEL="${ARCHON_ASTRA_RECOVERY_MODEL:-gpt-6.1-sol}"
+RECOVERY_EFFORT="${ARCHON_ASTRA_RECOVERY_EFFORT:-high}"
 CLI=(python3 -m astra_one.linux_cli --home "$STATE")
 for marker in STOP PAUSE PAUSED_QUOTA; do
   if [[ -e "$STATE/$marker" ]]; then
@@ -30,7 +32,7 @@ printf '%s\n' "$RUN_OUTPUT"
 # Failed generations are repaired only after the normal Master releases its
 # lock. The recovery lanes are bounded and fenced by the same canonical state.
 RECOVERY_RC=0
-RECOVERY_OUTPUT=$("${CLI[@]}" supervisor-recover --limit 2 --model gpt-5.6-luna --effort medium \
+RECOVERY_OUTPUT=$("${CLI[@]}" supervisor-recover --limit 2 --model "$RECOVERY_MODEL" --effort "$RECOVERY_EFFORT" \
   --test-image "$TEST_IMAGE" --max-seconds-per-task 1800 2>&1) || RECOVERY_RC=$?
 printf '%s\n' "$RECOVERY_OUTPUT"
 # A refusal to start is an operational error. A completed batch with terminal
