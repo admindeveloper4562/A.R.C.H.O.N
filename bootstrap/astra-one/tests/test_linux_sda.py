@@ -16,6 +16,7 @@ from astra_one.linux_runtime import (
     DockerTestError,
     ReviewFailure,
     check_changes,
+    check_candidate_changes,
     codex_call,
     codex_command,
     docker_test,
@@ -33,7 +34,7 @@ from astra_one.linux_runtime import (
     worker_failure_code,
 )
 from astra_one.linux_cli import (_upgrade_audit_brief, inspect_repository, parse_requirements,
-                                 run_concurrent, run_master, supervise)
+                                 process_candidate_queue, run_concurrent, run_master, supervise)
 from astra_one.supervisor import SupervisorController
 
 
@@ -304,6 +305,21 @@ class LinuxSDATests(unittest.TestCase):
             self.assertIsNone(self.state.claim())
             (self.state.home/marker).unlink()
         self.assertIsNotNone(self.state.claim())
+
+    def test_quota_pauses_builder_but_allows_deterministic_qc_tick(self):
+        self.state.home.joinpath("PAUSED_QUOTA").touch()
+        self.assertIsNone(self.state.claim())
+        result = process_candidate_queue(
+            self.state, limit=1, test_image="archon-python:3.12-git",
+            test_command=["python3", "-m", "unittest"], timeout=60,
+        )
+        self.assertEqual(result["state"], "completed")
+        self.assertFalse(result["coding_dispatch"])
+        ai_result = process_candidate_queue(
+            self.state, limit=1, test_image="archon-python:3.12-git",
+            test_command=["python3", "-m", "unittest"], timeout=60, ai_review=True,
+        )
+        self.assertEqual(ai_result["marker"], "PAUSED_QUOTA")
 
     def test_lane_pause_does_not_cross_block_the_other_lane(self):
         (self.state.home / "PAUSE_NORMAL").touch()
@@ -609,6 +625,14 @@ class LinuxSDATests(unittest.TestCase):
         scoped_task={"suggested_scope_roots":["src"]}
         with self.assertRaisesRegex(ChangeValidationError,"outside_task_scope"):
             check_changes(self.repo,b,task=scoped_task)
+
+    def test_static_change_accepts_scoped_tool_script(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        script=self.repo/"tools"/"runner.sh"
+        script.parent.mkdir()
+        script.write_text("#!/usr/bin/env bash\nexit 0\n")
+        self.assertEqual(check_changes(self.repo,b,task={"suggested_scope_roots":["tools/"]}),
+                         ["tools/runner.sh"])
 
     def test_static_change_rejects_secret_bearing_env_profile(self):
         b=git(self.repo,"rev-parse","HEAD")
@@ -968,6 +992,7 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change','status':
         self.assertNotEqual(staged, candidate.resolve())
         self.assertFalse(staged.exists())
         self.assertIn("GIT_CONFIG_VALUE_0=/src", docker_calls[1])
+        self.assertIn("PYTHONPATH=/src/src:/src/bootstrap/astra-one:/src/bootstrap/astra-one/tests", docker_calls[1])
 
     def test_five_worker_parallel_scheduler(self):
         self.state.add_tasks([task(i) for i in range(1,6)])
@@ -1010,6 +1035,85 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change','status':
         self.assertFalse((self.repo/"added.py").exists())
         self.assertEqual(git(self.repo,"branch","--show-current"),"develop")
         self.assertNotEqual(self.state.get("integration_sha"),self.state.get("source_sha"))
+
+    def test_main_builder_handoff_is_idempotent_and_merges_through_qc(self):
+        self.state.add_tasks(task(1))
+        with self.state.db() as db:
+            db.execute(
+                "INSERT INTO projects(id,name,source_repository,integration_branch,parent_task_count,subtask_count,"
+                "workers,model,reasoning,source_ref,source_commit,parent_plan_blob_sha,subtask_index_sha,payload_sha,"
+                "status,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                ("PROJECT-1", "test", "local", "develop", 1, 1, 1, "gpt-5.6-luna", "medium", "local",
+                 "a" * 40, "a" * 40, "a" * 64, "a" * 64, "pending", "now", "now"),
+            )
+            db.execute("UPDATE tasks SET project_id='PROJECT-1' WHERE id='ASTRA-001'")
+            child = {
+                "id": "ASTRA-001.S01", "sequence": 1, "kind": "implementation",
+                "depends_on": [], "instruction": "Implement the bounded slice.",
+                "deliverable": "A tested source change.", "done_when": "The focused test passes.",
+                "evidence_required": True,
+            }
+            db.execute(
+                "INSERT INTO subtasks(id,project_id,parent_id,sequence,spec,status,payload_sha,created_at,updated_at) "
+                "VALUES(?,?,?,?,?,?,?,?,?)",
+                (child["id"], "PROJECT-1", "ASTRA-001", 1, json.dumps(child), "pending", "a" * 64,
+                 "now", "now"),
+            )
+        claim = self.state.builder_claim(model="gpt-5.6-luna")
+        self.assertEqual(claim["role"], "main_builder")
+        candidate = Path(claim["worktree"])
+        (candidate / "builder.py").write_text("VALUE = 42\n")
+        git(candidate, "add", "--", "builder.py")
+        git(candidate, "-c", "user.name=builder", "-c", "user.email=builder@local.invalid",
+            "commit", "-m", "candidate")
+        candidate_sha = git(candidate, "rev-parse", "HEAD")
+        payload = {
+            "task_id": "ASTRA-001", "run_id": claim["run_id"], "attempt": claim["attempt"],
+            "builder_session_id": "main-test-session", "base_sha": claim["base_sha"],
+            "candidate_sha": candidate_sha, "branch": claim["branch"], "worktree": claim["worktree"],
+            "changed_files": ["builder.py"], "test_evidence": [{"exit_code": 0}],
+            "acceptance_evidence": [{"subtask_id": "ASTRA-001.S01", "status": "PASS",
+                                     "evidence": "focused builder test passed"}],
+        }
+        first = self.state.submit_candidate(**payload)
+        second = self.state.submit_candidate(**payload)
+        self.assertFalse(first["idempotent"])
+        self.assertTrue(second["idempotent"])
+        # The builder session may disappear after submission; the durable
+        # candidate record must be enough for a fresh controller instance to
+        # continue QC and serial integration exactly once.
+        resumed = State(self.state.home)
+        def fake_docker(worktree, image, command, timeout=300, *, receipt_dir=None, receipt_context=None):
+            return _complete_test_receipt(
+                {"passed": True, "exit_code": 0, "sandbox": "docker_no_network", "tests_detected": True},
+                receipt_dir=receipt_dir, receipt_context=receipt_context,
+            )
+        with patch("astra_one.linux_cli.docker_test",side_effect=fake_docker):
+            result = process_candidate_queue(
+                resumed, limit=1, test_image="archon-python:3.12-git",
+                test_command=["python3", "-m", "unittest"], timeout=60,
+            )
+        self.assertEqual(result["passed"], 1)
+        self.assertEqual(resumed.list_tasks()[0]["status"], "completed")
+        self.assertEqual(git(Path(resumed.get("integration_path")), "rev-parse", "HEAD"),
+                         resumed.get("integration_sha"))
+        with resumed.db() as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM candidate_submissions").fetchone()[0], 1)
+            self.assertEqual(db.execute("SELECT status FROM candidate_submissions").fetchone()[0], "merged")
+            self.assertEqual(db.execute("SELECT count(*) FROM subtask_receipts WHERE parent_id='ASTRA-001'").fetchone()[0], 1)
+
+    def test_candidate_diff_validation_rejects_base_mismatch_and_scope_escape(self):
+        self.state.add_tasks(task(1))
+        base = self.state.get("integration_sha")
+        candidate = self.base / "candidate"
+        git(self.repo, "worktree", "add", "-b", "feature/astra-candidate-validation", str(candidate), base)
+        (candidate / "candidate.py").write_text("VALUE = 1\n")
+        git(candidate, "add", "--", "candidate.py")
+        git(candidate, "-c", "user.name=test", "-c", "user.email=test@local.invalid", "commit", "-m", "candidate")
+        sha = git(candidate, "rev-parse", "HEAD")
+        self.assertEqual(check_candidate_changes(candidate, base, sha), ["candidate.py"])
+        with self.assertRaisesRegex(ChangeValidationError, "candidate_base_mismatch"):
+            check_candidate_changes(candidate, "0" * 40, sha)
 
     def test_project_approval_moves_candidate_to_serial_merge_queue(self):
         self.state.add_tasks(task(1))

@@ -19,10 +19,10 @@ import tomllib
 import uuid
 import sqlite3
 
-from .linux_sda import (MODEL, EFFORT, MAX_FAILURES, PROTECTED, PROTECTED_PARTS, State,
+from .linux_sda import (MODEL, EFFORT, MAX_FAILURES, PROTECTED, PROTECTED_PARTS, SHA, State,
                         control_blocked, git, now)
 
-ALLOWED_SUFFIXES = {".py", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".json", ".toml", ".md", ".html", ".css", ".sql", ".yaml", ".yml"}
+ALLOWED_SUFFIXES = {".py", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".json", ".toml", ".md", ".html", ".css", ".sql", ".yaml", ".yml", ".sh"}
 MAX_FILES = 30
 MAX_BYTES = 2_000_000
 STOP_POLL = 0.3
@@ -413,30 +413,9 @@ def _git_common_dir(repo: Path) -> Path:
     return (raw if raw.is_absolute() else repo / raw).resolve()
 
 
-def check_changes(worktree: Path, base_sha: str, *, task: dict | None = None) -> list[str]:
-    """Read-only static boundary. No generated code is executed."""
-    try:
-        head = git(worktree, "rev-parse", "HEAD")
-    except (OSError, ValueError, subprocess.SubprocessError) as ex:
-        raise ChangeValidationError("git_status_invalid", "cannot_read_head") from ex
-    if head != base_sha:
-        raise ChangeValidationError("git_status_invalid", "head_changed")
-    try:
-        result = subprocess.run(
-            ["git", "-C", str(worktree), "status", "--porcelain", "-z", "--untracked-files=all"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            check=False,
-            timeout=20,
-        )
-    except (OSError, subprocess.SubprocessError) as ex:
-        raise ChangeValidationError("git_status_invalid", "status_failed") from ex
-    if result.returncode:
-        raise ChangeValidationError("git_status_invalid", "status_failed")
-    try:
-        entries = [x.decode("utf-8", "surrogateescape") for x in result.stdout.split(b"\0") if x]
-    except UnicodeError as ex:
-        raise ChangeValidationError("git_status_invalid", "status_encoding") from ex
+def _validate_change_entries(worktree: Path, entries: list[str], base_sha: str, *,
+                             task: dict | None = None) -> tuple[list[str], set[str]]:
+    """Apply one path/size/type policy to working-tree and committed candidates."""
     if not entries:
         raise ChangeValidationError("no_file_changes")
     if len(entries) > MAX_FILES:
@@ -508,8 +487,78 @@ def check_changes(worktree: Path, base_sha: str, *, task: dict | None = None) ->
             _check_ci_workflow_actions(worktree, base_sha, path, target)
     if len(set(paths)) != len(paths):
         raise ChangeValidationError("git_status_invalid", "duplicate_paths")
+    return paths, audit_markdown_paths
+
+
+def check_changes(worktree: Path, base_sha: str, *, task: dict | None = None) -> list[str]:
+    """Read-only static boundary for an uncommitted builder worktree."""
+    try:
+        head = git(worktree, "rev-parse", "HEAD")
+    except (OSError, ValueError, subprocess.SubprocessError) as ex:
+        raise ChangeValidationError("git_status_invalid", "cannot_read_head") from ex
+    if head != base_sha:
+        raise ChangeValidationError("git_status_invalid", "head_changed")
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(worktree), "status", "--porcelain", "-z", "--untracked-files=all"],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False, timeout=20,
+        )
+    except (OSError, subprocess.SubprocessError) as ex:
+        raise ChangeValidationError("git_status_invalid", "status_failed") from ex
+    if result.returncode:
+        raise ChangeValidationError("git_status_invalid", "status_failed")
+    try:
+        entries = [x.decode("utf-8", "surrogateescape") for x in result.stdout.split(b"\0") if x]
+    except UnicodeError as ex:
+        raise ChangeValidationError("git_status_invalid", "status_encoding") from ex
+    paths, audit_markdown_paths = _validate_change_entries(worktree, entries, base_sha, task=task)
+    untracked_paths = [worktree / PurePosixPath(path) for item, path in
+                       ((entry[:2], entry[3:]) for entry in entries) if item == "??"]
     _check_diff_whitespace(worktree, untracked_paths,
                            allow_markdown_hard_breaks=audit_markdown_paths)
+    return paths
+
+
+def check_candidate_changes(worktree: Path, base_sha: str, candidate_sha: str, *,
+                            task: dict | None = None) -> list[str]:
+    """Validate the exact committed diff submitted by the Main Codex builder."""
+    if not SHA.fullmatch(base_sha) or not SHA.fullmatch(candidate_sha):
+        raise ChangeValidationError("git_status_invalid", "invalid_commit_sha")
+    try:
+        if git(worktree, "rev-parse", "HEAD") != candidate_sha:
+            raise ChangeValidationError("git_status_invalid", "candidate_head_changed")
+        ancestor = subprocess.run(
+            ["git", "-C", str(worktree), "merge-base", "--is-ancestor", base_sha, candidate_sha],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False, timeout=20,
+        )
+        if ancestor.returncode:
+            raise ChangeValidationError("git_status_invalid", "candidate_base_mismatch")
+        result = subprocess.run(
+            ["git", "-C", str(worktree), "diff", "--name-status", "--no-renames", "-z", base_sha, candidate_sha],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False, timeout=20,
+        )
+    except (OSError, subprocess.SubprocessError) as ex:
+        raise ChangeValidationError("git_status_invalid", "candidate_diff_failed") from ex
+    if result.returncode:
+        raise ChangeValidationError("git_status_invalid", "candidate_diff_failed")
+    tokens = [token for token in result.stdout.split(b"\0") if token]
+    if len(tokens) % 2:
+        raise ChangeValidationError("git_status_invalid", "candidate_diff_encoding")
+    try:
+        entries = []
+        for index in range(0, len(tokens), 2):
+            status = tokens[index].decode("ascii")
+            path = tokens[index + 1].decode("utf-8", "surrogateescape")
+            if len(status) != 1:
+                raise ChangeValidationError("unsafe_changed_path", "delete_rename_copy_conflict_or_typechange")
+            entries.append(status + "  " + path)
+    except UnicodeError as ex:
+        raise ChangeValidationError("git_status_invalid", "candidate_diff_encoding") from ex
+    paths, audit_markdown_paths = _validate_change_entries(worktree, entries, base_sha, task=task)
+    _check_commit_whitespace(worktree, base_sha, candidate_sha,
+                             allow_markdown_hard_breaks=audit_markdown_paths)
+    if git(worktree, "status", "--porcelain", "--untracked-files=all"):
+        raise ChangeValidationError("git_status_invalid", "candidate_dirty")
     return paths
 
 
@@ -839,7 +888,7 @@ def docker_test(worktree: Path, image: str, command: list[str], timeout: int = 3
               "--cap-drop=ALL","--security-opt=no-new-privileges","--pids-limit=128","--memory=1g","--cpus=2",
               "--user=65534:65534","--tmpfs=/tmp:rw,nosuid,nodev,size=128m",
               "--mount",f"type=bind,src={staged},dst=/src,readonly","-w","/src",
-              "-e","HOME=/tmp","-e","PYTHONDONTWRITEBYTECODE=1","-e","PYTHONPATH=/src/src",
+              "-e","HOME=/tmp","-e","PYTHONDONTWRITEBYTECODE=1","-e","PYTHONPATH=/src/src:/src/bootstrap/astra-one:/src/bootstrap/astra-one/tests",
               "-e","GIT_CONFIG_COUNT=1","-e","GIT_CONFIG_KEY_0=safe.directory",
               "-e","GIT_CONFIG_VALUE_0=/src",image]+command
         try:

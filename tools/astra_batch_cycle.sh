@@ -5,15 +5,16 @@ ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 ASTRA_ROOT="$ROOT/bootstrap/astra-one"
 STATE="${ARCHON_ASTRA_HOME:-$HOME/.local/state/archon-astra}"
 TEST_IMAGE="${ARCHON_ASTRA_TEST_IMAGE:-archon-python:3.12-git-20261114}"
-RECOVERY_MODEL="${ARCHON_ASTRA_RECOVERY_MODEL:-gpt-6.1-sol}"
-RECOVERY_EFFORT="${ARCHON_ASTRA_RECOVERY_EFFORT:-high}"
 CLI=(python3 -m astra_one.linux_cli --home "$STATE")
-for marker in STOP PAUSE PAUSED_QUOTA; do
+for marker in STOP PAUSE; do
   if [[ -e "$STATE/$marker" ]]; then
     printf '[ARCHON/ATLAS] %s present: no worker or develop push will start\n' "$marker"
     exit 0
   fi
 done
+if [[ -e "$STATE/PAUSED_QUOTA" ]]; then
+  printf '[ARCHON/ATLAS] PAUSED_QUOTA present: deterministic QC/Merger only; no model or develop push\n'
+fi
 [[ -f "$STATE/sda.sqlite3" ]] || { echo 'Astra state is not initialized' >&2; exit 1; }
 cd "$ASTRA_ROOT"
 # The durable Supervisor pass only classifies recorded failures and opens
@@ -25,7 +26,6 @@ printf '%s\n' "$SUPERVISOR_OUTPUT"
 # dependency-ready replacements. After the target is met, normal dispatch
 # resumes over the full queue.
 BATCH_ID="${ARCHON_ASTRA_BATCH_ID:-ARCHON-V3-TRIAL-020}"
-BATCH_ARGS=()
 BATCH_STATUS=$("${CLI[@]}" batch-status "$BATCH_ID" 2>/dev/null || true)
 if [[ -n "$BATCH_STATUS" ]] && python3 - "$BATCH_STATUS" <<'PY'
 import json, sys
@@ -38,24 +38,15 @@ PY
 then
   printf '[ARCHON/ATLAS] Replenishing qualification cohort %s\n' "$BATCH_ID"
   "${CLI[@]}" batch-replenish "$BATCH_ID" --target 20
-  BATCH_ARGS=(--batch-id "$BATCH_ID")
 fi
-# One deterministic CLI controller owns both lane pools.  It holds the shared
-# file lock only for claims and serial integration; Codex/QC execution runs
-# outside that short critical section, allowing recovery and normal work to
-# proceed concurrently without creating a second Master.
+# Astra One is now a control-plane runner.  Main Codex claims and writes the
+# candidate; this service only performs independent QC and serial merging.
 RUN_RC=0
-RUN_OUTPUT=$("${CLI[@]}" run \
-  --workers 5 --model gpt-5.6-luna --effort medium \
-  --max-tasks 1000 --max-minutes 120 --max-seconds-per-task 1800 \
-  --max-repairs 3 --auto-integrate --test-image "$TEST_IMAGE" \
-  "${BATCH_ARGS[@]}" \
-  --concurrent-recovery --recovery-limit 2 --recovery-model "$RECOVERY_MODEL" \
-  --recovery-effort "$RECOVERY_EFFORT" 2>&1) || RUN_RC=$?
+RUN_OUTPUT=$("${CLI[@]}" qc-merge \
+  --limit 1 --test-image "$TEST_IMAGE" --max-seconds 1800 2>&1) || RUN_RC=$?
 printf '%s\n' "$RUN_OUTPUT"
-# A refusal to start is an operational error. A completed batch with terminal
-# worker failures may still publish unrelated, already-QC-approved commits;
-# retain its nonzero status for systemd after the publication check.
+# A refusal to start is an operational error. No coding or recovery process is
+# launched by this service.
 if (( RUN_RC == 2 )); then
   exit 2
 fi

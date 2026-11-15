@@ -18,9 +18,12 @@ import time
 import uuid
 
 from .linux_sda import (DEFAULT_HOME, EFFORT, MAX_FAILURES, MAX_WORKERS, MODEL, State,
-                        TASK_EXECUTION_MODES, TASK_ID, assert_source, control_blocked,
-                        file_sha256, git, task_spec)
-from .linux_runtime import codex_call, ensure_integration, integrate, execute_claim, sandbox_status
+                        TASK_EXECUTION_MODES, TASK_ID, assert_source, builder_branch,
+                        control_blocked, file_sha256, git, task_spec)
+from .linux_runtime import (ChangeValidationError, DockerTestError, bind_execution_receipts,
+                            codex_call, docker_test, ensure_integration, integrate, execute_claim,
+                            independent_qc_report, sandbox_status, check_candidate_changes,
+                            _write_receipt_artifact)
 from .full_plan import load_full_plan
 from .supervisor import SupervisorController
 
@@ -704,6 +707,143 @@ def run_concurrent(state: State, *, workers: int, max_tasks: int, max_minutes: i
             "shared_master_lock": True, "no_remote_git_push": True}
 
 
+def process_candidate_queue(state: State, *, limit: int, test_image: str,
+                            test_command: list[str], timeout: int,
+                            ai_review: bool = False, model: str = MODEL,
+                            effort: str = EFFORT) -> dict:
+    """Process Main Codex candidates only; never claims or writes feature code."""
+    if not 1 <= limit <= 100 or not 60 <= timeout <= 7200:
+        raise ValueError("invalid candidate queue limits")
+    if not test_image:
+        raise ValueError("Docker test image required for independent QC")
+    state.ensure_approved()
+    state.ensure_full_plan_schema()
+    blocked_markers = ("STOP", "PAUSE") + (("PAUSED_QUOTA",) if ai_review else ())
+    if any((state.home / marker).exists() for marker in blocked_markers):
+        marker = next((name for name in (*blocked_markers, "PAUSE_NORMAL")
+                       if (state.home / name).exists()), "paused")
+        return {"processed": 0, "passed": 0, "rejected": 0, "blocked": 0,
+                "state": "paused", "marker": marker, "coding_dispatch": False}
+    with state.db() as db:
+        rows = db.execute(
+            "SELECT s.submission_id,s.task_id,s.run_id,s.attempt,s.base_sha,s.candidate_sha,"
+            "s.branch,s.worktree,s.acceptance_evidence,t.spec,t.status "
+            "FROM candidate_submissions s JOIN tasks t ON t.id=s.task_id "
+            "WHERE s.status='queued' ORDER BY s.created_at,s.submission_id LIMIT ?", (limit,)
+        ).fetchall()
+    results = []
+    for row in rows:
+        sid = row["submission_id"]
+        try:
+            state.update_candidate_submission(sid, "qc_running")
+            task = json.loads(row["spec"])
+            with state.db() as db:
+                task["subtasks"] = [json.loads(child["spec"]) for child in db.execute(
+                    "SELECT spec FROM subtasks WHERE parent_id=? ORDER BY sequence", (row["task_id"],)
+                )]
+            candidate = Path(row["worktree"]).resolve(strict=True)
+            changed = check_candidate_changes(candidate, row["base_sha"], row["candidate_sha"], task=task)
+            if candidate.parent != (state.home / "worktrees").resolve():
+                raise ChangeValidationError("unsafe_changed_path", "candidate_worktree_outside_state")
+            changed_sha = hashlib.sha256(json.dumps(changed, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+            context = {"task_id": row["task_id"], "run_id": row["run_id"], "attempt": row["attempt"],
+                       "source_sha": row["base_sha"], "candidate_sha": row["candidate_sha"],
+                       "changed_files_sha": changed_sha}
+            child_ids = [child["id"] for child in task.get("subtasks", [])
+                         if isinstance(child, dict) and child.get("id")]
+            child_evidence = json.loads(row["acceptance_evidence"])
+            if child_ids:
+                if (not isinstance(child_evidence, list)
+                        or {item.get("subtask_id") for item in child_evidence if isinstance(item, dict)} != set(child_ids)
+                        or any(not isinstance(item, dict) or item.get("status") != "PASS"
+                               or not isinstance(item.get("evidence"), str)
+                               or not 1 <= len(item["evidence"]) <= 240 for item in child_evidence)):
+                    raise ValueError("qc_invalid_child_evidence")
+                context["contract_sha"] = state.subtask_contract_sha(row["task_id"])
+            tests = docker_test(
+                candidate, test_image, test_command, timeout=timeout,
+                receipt_dir=state.home / "private" / "test-receipts", receipt_context=context,
+            )
+            if not tests["passed"]:
+                raise ValueError("isolated_tests_failed")
+            if ai_review:
+                accepted, reason, reviewed_children, qc_receipt = independent_qc_report(
+                    state, candidate, task, model=model, effort=effort, changed_files=changed,
+                    child_ids=child_ids, timeout=timeout, receipt_context=context,
+                )
+                if not accepted:
+                    raise ValueError(reason)
+                qc_receipt["candidate_sha"] = row["candidate_sha"]
+                if child_ids:
+                    child_evidence = reviewed_children
+            else:
+                payload = {"verdict": "PASS", "findings": []}
+                raw = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+                qc_output_sha = hashlib.sha256(raw).hexdigest()
+                qc_path, qc_artifact_sha = _write_receipt_artifact(
+                    state.home / "private" / "qc-receipts", kind="independent_qc_receipt",
+                    context=context, payload=payload, extra={"source_output_sha": qc_output_sha},
+                )
+                qc_receipt = {"verdict": "PASS", "findings": [], "reviewer": "independent_qc",
+                              "qc_output_sha": qc_output_sha, "candidate_sha": row["candidate_sha"],
+                              "qc_artifact_path": qc_path, "qc_artifact_sha": qc_artifact_sha}
+            if child_ids:
+                qc_receipt.update({
+                    "contract_sha": context["contract_sha"],
+                    "child_evidence_sha": hashlib.sha256(
+                        json.dumps(child_evidence, sort_keys=True, separators=(",", ":")).encode()
+                    ).hexdigest(),
+                    "changed_files_sha": changed_sha,
+                })
+            artifact_receipts = state.validate_execution_artifacts(
+                row["task_id"], source_sha=row["base_sha"], candidate_sha=row["candidate_sha"],
+                changed_files=changed, test_receipt=tests, qc_receipt=qc_receipt,
+                run_id=row["run_id"], attempt=row["attempt"],
+            )
+            if child_ids:
+                state.record_subtask_evidence(
+                    row["task_id"], candidate_sha=row["candidate_sha"], source_sha=row["base_sha"],
+                    changed_files=changed, test_receipt=tests, qc_receipt=qc_receipt,
+                    child_evidence=child_evidence, run_id=row["run_id"], attempt=row["attempt"],
+                )
+            qc_metadata = {"submission_id": sid, "deterministic_qc": "passed",
+                           "test_receipt_sha": tests["receipt_sha"],
+                           "qc_output_sha": qc_receipt["qc_output_sha"],
+                           "artifact_receipts": artifact_receipts,
+                           "child_receipts": len(child_ids)}
+            state.set_task(row["task_id"], "awaiting_review",
+                           fields={"qc_evidence": json.dumps(qc_metadata, sort_keys=True, separators=(",", ":"))},
+                           run_id=row["run_id"], attempt=row["attempt"])
+            state.approve(row["task_id"], run_id=row["run_id"], attempt=row["attempt"])
+            with state.master_lock(blocking=True):
+                merged = integrate(state, row["task_id"], lane="normal")
+            state.update_candidate_submission(sid, "merged")
+            results.append({"submission_id": sid, "task_id": row["task_id"],
+                            "status": "merged", "integration_sha": merged["integration_sha"]})
+        except (ChangeValidationError, ValueError, DockerTestError, OSError, subprocess.SubprocessError) as exc:
+            code = getattr(exc, "code", str(exc))[:160]
+            submission_code = code if re.fullmatch(r"[A-Za-z0-9_:-]+", code) else code.split(":", 1)[0]
+            if code in {"docker_unavailable", "docker_access_denied", "docker_image_missing",
+                        "docker_context_invalid", "docker_test_config_invalid", "quota_paused"}:
+                state.update_candidate_submission(sid, "blocked", failure_code=submission_code)
+                results.append({"submission_id": sid, "task_id": row["task_id"],
+                                "status": "blocked", "error": code})
+                continue
+            state.update_candidate_submission(sid, "rejected", failure_code=submission_code)
+            try:
+                state.set_task(row["task_id"], "failed", error=code,
+                               run_id=row["run_id"], attempt=row["attempt"])
+            except ValueError:
+                pass
+            results.append({"submission_id": sid, "task_id": row["task_id"],
+                            "status": "rejected", "error": code})
+    return {"processed": len(results),
+            "passed": sum(item["status"] == "merged" for item in results),
+            "rejected": sum(item["status"] == "rejected" for item in results),
+            "blocked": sum(item["status"] == "blocked" for item in results),
+            "results": results, "state": "completed", "coding_dispatch": False}
+
+
 def main(argv: list[str] | None = None) -> int:
     parser=argparse.ArgumentParser(prog="python3 -m astra_one.linux_cli",description="Astra One Linux five-worker Codex SDA")
     parser.add_argument("--home",type=Path,default=DEFAULT_HOME)
@@ -711,7 +851,14 @@ def main(argv: list[str] | None = None) -> int:
     p=sub.add_parser("doctor");p.add_argument("--source",type=Path)
     p=sub.add_parser("init");p.add_argument("--source",type=Path,required=True)
     p=sub.add_parser("architecture");p.add_argument("action",choices=["import","approve","status"]);p.add_argument("--file",type=Path);p.add_argument("--sha")
-    p=sub.add_parser("supervise");p.add_argument("--focus",default="");p.add_argument("--task-id",default="");p.add_argument("--count",type=int,default=5);p.add_argument("--output",type=Path,required=True);p.add_argument("--model",default=MODEL);p.add_argument("--effort",default=EFFORT)
+    p=sub.add_parser("supervise");p.add_argument("--focus",default="");p.add_argument("--count",type=int,default=5);p.add_argument("--output",type=Path,required=True);p.add_argument("--model",default=MODEL);p.add_argument("--effort",default=EFFORT)
+    p=sub.add_parser("builder-claim");p.add_argument("--model",default=MODEL);p.add_argument("--batch-id",default=None)
+    p=sub.add_parser("builder-submit");p.add_argument("--file",type=Path,required=True)
+    p=sub.add_parser("qc-merge")
+    p.add_argument("--limit",type=int,default=1);p.add_argument("--test-image",default="")
+    p.add_argument("--test-command-json",default='["python3","-m","unittest","discover","-s","tests","-p","test_*.py"]')
+    p.add_argument("--max-seconds",type=int,default=1800);p.add_argument("--ai-review",action="store_true")
+    p.add_argument("--model",default=MODEL);p.add_argument("--effort",choices=["low","medium","high","xhigh"],default=EFFORT)
     p=sub.add_parser("enqueue");p.add_argument("--file",type=Path,required=True)
     p=sub.add_parser("validate-full-plan");p.add_argument("--parent-plan",type=Path,required=True);p.add_argument("--subtask-index",type=Path,required=True);p.add_argument("--subtask-dir",type=Path,required=True);p.add_argument("--source-ref",default="");p.add_argument("--source-commit",default="")
     p=sub.add_parser("import-full-plan");p.add_argument("--parent-plan",type=Path,required=True);p.add_argument("--subtask-index",type=Path,required=True);p.add_argument("--subtask-dir",type=Path,required=True);p.add_argument("--source-ref",default="");p.add_argument("--source-commit",default="")
@@ -764,7 +911,26 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command=="doctor":report(diagnose(args.source));return 0
         if args.command=="init":report(state.init(args.source));return 0
-        if args.command=="architecture":
+        if args.command=="builder-claim":
+            report(state.builder_claim(model=args.model, batch_id=args.batch_id) or {"status":"idle","coding_dispatch":False})
+        elif args.command=="builder-submit":
+            payload=json.loads(args.file.read_text(encoding="utf-8"))
+            if not isinstance(payload,dict):
+                raise ValueError("builder submission must be a JSON object")
+            required={"task_id","run_id","attempt","builder_session_id","base_sha","candidate_sha",
+                      "branch","worktree","changed_files","test_evidence","acceptance_evidence"}
+            if set(payload) != required:
+                raise ValueError("builder submission fields do not match the handoff contract")
+            report(state.submit_candidate(**payload))
+        elif args.command=="qc-merge":
+            command=json.loads(args.test_command_json)
+            if not isinstance(command,list):
+                raise ValueError("test command must be a JSON list")
+            report(process_candidate_queue(
+                state, limit=args.limit, test_image=args.test_image, test_command=command,
+                timeout=args.max_seconds, ai_review=args.ai_review, model=args.model, effort=args.effort,
+            ))
+        elif args.command=="architecture":
             if args.action=="import":
                 if not args.file:raise ValueError("architecture import needs --file")
                 digest=state.import_architecture(args.file)
@@ -773,7 +939,7 @@ def main(argv: list[str] | None = None) -> int:
                 if not args.sha:raise ValueError("architecture approve needs --sha")
                 state.approve_architecture(args.sha);report({"approved":True,"engine":"not_started"})
             else:report({"sha256":state.get("architecture_sha"),"approved":state.get("approved_architecture_sha")==state.get("architecture_sha") and bool(state.get("architecture_sha"))})
-        elif args.command=="supervise":report(supervise(state,focus=args.focus,task_id=args.task_id,count=args.count,output=args.output,model=args.model,effort=args.effort))
+        elif args.command=="supervise":raise ValueError("autonomous_task_planning_disabled_use_main_codex")
         elif args.command=="enqueue":report({"enqueued":state.add_tasks(json.loads(args.file.read_text(encoding="utf-8"))),"started":False})
         elif args.command in ("validate-full-plan", "import-full-plan"):
             plan=load_full_plan(args.parent_plan,args.subtask_index,args.subtask_dir,
@@ -817,12 +983,7 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "supervisor-block":
             report(SupervisorController(state).mark_external_blocker(args.case_id, args.category, args.failure_code))
         elif args.command == "supervisor-recover":
-            command=json.loads(args.test_command_json)
-            if not isinstance(command,list):
-                raise ValueError("test command must be a JSON list")
-            report(run_recovery(state,limit=args.limit,model=args.model,effort=args.effort,
-                                test_image=args.test_image,test_command=command,
-                                timeout=args.max_seconds_per_task))
+            raise ValueError("autonomous_recovery_coding_disabled_use_main_codex")
         elif args.command == "upgrade-audit":
             report(run_upgrade_audit(state, task_id=args.task_id, model=args.model,
                                      effort=args.effort, timeout=args.max_seconds))
@@ -855,26 +1016,7 @@ def main(argv: list[str] | None = None) -> int:
             if not args.confirm:raise ValueError("integration requires --confirm after diff review")
             with state.master_lock():report(integrate(state,args.task_id,merger_model=MODEL,merger_effort=EFFORT))
         elif args.command=="run":
-            command=json.loads(args.test_command_json)
-            if not isinstance(command,list):raise ValueError("test command must be a JSON list")
-            if args.concurrent_recovery:
-                result=run_concurrent(
-                    state, workers=args.workers, max_tasks=args.max_tasks, max_minutes=args.max_minutes,
-                    model=args.model, effort=args.effort, recovery_limit=args.recovery_limit,
-                    recovery_model=args.recovery_model, recovery_effort=args.recovery_effort,
-                    test_image=args.test_image, test_command=command, auto_integrate=args.auto_integrate,
-                    max_repairs=args.max_repairs, timeout=args.max_seconds_per_task, batch_id=args.batch_id,
-                )
-                report(result)
-                normal_result=result["normal"]
-                return 1 if normal_result.get("terminal_failures") else 0
-            result=run_master(state,workers=args.workers,max_tasks=args.max_tasks,max_minutes=args.max_minutes,
-                              model=args.model,effort=args.effort,test_image=args.test_image,test_command=command,
-                              auto_integrate=args.auto_integrate,max_repairs=args.max_repairs,
-                              timeout=args.max_seconds_per_task,danger_bypass=args.danger_bypass,
-                              batch_id=args.batch_id)
-            report(result)
-            return 1 if result.get("terminal_failures") else 0
+            raise ValueError("autonomous_coding_dispatch_disabled_use_builder_claim")
         return 0
     except (ValueError, OSError, subprocess.SubprocessError, json.JSONDecodeError) as ex:
         print("Astra Linux SDA refused: "+str(ex),file=sys.stderr)

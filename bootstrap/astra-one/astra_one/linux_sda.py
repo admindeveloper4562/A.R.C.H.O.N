@@ -33,7 +33,7 @@ from .full_plan import (FullPlan, PROJECT_ID, payload_sha, render_task_markdown,
 from .owner_approval import OwnerApprovalError, prepare_receipt, verify_receipt
 
 VERSION = "0.3.0"
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 MODEL = "gpt-5.6-luna"
 EFFORT = "medium"
 MAX_WORKERS = 5
@@ -51,6 +51,7 @@ STAGE = {"queued", "preflight", "coding", "verifying", "awaiting_review", "appro
 PROTECTED = {"AGENTS.md", "SECURITY.md", "DELETE-LOGS.md", ".env", ".gitignore", "CODEOWNERS"}
 PROTECTED_PARTS = {".git", ".codex", ".github", ".ssh", ".aws", "node_modules", ".venv", "__pycache__"}
 DEFAULT_HOME = Path.home() / ".local" / "state" / "archon-astra"
+BUILDER_SESSION = re.compile(r"^[A-Za-z0-9_.:-]{1,120}$")
 SCHEMA = """
 PRAGMA foreign_keys=ON;
 CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY,value TEXT NOT NULL);
@@ -110,6 +111,26 @@ CREATE TABLE IF NOT EXISTS review_queue(
 CREATE TABLE IF NOT EXISTS merge_queue(
   parent_id TEXT PRIMARY KEY REFERENCES tasks(id), project_id TEXT NOT NULL,
   candidate_sha TEXT NOT NULL, created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS candidate_submissions(
+  submission_id TEXT PRIMARY KEY,
+  task_id TEXT NOT NULL REFERENCES tasks(id),
+  run_id TEXT NOT NULL,
+  attempt INTEGER NOT NULL,
+  builder_session_id TEXT NOT NULL,
+  base_sha TEXT NOT NULL,
+  candidate_sha TEXT NOT NULL,
+  branch TEXT NOT NULL,
+  worktree TEXT NOT NULL,
+  changed_files TEXT NOT NULL,
+  test_evidence TEXT NOT NULL,
+  acceptance_evidence TEXT NOT NULL,
+  status TEXT NOT NULL,
+  failure_code TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(task_id,attempt,candidate_sha));
+CREATE INDEX IF NOT EXISTS idx_candidate_submissions_status
+  ON candidate_submissions(status,created_at);
 CREATE TABLE IF NOT EXISTS subtask_receipts(
   receipt_id TEXT PRIMARY KEY,
   subtask_id TEXT NOT NULL REFERENCES subtasks(id),
@@ -402,6 +423,45 @@ def control_blocked(home: Path, lane: str) -> bool:
     global_markers = ("STOP", "PAUSE", "PAUSED_QUOTA")
     lane_marker = "PAUSE_NORMAL" if lane == "normal" else "PAUSE_RECOVERY"
     return any((home / marker).exists() for marker in (*global_markers, lane_marker))
+
+
+def builder_branch(task: dict, attempt: int, run_id: str) -> str:
+    """Keep builder branches identical to the established task convention."""
+    prefixes = {"core": "CORE", "sda": "SDA", "backend": "BACK", "guardian": "GUARD",
+                "migration": "MIG", "runtime": "RUN", "research": "RES", "tws": "TWS",
+                "wic": "WIC", "finance": "FIN", "automation": "AUTO"}
+    area = task.get("area", "foundation")
+    if prefixes.get(area) and str(task.get("task_id", "")).startswith(prefixes[area] + "-"):
+        return f"feat/{area}/{task['task_id']}-implementation-a{attempt}-{run_id[:8]}"
+    return f"feature/astra-{str(task['task_id']).lower()}-a{attempt}-{run_id[:8]}"
+
+
+def _bounded_evidence(value: object, name: str) -> str:
+    """Store bounded metadata only; model prose and raw logs are not receipts."""
+    if not isinstance(value, list) or len(value) > 40:
+        raise ValueError(f"{name} must be a bounded JSON list")
+    raw = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    if len(raw.encode("utf-8")) > 16_000:
+        raise ValueError(f"{name} exceeds the receipt limit")
+    forbidden = re.compile(r"(?i)(secret|credential|token|password|prompt|model.?output|raw.?log|private.?key)")
+    def inspect(item: object) -> None:
+        if isinstance(item, str):
+            if len(item) > 500 or forbidden.search(item):
+                raise ValueError(f"{name} contains unbounded or sensitive text")
+        elif isinstance(item, list):
+            for child in item:
+                inspect(child)
+        elif isinstance(item, dict):
+            if len(item) > 20:
+                raise ValueError(f"{name} contains too many fields")
+            for key, child in item.items():
+                if not isinstance(key, str) or len(key) > 80 or forbidden.search(key):
+                    raise ValueError(f"{name} contains a sensitive field")
+                inspect(child)
+        elif item is not None and not isinstance(item, (bool, int, float)):
+            raise ValueError(f"{name} contains unsupported metadata")
+    inspect(value)
+    return raw
 
 class State:
     def __init__(self, home: Path = DEFAULT_HOME):
@@ -1244,6 +1304,175 @@ class State:
                 return {"task":t,"run_id":rid,"attempt":attempt,"role":role,"prior_error":row["last_error"]}
             db.execute("COMMIT")
         return None
+
+    def builder_claim(self, *, model: str = MODEL, batch_id: str | None = None) -> dict | None:
+        """Claim and prepare one isolated worktree for the sole Main Codex builder."""
+        self.ensure_full_plan_schema()
+        with self.master_lock(blocking=True):
+            item = self.claim(model=model, batch_id=batch_id, lane="normal")
+            if not item:
+                return None
+        task = item["task"]
+        run_id = item["run_id"]
+        attempt = item["attempt"]
+        source = Path(self.get("source"))
+        branch = builder_branch(task, attempt, run_id)
+        worktree = self.home / "worktrees" / (task["task_id"].lower() + "-" + run_id[:8])
+        base_sha = self.get("integration_sha")
+        try:
+            assert_source(source)
+            worktree.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+            git(source, "worktree", "add", "-b", branch, str(worktree), base_sha)
+            self.set_task(task["task_id"], "coding", fields={
+                "base_sha": base_sha, "branch": branch, "worktree": str(worktree),
+            }, run_id=run_id, attempt=attempt)
+            self.emit(task["task_id"], run_id, stage="coding", step="builder_claimed",
+                      branch=branch, base_sha=base_sha, attempt=attempt)
+        except Exception as exc:
+            try:
+                self.set_task(task["task_id"], "failed", error="builder_preparation_failed",
+                              run_id=run_id, attempt=attempt)
+            except Exception:
+                pass
+            raise ValueError("builder_preparation_failed") from exc
+        return {"task": task, "run_id": run_id, "attempt": attempt, "role": "main_builder",
+                "base_sha": base_sha, "branch": branch, "worktree": str(worktree)}
+
+    def submit_candidate(self, *, task_id: str, run_id: str, attempt: int,
+                         builder_session_id: str, base_sha: str, candidate_sha: str,
+                         branch: str, worktree: str, changed_files: list[str],
+                         test_evidence: list, acceptance_evidence: list) -> dict:
+        """Atomically hand a real Main Codex commit to the review queue."""
+        if not TASK_ID.fullmatch(task_id) or not BUILDER_SESSION.fullmatch(builder_session_id):
+            raise ValueError("invalid builder submission identity")
+        if not re.fullmatch(r"[a-f0-9-]{20,80}", run_id) or attempt < 1:
+            raise ValueError("invalid builder run identity")
+        if not SHA.fullmatch(base_sha) or not SHA.fullmatch(candidate_sha):
+            raise ValueError("invalid builder submission SHA")
+        if not branch.startswith(("feature/", "feat/")) or len(branch) > 180:
+            raise ValueError("invalid builder branch")
+        if not isinstance(worktree, str) or len(worktree) > 500:
+            raise ValueError("invalid builder worktree")
+        if not isinstance(changed_files, list) or not 1 <= len(changed_files) <= 30:
+            raise ValueError("invalid builder changed files")
+        if any(not isinstance(path, str) or not path or len(path) > 250 for path in changed_files):
+            raise ValueError("invalid builder changed files")
+        test_json = _bounded_evidence(test_evidence, "test_evidence")
+        acceptance_json = _bounded_evidence(acceptance_evidence, "acceptance_evidence")
+
+        with self.db() as db:
+            row = db.execute("SELECT * FROM tasks WHERE id=?", (task_id,)).fetchone()
+        if not row or not row["project_id"]:
+            raise ValueError("builder submission requires an imported project task")
+        if row["last_run"] != run_id or row["attempt"] != attempt:
+            raise ValueError("stale_worker_lease")
+        if row["status"] not in {"coding", "verifying"}:
+            existing = None
+            with self.db() as db:
+                existing = db.execute(
+                    "SELECT * FROM candidate_submissions WHERE task_id=? AND attempt=? AND candidate_sha=?",
+                    (task_id, attempt, candidate_sha),
+                ).fetchone()
+            if existing:
+                return {"submission_id": existing["submission_id"], "task_id": task_id,
+                        "candidate_sha": candidate_sha, "status": existing["status"], "idempotent": True}
+            raise ValueError("task is not owned by the Main Codex builder")
+        if row["base_sha"] != base_sha or row["branch"] != branch or row["worktree"] != worktree:
+            raise ValueError("builder checkpoint mismatch")
+
+        candidate_path = Path(worktree).expanduser()
+        worktrees = (self.home / "worktrees").resolve()
+        if candidate_path.is_symlink() or not candidate_path.exists():
+            raise ValueError("candidate worktree unavailable")
+        candidate_path = candidate_path.resolve(strict=True)
+        if candidate_path.parent != worktrees:
+            raise ValueError("candidate worktree outside isolated worktrees")
+        if git(candidate_path, "branch", "--show-current") != branch:
+            raise ValueError("candidate branch mismatch")
+        from .linux_runtime import check_candidate_changes
+        task_packet = json.loads(row["spec"])
+        if row["project_id"]:
+            with self.db() as db:
+                task_packet["subtasks"] = [json.loads(child["spec"]) for child in db.execute(
+                    "SELECT spec FROM subtasks WHERE parent_id=? ORDER BY sequence", (task_id,)
+                )]
+        actual_files = check_candidate_changes(candidate_path, base_sha, candidate_sha, task=task_packet)
+        if sorted(actual_files) != sorted(changed_files):
+            raise ValueError("candidate changed-file manifest mismatch")
+        changed_json = json.dumps(actual_files, separators=(",", ":"))
+
+        with self.master_lock(blocking=True):
+            with self.db() as db:
+                db.execute("BEGIN IMMEDIATE")
+                current = db.execute("SELECT * FROM tasks WHERE id=?", (task_id,)).fetchone()
+                if not current or current["last_run"] != run_id or current["attempt"] != attempt:
+                    db.execute("ROLLBACK")
+                    raise ValueError("stale_worker_lease")
+                existing = db.execute(
+                    "SELECT * FROM candidate_submissions WHERE task_id=? AND attempt=? AND candidate_sha=?",
+                    (task_id, attempt, candidate_sha),
+                ).fetchone()
+                if existing:
+                    db.execute("COMMIT")
+                    return {"submission_id": existing["submission_id"], "task_id": task_id,
+                            "candidate_sha": candidate_sha, "status": existing["status"], "idempotent": True}
+                other = db.execute(
+                    "SELECT 1 FROM candidate_submissions WHERE task_id=? AND attempt=? AND candidate_sha<>?",
+                    (task_id, attempt, candidate_sha),
+                ).fetchone()
+                if other:
+                    db.execute("ROLLBACK")
+                    raise ValueError("candidate already submitted for this generation")
+                submission_id = str(uuid.uuid4())
+                timestamp = now()
+                db.execute(
+                    "INSERT INTO candidate_submissions(submission_id,task_id,run_id,attempt,builder_session_id,"
+                    "base_sha,candidate_sha,branch,worktree,changed_files,test_evidence,acceptance_evidence,status,created_at,updated_at) "
+                    "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (submission_id, task_id, run_id, attempt, builder_session_id, base_sha, candidate_sha,
+                     branch, str(candidate_path), changed_json, test_json, acceptance_json, "queued",
+                     timestamp, timestamp),
+                )
+                db.execute(
+                    "UPDATE tasks SET status='awaiting_review',candidate_sha=?,changed_files=?,qc_evidence=?,updated_at=? WHERE id=?",
+                    (candidate_sha, changed_json, json.dumps({"submission_id": submission_id, "state": "queued"}),
+                     timestamp, task_id),
+                )
+                db.execute(
+                    "UPDATE runs SET status='awaiting_review',finished_at=? WHERE id=?",
+                    (timestamp, run_id),
+                )
+                db.execute(
+                    "INSERT INTO review_queue(parent_id,project_id,candidate_sha,created_at) VALUES(?,?,?,?) "
+                    "ON CONFLICT(parent_id) DO UPDATE SET candidate_sha=excluded.candidate_sha,created_at=excluded.created_at",
+                    (task_id, current["project_id"], candidate_sha, timestamp),
+                )
+                db.execute("COMMIT")
+        return {"submission_id": submission_id, "task_id": task_id, "candidate_sha": candidate_sha,
+                "status": "queued", "idempotent": False}
+
+    def update_candidate_submission(self, submission_id: str, status: str, *,
+                                    failure_code: str = "") -> None:
+        """Record one bounded QC/Merger outcome without changing task history."""
+        if not re.fullmatch(r"[a-f0-9-]{20,80}", submission_id):
+            raise ValueError("invalid submission ID")
+        if status not in {"queued", "qc_running", "passed", "rejected", "blocked", "merged", "merge_conflict"}:
+            raise ValueError("invalid submission status")
+        if len(failure_code) > 160 or (failure_code and not re.fullmatch(r"[A-Za-z0-9_:-]+", failure_code)):
+            raise ValueError("invalid submission failure code")
+        with self.master_lock(blocking=True):
+            with self.db() as db:
+                db.execute("BEGIN IMMEDIATE")
+                row = db.execute("SELECT submission_id FROM candidate_submissions WHERE submission_id=?",
+                                 (submission_id,)).fetchone()
+                if not row:
+                    db.execute("ROLLBACK")
+                    raise ValueError("unknown candidate submission")
+                db.execute(
+                    "UPDATE candidate_submissions SET status=?,failure_code=?,updated_at=? WHERE submission_id=?",
+                    (status, failure_code, now(), submission_id),
+                )
+                db.execute("COMMIT")
 
     def claim_recovery_task(self, lease: dict, *, model: str = MODEL) -> dict:
         """Atomically transfer one failed generation to a leased recovery lane."""

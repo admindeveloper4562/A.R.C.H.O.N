@@ -96,11 +96,9 @@ python3 -m astra_one.linux_cli architecture import --file "$HOME/Downloads/JARVI
 # Copy the exact printed sha256 after inspecting the document:
 python3 -m astra_one.linux_cli architecture approve --sha YOUR_EXACT_SHA256
 
-# Supervisor drafts a plan; does not enqueue or start it.
-python3 -m astra_one.linux_cli supervise --focus 'SDA foundation milestone' --count 5 \
-  --output "$HOME/Projects/astra-plan-001.json"
-
-# Review the proposed JSON first. Enqueue only approved concrete tasks:
+# The Main Codex session selects existing eligible tasks; Astra does not use
+# model-based planning or autonomous coding dispatch.
+# Enqueue only an owner-approved concrete task packet when needed:
 python3 -m astra_one.linux_cli enqueue --file "$HOME/Projects/astra-plan-001.json"
 ```
 
@@ -108,17 +106,20 @@ Supervisor planning rejects architecture files larger than a bounded first-pass 
 
 Example task JSON is in `examples/linux-tasks.sample.json` (do not enqueue it unless the objective truly matches your approved architecture).
 
-## 5. Prepare tests and start the five-worker Master
+## 5. Prepare tests and start the Main Codex handoff
 
 Prepare a locally trusted Docker image intentionally (e.g. `docker pull python:3.12-slim`) and verify `docker image inspect python:3.12-slim` succeeds. Work out dependency installation in a **reviewed, pinned, non-networked test image**; SDA never automatically `pip install`s untrusted code on the host. A local Docker daemon and image are required by this strict acceptance path.
 
 ```bash
 cd "$HOME/Projects/astra-one-linux/Astra-One"
 
-# Default: five active worker slots, separate Codex QA, no automatic integration.
-python3 -m astra_one.linux_cli run --workers 5 --max-tasks 20 --max-minutes 120 \
-  --model gpt-5.6-luna --effort medium \
-  --test-image python:3.12-slim --max-repairs 3
+# Main Codex owns implementation. Astra One only checks and merges a submitted
+# candidate; it never launches a feature-code worker.
+python3 -m astra_one.linux_cli builder-claim --model gpt-5.6-luna
+# Main Codex edits the returned isolated worktree, commits, and writes the
+# bounded handoff JSON required by builder-submit.
+python3 -m astra_one.linux_cli builder-submit --file /path/to/candidate-submission.json
+python3 -m astra_one.linux_cli qc-merge --limit 1 --test-image python:3.12-slim
 
 # Inspect candidate worktrees and results:
 python3 -m astra_one.linux_cli tasks
@@ -129,9 +130,7 @@ python3 -m astra_one.linux_cli approve-task ASTRA-001
 python3 -m astra_one.linux_cli integrate ASTRA-001 --confirm
 ```
 
-To opt into automatic **local integration only** of independent-QC-approved changes, use the same `run` command with `--auto-integrate`. This creates commits on `feature/astra-linux-integration-*` only, not on `develop` or `main`, and never pushes to GitHub or deploys. It can introduce defective code despite review; use a disposable VM / source clone and independent oversight. Dependency tasks can begin only after predecessors become **completed** in the local integration branch. If patches conflict, the task is blocked for supervised rework. No `reset --hard`, `clean`, automatic deletion, force-push, or service restart occurs.
-
-The five-worker cap includes worker and repair attempts; QC and Merger use separate Codex sessions. Each worker has subagent spawning disabled to prevent multiplying concurrent agents beyond the configured pool. Model requests still count toward your ChatGPT/Codex rate and usage limits.
+`qc-merge` performs deterministic Docker QC first and then serialized local integration. Use `--ai-review` only when the task's approved acceptance policy requires a separate read-only model review. A candidate is not complete until QC, integration, and required child receipts are recorded. No `run` command, recovery coder, reset, force-push, or remote publication is used by the Astra service.
 
 ## 6. Owner controls, recovery and quotas
 

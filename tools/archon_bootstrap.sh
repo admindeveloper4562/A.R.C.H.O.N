@@ -93,7 +93,7 @@ UNIT="$HOME/.config/systemd/user"
 mkdir -p "$UNIT"
 cat > "$UNIT/archon-astra.service" <<SERVICE
 [Unit]
-Description=ATLAS Astra One verified five-worker development batch
+Description=ATLAS Astra One Main Codex candidate QC and serial Merger
 After=network-online.target
 
 [Service]
