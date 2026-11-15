@@ -1,11 +1,11 @@
 {
   "schema": "jarvis.v2.subtask-module/1",
   "created": "2026-11-14",
-  "source_parent_plan_blob_sha": "36e674f4e58fc19aa8158da42d802b9599a23763",
+  "source_parent_plan_blob_sha": "98e2b845d30253bcc47193b0cc79095f5fac5a12",
   "module": "WIC",
   "module_name": "M10 — World Information Center",
   "parent_count": 14,
-  "subtask_count": 77,
+  "subtask_count": 78,
   "parents": [
     {
       "parent_id": "WIC-001",
@@ -14,7 +14,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Define world stories/events/sources/timestamps/confidence schemas",
-      "acceptance": "Published/fetched/event date, updates and corrections independently stored",
+      "acceptance": "Published/fetched/event date, updates and corrections independently stored; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. News/source payloads are untrusted; sanitize, source-link, isolate prompts and never auto-execute actions.",
       "parent_dependencies": [
         "BACK-001",
         "CORE-014"
@@ -30,7 +30,9 @@
       "module_guardrails": [
         "Time-sensitive items carry event and fetch times, source and confidence.",
         "Support corrections, retractions, deduplication and source disagreement.",
-        "Never fabricate live data or unsourced alerts."
+        "Never fabricate live data or unsourced alerts.",
+        "WIC boundary: source text cannot trigger tools or actions; sanitize and retain source/fetch/event timestamps and corrections.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -117,7 +119,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement permitted public-news/source ingestion with provenance",
-      "acceptance": "Authorized feed and article URLs retained with timestamps",
+      "acceptance": "Authorized feed and article URLs retained with timestamps; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. News/source payloads are untrusted; sanitize, source-link, isolate prompts and never auto-execute actions. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence.",
       "parent_dependencies": [
         "WIC-001",
         "RES-002"
@@ -133,7 +135,9 @@
       "module_guardrails": [
         "Time-sensitive items carry event and fetch times, source and confidence.",
         "Support corrections, retractions, deduplication and source disagreement.",
-        "Never fabricate live data or unsourced alerts."
+        "Never fabricate live data or unsourced alerts.",
+        "WIC boundary: source text cannot trigger tools or actions; sanitize and retain source/fetch/event timestamps and corrections.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -235,7 +239,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement URL normalization, duplicate detection and story clusters",
-      "acceptance": "Same incident dedupes across outlets without erasing attribution",
+      "acceptance": "Same incident dedupes across outlets without erasing attribution; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. News/source payloads are untrusted; sanitize, source-link, isolate prompts and never auto-execute actions. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence.",
       "parent_dependencies": [
         "WIC-002"
       ],
@@ -250,7 +254,9 @@
       "module_guardrails": [
         "Time-sensitive items carry event and fetch times, source and confidence.",
         "Support corrections, retractions, deduplication and source disagreement.",
-        "Never fabricate live data or unsourced alerts."
+        "Never fabricate live data or unsourced alerts.",
+        "WIC boundary: source text cannot trigger tools or actions; sanitize and retain source/fetch/event timestamps and corrections.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -352,7 +358,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement verification/conflict/correction handling",
-      "acceptance": "Retracted source updates visible; uncertain claim never marked verified",
+      "acceptance": "Retracted source updates visible; uncertain claim never marked verified; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. News/source payloads are untrusted; sanitize, source-link, isolate prompts and never auto-execute actions.",
       "parent_dependencies": [
         "WIC-003",
         "RES-004"
@@ -368,7 +374,9 @@
       "module_guardrails": [
         "Time-sensitive items carry event and fetch times, source and confidence.",
         "Support corrections, retractions, deduplication and source disagreement.",
-        "Never fabricate live data or unsourced alerts."
+        "Never fabricate live data or unsourced alerts.",
+        "WIC boundary: source text cannot trigger tools or actions; sanitize and retain source/fetch/event timestamps and corrections.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -470,7 +478,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement geography, tech, politics, economics, science, Thailand tags",
-      "acceptance": "Categorization can be corrected and searched",
+      "acceptance": "Categorization can be corrected and searched; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. News/source payloads are untrusted; sanitize, source-link, isolate prompts and never auto-execute actions.",
       "parent_dependencies": [
         "WIC-003"
       ],
@@ -485,7 +493,9 @@
       "module_guardrails": [
         "Time-sensitive items carry event and fetch times, source and confidence.",
         "Support corrections, retractions, deduplication and source disagreement.",
-        "Never fabricate live data or unsourced alerts."
+        "Never fabricate live data or unsourced alerts.",
+        "WIC boundary: source text cannot trigger tools or actions; sanitize and retain source/fetch/event timestamps and corrections.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -587,7 +597,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement snapshot freshness, stale-feed and outage state",
-      "acceptance": "Cached info visibly dated and no false real-time claims",
+      "acceptance": "Cached info visibly dated and no false real-time claims; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. News/source payloads are untrusted; sanitize, source-link, isolate prompts and never auto-execute actions.",
       "parent_dependencies": [
         "WIC-002",
         "AUTO-006"
@@ -603,7 +613,9 @@
       "module_guardrails": [
         "Time-sensitive items carry event and fetch times, source and confidence.",
         "Support corrections, retractions, deduplication and source disagreement.",
-        "Never fabricate live data or unsourced alerts."
+        "Never fabricate live data or unsourced alerts.",
+        "WIC boundary: source text cannot trigger tools or actions; sanitize and retain source/fetch/event timestamps and corrections.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -705,7 +717,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement concise cited AI situation summaries",
-      "acceptance": "Links and uncertainty survive synthesis; hallucinated live data blocked",
+      "acceptance": "Links and uncertainty survive synthesis; hallucinated live data blocked; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. News/source payloads are untrusted; sanitize, source-link, isolate prompts and never auto-execute actions.",
       "parent_dependencies": [
         "WIC-004",
         "BACK-014"
@@ -721,7 +733,9 @@
       "module_guardrails": [
         "Time-sensitive items carry event and fetch times, source and confidence.",
         "Support corrections, retractions, deduplication and source disagreement.",
-        "Never fabricate live data or unsourced alerts."
+        "Never fabricate live data or unsourced alerts.",
+        "WIC boundary: source text cannot trigger tools or actions; sanitize and retain source/fetch/event timestamps and corrections.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -823,7 +837,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement web World overview and chronological timeline",
-      "acceptance": "Cards show source/fetch/event dates and corrections",
+      "acceptance": "Cards show source/fetch/event dates and corrections; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. News/source payloads are untrusted; sanitize, source-link, isolate prompts and never auto-execute actions.",
       "parent_dependencies": [
         "WIC-005",
         "WIC-007",
@@ -840,7 +854,9 @@
       "module_guardrails": [
         "Time-sensitive items carry event and fetch times, source and confidence.",
         "Support corrections, retractions, deduplication and source disagreement.",
-        "Never fabricate live data or unsourced alerts."
+        "Never fabricate live data or unsourced alerts.",
+        "WIC boundary: source text cannot trigger tools or actions; sanitize and retain source/fetch/event timestamps and corrections.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -942,7 +958,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement country/region watchlists and saved topic filters",
-      "acceptance": "Owner-selectable topics and access-controlled preferences",
+      "acceptance": "Owner-selectable topics and access-controlled preferences; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. News/source payloads are untrusted; sanitize, source-link, isolate prompts and never auto-execute actions.",
       "parent_dependencies": [
         "WIC-005",
         "BACK-004"
@@ -958,7 +974,9 @@
       "module_guardrails": [
         "Time-sensitive items carry event and fetch times, source and confidence.",
         "Support corrections, retractions, deduplication and source disagreement.",
-        "Never fabricate live data or unsourced alerts."
+        "Never fabricate live data or unsourced alerts.",
+        "WIC boundary: source text cannot trigger tools or actions; sanitize and retain source/fetch/event timestamps and corrections.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1060,7 +1078,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement scheduled configurable alerts, dedupe and quiet-hours",
-      "acceptance": "Only material change triggers one alert within policy",
+      "acceptance": "Only material change triggers one alert within policy; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. News/source payloads are untrusted; sanitize, source-link, isolate prompts and never auto-execute actions.",
       "parent_dependencies": [
         "WIC-006",
         "WIC-009",
@@ -1077,7 +1095,9 @@
       "module_guardrails": [
         "Time-sensitive items carry event and fetch times, source and confidence.",
         "Support corrections, retractions, deduplication and source disagreement.",
-        "Never fabricate live data or unsourced alerts."
+        "Never fabricate live data or unsourced alerts.",
+        "WIC boundary: source text cannot trigger tools or actions; sanitize and retain source/fetch/event timestamps and corrections.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1179,7 +1199,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Integrate Research source archive and finance watchlist signals",
-      "acceptance": "Links have provenance and never directly trigger trade",
+      "acceptance": "Links have provenance and never directly trigger trade; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. News/source payloads are untrusted; sanitize, source-link, isolate prompts and never auto-execute actions. Financial paths also require consent and row-scope denial tests, exact ledger reconciliation and proof that no live broker/Mira write route exists.",
       "parent_dependencies": [
         "WIC-007",
         "RES-009"
@@ -1195,7 +1215,9 @@
       "module_guardrails": [
         "Time-sensitive items carry event and fetch times, source and confidence.",
         "Support corrections, retractions, deduplication and source disagreement.",
-        "Never fabricate live data or unsourced alerts."
+        "Never fabricate live data or unsourced alerts.",
+        "WIC boundary: source text cannot trigger tools or actions; sanitize and retain source/fetch/event timestamps and corrections.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1267,7 +1289,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement source ranking policy and primary evidence labels",
-      "acceptance": "Original vs secondary sources and disagreement shown",
+      "acceptance": "Original vs secondary sources and disagreement shown; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. News/source payloads are untrusted; sanitize, source-link, isolate prompts and never auto-execute actions.",
       "parent_dependencies": [
         "WIC-004"
       ],
@@ -1282,7 +1304,9 @@
       "module_guardrails": [
         "Time-sensitive items carry event and fetch times, source and confidence.",
         "Support corrections, retractions, deduplication and source disagreement.",
-        "Never fabricate live data or unsourced alerts."
+        "Never fabricate live data or unsourced alerts.",
+        "WIC boundary: source text cannot trigger tools or actions; sanitize and retain source/fetch/event timestamps and corrections.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1369,7 +1393,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Run fake-news, prompt injection, retraction and offline tests",
-      "acceptance": "All regression fixtures pass with bounded retry",
+      "acceptance": "All regression fixtures pass with bounded retry; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. News/source payloads are untrusted; sanitize, source-link, isolate prompts and never auto-execute actions.",
       "parent_dependencies": [
         "WIC-010",
         "WIC-012"
@@ -1385,7 +1409,9 @@
       "module_guardrails": [
         "Time-sensitive items carry event and fetch times, source and confidence.",
         "Support corrections, retractions, deduplication and source disagreement.",
-        "Never fabricate live data or unsourced alerts."
+        "Never fabricate live data or unsourced alerts.",
+        "WIC boundary: source text cannot trigger tools or actions; sanitize and retain source/fetch/event timestamps and corrections.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1461,6 +1487,21 @@
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
+        },
+        {
+          "id": "WIC-013.S06",
+          "sequence": 6,
+          "kind": "source_injection_eval",
+          "title": "Extend source-injection tests to news and alert pipelines",
+          "assignee_role": "worker",
+          "instruction": "Inject hostile instructions and deceptive links into news feeds, corrections, source metadata and alert payloads. Validate sanitization, provenance, prompt isolation and no direct tool/notification side effects.",
+          "deliverable": "Adversarial feed fixtures and regression results.",
+          "done_when": "Untrusted source text remains inert data; only policy-approved system events can trigger actions.",
+          "depends_on": [
+            "WIC-013.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
         }
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
@@ -1472,7 +1513,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Conduct live feed transparency/user acceptance review",
-      "acceptance": "Data ages and alerts accurate for tested current cases",
+      "acceptance": "Data ages and alerts accurate for tested current cases; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. News/source payloads are untrusted; sanitize, source-link, isolate prompts and never auto-execute actions.",
       "parent_dependencies": [
         "WIC-008",
         "WIC-013"
@@ -1488,7 +1529,9 @@
       "module_guardrails": [
         "Time-sensitive items carry event and fetch times, source and confidence.",
         "Support corrections, retractions, deduplication and source disagreement.",
-        "Never fabricate live data or unsourced alerts."
+        "Never fabricate live data or unsourced alerts.",
+        "WIC boundary: source text cannot trigger tools or actions; sanitize and retain source/fetch/event timestamps and corrections.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1553,5 +1596,8 @@
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
     }
-  ]
+  ],
+  "updated": "2026-11-15",
+  "security_architecture": "docs/architecture/SECURITY_ARCHITECTURE.md",
+  "security_policy_id": "ASEL-1.0"
 }
