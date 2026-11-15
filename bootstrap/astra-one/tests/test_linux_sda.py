@@ -1447,8 +1447,19 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change'}}))
                 "UPDATE tasks SET status='failed',attempt=?,last_run='' WHERE id='ASTRA-001'",
                 (MAX_FAILURES,),
             )
-        with self.assertRaisesRegex(ValueError, "only failed/interrupted/conflict/stopped tasks below retry ceiling"):
+        with self.assertRaisesRegex(ValueError, "retry ceiling reached"):
             self.state.retry("ASTRA-001")
+        reports = list((self.state.home / "reports" / "breakdown").glob("astra-001-retry_ceiling-attempt-20.json"))
+        self.assertEqual(len(reports), 1)
+        document = json.loads(reports[0].read_text(encoding="utf-8"))
+        digest = document.pop("report_sha256")
+        body = json.dumps(document, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        self.assertEqual(__import__("hashlib").sha256(body.encode("utf-8")).hexdigest(), digest)
+        self.assertEqual(document["candidate_quarantine"][0]["candidate_sha"], candidate_sha)
+        before = reports[0].read_bytes()
+        with self.assertRaisesRegex(ValueError, "retry ceiling reached"):
+            self.state.retry("ASTRA-001")
+        self.assertEqual(reports[0].read_bytes(), before)
 
     def test_master_refuses_before_claim_when_sandbox_unavailable(self):
         self.state.add_tasks(task(1))

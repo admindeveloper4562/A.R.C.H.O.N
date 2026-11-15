@@ -2146,13 +2146,98 @@ class State:
                     db.execute("UPDATE tasks SET status='interrupted',last_run='',last_error='master_restart_review_required',updated_at=? WHERE id=?",(now(),r["id"]))
                 return [r["id"] for r in rows]
 
+    def _write_breakdown_report(self, db: sqlite3.Connection, tid: str, reason: str) -> dict:
+        """Persist one bounded, immutable failure summary before a retry ceiling stops work."""
+        if not re.fullmatch(r"[a-z0-9_:-]{2,64}", reason):
+            raise ValueError("invalid breakdown report reason")
+        task = db.execute(
+            "SELECT id,status,attempt,last_error,base_sha,candidate_sha,integrated_sha,branch,worktree "
+            "FROM tasks WHERE id=?", (tid,)
+        ).fetchone()
+        if not task:
+            raise ValueError("unknown task")
+        report_dir = self.home / "reports" / "breakdown"
+        report_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
+        report_path = report_dir / f"{tid.lower()}-{reason}-attempt-{task['attempt']}.json"
+
+        def verify_existing(path: Path) -> dict:
+            try:
+                document = json.loads(path.read_text(encoding="utf-8"))
+                digest = document.pop("report_sha256")
+                body = json.dumps(document, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+                if hashlib.sha256(body.encode("utf-8")).hexdigest() != digest:
+                    raise ValueError("breakdown report digest mismatch")
+                if document.get("task_id") != tid or document.get("reason") != reason:
+                    raise ValueError("breakdown report identity mismatch")
+                return {"path": str(path), "sha256": digest, "immutable": True}
+            except (KeyError, OSError, TypeError, ValueError, json.JSONDecodeError) as exc:
+                raise ValueError("existing breakdown report is invalid") from exc
+
+        if report_path.exists():
+            return verify_existing(report_path)
+
+        run_rows = db.execute(
+            "SELECT id,attempt,role,status,started_at,finished_at,model,tool_count,error_code "
+            "FROM runs WHERE task_id=? ORDER BY attempt,started_at LIMIT 100", (tid,)
+        ).fetchall()
+        submission_rows = db.execute(
+            "SELECT attempt,base_sha,candidate_sha,branch,worktree,status,failure_code "
+            "FROM candidate_submissions WHERE task_id=? ORDER BY attempt,created_at LIMIT 100", (tid,)
+        ).fetchall()
+        quarantine_rows = []
+        if db.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='candidate_quarantine'"
+        ).fetchone():
+            quarantine_rows = db.execute(
+                "SELECT attempt,candidate_sha,branch,worktree,failure_code,source "
+                "FROM candidate_quarantine WHERE task_id=? ORDER BY attempt,created_at LIMIT 100", (tid,)
+            ).fetchall()
+        settings = dict(db.execute(
+            "SELECT key,value FROM settings WHERE key IN ('source_sha','integration_sha','integration_branch')"
+        ).fetchall())
+        payload = {
+            "format": "astra-one-breakdown-v1",
+            "task_id": tid,
+            "reason": reason,
+            "ceiling_attempt": task["attempt"],
+            "max_attempts": MAX_FAILURES,
+            "generated_at": now(),
+            "source_sha": settings.get("source_sha", ""),
+            "integration_sha": settings.get("integration_sha", ""),
+            "integration_branch": settings.get("integration_branch", ""),
+            "task": {key: task[key] or "" for key in (
+                "status", "attempt", "last_error", "base_sha", "candidate_sha",
+                "integrated_sha", "branch", "worktree",
+            )},
+            "runs": [dict(item) for item in run_rows],
+            "candidate_submissions": [dict(item) for item in submission_rows],
+            "candidate_quarantine": [dict(item) for item in quarantine_rows],
+        }
+        body = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        if len(body.encode("utf-8")) > 100_000:
+            raise ValueError("breakdown report exceeds bound")
+        digest = hashlib.sha256(body.encode("utf-8")).hexdigest()
+        document = {**payload, "report_sha256": digest}
+        text = json.dumps(document, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
+        try:
+            fd = os.open(report_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            with os.fdopen(fd, "w", encoding="utf-8") as handle:
+                handle.write(text)
+        except FileExistsError:
+            return verify_existing(report_path)
+        return {"path": str(report_path), "sha256": digest, "immutable": True}
+
     def retry(self, tid: str):
         with self.db() as db:
             db.execute("BEGIN IMMEDIATE")
             row=db.execute("SELECT status,attempt,project_id,owner_gate FROM tasks WHERE id=?",(tid,)).fetchone()
-            if not row or row["status"] not in {"failed","interrupted","conflict","stopped"} or row["attempt"]>=MAX_FAILURES:
+            if not row or row["status"] not in {"failed","interrupted","conflict","stopped"}:
                 db.execute("ROLLBACK")
                 raise ValueError("only failed/interrupted/conflict/stopped tasks below retry ceiling can retry")
+            if row["attempt"] >= MAX_FAILURES:
+                report = self._write_breakdown_report(db, tid, "retry_ceiling")
+                db.execute("COMMIT")
+                raise ValueError("retry ceiling reached; breakdown report is immutable")
             if db.execute(
                 "SELECT 1 FROM sqlite_master WHERE type='table' AND name='supervisor_lanes'"
             ).fetchone() and db.execute(
