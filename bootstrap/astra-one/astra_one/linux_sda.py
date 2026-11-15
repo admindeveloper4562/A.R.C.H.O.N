@@ -349,6 +349,29 @@ def file_sha256(path: Path) -> str:
 def _canonical_json(value: object) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
 
+
+def _checkpoint_value(value: object) -> object:
+    """Normalize SQLite values before hashing without retaining their contents."""
+    if isinstance(value, bytes):
+        return {"bytes_sha256": hashlib.sha256(value).hexdigest(), "bytes": len(value)}
+    if isinstance(value, (str, int, float, bool)) or value is None:
+        return value
+    return str(value)
+
+
+def _database_state_digest(db: sqlite3.Connection) -> str:
+    """Hash every persisted row so a restore drill proves state, not just schema."""
+    digest = hashlib.sha256()
+    tables = [row[0] for row in db.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name"
+    )]
+    for name in tables:
+        identifier = name.replace('"', '""')
+        digest.update(_canonical_json({"table": name}))
+        for row in db.execute(f'SELECT * FROM "{identifier}" ORDER BY rowid'):
+            digest.update(_canonical_json([_checkpoint_value(value) for value in row]))
+    return digest.hexdigest()
+
 def git(repo: Path, *args: str, timeout: int = 90) -> str:
     result = subprocess.run(["git", "-C", str(repo), *args], text=True,
                             capture_output=True, timeout=timeout, check=False)
@@ -684,6 +707,189 @@ class State:
     def put(self, key: str, value: str):
         with self.db() as db:
             db.execute("INSERT INTO settings VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value", (key,value))
+
+    def _checkpoint_snapshot(self, db: sqlite3.Connection) -> dict:
+        """Return bounded metadata; the SQLite backup remains the source of truth."""
+        settings = dict(db.execute(
+            "SELECT key,value FROM settings WHERE key IN "
+            "('source','source_sha','integration_path','integration_sha','integration_branch',"
+            "'architecture_sha','approved_architecture_sha','version','schema_version')"
+        ).fetchall())
+        counts = {}
+        for table in ("tasks", "runs", "events", "subtasks", "subtask_receipts",
+                      "owner_approval_receipts", "candidate_submissions", "review_queue",
+                      "merge_queue", "pending_queue", "rebuild_queue"):
+            if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)).fetchone():
+                counts[table] = int(db.execute(f'SELECT count(*) FROM "{table}"').fetchone()[0])
+        counts["task_status"] = {
+            str(row[0]): int(row[1])
+            for row in db.execute("SELECT status,count(*) FROM tasks GROUP BY status ORDER BY status")
+        }
+        leases = []
+        if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='supervisor_lanes'").fetchone():
+            leases.extend(dict(row) for row in db.execute(
+                "SELECT lane_id,task_id,case_id,state,generation,run_id,candidate_sha "
+                "FROM supervisor_lanes WHERE state<>'idle' ORDER BY lane_id"
+            ))
+        leases.extend(dict(row) for row in db.execute(
+            "SELECT id AS task_id,status,attempt,last_run AS run_id,base_sha,candidate_sha "
+            "FROM tasks WHERE status IN ('preflight','coding','verifying','awaiting_review','approved') "
+            "ORDER BY id"
+        ))
+        return {
+            "settings": settings,
+            "schema_version": int(db.execute("PRAGMA user_version").fetchone()[0]),
+            "counts": counts,
+            "active_leases": leases,
+            "controls": {
+                marker: (self.home / marker).is_file()
+                for marker in ("STOP", "PAUSE", "PAUSED_QUOTA", "PAUSE_NORMAL", "PAUSE_RECOVERY")
+            },
+        }
+
+    def export_checkpoint(self, destination: Path | None = None) -> dict:
+        """Create an immutable, SQLite-API backup without changing canonical state."""
+        root = (self.home / "checkpoints").resolve()
+        if destination is None:
+            stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+            destination = root / f"checkpoint-{stamp}-{uuid.uuid4().hex[:12]}"
+        else:
+            destination = destination.expanduser()
+            if not destination.is_absolute():
+                destination = self.home / destination
+            destination = destination.resolve(strict=False)
+        try:
+            destination.relative_to(self.home.resolve())
+        except ValueError as exc:
+            raise ValueError("checkpoint destination outside state directory") from exc
+        if destination.exists() or destination.is_symlink():
+            raise ValueError("checkpoint destination already exists")
+        destination.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        os.chmod(destination.parent, 0o700)
+        destination.mkdir(mode=0o700)
+        database_path = destination / "sda.sqlite3"
+        temporary = destination / f".sda.sqlite3.{uuid.uuid4().hex}.tmp"
+        try:
+            with self.master_lock(blocking=True):
+                with sqlite3.connect(self.database) as source:
+                    source.row_factory = sqlite3.Row
+                    source.execute("PRAGMA busy_timeout=20000")
+                    if source.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+                        raise ValueError("canonical database integrity check failed")
+                    snapshot = self._checkpoint_snapshot(source)
+                    snapshot["state_digest"] = _database_state_digest(source)
+                    with sqlite3.connect(temporary) as target:
+                        source.backup(target)
+                        if target.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+                            raise ValueError("checkpoint backup integrity check failed")
+                        if _database_state_digest(target) != snapshot["state_digest"]:
+                            raise ValueError("checkpoint state digest mismatch")
+                    os.chmod(temporary, 0o600)
+                    os.replace(temporary, database_path)
+            manifest = {
+                "format": "astra-one-state-checkpoint-v1",
+                "created_at": now(),
+                "database_file": database_path.name,
+                "database_sha256": file_sha256(database_path),
+                "snapshot": snapshot,
+            }
+            body = _canonical_json(manifest)
+            manifest["manifest_sha256"] = hashlib.sha256(body).hexdigest()
+            manifest_path = destination / "manifest.json"
+            temporary_manifest = destination / f".manifest.{uuid.uuid4().hex}.tmp"
+            temporary_manifest.write_bytes(_canonical_json(manifest))
+            os.chmod(temporary_manifest, 0o600)
+            os.replace(temporary_manifest, manifest_path)
+            return {
+                "checkpoint": str(destination),
+                "manifest": str(manifest_path),
+                "database": str(database_path),
+                "database_sha256": manifest["database_sha256"],
+                "state_digest": snapshot["state_digest"],
+                "integrity": "ok",
+                "controls_preserved": True,
+            }
+        finally:
+            temporary.unlink(missing_ok=True)
+
+    def _read_checkpoint(self, checkpoint: Path) -> tuple[Path, dict]:
+        checkpoint = checkpoint.expanduser().resolve(strict=True)
+        try:
+            checkpoint.relative_to((self.home / "checkpoints").resolve())
+        except ValueError as exc:
+            raise ValueError("checkpoint is outside state checkpoints") from exc
+        if not checkpoint.is_dir() or checkpoint.is_symlink():
+            raise ValueError("checkpoint directory is unsafe")
+        manifest_path = checkpoint / "manifest.json"
+        if manifest_path.is_symlink() or not manifest_path.is_file():
+            raise ValueError("checkpoint manifest unavailable")
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+            raise ValueError("checkpoint manifest invalid") from exc
+        if not isinstance(manifest, dict) or manifest.get("format") != "astra-one-state-checkpoint-v1":
+            raise ValueError("checkpoint format invalid")
+        provided = manifest.pop("manifest_sha256", "")
+        if not isinstance(provided, str) or hashlib.sha256(_canonical_json(manifest)).hexdigest() != provided:
+            raise ValueError("checkpoint manifest digest mismatch")
+        database_name = manifest.get("database_file")
+        if database_name != "sda.sqlite3":
+            raise ValueError("checkpoint database path invalid")
+        snapshot = manifest.get("snapshot")
+        if not isinstance(snapshot, dict) or not isinstance(snapshot.get("state_digest"), str):
+            raise ValueError("checkpoint snapshot invalid")
+        database_path = checkpoint / database_name
+        if database_path.is_symlink() or not database_path.is_file():
+            raise ValueError("checkpoint database unavailable")
+        if file_sha256(database_path) != manifest.get("database_sha256"):
+            raise ValueError("checkpoint database digest mismatch")
+        with sqlite3.connect(database_path) as source:
+            if source.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+                raise ValueError("checkpoint database integrity check failed")
+            expected = snapshot["state_digest"]
+            if not isinstance(expected, str) or _database_state_digest(source) != expected:
+                raise ValueError("checkpoint state digest mismatch")
+        return database_path, {**manifest, "manifest_sha256": provided}
+
+    def restore_checkpoint(self, checkpoint: Path, destination: Path) -> dict:
+        """Restore only to a new disposable DB; never overwrite canonical state."""
+        destination = destination.expanduser()
+        if not destination.is_absolute():
+            destination = self.home / destination
+        destination = destination.resolve(strict=False)
+        try:
+            destination.relative_to(self.home.resolve())
+        except ValueError as exc:
+            raise ValueError("restore destination outside state directory") from exc
+        if destination == self.database.resolve() or destination.exists() or destination.is_symlink():
+            raise ValueError("restore destination must be new and non-canonical")
+        destination.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        os.chmod(destination.parent, 0o700)
+        source_path, manifest = self._read_checkpoint(checkpoint)
+        temporary = destination.parent / f".{destination.name}.{uuid.uuid4().hex}.tmp"
+        try:
+            with self.master_lock(blocking=True):
+                with sqlite3.connect(source_path) as source, sqlite3.connect(temporary) as target:
+                    source.backup(target)
+                    if target.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+                        raise ValueError("restored database integrity check failed")
+                    expected = manifest["snapshot"]["state_digest"]
+                    restored_digest = _database_state_digest(target)
+                    if restored_digest != expected:
+                        raise ValueError("restored database state digest mismatch")
+                os.chmod(temporary, 0o600)
+                os.replace(temporary, destination)
+            return {
+                "restored": str(destination),
+                "checkpoint": str(Path(checkpoint).expanduser().resolve()),
+                "database_sha256": file_sha256(destination),
+                "state_digest": manifest["snapshot"]["state_digest"],
+                "integrity": "ok",
+                "canonical_unchanged": True,
+                "controls_not_modified": True,
+            }
+        finally:
+            temporary.unlink(missing_ok=True)
 
     def import_architecture(self, file: Path) -> str:
         content = file.read_bytes()

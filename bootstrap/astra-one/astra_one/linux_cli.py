@@ -865,6 +865,10 @@ def main(argv: list[str] | None = None) -> int:
     p=sub.add_parser("import-full-plan");p.add_argument("--parent-plan",type=Path,required=True);p.add_argument("--subtask-index",type=Path,required=True);p.add_argument("--subtask-dir",type=Path,required=True);p.add_argument("--source-ref",default="");p.add_argument("--source-commit",default="")
     sub.add_parser("full-plan-status")
     p=sub.add_parser("task-markdown");p.add_argument("action",choices=["write","validate"]);p.add_argument("--output","--file",dest="file",type=Path)
+    p=sub.add_parser("checkpoint");p.add_argument("action",choices=["export","restore"])
+    p.add_argument("--output",type=Path)
+    p.add_argument("--checkpoint",type=Path)
+    p.add_argument("--destination",type=Path)
     sub.add_parser("status");sub.add_parser("tasks");sub.add_parser("sync")
     for name in ("stop","pause","resume","clear-quota","recover",
                  "pause-normal","pause-recovery","resume-normal","resume-recovery"):
@@ -956,6 +960,13 @@ def main(argv: list[str] | None = None) -> int:
                 report(state.export_task_markdown(path))
             else:
                 report(state.validate_task_markdown_file(path))
+        elif args.command == "checkpoint":
+            if args.action == "export":
+                report(state.export_checkpoint(args.output))
+            else:
+                if not args.checkpoint or not args.destination:
+                    raise ValueError("checkpoint restore requires --checkpoint and --destination")
+                report(state.restore_checkpoint(args.checkpoint, args.destination))
         elif args.command=="status":report(state.overview())
         elif args.command=="tasks":report(state.list_tasks())
         elif args.command=="sync":report(state.sync(limit=500))

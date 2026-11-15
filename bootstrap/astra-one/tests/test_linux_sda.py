@@ -553,6 +553,62 @@ class LinuxSDATests(unittest.TestCase):
         self.state.set_task("ASTRA-001", "failed", error="qc_rejected:permission_scope")
         self.assertEqual(self.state.failure_codes("ASTRA-001"), ["qc_rejected:permission_scope"])
 
+    def test_checkpoint_export_and_restore_preserve_ledger_and_safety_controls(self):
+        self.state.add_tasks(task(1))
+        claim = self.state.claim()
+        self.state.record_codex_receipt(
+            claim["run_id"], thread_id="builder-thread", input_tokens=11,
+            output_tokens=7, tool_count=2,
+        )
+        (self.state.home / "PAUSE_NORMAL").touch()
+
+        exported = self.state.export_checkpoint()
+        checkpoint = Path(exported["checkpoint"])
+        manifest = json.loads((checkpoint / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["format"], "astra-one-state-checkpoint-v1")
+        self.assertEqual(exported["integrity"], "ok")
+        self.assertTrue(manifest["snapshot"]["active_leases"])
+        self.assertTrue(manifest["snapshot"]["controls"]["PAUSE_NORMAL"])
+        self.assertEqual(manifest["database_sha256"], exported["database_sha256"])
+
+        restored = self.state.restore_checkpoint(
+            checkpoint, self.state.home / "restores" / "sda.sqlite3"
+        )
+        self.assertTrue(restored["canonical_unchanged"])
+        with sqlite3.connect(restored["restored"]) as db:
+            db.row_factory = sqlite3.Row
+            task_row = db.execute(
+                "SELECT status,last_run,attempt FROM tasks WHERE id='ASTRA-001'"
+            ).fetchone()
+            run_row = db.execute(
+                "SELECT thread_id,input_tokens,output_tokens FROM runs WHERE id=?",
+                (claim["run_id"],),
+            ).fetchone()
+            self.assertEqual(dict(task_row), {
+                "status": "preflight", "last_run": claim["run_id"], "attempt": 1,
+            })
+            self.assertEqual(dict(run_row), {
+                "thread_id": "builder-thread", "input_tokens": 11,
+                "output_tokens": 7,
+            })
+            self.assertEqual(
+                db.execute("PRAGMA integrity_check").fetchone()[0], "ok"
+            )
+        self.assertTrue((self.state.home / "PAUSE_NORMAL").is_file())
+        with self.assertRaisesRegex(ValueError, "non-canonical"):
+            self.state.restore_checkpoint(checkpoint, self.state.database)
+
+    def test_checkpoint_restore_rejects_manifest_or_database_tampering(self):
+        exported = self.state.export_checkpoint()
+        manifest_path = Path(exported["manifest"])
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["snapshot"]["schema_version"] = 999
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "manifest digest mismatch"):
+            self.state.restore_checkpoint(
+                Path(exported["checkpoint"]), self.state.home / "restores" / "bad.sqlite3"
+            )
+
     def test_plan_is_atomic(self):
         with self.assertRaisesRegex(ValueError,"dependencies"):
             self.state.add_tasks([task(1),task(2,["ASTRA-999"])])
