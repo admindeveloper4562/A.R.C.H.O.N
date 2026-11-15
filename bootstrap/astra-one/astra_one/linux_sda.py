@@ -47,6 +47,7 @@ TASK_ID = re.compile(r"^[A-Z][A-Z0-9-]{2,47}$")
 SHA = re.compile(r"^[0-9a-f]{40}$")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 SAFE = re.compile(r"^[a-z0-9_]{2,80}$")
+EVENT_RESULT = re.compile(r"^[A-Za-z0-9_.:=/,-]{0,100}$")
 STAGE = {"queued", "preflight", "coding", "verifying", "awaiting_review", "approved", "completed", "failed", "stopped", "interrupted"}
 PROTECTED = {"AGENTS.md", "SECURITY.md", "DELETE-LOGS.md", ".env", ".gitignore", "CODEOWNERS"}
 PROTECTED_PARTS = {".git", ".codex", ".github", ".ssh", ".aws", "node_modules", ".venv", "__pycache__"}
@@ -2296,7 +2297,9 @@ class State:
 
     def emit(self, tid: str, run_id: str, *, stage: str, step: str, branch: str, base_sha: str,
              tools: int = 0, attempt: int = 1, elapsed: int = 0, result: str = ""):
-        if stage not in STAGE or not SAFE.fullmatch(step) or not branch.startswith(("feature/", "feat/")) or not SHA.fullmatch(base_sha):
+        if (stage not in STAGE or not SAFE.fullmatch(step)
+                or not branch.startswith(("feature/", "feat/")) or not SHA.fullmatch(base_sha)
+                or not isinstance(result, str) or not EVENT_RESULT.fullmatch(result)):
             raise ValueError("invalid progress event")
         for retry in range(4):
             try:

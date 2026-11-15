@@ -1523,7 +1523,8 @@ def integrate(state: State, tid: str, *, merger_model: str | None = None, merger
     state.set_task(tid,"completed",fields={"integrated_sha": sha},
                    run_id=data["last_run"],attempt=data["attempt"])
     state.emit(tid,data["last_run"],stage="completed",step="merger_local_commit",
-               branch=data["branch"],base_sha=data["base_sha"],attempt=data["attempt"],result="local_only")
+               branch=data["branch"],base_sha=data["base_sha"],attempt=data["attempt"],
+               result=f"integration={sha}")
     return {"task_id":tid,"status":"completed","integration_sha":sha,"remote_push":False}
 
 
@@ -1589,6 +1590,8 @@ def execute_claim(state: State, item: dict, *, slot: int, model: str, effort: st
             worktree, test_image, test_command,
             receipt_dir=state.home / "private" / "test-receipts", receipt_context=receipt_context,
         )
+        emit("verifying", "docker_no_network_tests",
+             result=f"tests={'passed' if tests['passed'] else 'failed'}/receipt={tests.get('receipt_sha', '')}")
         if not tests["passed"]:
             raise RuntimeError("isolated_tests_failed")
         emit("verifying","independent_qc_start")
@@ -1640,7 +1643,7 @@ def execute_claim(state: State, item: dict, *, slot: int, model: str, effort: st
                                            "child_receipts":child_receipts,"artifact_receipts":artifact_receipts}),
                 "tool_count":tools}
         state.set_task(tid,"awaiting_review",fields=fields,run_id=run_id,attempt=attempt)
-        emit("awaiting_review","qc_passed_candidate_ready")
+        emit("awaiting_review","qc_passed_candidate_ready",result=f"candidate={candidate_sha}")
         if auto_integrate:
             state.approve(tid,run_id=run_id,attempt=attempt)
             emit("approved","safe_auto_approval")

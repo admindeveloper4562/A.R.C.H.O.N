@@ -609,6 +609,56 @@ class LinuxSDATests(unittest.TestCase):
                 Path(exported["checkpoint"]), self.state.home / "restores" / "bad.sqlite3"
             )
 
+    def test_progress_sync_publishes_only_bounded_metadata_and_receipt_hashes(self):
+        self.state.add_tasks(task(1))
+        claim = self.state.claim()
+        base_sha = git(self.repo, "rev-parse", "HEAD")
+        self.state.set_task(
+            "ASTRA-001", "coding",
+            fields={"base_sha": base_sha, "branch": "feature/astra-test"},
+            run_id=claim["run_id"], attempt=claim["attempt"],
+        )
+        self.state.emit(
+            "ASTRA-001", claim["run_id"], stage="verifying", step="tests_recorded",
+            branch="feature/astra-test", base_sha=base_sha, attempt=1,
+            result="tests=passed/receipt=" + "a" * 64,
+        )
+        captured = {}
+
+        class Response:
+            status = 201
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_):
+                return False
+
+        def urlopen(request, timeout):
+            captured["request"] = request
+            captured["timeout"] = timeout
+            return Response()
+
+        with patch.dict(os.environ, {
+            "ASTRA_MONITOR_URL": "https://monitor.invalid",
+            "ASTRA_MONITOR_INGEST_TOKEN": "ingest-only",
+        }), patch("astra_one.linux_sda.urllib.request.urlopen", side_effect=urlopen):
+            self.assertEqual(self.state.sync(limit=1)["sent"], 1)
+        event = json.loads(captured["request"].data.decode("utf-8"))
+        self.assertEqual(event["result"], "tests=passed/receipt=" + "a" * 64)
+        self.assertEqual(set(event), {
+            "event_id", "run_id", "task_id", "seq", "time", "stage", "step",
+            "branch", "base_sha", "tool_count", "result", "elapsed_s", "attempt",
+        })
+        self.assertNotIn("prompt", event)
+        self.assertNotIn("code", event)
+        with self.assertRaisesRegex(ValueError, "invalid progress event"):
+            self.state.emit(
+                "ASTRA-001", claim["run_id"], stage="verifying", step="unsafe_payload",
+                branch="feature/astra-test", base_sha=base_sha, attempt=1,
+                result="prompt contents or source code",
+            )
+
     def test_plan_is_atomic(self):
         with self.assertRaisesRegex(ValueError,"dependencies"):
             self.state.add_tasks([task(1),task(2,["ASTRA-999"])])

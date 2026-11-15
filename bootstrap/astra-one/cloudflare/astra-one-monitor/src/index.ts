@@ -41,8 +41,8 @@ hr,td,th{border:0;border-bottom:1px solid #293a55}th,td{text-align:left;padding:
 <header><div><h1>ASTRA ONE / SDA</h1><p>JARVIS v2 build telemetry · Linux Codex Luna / five-agent SDA · refresh every 4 seconds</p></div><span class="tag">SECURE BUILD FEED</span></header>
 <section class="card"><label for="token">Dashboard view token (browser memory only)</label><div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"><input id="token" type="password" autocomplete="off" placeholder="ASTRA_VIEW_TOKEN"/><button id="connect">Connect</button></div><p id="message">Enter the dashboard view token.</p></section>
 <section class="grid" id="counters"></section>
-<section class="card"><h2>Recent SDA runs</h2><div class="scroll"><table><thead><tr><th>Task</th><th>Stage</th><th>Step</th><th>Tools</th><th>Updated (UTC)</th></tr></thead><tbody id="runs"></tbody></table></div></section>
-<section class="card"><h2>Selected run events</h2><p class="muted" id="selected">Select a run to inspect its status timeline.</p><div class="scroll"><table><thead><tr><th>#</th><th>Time (UTC)</th><th>Stage</th><th>Step</th></tr></thead><tbody id="events"></tbody></table></div></section>
+<section class="card"><h2>Recent SDA runs</h2><div class="scroll"><table><thead><tr><th>Task</th><th>Stage</th><th>Step</th><th>Result</th><th>Tools</th><th>Updated (UTC)</th></tr></thead><tbody id="runs"></tbody></table></div></section>
+<section class="card"><h2>Selected run events</h2><p class="muted" id="selected">Select a run to inspect its status timeline.</p><div class="scroll"><table><thead><tr><th>#</th><th>Time (UTC)</th><th>Stage</th><th>Step</th><th>Result</th></tr></thead><tbody id="events"></tbody></table></div></section>
 <script src="/app.js" defer></script></body></html>`;
 const appjs = `(() => {
   let token='',selected='',timer;
@@ -60,7 +60,7 @@ const appjs = `(() => {
       }
       const body=$('runs');body.replaceChildren();
       for(const r of data.runs||[]){const tr=document.createElement('tr');
-        for(const [value,cls] of [[r.task_id,''],[r.stage,'status-'+r.stage],[r.step,''],[r.tool_count,''],[r.last_seen_at,'']]){tr.append(make('td',value,cls))}
+        for(const [value,cls] of [[r.task_id,''],[r.stage,'status-'+r.stage],[r.step,''],[r.result,''],[r.tool_count,''],[r.last_seen_at,'']]){tr.append(make('td',value,cls))}
         tr.addEventListener('click',()=>{selected=r.run_id;$('selected').textContent='Run '+r.run_id+' · '+r.branch+' · '+r.base_sha.slice(0,10);loadEvents()});body.append(tr);
       }
       if(selected)await loadEvents();
@@ -68,7 +68,7 @@ const appjs = `(() => {
   }
   async function loadEvents(){if(!selected)return;try{const data=await get('/api/events?run_id='+encodeURIComponent(selected));
     const body=$('events');body.replaceChildren();for(const e of data.events||[]){const tr=document.createElement('tr');
-      for(const val of [e.seq,e.time,e.stage,e.step])tr.append(make('td',val));body.append(tr)}
+      for(const val of [e.seq,e.time,e.stage,e.step,e.result])tr.append(make('td',val));body.append(tr)}
   }catch(e){$('message').textContent='Timeline unavailable: '+e.message}}
   $('connect').addEventListener('click',()=>{token=$('token').value.trim();$('token').value='';if(!token)return;$('message').textContent='Connecting…';refresh();if(timer)clearInterval(timer);timer=setInterval(refresh,4000)});
 })();`;
