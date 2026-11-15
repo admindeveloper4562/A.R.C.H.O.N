@@ -5,7 +5,7 @@
   "module": "MIG",
   "module_name": "M1b — Clean repository migration and self-host transition",
   "parent_count": 16,
-  "subtask_count": 86,
+  "subtask_count": 87,
   "parents": [
     {
       "parent_id": "MIG-001",
@@ -907,6 +907,21 @@
           "done_when": "Unsigned, altered, stale, untrusted or policy-failing artifacts are rejected by the independent watchdog.",
           "depends_on": [
             "MIG-008.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
+        },
+        {
+          "id": "MIG-008.S07",
+          "sequence": 7,
+          "kind": "supply_chain",
+          "title": "Add signed artifact and supply-chain verification to Guardian release policy",
+          "assignee_role": "worker",
+          "instruction": "Require pinned source SHA, SBOM, provenance/attestation, dependency/license scan, signature verification and trust-root validation before canary or failover promotion.",
+          "deliverable": "Release manifest schema, verification policy and invalid-signature test evidence.",
+          "done_when": "Unsigned, altered, stale, untrusted or policy-failing artifacts are rejected by the independent watchdog.",
+          "depends_on": [
+            "MIG-008.S06"
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
