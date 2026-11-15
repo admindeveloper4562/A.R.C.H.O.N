@@ -457,7 +457,9 @@ def check_changes(worktree: Path, base_sha: str, *, task: dict | None = None) ->
         audit_report = _task_allows_audit_report(task, path)
         scope_roots = task.get("suggested_scope_roots", []) if isinstance(task, dict) else []
         if scope_roots and not any(
-            path == str(root).rstrip("/") or path.startswith(str(root)) for root in scope_roots
+            path == str(root).rstrip("/")
+            or path.startswith(str(root).rstrip("/") + "/")
+            for root in scope_roots
         ):
             raise ChangeValidationError("unsafe_changed_path", "outside_task_scope")
         if isinstance(task, dict) and task.get("execution_mode") == "design":

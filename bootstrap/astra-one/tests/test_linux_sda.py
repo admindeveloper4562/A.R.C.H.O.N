@@ -374,6 +374,11 @@ class LinuxSDATests(unittest.TestCase):
             self.state.add_tasks([task(1),task(2,["ASTRA-999"])])
         self.assertEqual(self.state.list_tasks(),[])
 
+    def test_plan_rejects_duplicate_job_ids_atomically(self):
+        with self.assertRaisesRegex(ValueError, "duplicate task ID"):
+            self.state.add_tasks([task(1), task(1)])
+        self.assertEqual(self.state.list_tasks(), [])
+
     def test_task_rejects_unknown_fields(self):
         obj=task(1);obj["api_key"]="secret"
         with self.assertRaises(ValueError):task_spec(obj)
@@ -450,6 +455,15 @@ class LinuxSDATests(unittest.TestCase):
         (self.repo/"docs").mkdir()
         (self.repo/"docs"/"outside.md").write_text("not in scope\n")
         scoped_task={"suggested_scope_roots":["src/"]}
+        with self.assertRaisesRegex(ChangeValidationError,"outside_task_scope"):
+            check_changes(self.repo,b,task=scoped_task)
+
+    def test_static_change_rejects_scope_prefix_sibling(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        outside=self.repo/"srcx"/"outside.py"
+        outside.parent.mkdir()
+        outside.write_text("value = 1\n")
+        scoped_task={"suggested_scope_roots":["src"]}
         with self.assertRaisesRegex(ChangeValidationError,"outside_task_scope"):
             check_changes(self.repo,b,task=scoped_task)
 
