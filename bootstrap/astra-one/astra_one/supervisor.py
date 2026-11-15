@@ -18,6 +18,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import uuid
 from datetime import datetime, timezone
 from typing import Any
 
@@ -151,12 +152,62 @@ class SupervisorController:
                 "updated_at=? WHERE case_id=? AND state<>'resolved'",
                 (row["candidate_sha"] or "", timestamp, row["case_id"]),
             )
+            # A recovery process can finish the candidate and Merger commit
+            # before its final ledger callback.  Reconcile the lane as part of
+            # the same transaction so a completed task cannot strand a slot.
+            db.execute(
+                "UPDATE supervisor_lanes SET task_id='',case_id='',state='idle',lease_token='',"
+                "generation=0,run_id='',candidate_sha='',updated_at=? "
+                "WHERE case_id=? AND state='leased'",
+                (timestamp, row["case_id"]),
+            )
             resolved.append({
                 "case_id": row["case_id"], "parent_id": row["parent_id"],
                 "generation": row["generation"], "candidate_sha": row["candidate_sha"],
                 "integrated_sha": row["integrated_sha"],
             })
         return resolved
+
+    def _candidate_patch_is_integrated(self, worktree: str, base_sha: str,
+                                       candidate_sha: str, integration: Path) -> bool:
+        """Prove a patch-applied candidate is present without trusting ancestry.
+
+        The serialized Merger applies the reviewed candidate diff and creates a
+        new local integration commit.  That commit intentionally does not have
+        the worker's candidate commit as an ancestor.  Reverse-applying the
+        exact bounded candidate patch in check-only mode proves the integrated
+        tree contains the candidate change without storing model output.
+        """
+        candidate = Path(worktree).expanduser()
+        worktree_root = (self.state.home / "worktrees").resolve()
+        try:
+            candidate = candidate.resolve(strict=True)
+            candidate.relative_to(worktree_root)
+        except (OSError, ValueError):
+            return False
+        if candidate.is_symlink() or not candidate.is_dir():
+            return False
+        try:
+            head = subprocess.check_output(
+                ["git", "-C", str(candidate), "rev-parse", "HEAD"],
+                text=True, stderr=subprocess.DEVNULL, timeout=30,
+            ).strip()
+            if head != candidate_sha:
+                return False
+            patch = subprocess.run(
+                ["git", "-C", str(candidate), "diff", "--binary", base_sha, candidate_sha],
+                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=30, check=False,
+            )
+            if patch.returncode or not patch.stdout or len(patch.stdout) > 6_000_000:
+                return False
+            reverse = subprocess.run(
+                ["git", "-C", str(integration), "apply", "--reverse", "--check", "--index", "-"],
+                input=patch.stdout, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                timeout=30, check=False,
+            )
+            return reverse.returncode == 0
+        except (OSError, subprocess.SubprocessError):
+            return False
 
     def reconcile_recovery_leases(self, max_age_seconds: int = RECOVERY_LEASE_TTL_SECONDS) -> dict:
         with self.state.master_lock():
@@ -338,7 +389,8 @@ class SupervisorController:
                     db.execute("ROLLBACK")
                     raise ValueError("recovery lease mismatch")
                 task = db.execute(
-                    "SELECT status,last_run,attempt,candidate_sha,integrated_sha FROM tasks WHERE id=?", (lane["task_id"],)
+                    "SELECT status,last_run,attempt,candidate_sha,integrated_sha,base_sha,worktree "
+                    "FROM tasks WHERE id=?", (lane["task_id"],)
                 ).fetchone()
                 if not task or task["last_run"] != run_id or task["attempt"] != generation:
                     db.execute("ROLLBACK")
@@ -369,7 +421,9 @@ class SupervisorController:
                         ["git", "-C", str(repository), "merge-base", "--is-ancestor", candidate_sha, integrated_sha],
                         check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                     )
-                    if ancestry.returncode:
+                    if ancestry.returncode and not self._candidate_patch_is_integrated(
+                        task["worktree"], task["base_sha"], candidate_sha, repository,
+                    ):
                         db.execute("ROLLBACK")
                         raise ValueError("integrated checkpoint does not contain recovery candidate")
                 timestamp = now()
@@ -406,6 +460,88 @@ class SupervisorController:
                 )
                 db.execute("COMMIT")
         return {"lane_id": lane_id, "case_id": case_id, "state": "blocked"}
+
+    def claim_upgrade_audit(self, task_id: str, *, model: str) -> dict:
+        """Lease the single read-only U1 auditor without touching task state."""
+        if not _SAFE_CODE.fullmatch(task_id) or not 1 <= len(model) <= 80:
+            raise ValueError("invalid upgrade audit request")
+        with self.state.master_lock():
+            with self.state.db() as db:
+                db.execute("BEGIN IMMEDIATE")
+                lane = db.execute(
+                    "SELECT state FROM supervisor_lanes WHERE lane_id='upgrade_auditor'"
+                ).fetchone()
+                task = db.execute("SELECT id FROM tasks WHERE id=?", (task_id,)).fetchone()
+                if not lane or lane["state"] != "idle":
+                    db.execute("ROLLBACK")
+                    raise ValueError("upgrade auditor is not idle")
+                if not task:
+                    db.execute("ROLLBACK")
+                    raise ValueError("unknown upgrade audit task")
+                audit_id = f"U1-{task_id}-{uuid.uuid4().hex[:12]}"
+                run_id = str(uuid.uuid4())
+                timestamp = now()
+                db.execute(
+                    "INSERT INTO upgrade_audits(audit_id,task_id,lane_id,run_id,model,status,created_at,updated_at) "
+                    "VALUES(?,?,?,?,?,?,?,?)",
+                    (audit_id, task_id, "upgrade_auditor", run_id, model, "running", timestamp, timestamp),
+                )
+                db.execute(
+                    "UPDATE supervisor_lanes SET task_id=?,case_id=?,state='leased',run_id=?,updated_at=? "
+                    "WHERE lane_id='upgrade_auditor'",
+                    (task_id, audit_id, run_id, timestamp),
+                )
+                db.execute("COMMIT")
+                return {"audit_id": audit_id, "task_id": task_id, "lane_id": "upgrade_auditor",
+                        "run_id": run_id, "model": model}
+
+    def finish_upgrade_audit(self, audit_id: str, *, run_id: str, status: str,
+                             report_path: str = "", report_sha: str = "",
+                             evidence_sha: str = "", failure_code: str = "") -> dict:
+        """Record only bounded U1 metadata, then release the auditor lane."""
+        if status not in {"completed", "failed"} or not _SAFE_CODE.fullmatch(audit_id):
+            raise ValueError("invalid upgrade audit completion")
+        if not re.fullmatch(r"[0-9a-f-]{20,80}", run_id):
+            raise ValueError("invalid upgrade audit run")
+        for value, size in ((report_sha, 64), (evidence_sha, 64)):
+            if value and (len(value) != size or not re.fullmatch(r"[0-9a-f]+", value)):
+                raise ValueError("invalid upgrade audit hash")
+        if report_path:
+            path = Path(report_path).expanduser()
+            root = (self.state.home / "private" / "upgrade-audits").resolve()
+            try:
+                resolved = path.resolve(strict=True)
+                resolved.relative_to(root)
+            except (OSError, ValueError):
+                raise ValueError("upgrade audit report outside private state")
+        if failure_code and not _SAFE_CODE.fullmatch(failure_code):
+            raise ValueError("invalid upgrade audit failure code")
+        with self.state.master_lock():
+            with self.state.db() as db:
+                db.execute("BEGIN IMMEDIATE")
+                audit = db.execute(
+                    "SELECT lane_id,status FROM upgrade_audits WHERE audit_id=? AND run_id=?",
+                    (audit_id, run_id),
+                ).fetchone()
+                if not audit or audit["status"] != "running":
+                    db.execute("ROLLBACK")
+                    raise ValueError("upgrade audit lease mismatch")
+                timestamp = now()
+                db.execute(
+                    "UPDATE upgrade_audits SET status=?,report_path=?,report_sha=?,evidence_sha=?,"
+                    "failure_code=?,updated_at=? WHERE audit_id=? AND run_id=?",
+                    (status, report_path[:300], report_sha, evidence_sha, failure_code[:160], timestamp,
+                     audit_id, run_id),
+                )
+                db.execute(
+                    "UPDATE supervisor_lanes SET task_id='',case_id='',state='idle',lease_token='',"
+                    "generation=0,run_id='',candidate_sha='',updated_at=? "
+                    "WHERE lane_id='upgrade_auditor' AND case_id=? AND run_id=?",
+                    (timestamp, audit_id, run_id),
+                )
+                db.execute("COMMIT")
+        return {"audit_id": audit_id, "status": status, "report_sha": report_sha,
+                "evidence_sha": evidence_sha}
 
     def start_batch(self, batch_id: str, limit: int = 20) -> dict:
         if not re.fullmatch(r"[A-Z0-9_.-]{3,80}", batch_id) or not 1 <= limit <= 20:
@@ -453,7 +589,8 @@ class SupervisorController:
                 "WHERE b.batch_id=? GROUP BY t.status", (batch_id,)
             )}
             return {"batch_id": batch_id, "state": row["state"], "admitted_count": row["admitted_count"],
-                    "completed_count": counts.get("completed", 0), "task_status": counts}
+                    "target_count": row["target_count"], "completed_count": counts.get("completed", 0),
+                    "task_status": counts}
 
     def replenish_batch(self, batch_id: str, target: int = 20) -> dict:
         """Admit newly eligible parents without replacing existing cohort members."""
@@ -466,7 +603,21 @@ class SupervisorController:
                 if not batch or batch["state"] not in {"running", "draining"}:
                     db.execute("ROLLBACK")
                     raise ValueError("batch is not replenishable")
-                existing = {r[0] for r in db.execute("SELECT parent_id FROM batch_members WHERE batch_id=?", (batch_id,))}
+                # External blockers remain recorded in the cohort history but
+                # must not consume one of the trial's verified-completion
+                # slots.  Mark them and replenish against the eligible count.
+                timestamp = now()
+                db.execute(
+                    "UPDATE batch_members SET state='external_blocker',updated_at=? "
+                    "WHERE batch_id=? AND parent_id IN ("
+                    "SELECT c.parent_id FROM supervisor_cases c WHERE c.state='external_blocker')",
+                    (timestamp, batch_id),
+                )
+                existing_rows = db.execute(
+                    "SELECT parent_id,state FROM batch_members WHERE batch_id=?", (batch_id,)
+                ).fetchall()
+                existing = {r[0] for r in existing_rows}
+                eligible_existing = sum(r[1] != "external_blocker" for r in existing_rows)
                 rows = db.execute(
                     "SELECT id,spec FROM tasks WHERE project_id=? AND status IN ('pending','queued') "
                     "AND owner_gate=0 AND NOT EXISTS (SELECT 1 FROM batch_members active_members "
@@ -483,9 +634,8 @@ class SupervisorController:
                     spec = json.loads(row["spec"])
                     if all(db.execute("SELECT status FROM tasks WHERE id=?", (dep,)).fetchone()[0] == "completed" for dep in spec.get("depends_on", [])):
                         selected.append(row["id"])
-                    if len(existing) + len(selected) >= target:
+                    if eligible_existing + len(selected) >= target:
                         break
-                timestamp = now()
                 start = len(existing) + 1
                 db.executemany(
                     "INSERT INTO batch_members(batch_id,parent_id,ordinal,state,admitted_at,updated_at) VALUES(?,?,?,?,?,?)",
@@ -494,7 +644,8 @@ class SupervisorController:
                 db.execute("UPDATE batch_epochs SET admitted_count=?,target_count=MAX(target_count,?),updated_at=? WHERE batch_id=?",
                            (len(existing) + len(selected), target, timestamp, batch_id))
                 db.execute("COMMIT")
-        return {"batch_id": batch_id, "added": selected, "admitted_count": len(existing) + len(selected)}
+        return {"batch_id": batch_id, "added": selected, "admitted_count": len(existing) + len(selected),
+                "eligible_count": eligible_existing + len(selected), "target_count": target}
 
     def create_upgrade(self, batch_id: str, candidate_sha: str, rollback_sha: str) -> dict:
         if not re.fullmatch(r"[A-Za-z0-9_.-]{3,80}", batch_id) or not SHA.fullmatch(candidate_sha) or not SHA.fullmatch(rollback_sha):
@@ -738,7 +889,11 @@ class SupervisorController:
                 "SELECT lane_id,role,task_id,case_id,state,updated_at FROM supervisor_lanes ORDER BY lane_id")]
             upgrades = [dict(r) for r in db.execute(
                 "SELECT batch_id,state,candidate_sha,rollback_sha,updated_at FROM upgrade_batches ORDER BY updated_at DESC LIMIT 5")]
-            return {"available": True, "cases": cases, "lanes": lanes, "upgrades": upgrades}
+            audits = [dict(r) for r in db.execute(
+                "SELECT audit_id,task_id,status,model,report_sha,evidence_sha,updated_at "
+                "FROM upgrade_audits ORDER BY updated_at DESC LIMIT 10")]
+            return {"available": True, "cases": cases, "lanes": lanes, "upgrades": upgrades,
+                    "upgrade_audits": audits}
 
     def tick(self, limit: int = 50) -> dict:
         """Open cases for failed tasks; no retry, approval, merge or model call."""

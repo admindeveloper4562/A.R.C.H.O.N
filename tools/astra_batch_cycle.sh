@@ -20,25 +20,43 @@ cd "$ASTRA_ROOT"
 # bounded recovery cases; it never claims, approves, merges or starts a model.
 SUPERVISOR_OUTPUT=$("${CLI[@]}" supervisor-tick --limit 50)
 printf '%s\n' "$SUPERVISOR_OUTPUT"
-# Repeated calls are safe: the Python Master acquires an exclusive file lock.
+# Keep the qualification cohort authoritative until its target is genuinely
+# met. External members remain in history, while batch-replenish admits
+# dependency-ready replacements. After the target is met, normal dispatch
+# resumes over the full queue.
+BATCH_ID="${ARCHON_ASTRA_BATCH_ID:-ARCHON-V3-TRIAL-020}"
+BATCH_ARGS=()
+BATCH_STATUS=$("${CLI[@]}" batch-status "$BATCH_ID" 2>/dev/null || true)
+if [[ -n "$BATCH_STATUS" ]] && python3 - "$BATCH_STATUS" <<'PY'
+import json, sys
+try:
+    item=json.loads(sys.argv[1])
+    raise SystemExit(0 if item.get('completed_count', 0) < item.get('target_count', 20) else 1)
+except (TypeError, ValueError, KeyError):
+    raise SystemExit(1)
+PY
+then
+  printf '[ARCHON/ATLAS] Replenishing qualification cohort %s\n' "$BATCH_ID"
+  "${CLI[@]}" batch-replenish "$BATCH_ID" --target 20
+  BATCH_ARGS=(--batch-id "$BATCH_ID")
+fi
+# One deterministic CLI controller owns both lane pools.  It holds the shared
+# file lock only for claims and serial integration; Codex/QC execution runs
+# outside that short critical section, allowing recovery and normal work to
+# proceed concurrently without creating a second Master.
 RUN_RC=0
-# Full imported parent plan with bounded repair claims; the Master still caps
-# concurrent workers at five and the service has a wall-clock limit.
 RUN_OUTPUT=$("${CLI[@]}" run \
   --workers 5 --model gpt-5.6-luna --effort medium \
   --max-tasks 1000 --max-minutes 120 --max-seconds-per-task 1800 \
-  --max-repairs 3 --auto-integrate --test-image "$TEST_IMAGE" 2>&1) || RUN_RC=$?
+  --max-repairs 3 --auto-integrate --test-image "$TEST_IMAGE" \
+  "${BATCH_ARGS[@]}" \
+  --concurrent-recovery --recovery-limit 2 --recovery-model "$RECOVERY_MODEL" \
+  --recovery-effort "$RECOVERY_EFFORT" 2>&1) || RUN_RC=$?
 printf '%s\n' "$RUN_OUTPUT"
-# Failed generations are repaired only after the normal Master releases its
-# lock. The recovery lanes are bounded and fenced by the same canonical state.
-RECOVERY_RC=0
-RECOVERY_OUTPUT=$("${CLI[@]}" supervisor-recover --limit 2 --model "$RECOVERY_MODEL" --effort "$RECOVERY_EFFORT" \
-  --test-image "$TEST_IMAGE" --max-seconds-per-task 1800 2>&1) || RECOVERY_RC=$?
-printf '%s\n' "$RECOVERY_OUTPUT"
 # A refusal to start is an operational error. A completed batch with terminal
 # worker failures may still publish unrelated, already-QC-approved commits;
 # retain its nonzero status for systemd after the publication check.
-if (( RUN_RC == 2 || RECOVERY_RC == 2 )); then
+if (( RUN_RC == 2 )); then
   exit 2
 fi
 # STOP, PAUSE or exhausted quota blocks Git publication.

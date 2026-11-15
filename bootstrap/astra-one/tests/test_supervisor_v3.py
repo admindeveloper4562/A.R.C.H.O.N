@@ -212,6 +212,96 @@ class SupervisorV3Tests(unittest.TestCase):
         }])
         self.assertEqual(self.supervisor.status()["cases"], {"resolved": 1})
 
+    def test_tick_releases_lane_when_recovery_finished_before_callback(self):
+        self.state.set_task("V3-001", "failed", error="no_file_changes")
+        case = self.supervisor.triage_failure("V3-001", "no_file_changes", generation=1)
+        lease = self.supervisor.claim_recovery(case["case_id"], "repair_1")
+        self.state.claim_recovery_task(lease)
+        head = self.state.get("integration_sha")
+        with self.state.db() as db:
+            db.execute(
+                "UPDATE tasks SET status='completed',candidate_sha=?,integrated_sha=? WHERE id=?",
+                ("d" * 40, head, "V3-001"),
+            )
+        tick = self.supervisor.tick(limit=1)
+        self.assertEqual(len(tick["resolved_cases"]), 1)
+        with self.state.db() as db:
+            lane = db.execute(
+                "SELECT state,task_id,case_id FROM supervisor_lanes WHERE lane_id='repair_1'"
+            ).fetchone()
+        self.assertEqual(dict(lane), {"state": "idle", "task_id": "", "case_id": ""})
+
+    def test_patch_applied_merger_checkpoint_resolves_recovery(self):
+        self.state.set_task("V3-001", "failed", error="no_file_changes")
+        case = self.supervisor.triage_failure("V3-001", "no_file_changes", generation=1)
+        lease = self.supervisor.claim_recovery(case["case_id"], "repair_1")
+        item = self.state.claim_recovery_task(lease)
+        base = self.state.get("integration_sha")
+        worktree = self.state.home / "worktrees" / "v3-candidate"
+        worktree.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run([
+            "git", "-C", str(self.repo), "worktree", "add", "-b", "feature/v3-candidate",
+            str(worktree), base,
+        ], check=True, stdout=subprocess.DEVNULL)
+        try:
+            (worktree / "candidate.py").write_text("VALUE = 1\n")
+            subprocess.run(["git", "-C", str(worktree), "add", "candidate.py"], check=True)
+            subprocess.run([
+                "git", "-C", str(worktree), "-c", "user.name=test", "-c",
+                "user.email=test@local.invalid", "commit", "-qm", "candidate",
+            ], check=True)
+            candidate = subprocess.check_output(
+                ["git", "-C", str(worktree), "rev-parse", "HEAD"], text=True,
+            ).strip()
+            with self.state.db() as db:
+                db.execute(
+                    "UPDATE tasks SET status='approved',base_sha=?,branch=?,worktree=?,candidate_sha=? "
+                    "WHERE id=?",
+                    (base, "feature/v3-candidate", str(worktree), candidate, "V3-001"),
+                )
+            self.supervisor.bind_recovery_candidate(
+                "repair_1", case["case_id"], lease_token=lease["lease_token"],
+                run_id=item["run_id"], generation=item["attempt"], candidate_sha=candidate,
+            )
+            patch = subprocess.check_output(
+                ["git", "-C", str(worktree), "diff", "--binary", base, candidate],
+            )
+            subprocess.run(
+                ["git", "-C", str(self.repo), "apply", "--index", "-"],
+                input=patch, check=True,
+            )
+            subprocess.run([
+                "git", "-C", str(self.repo), "-c", "user.name=test", "-c",
+                "user.email=test@local.invalid", "commit", "-qm", "merger patch",
+            ], check=True)
+            integrated = subprocess.check_output(
+                ["git", "-C", str(self.repo), "rev-parse", "HEAD"], text=True,
+            ).strip()
+            self.state.put("integration_sha", integrated)
+            with self.state.db() as db:
+                db.execute(
+                    "UPDATE tasks SET status='completed',integrated_sha=?,last_run=?,attempt=? WHERE id=?",
+                    (integrated, item["run_id"], item["attempt"], "V3-001"),
+                )
+            self.assertNotEqual(
+                subprocess.run([
+                    "git", "-C", str(self.repo), "merge-base", "--is-ancestor", candidate, integrated,
+                ], check=False).returncode,
+                0,
+            )
+            done = self.supervisor.finish_recovery(
+                "repair_1", case["case_id"], lease_token=lease["lease_token"],
+                run_id=item["run_id"], generation=item["attempt"],
+                candidate_sha=candidate, state="resolved",
+            )
+            self.assertEqual(done["state"], "resolved")
+            self.assertEqual(self.supervisor.status()["lanes"][0]["state"], "idle")
+        finally:
+            subprocess.run(
+                ["git", "-C", str(self.repo), "worktree", "remove", "--force", str(worktree)],
+                check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            )
+
     def test_external_blocker_fences_task_without_recovery_generation(self):
         self.state.set_task("V3-001", "failed", error="qc_rejected")
         case = self.supervisor.triage_failure("V3-001", "qc_rejected", generation=1)

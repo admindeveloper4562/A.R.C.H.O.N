@@ -33,6 +33,8 @@ _SAFE_FAILURE_CODES = frozenset({
     "state_database_error", "state_database_locked", "worker_input_invalid",
     "progress_event_invalid", "worker_state_update_failed", "runtime_limit",
     "preflight_or_runner_error", "deterministic_qc_start", "qc_passed_owner_review_required",
+    "task_type_invalid", "design_documentation_only", "audit_model_error", "audit_output_invalid",
+    "audit_checks_failed", "audit_failed",
 })
 _SAFE_FAILURE_PATTERNS = (
     re.compile(r"^(?:worker|repairer)_[1-5]_(?:leased|codex_start)$"),
@@ -47,7 +49,7 @@ def _safe(value: Any, size: int = 64) -> str:
 def _cols(db: sqlite3.Connection, name: str) -> set[str]:
     if name not in set(QUEUE_TABLES) | {
         "tasks", "subtasks", "runs", "subtask_receipts", "supervisor_cases",
-        "supervisor_lanes", "upgrade_batches", "batch_epochs", "batch_members"
+        "supervisor_lanes", "upgrade_batches", "upgrade_audits", "batch_epochs", "batch_members"
     }:
         return set()
     exists = db.execute(
@@ -80,6 +82,11 @@ def _sha(value: Any) -> str:
     return s[:12] if re.fullmatch(r"[a-f0-9]{40}", s) else ""
 
 
+def _digest(value: Any) -> str:
+    s = str(value or "")
+    return s[:12] if re.fullmatch(r"[a-f0-9]{64}", s) else _sha(s)
+
+
 def collect(db: sqlite3.Connection, limit: int = 10) -> dict:
     """Collect telemetry inside the caller's single read-only SQLite transaction."""
     data: dict[str, Any] = {
@@ -88,6 +95,7 @@ def collect(db: sqlite3.Connection, limit: int = 10) -> dict:
         "supervisor_cases": None,
         "supervisor_lanes": None,
         "upgrade_batch": None,
+        "upgrade_audits": None,
         "batch": None,
         "failure_codes": [],
         "telemetry_version": 1,
@@ -198,10 +206,30 @@ def collect(db: sqlite3.Connection, limit: int = 10) -> dict:
             "updated_at": _safe(row["updated_at"], 40),
         } if row else {}
 
+    audit_cols = _cols(db, "upgrade_audits")
+    if {"audit_id", "task_id", "status", "model", "updated_at"} <= audit_cols:
+        data["upgrade_audits"] = [
+            {
+                "audit_id": _safe(row["audit_id"]),
+                "task_id": _safe(row["task_id"]),
+                "status": _safe(row["status"]),
+                "model": _safe(row["model"], 40),
+                "report_sha": _digest(row["report_sha"]) if "report_sha" in audit_cols else "",
+                "evidence_sha": _digest(row["evidence_sha"]) if "evidence_sha" in audit_cols else "",
+                "updated_at": _safe(row["updated_at"], 40),
+            }
+            for row in db.execute(
+                "SELECT audit_id,task_id,status,model,report_sha,evidence_sha,updated_at "
+                "FROM upgrade_audits ORDER BY updated_at DESC,audit_id DESC LIMIT ?",
+                (min(limit, 10),),
+            )
+        ]
+
     epoch_cols = _cols(db, "batch_epochs")
     if {"batch_id", "state", "admitted_count", "completed_count", "updated_at"} <= epoch_cols:
+        target_expr = "target_count" if "target_count" in epoch_cols else "admitted_count"
         row = db.execute(
-            "SELECT batch_id,state,admitted_count,completed_count,updated_at "
+            f"SELECT batch_id,state,admitted_count,completed_count,{target_expr} AS target_count,updated_at "
             "FROM batch_epochs ORDER BY updated_at DESC,batch_id DESC LIMIT 1"
         ).fetchone()
         data["batch"] = {
@@ -209,6 +237,7 @@ def collect(db: sqlite3.Connection, limit: int = 10) -> dict:
             "state": _safe(row["state"]),
             "admitted": int(row["admitted_count"]),
             "completed": int(row["completed_count"]),
+            "target": int(row["target_count"]),
             "updated_at": _safe(row["updated_at"], 40),
         } if row else {}
 
@@ -254,6 +283,13 @@ def render_lines(data: dict) -> list[str]:
                 f"  {lane:<16} {r['state']:<18} {r['task_id'] or 'no task recorded'}"
                 if r else f"  {lane:<16} no recorded slot"
             )
+    audits = data.get("upgrade_audits")
+    if audits:
+        latest = audits[0]
+        lines.append(
+            f"  U1 latest          {latest['task_id']} {latest['status']} "
+            f"{latest['model']} report {latest['report_sha'] or '—'}"
+        )
 
     cases = data.get("supervisor_cases")
     lines.extend(["", "BLOCKED-TASK RECOVERY"])
@@ -281,7 +317,8 @@ def render_lines(data: dict) -> list[str]:
     elif not cohort:
         lines.append("  No batch cohort recorded.")
     else:
-        lines.append(f"  {cohort['batch_id']}  {cohort['state']}  completed {cohort['completed']}/{cohort['admitted']}")
+        lines.append(f"  {cohort['batch_id']}  {cohort['state']}  completed {cohort['completed']}/{cohort['target']} "
+                     f"(recorded members {cohort['admitted']})")
 
     lines.extend(["", "RUN HISTORY / FAILURE HOTSPOTS"])
     totals = data.get("run_totals", {})

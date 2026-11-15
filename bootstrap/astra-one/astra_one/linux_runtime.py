@@ -19,7 +19,8 @@ import tomllib
 import uuid
 import sqlite3
 
-from .linux_sda import MODEL, EFFORT, MAX_FAILURES, PROTECTED, PROTECTED_PARTS, State, git, now
+from .linux_sda import (MODEL, EFFORT, MAX_FAILURES, PROTECTED, PROTECTED_PARTS, State,
+                        control_blocked, git, now)
 
 ALLOWED_SUFFIXES = {".py", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".json", ".toml", ".md", ".html", ".css", ".sql", ".yaml", ".yml"}
 MAX_FILES = 30
@@ -437,6 +438,9 @@ def check_changes(worktree: Path, base_sha: str, *, task: dict | None = None) ->
         pure=PurePosixPath(path)
         ci_workflow = _task_allows_ci_workflow(task, path)
         audit_report = _task_allows_audit_report(task, path)
+        if isinstance(task, dict) and task.get("execution_mode") == "design":
+            if not path.startswith("docs/") or pure.suffix.lower() not in {".md", ".json"}:
+                raise ChangeValidationError("unsafe_changed_path", "design_documentation_only")
         if any(part.casefold() in GENERATED_CHANGE_PARTS for part in pure.parts):
             raise ChangeValidationError("unsafe_changed_path", "generated_artifact")
         if isinstance(task, dict) and task.get("execution_mode") == "audit" and not audit_report:
@@ -1152,9 +1156,9 @@ def ensure_integration(state: State) -> Path:
 
 
 def integrate(state: State, tid: str, *, merger_model: str | None = None, merger_effort: str = "medium",
-              danger_bypass: bool = False) -> dict:
+              danger_bypass: bool = False, lane: str = "normal") -> dict:
     """Serialized and local. Use only from a single master lock holder."""
-    if any((state.home/x).exists() for x in ("STOP","PAUSE","PAUSED_QUOTA")):
+    if control_blocked(state.home, lane):
         raise ValueError("STOP/PAUSE prevents integration")
     with state.db() as db:
         row=db.execute("SELECT * FROM tasks WHERE id=?",(tid,)).fetchone()

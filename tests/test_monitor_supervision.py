@@ -71,6 +71,10 @@ class SupervisorTelemetryTests(unittest.TestCase):
               CREATE TABLE upgrade_batches(
                batch_id TEXT PRIMARY KEY,state TEXT,candidate_sha TEXT,
                rollback_sha TEXT,updated_at TEXT,private_log TEXT);
+              CREATE TABLE upgrade_audits(
+               audit_id TEXT PRIMARY KEY,task_id TEXT,lane_id TEXT,run_id TEXT,
+               model TEXT,status TEXT,report_path TEXT,report_sha TEXT,
+               evidence_sha TEXT,updated_at TEXT);
             """)
             conn.execute("INSERT INTO subtasks VALUES (?,?,?,?,?)", (
                 "CORE-001.S01", "CORE-001", "ARCHON-JARVIS-V2",
@@ -92,6 +96,11 @@ class SupervisorTelemetryTests(unittest.TestCase):
             conn.execute("INSERT INTO upgrade_batches VALUES (?,?,?,?,?,?)", (
                 "upgrade-1", "canary", "a" * 40, "b" * 40,
                 "2026-11-15T00:00:00Z", "secret=private",
+            ))
+            conn.execute("INSERT INTO upgrade_audits VALUES (?,?,?,?,?,?,?,?,?,?)", (
+                "U1-BASE-015-test", "BASE-015", "upgrade_auditor", "run-u1",
+                "gpt-6.1-sol", "completed", "/private/report.json", "c" * 64,
+                "d" * 64, "2026-11-15T00:00:01Z",
             ))
         conn.commit()
         return conn
@@ -126,6 +135,8 @@ class SupervisorTelemetryTests(unittest.TestCase):
                 self.assertEqual(panel["supervisor_cases"]["states"]["investigating"], 1)
                 self.assertEqual(panel["supervisor_lanes"][0]["lane_id"], "repair_1")
                 self.assertEqual(panel["upgrade_batch"]["state"], "canary")
+                self.assertEqual(panel["upgrade_audits"][0]["task_id"], "BASE-015")
+                self.assertEqual(panel["upgrade_audits"][0]["report_sha"], "c" * 12)
                 self.assertEqual(panel["run_totals"]["failed"], 1)
                 self.assertTrue(panel["failure_codes"])
                 view = json.dumps(data)
@@ -133,6 +144,7 @@ class SupervisorTelemetryTests(unittest.TestCase):
                     self.assertNotIn(secret, view)
                 self.assertIn("SUPERVISOR REPAIR LANES", render(data))
                 self.assertIn("SELF-UPGRADE BATCH", render(data))
+                self.assertIn("U1 latest", render(data))
                 self.assertEqual(writer.execute("SELECT COUNT(*) FROM supervisor_cases").fetchone()[0], before)
             finally:
                 writer.close()

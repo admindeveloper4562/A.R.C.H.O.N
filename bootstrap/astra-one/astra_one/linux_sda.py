@@ -37,6 +37,10 @@ EFFORT = "medium"
 MAX_WORKERS = 5
 MAX_FAILURES = 20
 QUEUE_NAMES = ("project_queue", "pending_queue", "rebuild_queue", "review_queue", "merge_queue")
+TASK_EXECUTION_MODES = frozenset({
+    "worker", "implementation", "audit", "verification", "migration", "design",
+    "owner_gate", "ci_local_only",
+})
 TASK_ID = re.compile(r"^[A-Z][A-Z0-9-]{2,47}$")
 SHA = re.compile(r"^[0-9a-f]{40}$")
 SAFE = re.compile(r"^[a-z0-9_]{2,80}$")
@@ -171,6 +175,19 @@ CREATE TABLE IF NOT EXISTS upgrade_rollbacks(
   backup_path TEXT NOT NULL,
   backup_sha TEXT NOT NULL,
   created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS upgrade_audits(
+  audit_id TEXT PRIMARY KEY,
+  task_id TEXT NOT NULL REFERENCES tasks(id),
+  lane_id TEXT NOT NULL,
+  run_id TEXT NOT NULL,
+  model TEXT NOT NULL,
+  status TEXT NOT NULL,
+  report_path TEXT NOT NULL DEFAULT '',
+  report_sha TEXT NOT NULL DEFAULT '',
+  evidence_sha TEXT NOT NULL DEFAULT '',
+  failure_code TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS batch_epochs(
   batch_id TEXT PRIMARY KEY,
   state TEXT NOT NULL,
@@ -259,7 +276,8 @@ def assert_source(source: Path) -> tuple[Path, str]:
     return source, sha
 
 def task_spec(obj: object) -> dict:
-    if not isinstance(obj, dict) or set(obj) - {"task_id", "objective", "acceptance", "depends_on", "area"}:
+    allowed = {"task_id", "objective", "acceptance", "depends_on", "area", "execution_mode", "subtasks"}
+    if not isinstance(obj, dict) or set(obj) - allowed:
         raise ValueError("task has unknown fields")
     tid = obj.get("task_id")
     objective = obj.get("objective")
@@ -276,7 +294,66 @@ def task_spec(obj: object) -> dict:
         raise ValueError("invalid dependencies")
     if not isinstance(area, str) or not re.fullmatch(r"[a-z][a-z0-9-]{0,30}", area):
         raise ValueError("invalid area")
-    return {"task_id": tid, "objective": objective, "acceptance": acceptance, "depends_on": deps, "area": area}
+    result = {"task_id": tid, "objective": objective, "acceptance": acceptance,
+              "depends_on": deps, "area": area}
+    if "execution_mode" in obj:
+        result["execution_mode"] = obj["execution_mode"]
+    if "subtasks" in obj:
+        result["subtasks"] = obj["subtasks"]
+    if "execution_mode" in result or "subtasks" in result:
+        validate_task_type(result)
+    return result
+
+
+def validate_task_type(task: object) -> str:
+    """Validate the persisted task packet before assigning any worker lane."""
+    if not isinstance(task, dict):
+        raise ValueError("task_type_invalid")
+    mode = task.get("execution_mode", "worker")
+    if mode not in TASK_EXECUTION_MODES:
+        raise ValueError("task_type_invalid")
+    children = task.get("subtasks", [])
+    if children is None:
+        children = []
+    if not isinstance(children, list):
+        raise ValueError("task_type_invalid")
+    if children:
+        sequences = []
+        identifiers = set()
+        for child in children:
+            if not isinstance(child, dict):
+                raise ValueError("task_type_invalid")
+            child_id = child.get("id")
+            sequence = child.get("sequence")
+            if (not isinstance(child_id, str) or not re.fullmatch(r"[A-Za-z0-9_.-]{1,160}", child_id)
+                    or child_id in identifiers or type(sequence) is not int or sequence < 1):
+                raise ValueError("task_type_invalid")
+            if any(not isinstance(child.get(key), str) or not child.get(key)
+                   for key in ("instruction", "deliverable", "done_when")):
+                raise ValueError("task_type_invalid")
+            deps = child.get("depends_on", [])
+            if not isinstance(deps, list) or any(not isinstance(dep, str) or not dep for dep in deps):
+                raise ValueError("task_type_invalid")
+            identifiers.add(child_id)
+            sequences.append(sequence)
+        if sorted(sequences) != list(range(1, len(sequences) + 1)):
+            raise ValueError("task_type_invalid")
+        if any(dep not in identifiers or dep == child_id
+               for child in children for dep in child.get("depends_on", [])
+               for child_id in (child.get("id"),)):
+            raise ValueError("task_type_invalid")
+    if mode == "design" and not children:
+        raise ValueError("task_type_invalid")
+    return mode
+
+
+def control_blocked(home: Path, lane: str) -> bool:
+    """Return whether deterministic controls block a new claim for one lane."""
+    if lane not in {"normal", "recovery"}:
+        raise ValueError("invalid control lane")
+    global_markers = ("STOP", "PAUSE", "PAUSED_QUOTA")
+    lane_marker = "PAUSE_NORMAL" if lane == "normal" else "PAUSE_RECOVERY"
+    return any((home / marker).exists() for marker in (*global_markers, lane_marker))
 
 class State:
     def __init__(self, home: Path = DEFAULT_HOME):
@@ -681,9 +758,9 @@ class State:
                 "candidate_sha,last_error,updated_at FROM tasks ORDER BY created_at,id"
             )]
 
-    def claim(self, model: str = MODEL, *, batch_id: str | None = None) -> dict | None:
+    def claim(self, model: str = MODEL, *, batch_id: str | None = None, lane: str = "normal") -> dict | None:
         self.ensure_approved()
-        if any((self.home / x).exists() for x in ("STOP","PAUSE","PAUSED_QUOTA")):
+        if control_blocked(self.home, lane):
             return None
         if batch_id is not None and not re.fullmatch(r"[A-Z0-9_.-]{3,80}", batch_id):
             raise ValueError("invalid batch id")
@@ -731,6 +808,18 @@ class State:
             rows=db.execute(query, tuple(query_params)).fetchall()
             for row in rows:
                 t=json.loads(row["spec"])
+                try:
+                    validate_task_type(t)
+                except ValueError:
+                    # Do not assign malformed packets. Make the defect visible
+                    # to Supervisor triage and continue with unrelated work.
+                    db.execute(
+                        "UPDATE tasks SET status='failed',last_error='task_type_invalid',updated_at=? WHERE id=?",
+                        (now(), row["id"]),
+                    )
+                    db.execute("DELETE FROM pending_queue WHERE parent_id=?", (row["id"],))
+                    db.execute("DELETE FROM rebuild_queue WHERE parent_id=?", (row["id"],))
+                    continue
                 deps=t["depends_on"]
                 if any((found:=db.execute("SELECT status FROM tasks WHERE id=?",(d,)).fetchone()) is None or found[0] != "completed" for d in deps):
                     continue
@@ -782,6 +871,9 @@ class State:
         with self.master_lock():
             with self.db() as db:
                 db.execute("BEGIN IMMEDIATE")
+                if control_blocked(self.home, "recovery"):
+                    db.execute("ROLLBACK")
+                    raise ValueError("recovery_lane_paused")
                 lane = db.execute(
                     "SELECT task_id,case_id,state,lease_token FROM supervisor_lanes WHERE lane_id=?", (lane_id,)
                 ).fetchone()
@@ -797,6 +889,7 @@ class State:
                     db.execute("ROLLBACK")
                     raise ValueError("recovery retry ceiling reached")
                 task = json.loads(row["spec"])
+                validate_task_type(task)
                 if row["project_id"]:
                     task["subtasks"] = [json.loads(child["spec"]) for child in db.execute(
                         "SELECT spec FROM subtasks WHERE parent_id=? ORDER BY sequence", (row["id"],)

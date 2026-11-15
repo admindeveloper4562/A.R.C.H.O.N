@@ -217,7 +217,8 @@ def snapshot(db_path: Path, *, source: str = 'auto', limit: int = 10,
         data = (_fetch_astra if detected == 'astra' else _fetch_atlas)(db, limit, event_limit, show_objectives)
         db.execute('ROLLBACK')
     home = Path(db_path).expanduser().absolute().parent
-    data['controls'] = [s for s in ('STOP', 'PAUSE', 'PAUSED_QUOTA') if (home / s).is_file()]
+    data['controls'] = [s for s in ('STOP', 'PAUSE', 'PAUSED_QUOTA', 'PAUSE_NORMAL', 'PAUSE_RECOVERY')
+                        if (home / s).is_file()]
     data['db'] = str(Path(db_path).expanduser().absolute())
     data['updated_at'] = datetime.now().astimezone().strftime('%Y-%m-%d %H:%M:%S %Z')
     return data

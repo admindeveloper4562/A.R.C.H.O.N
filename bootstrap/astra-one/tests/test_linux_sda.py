@@ -9,7 +9,7 @@ import time
 import unittest
 from unittest.mock import patch
 
-from astra_one.linux_sda import State, task_spec, git, assert_source
+from astra_one.linux_sda import State, assert_source, control_blocked, git, task_spec, validate_task_type
 from astra_one.linux_runtime import (
     ChangeValidationError,
     DockerTestError,
@@ -31,7 +31,7 @@ from astra_one.linux_runtime import (
     review_finding_codes,
     worker_failure_code,
 )
-from astra_one.linux_cli import run_master
+from astra_one.linux_cli import run_concurrent, run_master
 
 
 def git_repo(root):
@@ -188,6 +188,40 @@ class LinuxSDATests(unittest.TestCase):
             (self.state.home/marker).unlink()
         self.assertIsNotNone(self.state.claim())
 
+    def test_lane_pause_does_not_cross_block_the_other_lane(self):
+        (self.state.home / "PAUSE_NORMAL").touch()
+        self.assertTrue(control_blocked(self.state.home, "normal"))
+        self.assertFalse(control_blocked(self.state.home, "recovery"))
+        (self.state.home / "PAUSE_NORMAL").unlink()
+        (self.state.home / "PAUSE_RECOVERY").touch()
+        self.assertTrue(control_blocked(self.state.home, "recovery"))
+        self.assertFalse(control_blocked(self.state.home, "normal"))
+
+    def test_normal_and_recovery_lane_runner_overlap_without_second_master(self):
+        barrier = threading.Barrier(2)
+        calls = []
+        def fake_normal(*args, **kwargs):
+            calls.append("normal-start")
+            barrier.wait(timeout=2)
+            calls.append("normal-end")
+            return {"terminal_failures": 0}
+        def fake_recovery(*args, **kwargs):
+            calls.append("recovery-start")
+            barrier.wait(timeout=2)
+            calls.append("recovery-end")
+            return {"resolved": 1}
+        with patch("astra_one.linux_cli.run_master", side_effect=fake_normal), \
+             patch("astra_one.linux_cli.run_recovery", side_effect=fake_recovery):
+            result = run_concurrent(
+                self.state, workers=5, max_tasks=1, max_minutes=1,
+                model="gpt-5.6-luna", effort="medium", recovery_limit=2,
+                recovery_model="gpt-6.1-sol", recovery_effort="high",
+                test_image="python:3.12-slim", test_command=["python3"],
+                auto_integrate=True, max_repairs=0, timeout=60,
+            )
+        self.assertTrue(result["shared_master_lock"])
+        self.assertEqual(set(calls[:2]), {"normal-start", "recovery-start"})
+
     def test_recover_no_replay(self):
         self.state.add_tasks(task(1));self.state.claim()
         self.assertEqual(self.state.recover(),["ASTRA-001"])
@@ -266,6 +300,31 @@ class LinuxSDATests(unittest.TestCase):
     def test_task_rejects_unknown_fields(self):
         obj=task(1);obj["api_key"]="secret"
         with self.assertRaises(ValueError):task_spec(obj)
+
+    def test_task_type_validation_rejects_malformed_design_packet(self):
+        malformed = task(1)
+        malformed["execution_mode"] = "design"
+        with self.assertRaisesRegex(ValueError, "task_type_invalid"):
+            validate_task_type(malformed)
+
+    def test_task_spec_preserves_valid_design_metadata_for_assignment(self):
+        child = {
+            "id": "BASE-015.S01", "sequence": 1, "instruction": "Write the design.",
+            "deliverable": "Design document", "done_when": "The design is bounded.",
+            "depends_on": [],
+        }
+        packet = task(1)
+        packet.update({"execution_mode": "design", "subtasks": [child]})
+        normalized = task_spec(packet)
+        self.assertEqual(normalized["execution_mode"], "design")
+        self.assertEqual(normalized["subtasks"][0]["id"], "BASE-015.S01")
+
+    def test_task_type_validation_requires_ordered_child_contract(self):
+        packet = audit_task()
+        self.assertEqual(validate_task_type(packet), "audit")
+        packet["subtasks"][0]["sequence"] = 2
+        with self.assertRaisesRegex(ValueError, "task_type_invalid"):
+            validate_task_type(packet)
 
     def test_model_cli_is_codex_cloud_not_oss(self):
         cmd=codex_command(self.repo,"gpt-5.6-luna","medium",None,"workspace-write")
@@ -428,6 +487,18 @@ class LinuxSDATests(unittest.TestCase):
         tool.write_text("print('not an audit receipt')\n")
         with self.assertRaisesRegex(ChangeValidationError,"audit_report_only"):
             check_changes(self.repo,b,task=audit_task())
+
+    def test_design_scope_accepts_only_documentation(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        design = {"execution_mode": "design"}
+        report=self.repo/"docs"/"tasks"/"DESIGN.md"
+        report.parent.mkdir(parents=True)
+        report.write_text("# bounded design\n")
+        self.assertEqual(check_changes(self.repo,b,task=design),["docs/tasks/DESIGN.md"])
+        (self.repo/"src").mkdir()
+        (self.repo/"src"/"runtime.py").write_text("VALUE = 1\n")
+        with self.assertRaisesRegex(ChangeValidationError,"design_documentation_only"):
+            check_changes(self.repo,b,task=design)
 
     def test_merger_preview_preserves_bounded_patch_tail(self):
         preview = _bounded_patch_preview(b"A" * 8_000 + b"TAIL-EVIDENCE", limit=8_000)
