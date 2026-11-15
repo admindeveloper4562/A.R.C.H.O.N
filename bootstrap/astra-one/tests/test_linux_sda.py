@@ -411,6 +411,22 @@ class LinuxSDATests(unittest.TestCase):
             self.state.add_tasks([task(1), task(1)])
         self.assertEqual(self.state.list_tasks(), [])
 
+    def test_selector_preserves_fifo_for_same_priority_tasks(self):
+        self.state.add_tasks([task(2), task(1)])
+        self.assertEqual(self.state.claim()["task"]["task_id"], "ASTRA-002")
+
+    def test_selector_honors_priority_before_fifo(self):
+        self.state.add_tasks([task(1), task(2)])
+        with self.state.db() as db:
+            db.execute("UPDATE tasks SET priority='P1' WHERE id='ASTRA-001'")
+            db.execute("UPDATE tasks SET priority='P0' WHERE id='ASTRA-002'")
+        self.assertEqual(self.state.claim()["task"]["task_id"], "ASTRA-002")
+
+    def test_selector_skips_blocked_head_for_independent_task(self):
+        self.state.add_tasks([task(1), task(2, ["ASTRA-001"]), task(3)])
+        self.assertEqual(self.state.claim()["task"]["task_id"], "ASTRA-001")
+        self.assertEqual(self.state.claim()["task"]["task_id"], "ASTRA-003")
+
     def test_task_rejects_unknown_fields(self):
         obj=task(1);obj["api_key"]="secret"
         with self.assertRaises(ValueError):task_spec(obj)

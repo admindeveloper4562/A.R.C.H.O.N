@@ -614,14 +614,16 @@ class State:
         with self.db() as db:
             db.execute("BEGIN IMMEDIATE")
             existing={r[0] for r in db.execute("SELECT id FROM tasks")}
+            next_enqueue = db.execute("SELECT COALESCE(MAX(enqueue_seq), 0) FROM tasks").fetchone()[0]
             inserted=set()
             for t in tasks:
                 if t["task_id"] in existing or t["task_id"] in inserted:
                     raise ValueError("duplicate task ID")
                 if any(dep not in existing and dep not in inserted for dep in t["depends_on"]):
                     raise ValueError("task dependencies must already exist or precede task")
-                db.execute("INSERT INTO tasks(id,spec,status,architecture_sha,created_at,updated_at) VALUES(?,?,?,?,?,?)",
-                           (t["task_id"],json.dumps(t,ensure_ascii=False),"queued",self.get("architecture_sha"),now(),now()))
+                next_enqueue += 1
+                db.execute("INSERT INTO tasks(id,spec,status,architecture_sha,created_at,updated_at,enqueue_seq) VALUES(?,?,?,?,?,?,?)",
+                           (t["task_id"],json.dumps(t,ensure_ascii=False),"queued",self.get("architecture_sha"),now(),now(),next_enqueue))
                 inserted.add(t["task_id"])
             db.execute("COMMIT")
         return [t["task_id"] for t in tasks]
