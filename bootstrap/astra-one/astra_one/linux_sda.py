@@ -442,6 +442,44 @@ class State:
             fcntl.flock(fd, fcntl.LOCK_UN)
             os.close(fd)
 
+    @contextlib.contextmanager
+    def controller_lock(self, blocking: bool = False, timeout: float = 30.0):
+        """Fence one long-lived SDA controller; kernel flock owns liveness."""
+        if timeout <= 0 or timeout > 300:
+            raise ValueError("invalid controller lock timeout")
+        self.home.mkdir(mode=0o700, parents=True, exist_ok=True)
+        lock_path = self.home / "controller.lock"
+        owner_path = self.home / "controller.owner.json"
+        fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
+        acquired = False
+        owner = {"pid": os.getpid(), "started_at": now()}
+        try:
+            deadline = time.monotonic() + timeout
+            while True:
+                try:
+                    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    acquired = True
+                    break
+                except BlockingIOError as ex:
+                    if not blocking or time.monotonic() >= deadline:
+                        raise ValueError("another Astra One controller is running") from ex
+                    time.sleep(0.05)
+            if owner_path.is_symlink():
+                raise ValueError("controller owner metadata is a symlink")
+            owner_path.write_text(json.dumps(owner, separators=(",", ":")) + "\n", encoding="utf-8")
+            yield
+        finally:
+            if acquired:
+                try:
+                    if not owner_path.is_symlink() and owner_path.is_file():
+                        current = json.loads(owner_path.read_text(encoding="utf-8"))
+                        if current == owner:
+                            owner_path.unlink(missing_ok=True)
+                except (OSError, UnicodeError, json.JSONDecodeError):
+                    pass
+                fcntl.flock(fd, fcntl.LOCK_UN)
+            os.close(fd)
+
     def ensure_full_plan_schema(self) -> dict:
         """Apply only the additive, reversible full-plan schema migration."""
         with self.master_lock():

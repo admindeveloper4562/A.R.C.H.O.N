@@ -299,6 +299,38 @@ class LinuxSDATests(unittest.TestCase):
             if process.stdout is not None:
                 process.stdout.close()
 
+    def test_second_controller_is_rejected_and_stale_lock_reconciles(self):
+        script = (
+            "import sys,time\n"
+            "from pathlib import Path\n"
+            "from astra_one.linux_sda import State\n"
+            "with State(Path(sys.argv[1])).controller_lock():\n"
+            "    print('held', flush=True)\n"
+            "    time.sleep(5)\n"
+        )
+        env = os.environ.copy()
+        env["PYTHONPATH"] = str(Path(__file__).resolve().parents[1])
+        process = subprocess.Popen(
+            [sys.executable, "-c", script, str(self.state.home)],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, env=env,
+        )
+        try:
+            self.assertEqual(process.stdout.readline().strip(), "held")
+            with self.assertRaisesRegex(ValueError, "another Astra One controller is running"):
+                with self.state.controller_lock():
+                    pass
+            process.terminate()
+            self.assertEqual(process.wait(timeout=2), -15)
+            with self.state.controller_lock():
+                self.assertTrue((self.state.home / "controller.owner.json").is_file())
+            self.assertFalse((self.state.home / "controller.owner.json").exists())
+        finally:
+            if process.poll() is None:
+                process.terminate()
+                process.wait(timeout=2)
+            if process.stdout is not None:
+                process.stdout.close()
+
     def test_recover_no_replay(self):
         self.state.add_tasks(task(1));self.state.claim()
         self.assertEqual(self.state.recover(),["ASTRA-001"])

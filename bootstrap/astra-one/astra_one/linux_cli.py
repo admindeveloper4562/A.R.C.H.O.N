@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
+from functools import wraps
 import hashlib
 import json
 import os
@@ -505,6 +506,21 @@ def run_recovery(state: State, *, limit: int, model: str, effort: str, test_imag
     }
 
 
+def _single_controller(function):
+    """Hold one process-lifetime controller fence around each public runner."""
+    @wraps(function)
+    def guarded(state, *args, _controller_locked=False, **kwargs):
+        if _controller_locked:
+            return function(state, *args, **kwargs)
+        with state.controller_lock():
+            return function(state, *args, **kwargs)
+    return guarded
+
+
+run_master = _single_controller(run_master)
+run_recovery = _single_controller(run_recovery)
+
+
 def run_concurrent(state: State, *, workers: int, max_tasks: int, max_minutes: int,
                     model: str, effort: str, recovery_limit: int,
                     recovery_model: str, recovery_effort: str, test_image: str,
@@ -517,19 +533,21 @@ def run_concurrent(state: State, *, workers: int, max_tasks: int, max_minutes: i
     # it can claim work.
     state.ensure_approved()
     SupervisorController(state).ensure_schema()
-    with ThreadPoolExecutor(max_workers=2, thread_name_prefix="astra-lane") as pool:
-        normal_future = pool.submit(
-            run_master, state, workers=workers, max_tasks=max_tasks, max_minutes=max_minutes,
-            model=model, effort=effort, test_image=test_image, test_command=test_command,
-            auto_integrate=auto_integrate, max_repairs=max_repairs, timeout=timeout,
-            batch_id=batch_id, _schema_ready=True,
-        )
-        recovery_future = pool.submit(
-            run_recovery, state, limit=recovery_limit, model=recovery_model, effort=recovery_effort,
-            test_image=test_image, test_command=test_command, timeout=timeout, _schema_ready=True,
-        )
-        normal = normal_future.result()
-        recovery = recovery_future.result()
+    with state.controller_lock():
+        with ThreadPoolExecutor(max_workers=2, thread_name_prefix="astra-lane") as pool:
+            normal_future = pool.submit(
+                run_master, state, workers=workers, max_tasks=max_tasks, max_minutes=max_minutes,
+                model=model, effort=effort, test_image=test_image, test_command=test_command,
+                auto_integrate=auto_integrate, max_repairs=max_repairs, timeout=timeout,
+                batch_id=batch_id, _schema_ready=True, _controller_locked=True,
+            )
+            recovery_future = pool.submit(
+                run_recovery, state, limit=recovery_limit, model=recovery_model, effort=recovery_effort,
+                test_image=test_image, test_command=test_command, timeout=timeout, _schema_ready=True,
+                _controller_locked=True,
+            )
+            normal = normal_future.result()
+            recovery = recovery_future.result()
     return {"normal": normal, "recovery": recovery, "engine": "stopped",
             "shared_master_lock": True, "no_remote_git_push": True}
 
