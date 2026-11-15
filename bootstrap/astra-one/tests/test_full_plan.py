@@ -4,7 +4,8 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from astra_one.full_plan import FullPlan, PROJECT_ID, payload_sha
+from astra_one.full_plan import (FullPlan, PROJECT_ID, PlanValidationError,
+                                  parse_task_markdown, payload_sha)
 from astra_one.linux_runtime import _write_receipt_artifact, make_prompt
 from astra_one.linux_sda import State
 
@@ -224,6 +225,27 @@ class FullPlanImportTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "authenticated owner receipt"):
             self.state.approve_owner("FULL-003")
         self.assertEqual(self.state.full_plan_status()["parent_status"]["approval_required"], 1)
+
+    def test_task_markdown_round_trips_to_sqlite_ids_and_payloads(self):
+        self.state.import_full_plan(self.plan())
+        output = self.base / "reports" / "TASK.md"
+        result = self.state.export_task_markdown(output)
+        self.assertTrue(result["validated"])
+        self.assertEqual(result["parent_count"], 3)
+        self.assertEqual(result["child_count"], 6)
+        manifest = parse_task_markdown(output.read_text(encoding="utf-8"))
+        self.assertEqual([item["id"] for item in manifest["parents"]],
+                         ["FULL-001", "FULL-002", "FULL-003"])
+        self.assertTrue(self.state.validate_task_markdown_file(output)["validated"])
+
+    def test_task_markdown_rejects_payload_or_id_drift(self):
+        self.state.import_full_plan(self.plan())
+        output = self.base / "TASK.md"
+        self.state.export_task_markdown(output)
+        tampered = output.read_text(encoding="utf-8").replace('"FULL-001"', '"FULL-999"', 1)
+        output.write_text(tampered, encoding="utf-8")
+        with self.assertRaises(PlanValidationError):
+            self.state.validate_task_markdown_file(output)
 
 
 if __name__ == "__main__":

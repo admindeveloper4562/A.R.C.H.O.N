@@ -20,6 +20,7 @@ EXPECTED_PARENT_COUNT = 247
 EXPECTED_SUBTASK_COUNT = 1359
 EXPECTED_PARENT_BLOB_SHA = "36e674f4e58fc19aa8158da42d802b9599a23763"
 PROJECT_ID = "ARCHON-JARVIS-V2"
+TASK_MARKDOWN_FORMAT = "archon-task-md-v1"
 OWNER_GATE_IDS = (
     "BASE-008", "BASE-016", "SDA-027", "MIG-012", "FIN-001",
     "FIN-016", "REL-018", "REL-020", "REL-021",
@@ -63,6 +64,217 @@ class FullPlan:
     subtask_index_sha: str
     module_hashes: dict[str, str]
     validation: dict[str, Any]
+
+
+def _markdown_text(value: object) -> str:
+    """Keep task prose on one reviewable Markdown line."""
+    text = str(value or "none").replace("\r", " ").replace("\n", " ")
+    return text.replace("`", "\\`").strip() or "none"
+
+
+def _task_markdown_manifest(project: dict[str, Any], parents: list[dict[str, Any]]) -> dict[str, Any]:
+    parent_records = []
+    child_records = []
+    seen_parents: set[str] = set()
+    seen_children: set[str] = set()
+    for parent in parents:
+        spec = parent.get("spec", parent)
+        task_id = str(parent.get("task_id") or spec.get("task_id") or "")
+        if not task_id or task_id in seen_parents:
+            raise PlanValidationError("TASK.md contains duplicate or empty parent ID")
+        seen_parents.add(task_id)
+        children = parent.get("children", spec.get("subtasks", []))
+        dependencies = list(parent.get("dependencies", spec.get("depends_on", [])))
+        parent_records.append({
+            "id": task_id,
+            "payload_sha": parent.get("payload_sha") or payload_sha(spec),
+            "dependencies": dependencies,
+        })
+        for child in children:
+            child_id = child.get("id")
+            if not isinstance(child_id, str) or not child_id or child_id in seen_children:
+                raise PlanValidationError("TASK.md contains duplicate or empty child ID")
+            if child.get("parent_id", task_id) != task_id:
+                raise PlanValidationError(f"child {child_id} is attached to the wrong parent")
+            seen_children.add(child_id)
+            child_records.append({
+                "id": child_id,
+                "parent_id": task_id,
+                "sequence": child.get("sequence"),
+                "depends_on": list(child.get("depends_on", [])),
+                "payload_sha": child.get("payload_sha") or payload_sha(child),
+            })
+    return {
+        "format": TASK_MARKDOWN_FORMAT,
+        "project_id": project.get("project_id", PROJECT_ID),
+        "project_payload_sha": project.get("payload_sha", ""),
+        "parent_count": len(parent_records),
+        "child_count": len(child_records),
+        "parents": parent_records,
+        "children": child_records,
+    }
+
+
+def render_task_markdown(project: dict[str, Any], parents: list[dict[str, Any]], *,
+                         statuses: dict[str, str] | None = None,
+                         source_path: str = "") -> str:
+    """Render a reviewable task view while retaining a verifiable ID manifest."""
+    statuses = statuses or {}
+    manifest = _task_markdown_manifest(project, parents)
+    lines = [
+        f"# {project.get('project_name', 'ARCHON project')} Task Plan",
+        "",
+        f"<!-- {TASK_MARKDOWN_FORMAT} -->",
+        "",
+        f"- Project: `{_markdown_text(manifest['project_id'])}`",
+        f"- Source: `{_markdown_text(project.get('source_repository', ''))}`",
+        f"- Integration branch: `{_markdown_text(project.get('integration_branch', ''))}`",
+        f"- Parent tasks: {manifest['parent_count']}",
+        f"- Child subtasks: {manifest['child_count']}",
+        f"- Parent-plan blob SHA: `{_markdown_text(project.get('parent_plan_blob_sha', ''))}`",
+        f"- Subtask-index SHA-256: `{_markdown_text(project.get('subtask_index_sha256', ''))}`",
+        f"- SQLite authoritative source: `{_markdown_text(source_path or 'not embedded')}`",
+        "- This is a reviewable planning view; SQLite remains the authoritative queue.",
+        "",
+    ]
+    for parent in parents:
+        spec = parent.get("spec", parent)
+        task_id = str(parent.get("task_id") or spec.get("task_id"))
+        dependencies = parent.get("dependencies", spec.get("depends_on", []))
+        children = parent.get("children", spec.get("subtasks", []))
+        lines.extend([
+            f"## {task_id} — {_markdown_text(spec.get('title', spec.get('objective', '')))}",
+            "",
+            f"- State: `{_markdown_text(statuses.get(task_id, 'not_recorded'))}`",
+            f"- Module/milestone/priority: `{_markdown_text(parent.get('module', spec.get('module', '')))}` / "
+            f"`{_markdown_text(parent.get('milestone', spec.get('milestone', '')))}` / "
+            f"`{_markdown_text(parent.get('priority', spec.get('priority', '')))}`",
+            f"- Dependencies: {_markdown_text(', '.join(dependencies) if dependencies else 'none')}",
+            f"- Owner gate: `{ 'required' if parent.get('owner_gate', spec.get('required_owner_gate', False)) else 'no' }`",
+            f"- Execution mode: `{_markdown_text(spec.get('execution_mode', 'worker'))}`",
+            f"- Scope roots: {_markdown_text(', '.join(spec.get('suggested_scope_roots', [])) or 'none')}",
+            f"- Permissions/guardrails: {_markdown_text('; '.join(spec.get('module_guardrails', [])) or 'bounded task scope')}",
+            f"- Objective: {_markdown_text(spec.get('objective', spec.get('title', '')))}",
+            f"- Acceptance: {_markdown_text('; '.join(spec.get('acceptance', [])))}",
+            f"- Tests/verification: {_markdown_text('; '.join(child.get('done_when', '') for child in children) or 'task acceptance')}",
+            f"- Special instructions: {_markdown_text('; '.join(spec.get('special_instructions', [])) or 'none')}",
+            f"- Completion rule: {_markdown_text(spec.get('completion_rule', 'all required child evidence and independent QC'))}",
+            f"- Reuse notes: {_markdown_text(spec.get('reuse_notes', ''))}",
+            "### Child execution packet",
+            "",
+        ])
+        for child in children:
+            child_deps = child.get("depends_on", [])
+            lines.extend([
+                f"- `{child['id']}` sequence {child.get('sequence')} [{_markdown_text(child.get('kind', ''))}] — "
+                f"{_markdown_text(child.get('title', ''))}",
+                f"  - Instruction: {_markdown_text(child.get('instruction', ''))}",
+                f"  - Deliverable: {_markdown_text(child.get('deliverable', ''))}",
+                f"  - Done when: {_markdown_text(child.get('done_when', ''))}",
+                f"  - Assignee: {_markdown_text(child.get('assignee_role', ''))}; depends on: "
+                f"{_markdown_text(', '.join(child_deps) if child_deps else 'none')}; evidence required: "
+                f"`{bool(child.get('evidence_required'))}`",
+            ])
+        lines.append("")
+    lines.extend([
+        "## Machine validation",
+        "",
+        "The following manifest is generated from the same SQLite payloads shown above. It is validation metadata, not a queue.",
+        "",
+        "```json",
+        json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True),
+        "```",
+        "",
+    ])
+    return "\n".join(lines)
+
+
+def parse_task_markdown(text: str) -> dict[str, Any]:
+    """Parse and validate the bounded machine manifest embedded in TASK.md."""
+    if not isinstance(text, str) or len(text.encode("utf-8")) > 5_000_000:
+        raise PlanValidationError("TASK.md is missing or exceeds the size limit")
+    marker = "## Machine validation\n"
+    start = text.find(marker)
+    if start < 0:
+        raise PlanValidationError("TASK.md machine validation section is missing")
+    fenced = text.find("```json\n", start)
+    if fenced < 0:
+        raise PlanValidationError("TASK.md machine validation JSON is missing")
+    payload_start = fenced + len("```json\n")
+    payload_end = text.find("\n```", payload_start)
+    if payload_end < 0:
+        raise PlanValidationError("TASK.md machine validation JSON is not fenced")
+    try:
+        manifest = json.loads(text[payload_start:payload_end])
+    except json.JSONDecodeError as exc:
+        raise PlanValidationError("TASK.md machine validation JSON is invalid") from exc
+    if not isinstance(manifest, dict) or manifest.get("format") != TASK_MARKDOWN_FORMAT:
+        raise PlanValidationError("TASK.md machine validation format is unsupported")
+    parents = manifest.get("parents")
+    children = manifest.get("children")
+    if not isinstance(parents, list) or not isinstance(children, list):
+        raise PlanValidationError("TASK.md machine validation records are missing")
+    parent_ids = [item.get("id") for item in parents if isinstance(item, dict)]
+    child_ids = [item.get("id") for item in children if isinstance(item, dict)]
+    if len(parent_ids) != len(parents) or len(child_ids) != len(children):
+        raise PlanValidationError("TASK.md machine validation records are malformed")
+    if len(parent_ids) != len(set(parent_ids)) or len(child_ids) != len(set(child_ids)):
+        raise PlanValidationError("TASK.md machine validation IDs are not unique")
+    if manifest.get("parent_count") != len(parents) or manifest.get("child_count") != len(children):
+        raise PlanValidationError("TASK.md machine validation counts do not match")
+    parent_set = set(parent_ids)
+    parent_deps = {item["id"]: item.get("dependencies", []) for item in parents}
+    if any(not isinstance(deps, list) or any(dep not in parent_set for dep in deps)
+           for deps in parent_deps.values()):
+        raise PlanValidationError("TASK.md machine validation has an unknown parent dependency")
+    indegree = {task_id: len(deps) for task_id, deps in parent_deps.items()}
+    dependents = {task_id: [] for task_id in parent_set}
+    for task_id, deps in parent_deps.items():
+        for dependency in deps:
+            dependents[dependency].append(task_id)
+    ready = [task_id for task_id, degree in indegree.items() if degree == 0]
+    visited = 0
+    while ready:
+        current = ready.pop(0)
+        visited += 1
+        for dependent in dependents[current]:
+            indegree[dependent] -= 1
+            if indegree[dependent] == 0:
+                ready.append(dependent)
+    if visited != len(parent_set):
+        raise PlanValidationError("TASK.md machine validation contains a dependency cycle")
+    children_by_parent: dict[str, list[dict[str, Any]]] = {task_id: [] for task_id in parent_set}
+    for child in children:
+        if not isinstance(child, dict) or child.get("parent_id") not in parent_set:
+            raise PlanValidationError("TASK.md machine validation has an unknown child parent")
+        children_by_parent[child["parent_id"]].append(child)
+    for task_id, records in children_by_parent.items():
+        records.sort(key=lambda item: item.get("sequence", 0))
+        sequences = [item.get("sequence") for item in records]
+        if sequences != list(range(1, len(records) + 1)):
+            raise PlanValidationError(f"TASK.md machine validation has invalid child order for {task_id}")
+        child_set = {item["id"] for item in records}
+        for record in records:
+            deps = record.get("depends_on", [])
+            if not isinstance(deps, list) or any(dep not in child_set for dep in deps):
+                raise PlanValidationError(f"TASK.md machine validation has an unknown child dependency for {task_id}")
+    return manifest
+
+
+def validate_task_markdown(text: str, project: dict[str, Any],
+                          parents: list[dict[str, Any]]) -> dict[str, Any]:
+    """Prove that a TASK.md view still identifies the exact persisted plan."""
+    actual = parse_task_markdown(text)
+    expected = _task_markdown_manifest(project, parents)
+    if actual != expected:
+        raise PlanValidationError("TASK.md does not round-trip to the authoritative task payload")
+    return {
+        "format": TASK_MARKDOWN_FORMAT,
+        "project_id": expected["project_id"],
+        "parent_count": expected["parent_count"],
+        "child_count": expected["child_count"],
+        "validated": True,
+    }
 
 
 def load_full_plan(parent_path: Path, index_path: Path, module_dir: Path,

@@ -28,7 +28,8 @@ import urllib.request
 import uuid
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 
-from .full_plan import FullPlan, PROJECT_ID, payload_sha
+from .full_plan import (FullPlan, PROJECT_ID, payload_sha, render_task_markdown,
+                        validate_task_markdown)
 from .owner_approval import OwnerApprovalError, prepare_receipt, verify_receipt
 
 VERSION = "0.3.0"
@@ -1055,6 +1056,84 @@ class State:
                 "queues": queues,
                 "payload_sha": project["payload_sha"],
             }
+
+    def _task_markdown_records(self, db: sqlite3.Connection) -> tuple[dict, list[dict], dict[str, str]]:
+        project_row = db.execute("SELECT * FROM projects WHERE id=?", (PROJECT_ID,)).fetchone()
+        if not project_row:
+            raise ValueError("full-build project is not imported")
+        project = dict(project_row)
+        project.update({"project_id": project["id"], "project_name": project["name"],
+                        "subtask_index_sha256": project["subtask_index_sha"]})
+        parents = []
+        statuses = {}
+        task_rows = db.execute(
+            "SELECT id,spec,status,module,milestone,priority,owner_gate,payload_sha "
+            "FROM tasks WHERE project_id=? ORDER BY enqueue_seq,id", (PROJECT_ID,)
+        ).fetchall()
+        for row in task_rows:
+            spec = json.loads(row["spec"])
+            child_rows = db.execute(
+                "SELECT id,sequence,spec,payload_sha FROM subtasks WHERE parent_id=? ORDER BY sequence",
+                (row["id"],),
+            ).fetchall()
+            children = []
+            for child_row in child_rows:
+                child = json.loads(child_row["spec"])
+                child["id"] = child_row["id"]
+                child["sequence"] = child_row["sequence"]
+                child["payload_sha"] = child_row["payload_sha"]
+                children.append(child)
+            parents.append({
+                "task_id": row["id"], "module": row["module"],
+                "milestone": row["milestone"], "priority": row["priority"],
+                "owner_gate": bool(row["owner_gate"]), "dependencies": list(spec.get("depends_on", [])),
+                "spec": spec, "payload_sha": row["payload_sha"], "children": children,
+            })
+            statuses[row["id"]] = row["status"]
+        return project, parents, statuses
+
+    def export_task_markdown(self, output: Path | None = None) -> dict:
+        """Export the current ledger as a validated, non-authoritative TASK.md view."""
+        output = (output or (self.home / "reports" / "TASK.md")).expanduser().resolve()
+        with self.db() as db:
+            project, parents, statuses = self._task_markdown_records(db)
+        text = render_task_markdown(project, parents, statuses=statuses,
+                                    source_path=str(self.database))
+        validation = validate_task_markdown(text, project, parents)
+        output.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        temporary = output.with_name(f".{output.name}.{uuid.uuid4().hex}.tmp")
+        try:
+            temporary.write_text(text, encoding="utf-8")
+            os.chmod(temporary, 0o600)
+            os.replace(temporary, output)
+        finally:
+            temporary.unlink(missing_ok=True)
+        return {
+            **validation,
+            "path": str(output),
+            "sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+            "bytes": len(text.encode("utf-8")),
+            "authoritative": "sqlite",
+        }
+
+    def validate_task_markdown_file(self, source: Path) -> dict:
+        source = source.expanduser().resolve()
+        try:
+            raw = source.read_bytes()
+        except OSError as exc:
+            raise ValueError("cannot read TASK.md") from exc
+        if len(raw) > 5_000_000:
+            raise ValueError("TASK.md exceeds the size limit")
+        try:
+            text = raw.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise ValueError("TASK.md is not UTF-8") from exc
+        with self.db() as db:
+            project, parents, _ = self._task_markdown_records(db)
+        result = validate_task_markdown(text, project, parents)
+        return {**result, "path": str(source),
+                "sha256": hashlib.sha256(raw).hexdigest(),
+                "bytes": len(raw), "authoritative": "sqlite"}
 
     def list_tasks(self) -> list[dict]:
         with self.db() as db:
