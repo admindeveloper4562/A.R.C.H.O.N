@@ -35,8 +35,9 @@ from astra_one.linux_runtime import (
     review_finding_codes,
     worker_failure_code,
 )
-from astra_one.linux_cli import (_upgrade_audit_brief, inspect_repository, parse_requirements,
-                                 process_candidate_queue, run_concurrent, run_master, supervise)
+from astra_one.linux_cli import (_upgrade_audit_brief, inspect_repository, main as linux_cli_main,
+                                 parse_requirements, process_candidate_queue, run_concurrent,
+                                 run_master, supervise)
 from astra_one.supervisor import SupervisorController
 
 
@@ -608,6 +609,61 @@ class LinuxSDATests(unittest.TestCase):
             self.state.restore_checkpoint(
                 Path(exported["checkpoint"]), self.state.home / "restores" / "bad.sqlite3"
             )
+
+    def test_failure_restart_rollback_controls_prevent_duplicate_effects_and_promotion(self):
+        """Exercise real-host safety controls without launching a coding runner."""
+        self.state.add_tasks(task(1))
+        source_sha = git(self.repo, "rev-parse", "HEAD")
+
+        self.state.home.joinpath("PAUSED_QUOTA").touch()
+        self.assertIsNone(self.state.claim())
+        self.assertEqual(
+            process_candidate_queue(
+                self.state, limit=1, test_image="archon-python:3.12-git",
+                test_command=["python3", "-m", "unittest"], timeout=60, ai_review=True,
+            )["marker"],
+            "PAUSED_QUOTA",
+        )
+        self.state.home.joinpath("PAUSED_QUOTA").unlink()
+
+        # The public run control cannot promote or launch autonomous coders.
+        self.assertEqual(
+            linux_cli_main(["--home", str(self.state.home), "run"]), 2
+        )
+        self.assertEqual(self.state.list_tasks()[0]["status"], "queued")
+
+        first = self.state.claim()
+        self.assertEqual(self.state.recover(), ["ASTRA-001"])
+        self.assertEqual(self.state.recover(), [])
+        with self.state.db() as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM runs").fetchone()[0], 1)
+            self.assertEqual(
+                db.execute("SELECT status FROM runs WHERE id=?", (first["run_id"],)).fetchone()[0],
+                "interrupted",
+            )
+
+        self.state.retry("ASTRA-001")
+        second = self.state.claim()
+        self.assertEqual(second["attempt"], 2)
+        self.assertNotEqual(first["run_id"], second["run_id"])
+
+        self.state.home.joinpath("PAUSE_NORMAL").touch()
+        exported = self.state.export_checkpoint()
+        restored = self.state.restore_checkpoint(
+            Path(exported["checkpoint"]), self.state.home / "restores" / "rollback.sqlite3"
+        )
+        self.assertTrue(restored["canonical_unchanged"])
+        self.assertTrue(restored["controls_not_modified"])
+        self.assertEqual(exported["state_digest"], restored["state_digest"])
+        self.assertEqual(self.state.get("source_sha"), source_sha)
+        self.assertEqual(git(self.repo, "rev-parse", "HEAD"), source_sha)
+        with sqlite3.connect(restored["restored"]) as db:
+            self.assertEqual(db.execute("PRAGMA integrity_check").fetchone()[0], "ok")
+            self.assertEqual(
+                db.execute("SELECT status,attempt FROM tasks WHERE id='ASTRA-001'").fetchone(),
+                ("preflight", 2),
+            )
+        self.assertTrue((self.state.home / "PAUSE_NORMAL").is_file())
 
     def test_progress_sync_publishes_only_bounded_metadata_and_receipt_hashes(self):
         self.state.add_tasks(task(1))
