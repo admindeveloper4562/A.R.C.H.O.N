@@ -1,0 +1,72 @@
+{
+  "schema": "archon.sda-provenance/1",
+  "task_id": "SDA-001",
+  "generation": 2,
+  "state": "staged_unreviewed",
+  "source": {
+    "repository": "admindeveloper4562/A.R.C.H.O.N",
+    "commit": "5227b91d2725bf4be4336a5ad26189fdf1034704",
+    "path": "bootstrap/astra-one/",
+    "staging_directory": "/home/r34p3r/.local/state/archon-astra/provenance/SDA-001/git-v0.2.0-digQmVpl/bootstrap/astra-one",
+    "version": "0.2.0",
+    "manifest_sha256": "7a9dff23d3bd9b93f53ddaf308c03db650b5ca91716d5a6f54bcb0af60f110f",
+    "manifest_file_count": 32
+  },
+  "target": {
+    "path": "migration/imported/sda/astra-one-v0.2.0/",
+    "base_sha": "b2fb308501bad992ecdb84baac313fae812d0f7f",
+    "runtime_path_preserved": "bootstrap/astra-one/",
+    "runtime_version_preserved": "0.3.0",
+    "execution_policy": "review_only_non_executable"
+  },
+  "file_provenance": {
+    "mapping": "bootstrap/astra-one/<manifest-relative-path> -> migration/imported/sda/astra-one-v0.2.0/<manifest-relative-path>",
+    "origin_commit_for_each_manifest_file": "5227b91d2725bf4be4336a5ad26189fdf1034704",
+    "origin_path_is_manifest_relative": true,
+    "manifest_hashes_match_staging_and_git_blobs": true,
+    "matching_files": 32,
+    "license_status": "unclassified_requires_legal_review",
+    "secret_scan": {
+      "high_confidence_embedded_secret_findings": 0,
+      "generic_matches": "documentation placeholders and environment-variable names only",
+      "scanner_status": "manual_read_only_pattern_scan"
+    }
+  },
+  "behavioral_evidence": {
+    "historical_command": "PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover -s tests -p 'test_*.py' -q",
+    "historical_result": "passed",
+    "historical_tests": 49,
+    "historical_elapsed_seconds": 7.5,
+    "manifest_verifier": "Astra One Linux release integrity OK: 32 files"
+  },
+  "migration_dry_run": {
+    "planned_entries": 33,
+    "manifest_entries": 32,
+    "metadata_entry": "MANIFEST.json",
+    "unsafe_paths": 0,
+    "case_collisions": 0,
+    "symlinks": 0,
+    "destination_preexisting": false,
+    "destination_writes": 0,
+    "applied_regular_files_after_pass": 33,
+    "result": "passed"
+  },
+  "rollback": {
+    "candidate_source_sha": "78dc3faec4758d32e605dcc9311e878724831750",
+    "rollback_sha": "b2fb308501bad992ecdb84baac313fae812d0f7f",
+    "candidate_checkpoint_manifest_matches": "32/32",
+    "rollback_runtime_version": "0.3.0",
+    "rollback_import_target_exists": false,
+    "bootstrap_diff_base_to_candidate_files": 0,
+    "candidate_restored_manifest_matches": "32/32",
+    "result": "passed"
+  },
+  "review_boundary": {
+    "production_runtime_changed": false,
+    "canonical_sqlite_changed": false,
+    "task_status_changed": false,
+    "remote_published": false,
+    "independent_qc": "pending",
+    "serialized_merger": "pending"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "astra-one-monitor",
+  "private": true,
+  "version": "0.2.0",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "smoke": "tsc --noEmit false --outDir .test-output && node --test tests/worker.test.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "wrangler": "^4.0.0"
+  },
+  "type": "module"
+}

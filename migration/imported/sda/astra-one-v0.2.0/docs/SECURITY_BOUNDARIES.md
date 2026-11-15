@@ -1,0 +1,12 @@
+# Security and privacy boundaries
+
+1. No default execution. Architecture import also disables prior approval. The source file must be explicitly reviewed and its full SHA-256 approved. No task can be claimed without approval.
+2. Git worktrees are not sandboxes. Windows Codex workspace-write may have platform limitations, so run this prototype in a non-admin, disposable OS account or VM without personal data or long-lived credentials. The prompt's safety text does not prevent malicious code from escaping a weak host sandbox.
+3. Stop/PAUSE are owner controls and are never removed automatically. Direct child termination is best-effort; an OS task supervisor with independent process-tree control is a later milestone.
+4. Private architecture is copied only into the local private state directory. Task prompts include exact task objective and criteria but no complete architecture. No secret scanning of task prompts is performed; the human must keep credentials out of task files.
+5. Only bounded progress fields are posted to Cloudflare. Ingest and view bearer tokens must be different secrets. HTTP is refused by the client. The Worker does not execute commands, perform Git changes, or reach back to the Windows host.
+6. The coding worker never commits, pushes, merges, uploads model output, deletes files or deploys on its own. An explicit owner-issued `integrate --confirm` creates local feature-branch Git commits only; no remote write. The code's static QC rejects tracked/untracked deletion and renaming from a proposed worktree after Codex exits, but is not a filesystem policy enforcement boundary.
+7. The engine uses sequential single-worker SQLite claims and persistent metadata outbox. A crash may leave child processes alive and a task in progress until operator inspection and `recover`. Do not run two engine instances simultaneously until a dedicated cross-process lease system is implemented and tested.
+8. Generated tests are not executed without operator oversight. Syntax and Git diff checks do not replace independent security review, behavior testing, supply-chain scanning or adversarial testing.
+9. The Cloudflare dashboard is protected by a bearer token but not by Cloudflare Access, SSO or IP policies by default. Add Cloudflare Access for higher assurance and rotate secrets after compromise.
+10. This prototype provides an operational engineering foundation, not a guarantee of autonomous JARVIS v2 feature completeness or a production safety certification.

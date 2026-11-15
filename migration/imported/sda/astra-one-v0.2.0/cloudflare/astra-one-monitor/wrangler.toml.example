@@ -1,0 +1,9 @@
+name = "astra-one-monitor"
+main = "src/index.ts"
+compatibility_date = "2026-11-13"
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "astra-one-monitor"
+database_id = "REPLACE_WITH_UUID_FROM_WRANGLER_D1_CREATE"
