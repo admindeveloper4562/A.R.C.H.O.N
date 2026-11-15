@@ -934,6 +934,8 @@ def codex_call(*, worktree: Path, prompt: str, home: Path, state: State, model: 
         if key=="error" and reason=="ok":reason="model_error"
     if code and reason=="ok":
         reason="codex_nonzero"
+    if receipt["tool_effects"] and reason in {"codex_nonzero", "model_error", "timeout"}:
+        reason="codex_effects_uncertain"
     with receipt_lock:
         tools = max(tools, len(receipt["tool_effects"]))
         receipt["error_category"] = receipt["error_category"] or (reason if reason != "ok" else "")
@@ -1088,7 +1090,7 @@ def docker_test(worktree: Path, image: str, command: list[str], timeout: int = 3
     try:
         args=["docker","run","--rm","--pull=never","--network=none","--read-only",
               "--cap-drop=ALL","--security-opt=no-new-privileges","--pids-limit=128","--memory=1g","--cpus=2",
-              "--user=65534:65534","--tmpfs=/tmp:rw,nosuid,nodev,size=128m",
+              "--user=65534:65534","--tmpfs=/tmp:rw,nosuid,nodev,exec,size=128m",
               "--mount",f"type=bind,src={staged},dst=/src,readonly","-w","/src",
               "-e","HOME=/tmp","-e","PYTHONDONTWRITEBYTECODE=1","-e","PYTHONPATH=/src/src:/src/bootstrap/astra-one:/src/bootstrap/astra-one/tests",
               "-e","GIT_CONFIG_COUNT=1","-e","GIT_CONFIG_KEY_0=safe.directory",
@@ -1351,6 +1353,7 @@ SAFE_WORKER_FAILURE_CODES = CHANGE_FAILURE_CODES | frozenset({
     "sandbox_unavailable",
     "codex_file_change_failed",
     "codex_nonzero",
+    "codex_effects_uncertain",
     "model_error",
     "quota_or_rate_limit",
     "quota_paused",
@@ -1647,7 +1650,8 @@ def execute_claim(state: State, item: dict, *, slot: int, model: str, effort: st
         error=worker_failure_code(ex)
         if error in {"quota_or_rate_limit", "quota_paused"} or re.search(r"quota|rate.limit|usage.limit|429",error,re.I):
             (state.home/"PAUSED_QUOTA").touch(exist_ok=True)
-        stage="stopped" if (state.home/"STOP").exists() else "failed"
+        stage=("stopped" if (state.home/"STOP").exists() else
+               "interrupted" if error == "codex_effects_uncertain" else "failed")
         try:
             state.set_task(tid,stage,error=error,fields={"tool_count":tools},run_id=run_id,attempt=attempt)
         except Exception:

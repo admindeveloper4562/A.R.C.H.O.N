@@ -2230,10 +2230,13 @@ class State:
     def retry(self, tid: str):
         with self.db() as db:
             db.execute("BEGIN IMMEDIATE")
-            row=db.execute("SELECT status,attempt,project_id,owner_gate FROM tasks WHERE id=?",(tid,)).fetchone()
+            row=db.execute("SELECT status,attempt,project_id,owner_gate,last_error FROM tasks WHERE id=?",(tid,)).fetchone()
             if not row or row["status"] not in {"failed","interrupted","conflict","stopped"}:
                 db.execute("ROLLBACK")
                 raise ValueError("only failed/interrupted/conflict/stopped tasks below retry ceiling can retry")
+            if row["last_error"] == "codex_effects_uncertain":
+                db.execute("ROLLBACK")
+                raise ValueError("uncertain tool effects require reconciliation before retry")
             if row["attempt"] >= MAX_FAILURES:
                 report = self._write_breakdown_report(db, tid, "retry_ceiling")
                 db.execute("COMMIT")

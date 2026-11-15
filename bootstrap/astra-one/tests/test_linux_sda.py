@@ -998,6 +998,50 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change','status':
         self.assertEqual(rc,0)
         self.assertEqual(reason,"codex_file_change_failed")
 
+    def test_crash_after_tool_effect_is_interrupted_without_replay(self):
+        self.state.add_tasks(task(1))
+        executable = self.base / "crash-after-effect-codex"
+        executable.write_text("""#!/usr/bin/env python3
+import json, os
+print(json.dumps({'type':'item.completed','item':{'type':'command_execution','status':'completed','exit_code':0}}), flush=True)
+os._exit(17)
+""")
+        executable.chmod(0o755)
+        with patch.dict(os.environ, {"ASTRA_CODEX_BIN": str(executable)}), \
+             patch("astra_one.linux_cli.os.geteuid", return_value=1000), \
+             patch("astra_one.linux_cli.sandbox_status", return_value={"available": True, "reason": "test"}), \
+             patch("astra_one.linux_runtime.sandbox_status", return_value={"available": True, "reason": "test"}):
+            result = run_master(
+                self.state, workers=1, max_tasks=2, max_minutes=1,
+                model="gpt-5.6-luna", effort="medium", test_image="python:3.12-slim",
+                test_command=["python3", "-m", "unittest"], auto_integrate=False,
+                max_repairs=3, timeout=60,
+            )
+        self.assertEqual(result["attempts"], 1)
+        self.assertEqual(self.state.list_tasks()[0]["status"], "interrupted")
+        with self.state.db() as db:
+            run = db.execute(
+                "SELECT status,error_code,tool_count,tool_effects FROM runs WHERE task_id='ASTRA-001'"
+            ).fetchone()
+        self.assertEqual(run[0:3], ("interrupted", "codex_effects_uncertain", 1))
+        self.assertIn("command_execution", run[3])
+        with self.assertRaisesRegex(ValueError, "uncertain tool effects require reconciliation"):
+            self.state.retry("ASTRA-001")
+
+    def test_stop_marker_prevents_master_claims(self):
+        self.state.add_tasks(task(1))
+        (self.state.home / "STOP").touch()
+        with patch("astra_one.linux_cli.os.geteuid", return_value=1000), \
+             patch("astra_one.linux_cli.sandbox_status", return_value={"available": True, "reason": "test"}):
+            with self.assertRaisesRegex(ValueError, "STOP/PAUSE/PAUSED_QUOTA prevents master start"):
+                run_master(
+                    self.state, workers=1, max_tasks=1, max_minutes=1,
+                    model="gpt-5.6-luna", effort="medium", test_image="python:3.12-slim",
+                    test_command=["python3", "-m", "unittest"], auto_integrate=False,
+                    max_repairs=0, timeout=60,
+                )
+        self.assertEqual(self.state.list_tasks()[0]["status"], "queued")
+
     def test_codex_jsonl_receipt_persists_bounded_metadata(self):
         self.state.add_tasks(task(1))
         claim = self.state.claim()
@@ -1097,6 +1141,8 @@ print(json.dumps({'type':'turn.completed','usage':{'input_tokens':17,'output_tok
         staged = Path(mount.split(",", 2)[1].split("=", 1)[1])
         self.assertNotEqual(staged, candidate.resolve())
         self.assertFalse(staged.exists())
+        tmpfs = next(arg for arg in docker_calls[1] if arg.startswith("--tmpfs=/tmp:"))
+        self.assertIn(",exec,", tmpfs)
         self.assertIn("GIT_CONFIG_VALUE_0=/src", docker_calls[1])
         self.assertIn("PYTHONPATH=/src/src:/src/bootstrap/astra-one:/src/bootstrap/astra-one/tests", docker_calls[1])
 
