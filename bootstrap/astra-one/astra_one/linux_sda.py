@@ -134,6 +134,20 @@ CREATE TABLE IF NOT EXISTS candidate_submissions(
   UNIQUE(task_id,attempt,candidate_sha));
 CREATE INDEX IF NOT EXISTS idx_candidate_submissions_status
   ON candidate_submissions(status,created_at);
+CREATE TABLE IF NOT EXISTS candidate_quarantine(
+  quarantine_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  task_id TEXT NOT NULL REFERENCES tasks(id),
+  attempt INTEGER NOT NULL,
+  candidate_sha TEXT NOT NULL DEFAULT '',
+  branch TEXT NOT NULL DEFAULT '',
+  worktree TEXT NOT NULL DEFAULT '',
+  failure_code TEXT NOT NULL,
+  source TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  UNIQUE(task_id,attempt,candidate_sha,failure_code)
+);
+CREATE INDEX IF NOT EXISTS idx_candidate_quarantine_task
+  ON candidate_quarantine(task_id,attempt,created_at);
 CREATE TABLE IF NOT EXISTS subtask_receipts(
   receipt_id TEXT PRIMARY KEY,
   subtask_id TEXT NOT NULL REFERENCES subtasks(id),
@@ -1615,6 +1629,29 @@ class State:
                        finished_at=CASE WHEN ? THEN ? ELSE finished_at END
                        WHERE id=(SELECT last_run FROM tasks WHERE id=?)""",
                        (status,error_code,error_code,run_tool_count,terminal,now(),tid))
+            if status == "failed":
+                # Keep failed candidate identity after retry clears the live task
+                # pointer; the worktree remains preserved for inspection.
+                db.execute("""CREATE TABLE IF NOT EXISTS candidate_quarantine(
+                    quarantine_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    task_id TEXT NOT NULL REFERENCES tasks(id),
+                    attempt INTEGER NOT NULL,
+                    candidate_sha TEXT NOT NULL DEFAULT '',
+                    branch TEXT NOT NULL DEFAULT '',
+                    worktree TEXT NOT NULL DEFAULT '',
+                    failure_code TEXT NOT NULL,
+                    source TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    UNIQUE(task_id,attempt,candidate_sha,failure_code)
+                )""")
+                db.execute(
+                    "INSERT INTO candidate_quarantine(task_id,attempt,candidate_sha,branch,worktree,failure_code,source,created_at) "
+                    "VALUES(?,?,?,?,?,?,?,?) "
+                    "ON CONFLICT(task_id,attempt,candidate_sha,failure_code) DO UPDATE SET "
+                    "branch=excluded.branch,worktree=excluded.worktree,source=excluded.source,created_at=excluded.created_at",
+                    (tid, row["attempt"], row["candidate_sha"] or "", row["branch"] or "",
+                     row["worktree"] or "", error_code or "failure_unclassified", "task_failure", now()),
+                )
             if row and row["project_id"]:
                 project_id = row["project_id"]
                 if status == "completed":

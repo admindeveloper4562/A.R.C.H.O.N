@@ -10,7 +10,7 @@ import time
 import unittest
 from unittest.mock import patch
 
-from astra_one.linux_sda import State, assert_source, control_blocked, git, task_spec, validate_task_type
+from astra_one.linux_sda import MAX_FAILURES, State, assert_source, control_blocked, git, task_spec, validate_task_type
 from astra_one.linux_runtime import (
     ChangeValidationError,
     DockerTestError,
@@ -1368,6 +1368,44 @@ print(json.dumps({'type':'item.completed','item':{'type':'file_change'}}))
         self.assertFalse((self.state.home/"PAUSE").is_file())
         with self.state.db() as db:
             self.assertEqual(db.execute("SELECT category FROM supervisor_cases WHERE parent_id='ASTRA-001'").fetchone()[0], "code_defect")
+
+    def test_failed_candidate_is_quarantined_and_retry_preserves_error_proof(self):
+        self.state.add_tasks(task(1))
+        claim = self.state.claim()
+        candidate_sha = "a" * 40
+        self.state.set_task(
+            "ASTRA-001", "failed", error="qc_rejected:security_boundary",
+            fields={
+                "candidate_sha": candidate_sha,
+                "branch": "feature/astra-quarantine",
+                "worktree": str(self.base / "quarantined-candidate"),
+            }, run_id=claim["run_id"], attempt=claim["attempt"],
+        )
+        with self.state.db() as db:
+            quarantine = db.execute(
+                "SELECT attempt,candidate_sha,branch,worktree,failure_code,source "
+                "FROM candidate_quarantine WHERE task_id='ASTRA-001'"
+            ).fetchone()
+            run = db.execute(
+                "SELECT status,error_code FROM runs WHERE id=?", (claim["run_id"],)
+            ).fetchone()
+        self.assertEqual(tuple(quarantine), (
+            1, candidate_sha, "feature/astra-quarantine",
+            str(self.base / "quarantined-candidate"),
+            "qc_rejected:security_boundary", "task_failure",
+        ))
+        self.assertEqual(tuple(run), ("failed", "qc_rejected:security_boundary"))
+
+        self.state.retry("ASTRA-001")
+        with self.state.db() as db:
+            self.assertEqual(db.execute("SELECT status FROM tasks WHERE id='ASTRA-001'").fetchone()[0], "queued")
+            self.assertEqual(db.execute("SELECT count(*) FROM candidate_quarantine WHERE task_id='ASTRA-001'").fetchone()[0], 1)
+            db.execute(
+                "UPDATE tasks SET status='failed',attempt=?,last_run='' WHERE id='ASTRA-001'",
+                (MAX_FAILURES,),
+            )
+        with self.assertRaisesRegex(ValueError, "only failed/interrupted/conflict/stopped tasks below retry ceiling"):
+            self.state.retry("ASTRA-001")
 
     def test_master_refuses_before_claim_when_sandbox_unavailable(self):
         self.state.add_tasks(task(1))
