@@ -326,6 +326,12 @@ class LinuxSDATests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "task_type_invalid"):
             validate_task_type(packet)
 
+    def test_task_type_validation_rejects_unsafe_scope_root(self):
+        packet = task(1)
+        packet["suggested_scope_roots"] = ["../outside/"]
+        with self.assertRaisesRegex(ValueError, "task_type_invalid"):
+            validate_task_type(packet)
+
     def test_model_cli_is_codex_cloud_not_oss(self):
         cmd=codex_command(self.repo,"gpt-5.6-luna","medium",None,"workspace-write")
         self.assertNotIn("--oss",cmd)
@@ -361,6 +367,14 @@ class LinuxSDATests(unittest.TestCase):
         output.write_text('{"status":"passed"}\n')
         with self.assertRaisesRegex(ChangeValidationError,"generated_artifact"):
             check_changes(self.repo,b)
+
+    def test_static_change_rejects_paths_outside_task_scope(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        (self.repo/"docs").mkdir()
+        (self.repo/"docs"/"outside.md").write_text("not in scope\n")
+        scoped_task={"suggested_scope_roots":["src/"]}
+        with self.assertRaisesRegex(ChangeValidationError,"outside_task_scope"):
+            check_changes(self.repo,b,task=scoped_task)
 
     def test_static_change_rejects_zero_files_with_specific_code(self):
         b=git(self.repo,"rev-parse","HEAD")

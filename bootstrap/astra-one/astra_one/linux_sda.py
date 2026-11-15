@@ -342,6 +342,12 @@ def validate_task_type(task: object) -> str:
                for child in children for dep in child.get("depends_on", [])
                for child_id in (child.get("id"),)):
             raise ValueError("task_type_invalid")
+    roots = task.get("suggested_scope_roots", [])
+    if roots is not None:
+        if (not isinstance(roots, list) or len(roots) > 20
+                or any(not isinstance(root, str) or not root or root.startswith(("/", "\\"))
+                       or ".." in Path(root).parts or "\\" in root for root in roots)):
+            raise ValueError("task_type_invalid")
     if mode == "design" and not children:
         raise ValueError("task_type_invalid")
     return mode

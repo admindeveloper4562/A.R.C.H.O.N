@@ -127,6 +127,17 @@ TASK_REPAIR_GUIDANCE = {
         "private paths, full task/receipt/model content or source snippets; use bounded placeholders and fixed "
         "labels instead."
     ),
+    "WIN-002": (
+        "WIN-002 is an implementation task for the Windows Backend Ollama profile. Stay strictly within the "
+        "task's suggested scope roots: infra/windows/, src/jarvis_v2/backend/, and tests/; do not edit "
+        "bootstrap/astra-one, unrelated docs, policies, or runtime infrastructure. Implement a reproducible "
+        "qwen3:8b profile with 16,384 context, q8_0 KV and Flash Attention settings, but never claim a Windows "
+        "GPU or throughput result that was not measured. Provide a loopback-only benchmark using Ollama's "
+        "eval_count/eval_duration counters, bounded numeric receipts, strict endpoint validation and focused "
+        "fake-request tests. Do not expose prompts, model output, credentials or a public Ollama listener; do not "
+        "start Ollama or change host state from the Linux worker. Treat unavailable Windows/GPU evidence as an "
+        "explicit prerequisite or external blocker, not as a fabricated pass."
+    ),
 }
 
 
@@ -438,6 +449,11 @@ def check_changes(worktree: Path, base_sha: str, *, task: dict | None = None) ->
         pure=PurePosixPath(path)
         ci_workflow = _task_allows_ci_workflow(task, path)
         audit_report = _task_allows_audit_report(task, path)
+        scope_roots = task.get("suggested_scope_roots", []) if isinstance(task, dict) else []
+        if scope_roots and not any(
+            path == str(root).rstrip("/") or path.startswith(str(root)) for root in scope_roots
+        ):
+            raise ChangeValidationError("unsafe_changed_path", "outside_task_scope")
         if isinstance(task, dict) and task.get("execution_mode") == "design":
             if not path.startswith("docs/") or pure.suffix.lower() not in {".md", ".json"}:
                 raise ChangeValidationError("unsafe_changed_path", "design_documentation_only")
