@@ -301,7 +301,7 @@ class SupervisorController:
     def claim_recovery(self, case_id: str, lane_id: str) -> dict:
         if lane_id not in RECOVERY_LANES or not _SAFE_CODE.fullmatch(case_id):
             raise ValueError("invalid recovery lane or case")
-        with self.state.master_lock():
+        with self.state.master_lock(blocking=True):
             with self.state.db() as db:
                 db.execute("BEGIN IMMEDIATE")
                 self._reconcile_recovery_leases_locked(db)
@@ -340,7 +340,7 @@ class SupervisorController:
             raise ValueError("invalid recovery lease token")
         if not re.fullmatch(r"[0-9a-f-]{20,80}", run_id) or generation < 1 or not SHA.fullmatch(candidate_sha):
             raise ValueError("invalid recovery candidate binding")
-        with self.state.master_lock():
+        with self.state.master_lock(blocking=True):
             with self.state.db() as db:
                 db.execute("BEGIN IMMEDIATE")
                 lane = db.execute(
@@ -376,7 +376,7 @@ class SupervisorController:
             raise ValueError("invalid recovery run generation")
         if candidate_sha and not SHA.fullmatch(candidate_sha):
             raise ValueError("invalid recovery candidate SHA")
-        with self.state.master_lock():
+        with self.state.master_lock(blocking=True):
             with self.state.db() as db:
                 db.execute("BEGIN IMMEDIATE")
                 lane = db.execute(

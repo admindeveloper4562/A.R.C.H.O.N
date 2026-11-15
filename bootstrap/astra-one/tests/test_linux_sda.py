@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import sqlite3
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -268,6 +269,35 @@ class LinuxSDATests(unittest.TestCase):
             )
         self.assertEqual(calls[0], "schema")
         self.assertEqual(set(calls[1:]), {"normal", "recovery"})
+
+    def test_lane_critical_section_waits_for_master_lock_without_inference_locking(self):
+        script = (
+            "import sys,time\n"
+            "from pathlib import Path\n"
+            "from astra_one.linux_sda import State\n"
+            "with State(Path(sys.argv[1])).master_lock():\n"
+            "    print('held', flush=True)\n"
+            "    time.sleep(0.35)\n"
+        )
+        env = os.environ.copy()
+        env["PYTHONPATH"] = str(Path(__file__).resolve().parents[1])
+        process = subprocess.Popen(
+            [sys.executable, "-c", script, str(self.state.home)],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, env=env,
+        )
+        try:
+            self.assertEqual(process.stdout.readline().strip(), "held")
+            started = time.monotonic()
+            with self.state.master_lock(blocking=True, timeout=2):
+                pass
+            self.assertGreaterEqual(time.monotonic() - started, 0.20)
+            self.assertEqual(process.wait(timeout=2), 0)
+        finally:
+            if process.poll() is None:
+                process.terminate()
+                process.wait(timeout=2)
+            if process.stdout is not None:
+                process.stdout.close()
 
     def test_recover_no_replay(self):
         self.state.add_tasks(task(1));self.state.claim()

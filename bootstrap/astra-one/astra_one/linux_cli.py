@@ -321,7 +321,7 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
     # execution and Docker QC must run outside it so recovery lanes can make
     # progress concurrently under the same deterministic database.
     with contextlib.nullcontext():
-        with state.master_lock():
+        with state.master_lock(blocking=True):
             ensure_integration(state)
         deadline=time.monotonic()+max_minutes*60
         pending={}
@@ -332,7 +332,7 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
                     stopped=(state.home/"STOP").exists()
                     paused=control_blocked(state.home, "normal")
                     while not stopped and not paused and len(pending)<workers and attempted<max_tasks:
-                        with state.master_lock():
+                        with state.master_lock(blocking=True):
                             claim=state.claim(model=model, batch_id=batch_id, lane="normal")
                         if not claim:break
                         attempted+=1
@@ -356,7 +356,7 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
                         tid=result["task_id"]
                         if result["status"]=="approved":
                             try:
-                                with state.master_lock():
+                                with state.master_lock(blocking=True):
                                     integrate(state,tid,merger_model=model,merger_effort=effort,
                                               danger_bypass=danger_bypass, lane="normal")
                                 completed+=1
@@ -455,7 +455,7 @@ def run_recovery(state: State, *, limit: int, model: str, effort: str, test_imag
                     lease["lane_id"], lease["case_id"], lease_token=lease["lease_token"],
                     run_id=item["run_id"], generation=item["attempt"], candidate_sha=candidate_sha,
                 )
-                with state.master_lock():
+                with state.master_lock(blocking=True):
                     result = integrate(state, case["parent_id"], merger_model=model,
                                        merger_effort=effort, danger_bypass=danger_bypass,
                                        lane="recovery")

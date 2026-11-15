@@ -381,15 +381,21 @@ class State:
             db.close()
 
     @contextlib.contextmanager
-    def master_lock(self, blocking: bool = False):
+    def master_lock(self, blocking: bool = False, timeout: float = 30.0):
+        if timeout <= 0 or timeout > 300:
+            raise ValueError("invalid master lock timeout")
         self.home.mkdir(mode=0o700, parents=True, exist_ok=True)
         fd = os.open(self.home / "master.lock", os.O_CREAT | os.O_RDWR, 0o600)
         try:
-            op = fcntl.LOCK_EX | (0 if blocking else fcntl.LOCK_NB)
-            try:
-                fcntl.flock(fd, op)
-            except BlockingIOError as ex:
-                raise ValueError("another Astra Linux master is running") from ex
+            deadline = time.monotonic() + timeout
+            while True:
+                try:
+                    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    break
+                except BlockingIOError as ex:
+                    if not blocking or time.monotonic() >= deadline:
+                        raise ValueError("another Astra Linux master is running") from ex
+                    time.sleep(0.05)
             yield
         finally:
             fcntl.flock(fd, fcntl.LOCK_UN)
@@ -884,7 +890,7 @@ class State:
         token = str(lease.get("lease_token", ""))
         if lane_id not in {"repair_1", "repair_2"} or not re.fullmatch(r"[a-f0-9]{24}", token):
             raise ValueError("invalid recovery lease")
-        with self.master_lock():
+        with self.master_lock(blocking=True):
             with self.db() as db:
                 db.execute("BEGIN IMMEDIATE")
                 if control_blocked(self.home, "recovery"):
