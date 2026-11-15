@@ -67,9 +67,9 @@ def classify_failure(code: str) -> str:
 
 def failure_fingerprint(task_id: str, generation: int, category: str, code: str,
                         base_sha: str = "", candidate_sha: str = "") -> str:
+    """Return a stable fault identity; generation and SHAs remain evidence, not identity."""
     value = {
-        "task_id": task_id, "generation": generation, "category": category,
-        "code": code[:160], "base_sha": base_sha[:40], "candidate_sha": candidate_sha[:40],
+        "task_id": task_id, "category": category, "code": code[:160],
     }
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 
@@ -226,33 +226,94 @@ class SupervisorController:
         if candidate_sha and not SHA.fullmatch(candidate_sha):
             raise ValueError("invalid recovery candidate SHA")
         category = classify_failure(failure_code)
-        with self.state.db() as db:
-            db.execute("BEGIN IMMEDIATE")
-            row = db.execute(
-                "SELECT attempt,base_sha,candidate_sha,project_id FROM tasks WHERE id=?", (task_id,)
-            ).fetchone()
-            if not row:
-                db.execute("ROLLBACK")
-                raise ValueError("unknown recovery task")
-            generation = int(row["attempt"] if generation is None else generation)
-            base_sha = base_sha or row["base_sha"] or ""
-            candidate_sha = candidate_sha or row["candidate_sha"] or ""
-            fingerprint = failure_fingerprint(task_id, generation, category, failure_code, base_sha, candidate_sha)
-            state = "triaged" if category in ACTIONABLE_CATEGORIES else "external_blocker"
-            case_id = f"{task_id}-g{generation}-{fingerprint[:12]}"
-            timestamp = now()
-            db.execute(
-                "INSERT INTO supervisor_cases(case_id,parent_id,generation,state,category,failure_fingerprint,"
-                "failure_code,base_sha,candidate_sha,updated_at,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?) "
-                "ON CONFLICT(parent_id,generation,failure_fingerprint) DO UPDATE SET state=excluded.state,"
-                "category=excluded.category,failure_code=excluded.failure_code,base_sha=excluded.base_sha,"
-                "candidate_sha=excluded.candidate_sha,updated_at=excluded.updated_at",
-                (case_id, task_id, generation, state, category, fingerprint, failure_code[:160],
-                 base_sha, candidate_sha, timestamp, timestamp),
-            )
-            db.execute("COMMIT")
+        with self.state.master_lock(blocking=True):
+            with self.state.db() as db:
+                db.execute("BEGIN IMMEDIATE")
+                row = db.execute(
+                    "SELECT attempt,base_sha,candidate_sha,project_id,spec FROM tasks WHERE id=?", (task_id,)
+                ).fetchone()
+                if not row:
+                    db.execute("ROLLBACK")
+                    raise ValueError("unknown recovery task")
+                generation = max(1, int(row["attempt"] if generation is None else generation))
+                base_sha = base_sha or row["base_sha"] or ""
+                candidate_sha = candidate_sha or row["candidate_sha"] or ""
+                fingerprint = failure_fingerprint(task_id, generation, category, failure_code, base_sha, candidate_sha)
+                state = "triaged" if category in ACTIONABLE_CATEGORIES else "external_blocker"
+                timestamp = now()
+                existing = db.execute(
+                    "SELECT case_id,generation,state,category,base_sha,candidate_sha FROM supervisor_cases "
+                    "WHERE parent_id=? AND failure_fingerprint=? AND state IN "
+                    "('triaged','recovery_assigned','qc_rejected','merge_rejected','blocked','external_blocker','reopened') "
+                    "ORDER BY updated_at DESC,case_id LIMIT 1",
+                    (task_id, fingerprint),
+                ).fetchone()
+                deduplicated = existing is not None
+                if existing:
+                    case_id = existing["case_id"]
+                    state = state if existing["state"] == "reopened" else existing["state"]
+                    generation = existing["generation"]
+                    db.execute(
+                        "UPDATE supervisor_cases SET state=?,category=?,failure_code=?,"
+                        "base_sha=COALESCE(NULLIF(?,''),base_sha),"
+                        "candidate_sha=COALESCE(NULLIF(?,''),candidate_sha),updated_at=? WHERE case_id=?",
+                        (state, category, failure_code[:160], base_sha, candidate_sha, timestamp, case_id),
+                    )
+                else:
+                    case_id = f"{task_id}-g{generation}-{fingerprint[:12]}"
+                    db.execute(
+                        "INSERT INTO supervisor_cases(case_id,parent_id,generation,state,category,failure_fingerprint,"
+                        "failure_code,base_sha,candidate_sha,updated_at,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+                        (case_id, task_id, generation, state, category, fingerprint, failure_code[:160],
+                         base_sha, candidate_sha, timestamp, timestamp),
+                    )
+                db.execute("COMMIT")
+        try:
+            spec = json.loads(row["spec"])
+        except (TypeError, UnicodeError, json.JSONDecodeError):
+            spec = {}
+        roots = spec.get("suggested_scope_roots", []) if isinstance(spec, dict) else []
+        if not isinstance(roots, list):
+            roots = []
+        execution_mode = spec.get("execution_mode", "implementation") if isinstance(spec, dict) else "implementation"
+        if not isinstance(execution_mode, str) or not _SAFE_CODE.fullmatch(execution_mode):
+            execution_mode = "unknown"
+        scope_roots = [root[:200] for root in roots[:16]
+                       if isinstance(root, str) and 0 < len(root) <= 200 and ".." not in root
+                       and not root.startswith("/")]
         return {"case_id": case_id, "task_id": task_id, "generation": generation,
-                "category": category, "state": state, "fingerprint": fingerprint}
+                "category": category, "state": state, "fingerprint": fingerprint,
+                "deduplicated": deduplicated, "execution_mode": execution_mode,
+                "scope_roots": scope_roots}
+
+    def self_doctor(self, limit: int = 50) -> dict:
+        """Create bounded, deduplicated proposals from recorded task failures."""
+        if not 1 <= limit <= 500:
+            raise ValueError("invalid self-doctor scan limit")
+        with self.state.master_lock(blocking=True):
+            with self.state.db() as db:
+                failures = db.execute(
+                    "SELECT id,last_error,attempt,base_sha,candidate_sha FROM tasks "
+                    "WHERE status IN ('failed','conflict','interrupted','stopped') AND last_error<>'' "
+                    "ORDER BY updated_at,id LIMIT ?", (limit,)
+                ).fetchall()
+        proposals = []
+        external = []
+        skipped = []
+        for row in failures:
+            try:
+                proposal = self.triage_failure(
+                    row["id"], row["last_error"], base_sha=row["base_sha"],
+                    candidate_sha=row["candidate_sha"], generation=row["attempt"],
+                )
+            except ValueError:
+                skipped.append({"task_id": row["id"], "reason": "triage_rejected"})
+                continue
+            (proposals if proposal["category"] in ACTIONABLE_CATEGORIES else external).append(proposal)
+        return {
+            "scanned": len(failures), "proposals": proposals, "external": external,
+            "skipped": skipped, "deduplicated": sum(item["deduplicated"] for item in proposals + external),
+        }
 
     def mark_external_blocker(self, case_id: str, category: str, failure_code: str = "") -> dict:
         """Fence a non-coding blocker without consuming another worker generation."""
@@ -899,22 +960,16 @@ class SupervisorController:
         """Open cases for failed tasks; no retry, approval, merge or model call."""
         if not 1 <= limit <= 500:
             raise ValueError("invalid supervisor scan limit")
-        opened = []
         with self.state.master_lock():
             with self.state.db() as db:
-                failures = db.execute(
-                    "SELECT id,last_error,attempt,base_sha,candidate_sha FROM tasks "
-                    "WHERE status IN ('failed','conflict','interrupted','stopped') "
-                    "ORDER BY updated_at,id LIMIT ?", (limit,)
-                ).fetchall()
                 db.execute("BEGIN IMMEDIATE")
                 expired = self._reconcile_recovery_leases_locked(db)
                 resolved = self._reconcile_completed_cases_locked(db)
                 db.execute("COMMIT")
-            for row in failures:
-                if row["last_error"]:
-                    opened.append(self.triage_failure(row["id"], row["last_error"], base_sha=row["base_sha"],
-                                                      candidate_sha=row["candidate_sha"], generation=row["attempt"]))
-        return {"scanned": len(failures), "opened": opened, "expired_leases": expired,
+        doctor = self.self_doctor(limit)
+        return {"scanned": doctor["scanned"], "opened": doctor["proposals"] + doctor["external"],
+                "proposals": doctor["proposals"], "external": doctor["external"],
+                "skipped": doctor["skipped"], "deduplicated": doctor["deduplicated"],
+                "expired_leases": expired,
                 "resolved_cases": resolved,
                 "status": self.status()}

@@ -854,6 +854,7 @@ def main(argv: list[str] | None = None) -> int:
     p=sub.add_parser("supervise");p.add_argument("--focus",default="");p.add_argument("--count",type=int,default=5);p.add_argument("--output",type=Path,required=True);p.add_argument("--model",default=MODEL);p.add_argument("--effort",default=EFFORT)
     p=sub.add_parser("builder-claim");p.add_argument("--model",default=MODEL);p.add_argument("--batch-id",default=None)
     p=sub.add_parser("builder-submit");p.add_argument("--file",type=Path,required=True)
+    p=sub.add_parser("self-doctor");p.add_argument("--limit",type=int,default=50)
     p=sub.add_parser("qc-merge")
     p.add_argument("--limit",type=int,default=1);p.add_argument("--test-image",default="")
     p.add_argument("--test-command-json",default='["python3","-m","unittest","discover","-s","tests","-p","test_*.py"]')
@@ -987,10 +988,12 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "upgrade-audit":
             report(run_upgrade_audit(state, task_id=args.task_id, model=args.model,
                                      effort=args.effort, timeout=args.max_seconds))
-        elif args.command in {"supervisor-status", "supervisor-tick", "batch-start", "batch-status", "batch-replenish", "upgrade-create", "upgrade-check", "upgrade-transition"}:
+        elif args.command in {"self-doctor", "supervisor-status", "supervisor-tick", "batch-start", "batch-status", "batch-replenish", "upgrade-create", "upgrade-check", "upgrade-transition"}:
             supervisor=SupervisorController(state)
             supervisor.ensure_schema()
-            if args.command=="supervisor-status":
+            if args.command=="self-doctor":
+                report(supervisor.self_doctor(args.limit))
+            elif args.command=="supervisor-status":
                 report(supervisor.status())
             elif args.command=="supervisor-tick":
                 report(supervisor.tick(args.limit))

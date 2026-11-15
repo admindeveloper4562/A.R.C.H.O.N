@@ -55,6 +55,7 @@ def plan() -> FullPlan:
         "project_id": PROJECT_ID, "module": "SDA", "milestone": "v3", "priority": "P0",
         "title": "Build v3 test slice", "required_owner_gate": False,
         "manual_owner_gate_required": False, "subtasks": list(children),
+        "suggested_scope_roots": ["bootstrap/astra-one/"],
     }
     parent = {
         "task_id": "V3-001", "module": "SDA", "milestone": "v3", "priority": "P0",
@@ -193,6 +194,33 @@ class SupervisorV3Tests(unittest.TestCase):
         self.assertEqual(done["state"], "blocked")
         status = self.supervisor.status()
         self.assertEqual(status["lanes"][0]["state"], "idle")
+
+    def test_self_doctor_creates_one_scoped_proposal_across_generations(self):
+        claim = self.state.claim()
+        self.state.set_task(
+            "V3-001", "failed", error="no_file_changes",
+            run_id=claim["run_id"], attempt=claim["attempt"],
+        )
+        first = self.supervisor.self_doctor(limit=10)
+        self.assertEqual(len(first["proposals"]), 1)
+        proposal = first["proposals"][0]
+        self.assertFalse(proposal["deduplicated"])
+        self.assertEqual(proposal["scope_roots"], ["bootstrap/astra-one/"])
+        with self.state.db() as db:
+            db.execute(
+                "UPDATE tasks SET attempt=2,base_sha=?,candidate_sha=? WHERE id='V3-001'",
+                ("a" * 40, "b" * 40),
+            )
+        second = self.supervisor.self_doctor(limit=10)
+        self.assertEqual(len(second["proposals"]), 1)
+        self.assertTrue(second["proposals"][0]["deduplicated"])
+        self.assertEqual(second["proposals"][0]["case_id"], proposal["case_id"])
+        self.assertEqual(second["proposals"][0]["fingerprint"], proposal["fingerprint"])
+        self.assertEqual(second["deduplicated"], 1)
+        with self.state.db() as db:
+            self.assertEqual(
+                db.execute("SELECT count(*) FROM supervisor_cases WHERE parent_id='V3-001'").fetchone()[0], 1
+            )
 
     def test_tick_resolves_historical_case_only_after_task_completion(self):
         self.state.set_task("V3-001", "failed", error="no_file_changes")
