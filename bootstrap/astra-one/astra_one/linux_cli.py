@@ -100,6 +100,32 @@ def supervise(state: State, *, focus: str, count: int, output: Path, model: str,
         candidate.unlink(missing_ok=True)
 
 
+def _upgrade_audit_brief(task_id: str) -> str:
+    """Return bounded, task-specific U1 context without exposing private artifacts."""
+    if task_id == "BASE-015":
+        return (
+            "Investigate the BASE-015 failure pattern and the task-type preparation defect. Earlier generations "
+            "attempted unrelated runtime source changes for a design task; a later generation succeeded after "
+            "design-only repair guidance and design-aware QC. Verify the current implementation and identify the "
+            "smallest tested runtime improvement."
+        )
+    if task_id == "WIN-002":
+        return (
+            "Investigate the WIN-002 task preparation and QC failure pattern. The parent is an implementation task "
+            "with scope roots infra/windows/, src/jarvis_v2/backend/ and tests/. The first real worker wrote "
+            "bootstrap/astra-one files outside scope; the next recovery wrote a secret-bearing .env artifact that "
+            "the validator rejected; a later backend candidate passed deterministic tests but independent QC "
+            "returned acceptance_gap, config_contract, correctness_risk, payload_exposure and test_gap. Inspect "
+            "the current backend contract and tests, reproduce the preparation/validation defect in isolation, "
+            "and identify the smallest tested improvement. Do not fabricate Windows/GPU evidence."
+        )
+    return (
+        "Investigate the supplied task's recent bounded failure pattern in the current source and tests. Reproduce "
+        "only a concrete runtime or task-preparation defect and identify the smallest tested improvement; do not "
+        "infer success from model text or unavailable external evidence."
+    )
+
+
 def run_upgrade_audit(state: State, *, task_id: str, model: str, effort: str,
                       timeout: int) -> dict:
     """Run one bounded, read-only U1 investigation and persist sanitized evidence."""
@@ -119,10 +145,7 @@ def run_upgrade_audit(state: State, *, task_id: str, model: str, effort: str,
     prompt = (
         "You are U1, Astra One's read-only upgrade auditor. Inspect the current ARCHON Astra One source and "
         "tests in this checkout; do not edit files, invoke agents, access the network, or print source, prompts, "
-        "secrets, credentials, private paths, or raw logs. Investigate the BASE-015 failure pattern and the "
-        "task-type preparation defect. Earlier generations attempted unrelated runtime source changes for a "
-        "design task; generation 5 succeeded after design-only repair guidance and design-aware QC. Verify the "
-        "current implementation and identify the smallest tested runtime improvement. Return ONLY one JSON object "
+        "secrets, credentials, private paths, or raw logs. " + _upgrade_audit_brief(task_id) + " Return ONLY one JSON object "
         "with these keys: root_cause, reproduction, runtime_component, improvement, tests, risk. Values must be "
         "short bounded strings except tests, which is a list of at most 5 short strings. Explicitly distinguish "
         "observed, inferred and unknown facts. Do not claim a change was implemented unless it is present in the "

@@ -31,7 +31,7 @@ from astra_one.linux_runtime import (
     review_finding_codes,
     worker_failure_code,
 )
-from astra_one.linux_cli import run_concurrent, run_master
+from astra_one.linux_cli import _upgrade_audit_brief, run_concurrent, run_master
 
 
 def git_repo(root):
@@ -123,6 +123,16 @@ class LinuxSDATests(unittest.TestCase):
         )
         self.assertIn("remove trailing whitespace", prompt)
         self.assertIn("do not modify protected policy files", prompt)
+
+    def test_upgrade_audit_brief_is_task_specific_and_bounded(self):
+        win = _upgrade_audit_brief("WIN-002")
+        self.assertIn("config_contract", win)
+        self.assertIn("infra/windows/", win)
+        self.assertIn("Do not fabricate Windows/GPU evidence", win)
+        self.assertNotIn("private/", win)
+        base = _upgrade_audit_brief("BASE-015")
+        self.assertIn("design task", base)
+        self.assertNotEqual(win, base)
 
     def test_ci_local_only_prompt_preserves_quota_boundary(self):
         ci_task = task(1)
