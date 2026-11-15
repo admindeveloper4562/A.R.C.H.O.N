@@ -110,14 +110,21 @@ TASK_REPAIR_GUIDANCE = {
         "not add a caller-selected root CLI that expands the inspection boundary."
     ),
     "BASE-015": (
-        "Code-index recovery: keep Git object reads read-only and bounded; validate the repository root, branch "
-        "ref and regular blob type before reading, reject oversized or undecodable content, and use argument-list "
-        "Git calls with bounded timeouts. Apply generated, license/provenance and secret-path/content exclusions "
-        "before persistence; never return secret-shaped content, task payloads or unbounded source text in results. "
-        "Make refresh atomic and blob-SHA keyed, preserve the last good branch snapshot on failure, and make search "
-        "and symbol results deterministically ordered with strict query/limit validation. Add negative tests for "
-        "path traversal, branch/ref injection, malformed/large blobs, secret canaries, license/generated files, "
-        "query escaping, stable ordering and rollback/refresh idempotency."
+        "BASE-015 is the execution_mode=design contract, not the BACK-013 runtime implementation. Produce one "
+        "bounded Markdown design artifact under docs/tasks/ covering the ordered S01-S05 child deliverables; do "
+        "not add source code, runtime tests, fixtures, configuration, policy, database or tool changes. The design "
+        "must make the acceptance auditable: keep Git object reads read-only and bounded; validate the repository "
+        "root, branch ref and regular blob type before reading; reject oversized or undecodable content; and use "
+        "argument-list Git calls with bounded timeouts. Specify generated, license/provenance and secret-path/content "
+        "exclusions before persistence; never return secret-shaped content, private execution metadata or unbounded "
+        "source text in results. Specify an atomic, blob-SHA keyed refresh, last-good-snapshot preservation, "
+        "deterministic ordering and strict query/limit validation, with negative tests for path traversal, ref "
+        "injection, malformed/large blobs, secret canaries, license/generated files, query escaping, ordering and "
+        "rollback/idempotency. Use the approved architecture SHA as the governing contract, record any observed "
+        "document mismatch or unmet dependency as an explicit prerequisite, and do not claim implementation, test, "
+        "license approval or host evidence that was not actually performed. Do not include secrets, credentials, "
+        "private paths, full task/receipt/model content or source snippets; use bounded placeholders and fixed "
+        "labels instead."
     ),
 }
 
@@ -530,6 +537,15 @@ def make_prompt(task: dict, sha: str, architecture_sha: str, role: str, previous
             "actions or new scanners merely to claim coverage; use the existing local/Docker checks and record any "
             "unavailable tool as an actionable failure.\n"
         )
+    design_guidance = ""
+    if task.get("execution_mode") == "design":
+        design_guidance = (
+            "Design-mode contract: this is a planning deliverable, not runtime implementation. Cover every ordered "
+            "child deliverable and distinguish specified, observed, unknown and verified evidence. The candidate "
+            "must remain documentation-only under docs/; do not add source, tests, fixtures, configuration, policy, "
+            "database or tools. Do not invent approval, license, host, remote or execution evidence, and do not "
+            "copy private task, receipt, prompt, model or source contents into the plan.\n"
+        )
     task_guidance = TASK_REPAIR_GUIDANCE.get(task.get("task_id"), "")
     return (f"You are Astra One SDA {role}, an implementation agent in an isolated Linux Git worktree.\n"
             f"Task: {task['task_id']} (area {task['area']})\n"
@@ -541,6 +557,7 @@ def make_prompt(task: dict, sha: str, architecture_sha: str, role: str, previous
             + ("Repair checklist:\n" + "\n".join("- " + item for item in guidance) + "\n" if guidance else "")
             + audit_guidance
             + ci_local_guidance
+            + design_guidance
             + ("Task-specific repair guidance: " + task_guidance + "\n" if task_guidance else "")
             + "Only edit source files needed for this task within this workspace. Do not commit, push, delete, rename, "
             "modify AGENTS/security/CI policy, change Git refs, fetch secrets, access private OS files except "

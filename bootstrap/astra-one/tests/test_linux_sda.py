@@ -142,11 +142,16 @@ class LinuxSDATests(unittest.TestCase):
     def test_task_specific_code_index_guidance_targets_qc_findings(self):
         index_task = task(1)
         index_task["task_id"] = "BASE-015"
+        index_task["execution_mode"] = "design"
         prompt = make_prompt(index_task, "a" * 40, "b" * 64, "repairer",
                              "qc_rejected:correctness_risk,ordering_semantics,payload_exposure,test_gap")
         self.assertIn("bounded", prompt)
         self.assertIn("blob-SHA keyed", prompt)
         self.assertIn("secret canaries", prompt)
+        self.assertIn("execution_mode=design", prompt)
+        self.assertIn("one bounded Markdown design artifact", prompt)
+        self.assertIn("do not add source, tests, fixtures", prompt)
+        self.assertIn("do not claim implementation", prompt)
 
     def test_audit_prompt_is_report_only_and_metadata_bounded(self):
         prompt = make_prompt(audit_task(), "a" * 40, "b" * 64, "worker")
