@@ -7,7 +7,7 @@ REMOTE="https://github.com/${REPO}.git"
 ASTRA="$ROOT/bootstrap/astra-one"
 SRC="$HOME/Projects/ARCHON-astra-source"
 STATE="$HOME/.local/state/archon-astra"
-TEST_IMAGE="${ARCHON_ASTRA_TEST_IMAGE:-python:3.12-slim}"
+TEST_IMAGE="${ARCHON_ASTRA_TEST_IMAGE:-archon-python:3.12-git-20261114}"
 if [[ "$EUID" -eq 0 || -n "${SUDO_USER:-}" ]]; then
   echo 'Run as your normal Linux user; never sudo/root' >&2; exit 2
 fi

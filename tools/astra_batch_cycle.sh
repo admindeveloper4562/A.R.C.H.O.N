@@ -4,7 +4,7 @@ set -Eeuo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 ASTRA_ROOT="$ROOT/bootstrap/astra-one"
 STATE="${ARCHON_ASTRA_HOME:-$HOME/.local/state/archon-astra}"
-TEST_IMAGE="${ARCHON_ASTRA_TEST_IMAGE:-python:3.12-slim}"
+TEST_IMAGE="${ARCHON_ASTRA_TEST_IMAGE:-archon-python:3.12-git-20261114}"
 CLI=(python3 -m astra_one.linux_cli --home "$STATE")
 for marker in STOP PAUSE PAUSED_QUOTA; do
   if [[ -e "$STATE/$marker" ]]; then
