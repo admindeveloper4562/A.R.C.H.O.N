@@ -71,6 +71,15 @@ from .context import (
     estimate_tokens,
     pack_context,
 )
+from .routing import (
+    CircuitBreaker,
+    CircuitState,
+    GatewayRouter,
+    RouteDecision,
+    RoutingError,
+    StickyRouter,
+    UsageBudget,
+)
 
 from .storage import (
     DEFAULT_MIGRATIONS,
@@ -144,6 +153,13 @@ __all__ = [
     "MAX_CONTEXT_TOKENS",
     "estimate_tokens",
     "pack_context",
+    "CircuitBreaker",
+    "CircuitState",
+    "GatewayRouter",
+    "RouteDecision",
+    "RoutingError",
+    "StickyRouter",
+    "UsageBudget",
     "StorageError",
     "StorageManager",
 ]
