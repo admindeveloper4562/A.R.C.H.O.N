@@ -10,12 +10,14 @@ from pathlib import Path
 import re
 import sqlite3
 import time
-from typing import Callable
+from typing import Callable, Protocol
 
 
 MAX_ACTIONS = 64
 MAX_TARGET_BYTES = 512
 MAX_REF_BYTES = 128
+MAX_TOOL_RESULT_BYTES = 16 * 1024
+MAX_FORM_FIELDS = 32
 PROFILE_STATUSES = frozenset({"login_required", "awaiting_human", "ready", "revoked"})
 HANDOFF_STATUSES = frozenset({"awaiting_human", "completed"})
 _IDENTIFIER = re.compile(r"^[A-Za-z0-9_.:-]{1,128}$")
@@ -23,10 +25,16 @@ _SITE = re.compile(r"^[a-z0-9](?:[a-z0-9.-]{0,62}[a-z0-9])?$")
 _ACTION = re.compile(r"^[a-z][a-z0-9_.:-]{0,63}$")
 _OPAQUE_REF = re.compile(r"^ref:[A-Za-z0-9_.:-]{1,120}$")
 _TARGET_REF = re.compile(r"^[A-Za-z0-9_.:/#-]{1,256}$")
+_FIELD = re.compile(r"^[A-Za-z][A-Za-z0-9_.:-]{0,63}$")
+_SENSITIVE_FIELD = re.compile(r"(?:auth|cookie|credential|pass|secret|session|token)", re.IGNORECASE)
 
 
 class BrowserProfileError(ValueError):
     """Raised when a browser profile or action cannot be admitted safely."""
+
+
+class BrowserToolError(ValueError):
+    """Raised when a typed browser operation cannot be safely executed."""
 
 
 def _identifier(value: str, label: str) -> str:
@@ -135,6 +143,142 @@ class BrowserActionReceipt:
             "status": "authorized",
             "confirmed": self.confirmed,
         }
+
+
+class BrowserAdapter(Protocol):
+    """Trusted adapter surface; arbitrary command execution is not part of it."""
+
+    def navigate(self, profile_dir: str, target_ref: str) -> Mapping[str, object]: ...
+
+    def read(self, profile_dir: str, target_ref: str) -> Mapping[str, object]: ...
+
+    def click(self, profile_dir: str, target_ref: str) -> Mapping[str, object]: ...
+
+    def form(
+        self, profile_dir: str, target_ref: str, fields: Mapping[str, str]
+    ) -> Mapping[str, object]: ...
+
+
+@dataclass(frozen=True)
+class BrowserToolResult:
+    """Bounded adapter output explicitly marked as untrusted page data."""
+
+    request_id: str
+    operation: str
+    data: Mapping[str, object]
+
+    def model_context(self) -> dict[str, object]:
+        return {
+            "request_id": self.request_id,
+            "operation": self.operation,
+            "untrusted_page_data": True,
+            "data": dict(self.data),
+        }
+
+
+class BrowserToolService:
+    """Expose four typed browser operations through the profile policy."""
+
+    def __init__(self, profiles: "BrowserProfileService", adapter: BrowserAdapter) -> None:
+        if not isinstance(profiles, BrowserProfileService):
+            raise BrowserToolError("browser profiles are required")
+        self.profiles = profiles
+        self.adapter = adapter
+
+    def navigate(
+        self, profile_id: str, request_id: str, *, target_ref: str, confirmed: bool = False
+    ) -> BrowserToolResult:
+        return self._run(
+            profile_id, request_id, "navigate", target_ref, confirmed,
+            lambda directory: self.adapter.navigate(directory, target_ref),
+        )
+
+    def read(
+        self, profile_id: str, request_id: str, *, target_ref: str
+    ) -> BrowserToolResult:
+        return self._run(
+            profile_id, request_id, "read", target_ref, False,
+            lambda directory: self.adapter.read(directory, target_ref),
+        )
+
+    def click(
+        self, profile_id: str, request_id: str, *, target_ref: str, confirmed: bool = False
+    ) -> BrowserToolResult:
+        return self._run(
+            profile_id, request_id, "click", target_ref, confirmed,
+            lambda directory: self.adapter.click(directory, target_ref),
+        )
+
+    def form(
+        self,
+        profile_id: str,
+        request_id: str,
+        *,
+        target_ref: str,
+        fields: Mapping[str, str],
+        confirmed: bool = False,
+    ) -> BrowserToolResult:
+        safe_fields = self._fields(fields)
+        return self._run(
+            profile_id, request_id, "form", target_ref, confirmed,
+            lambda directory: self.adapter.form(directory, target_ref, safe_fields),
+        )
+
+    def _run(
+        self,
+        profile_id: str,
+        request_id: str,
+        operation: str,
+        target_ref: str,
+        confirmed: bool,
+        call: Callable[[str], Mapping[str, object]],
+    ) -> BrowserToolResult:
+        try:
+            self.profiles.authorize_action(
+                profile_id, request_id, action=operation, target_ref=target_ref, confirmed=confirmed
+            )
+            context = self.profiles.adapter_context(profile_id)
+        except BrowserProfileError as exc:
+            raise BrowserToolError(str(exc)) from exc
+        try:
+            result = call(str(context["profile_dir"]))
+        except Exception as exc:
+            raise BrowserToolError("browser adapter execution failed") from exc
+        return BrowserToolResult(request_id, operation, self._result(result))
+
+    @staticmethod
+    def _fields(fields: Mapping[str, str]) -> dict[str, str]:
+        if not isinstance(fields, Mapping) or len(fields) > MAX_FORM_FIELDS:
+            raise BrowserToolError("form fields are outside the bounded range")
+        normalized: dict[str, str] = {}
+        for name, value in fields.items():
+            if not isinstance(name, str) or not _FIELD.fullmatch(name) or _SENSITIVE_FIELD.search(name):
+                raise BrowserToolError("sensitive or invalid form field")
+            if not isinstance(value, str) or len(value.encode("utf-8")) > MAX_TARGET_BYTES:
+                raise BrowserToolError("form value is outside the bounded range")
+            if any(ord(char) < 32 for char in value):
+                raise BrowserToolError("form value contains control data")
+            normalized[name] = value
+        return normalized
+
+    @staticmethod
+    def _result(result: Mapping[str, object]) -> Mapping[str, object]:
+        if not isinstance(result, Mapping):
+            raise BrowserToolError("browser adapter result must be an object")
+        try:
+            encoded = json.dumps(
+                dict(result), ensure_ascii=True, allow_nan=False, separators=(",", ":")
+            )
+            if len(encoded.encode("utf-8")) > MAX_TOOL_RESULT_BYTES:
+                raise BrowserToolError("browser adapter result is too large")
+            normalized = json.loads(encoded)
+        except BrowserToolError:
+            raise
+        except (TypeError, ValueError, json.JSONDecodeError) as exc:
+            raise BrowserToolError("browser adapter result is invalid") from exc
+        if not isinstance(normalized, dict):
+            raise BrowserToolError("browser adapter result is invalid")
+        return normalized
 
 
 class BrowserProfileService:
@@ -413,9 +557,13 @@ class BrowserProfileService:
 
 __all__ = [
     "BrowserActionReceipt",
+    "BrowserAdapter",
     "BrowserProfile",
     "BrowserProfileError",
     "BrowserProfileService",
+    "BrowserToolError",
+    "BrowserToolResult",
+    "BrowserToolService",
     "LoginHandoff",
     "MAX_ACTIONS",
 ]

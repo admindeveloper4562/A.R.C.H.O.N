@@ -14,9 +14,13 @@ from .offline import LocalAdapter, OfflineChatService, OfflineChatServiceError
 from .speech import MAX_AUDIO_CHUNK_BYTES, MAX_AUDIO_CHUNKS, SpeechAdapter, SpeechService, SpeechServiceError
 from .browser import (
     BrowserActionReceipt,
+    BrowserAdapter,
     BrowserProfile,
     BrowserProfileError,
     BrowserProfileService,
+    BrowserToolError,
+    BrowserToolResult,
+    BrowserToolService,
     LoginHandoff,
 )
 
@@ -42,8 +46,12 @@ __all__ = [
     "SpeechService",
     "SpeechServiceError",
     "BrowserActionReceipt",
+    "BrowserAdapter",
     "BrowserProfile",
     "BrowserProfileError",
     "BrowserProfileService",
+    "BrowserToolError",
+    "BrowserToolResult",
+    "BrowserToolService",
     "LoginHandoff",
 ]
