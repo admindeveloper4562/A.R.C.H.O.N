@@ -12,9 +12,19 @@ class AegisSlotTests(unittest.TestCase):
         slots.guardian_request(("local",))
         self.assertIsNone(slots.claim("guardian"))
         self.assertEqual(slots.held_slots, {"local": "worker"})
-        self.assertIsNone(slots.claim("background", ("remote",)))
+        self.assertEqual(slots.claim("background", ("remote",)), "remote")
+        slots.finish("background", "remote")
         slots.finish("worker", "local")
         self.assertEqual(slots.claim("guardian"), "local")
+
+    def test_overlapping_lower_priority_request_remains_fenced(self):
+        slots = SlotPriority(("cpu", "gpu"))
+        slots.guardian_request(("gpu",))
+        self.assertIsNone(slots.claim("background", ("gpu",)))
+        self.assertIsNone(slots.claim("background"))
+        self.assertEqual(slots.claim("safe-work", ("cpu",)), "cpu")
+        slots.finish("safe-work", "cpu")
+        self.assertEqual(slots.claim("guardian"), "gpu")
 
     def test_guardian_blocks_lower_priority_until_next_compatible_slot(self):
         slots = SlotPriority(("cpu", "gpu"))

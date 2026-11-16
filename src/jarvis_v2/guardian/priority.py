@@ -9,8 +9,9 @@ class SlotPriority:
 
     A Guardian request is a reservation at the next free-slot boundary. It
     never changes an existing holder, and while it is pending no ordinary
-    requester may claim a slot. ``start`` retains the original boolean API;
-    ``claim`` exposes the slot selected for multi-slot callers.
+    requester may claim a shared compatible slot. Independent slots remain
+    usable. ``start`` retains the original boolean API; ``claim`` exposes the
+    slot selected for multi-slot callers.
     """
 
     def __init__(self, slots: Iterable[str] = ("default",)) -> None:
@@ -68,7 +69,14 @@ class SlotPriority:
             eligible = self._guardian_slots
         else:
             if self.guardian_pending:
-                return None
+                # Reserve only the resources Guardian can use. A request for
+                # an unknown or overlapping set cannot prove independence.
+                if (
+                    self._guardian_slots is None
+                    or requested is None
+                    or not requested.isdisjoint(self._guardian_slots)
+                ):
+                    return None
             eligible = requested
 
         for slot in self._slots:
