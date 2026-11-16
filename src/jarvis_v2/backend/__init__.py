@@ -61,6 +61,16 @@ from .protocol_adapters import (
     ProtocolToolCall,
     ResponsesAdapter,
 )
+from .context import (
+    CHARS_PER_TOKEN,
+    ContextPackError,
+    ContextPacker,
+    DEFAULT_CONTEXT_TOKENS,
+    MAX_CONTEXT_BYTES,
+    MAX_CONTEXT_TOKENS,
+    estimate_tokens,
+    pack_context,
+)
 
 from .storage import (
     DEFAULT_MIGRATIONS,
@@ -126,6 +136,14 @@ __all__ = [
     "ProtocolResponse",
     "ProtocolToolCall",
     "ResponsesAdapter",
+    "CHARS_PER_TOKEN",
+    "ContextPackError",
+    "ContextPacker",
+    "DEFAULT_CONTEXT_TOKENS",
+    "MAX_CONTEXT_BYTES",
+    "MAX_CONTEXT_TOKENS",
+    "estimate_tokens",
+    "pack_context",
     "StorageError",
     "StorageManager",
 ]
