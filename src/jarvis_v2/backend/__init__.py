@@ -1,4 +1,13 @@
-"""ARCHON Backend boundaries: storage, manifests and durable event delivery."""
+"""ARCHON Backend boundaries: storage, manifests and guarded capabilities."""
+
+from .authorization import (
+    AuthIdentity,
+    AuthorizationError,
+    AuthorizationServer,
+    CapabilityGrant,
+    MAX_GRANT_TTL_SECONDS,
+    OwnerApproval,
+)
 
 from .event_bus import (
     DeliveryError,
@@ -25,6 +34,10 @@ from .storage import (
 
 __all__ = [
     "DEFAULT_MIGRATIONS",
+    "AuthIdentity",
+    "AuthorizationError",
+    "AuthorizationServer",
+    "CapabilityGrant",
     "DeliveryError",
     "DeliveryInProgress",
     "DeliveryReceipt",
@@ -34,11 +47,13 @@ __all__ = [
     "EventBusError",
     "EventEnvelope",
     "MAX_EVENT_BYTES",
+    "MAX_GRANT_TTL_SECONDS",
     "Migration",
     "MigrationError",
     "ModuleStore",
     "OwnershipError",
     "PRIVACY_SCOPES",
+    "OwnerApproval",
     "StorageError",
     "StorageManager",
 ]
