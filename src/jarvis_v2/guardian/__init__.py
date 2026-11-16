@@ -24,6 +24,13 @@ from .isolation import (
     IsolationSnapshot,
     MicroModuleIsolation,
 )
+from .restart import (
+    LocalRestartBudget,
+    RestartAttempt,
+    RestartBudget,
+    RestartBudgetError,
+    RestartDecision,
+)
 
 __all__ = [
     "DEFAULT_MODEL",
@@ -52,4 +59,9 @@ __all__ = [
     "IsolationError",
     "IsolationSnapshot",
     "MicroModuleIsolation",
+    "LocalRestartBudget",
+    "RestartAttempt",
+    "RestartBudget",
+    "RestartBudgetError",
+    "RestartDecision",
 ]
