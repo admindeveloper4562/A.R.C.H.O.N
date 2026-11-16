@@ -22,6 +22,45 @@ class CoreBudgetTests(unittest.TestCase):
         self.assertEqual(budget.claim("guardian", device="gpu", guardian=True), "gpu")
         self.assertEqual(budget.held_slots["cpu"]["owner"], "worker")
 
+    def test_guardian_lock_preserves_disjoint_budget_capacity(self):
+        budget = ResourceBudget(2, slots=("cpu", "gpu"))
+        budget.guardian_request(("gpu",))
+
+        self.assertEqual(
+            budget.claim("safe-work", device="cpu", compatible_slots=("cpu",)),
+            "cpu",
+        )
+        self.assertIsNone(
+            budget.claim("lower", device="gpu", compatible_slots=("gpu",))
+        )
+        self.assertEqual(budget.held_slots["cpu"]["owner"], "safe-work")
+        self.assertEqual(budget.available_slots, ("gpu",))
+
+        budget.finish("safe-work", "cpu", device="cpu")
+        self.assertEqual(budget.claim("guardian", device="gpu", guardian=True), "gpu")
+
+    def test_guardian_reservation_is_not_starved_by_repeated_safe_work(self):
+        budget = ResourceBudget(2, slots=("cpu", "gpu"))
+        self.assertEqual(
+            budget.claim("active-generation", device="gpu", compatible_slots=("gpu",)),
+            "gpu",
+        )
+        budget.guardian_request(("gpu",))
+
+        for index in range(8):
+            owner = f"safe-{index}"
+            self.assertEqual(
+                budget.claim(owner, device="cpu", compatible_slots=("cpu",)),
+                "cpu",
+            )
+            budget.finish(owner, "cpu", device="cpu")
+            self.assertIsNone(
+                budget.claim("overlap", device="gpu", compatible_slots=("gpu",))
+            )
+
+        budget.finish("active-generation", "gpu", device="gpu")
+        self.assertEqual(budget.claim("guardian", device="gpu", guardian=True), "gpu")
+
     def test_release_is_fenced_and_invalid_configuration_is_rejected(self):
         with self.assertRaises(ResourceBudgetError):
             ResourceBudget(0)
