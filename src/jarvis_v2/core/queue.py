@@ -6,6 +6,8 @@ import sqlite3
 from pathlib import Path
 from uuid import uuid4
 
+from .session import TaskSessionStore
+
 PRIORITIES = ("P0", "P1", "P2", "P3", "P4", "P5")
 STATES = ("pending", "leased", "blocked", "completed", "failed", "cancelled")
 MAX_HISTORY_ENTRIES = 100
@@ -42,6 +44,7 @@ class TaskQueue:
         if 'title' not in {r['name'] for r in self.db.execute('PRAGMA table_info(tasks)')}:
             self.db.execute("ALTER TABLE tasks ADD COLUMN title TEXT NOT NULL DEFAULT ''")
         self.db.commit()
+        self.sessions = TaskSessionStore(self.db)
 
     def add(self, *, task_id: str, priority: str, module: str, payload: dict, title: str = '') -> None:
         if (priority not in PRIORITIES or not task_id or not module or not isinstance(payload, dict)
@@ -158,5 +161,23 @@ class TaskQueue:
                 "INSERT OR IGNORE INTO event_receipts(consumer,seq) VALUES (?,?)",
                 (consumer, seq),
             )
+
+    def open_session(self, task_id: str, **kwargs) -> dict:
+        return self.sessions.open_session(task_id, **kwargs)
+
+    def restore_session(self, task_id: str | None = None, *, session_id: str | None = None) -> dict:
+        return self.sessions.restore_session(task_id, session_id=session_id)
+
+    def record_decision(self, session_id: str, decision_id: str, decision: dict) -> dict:
+        return self.sessions.record_decision(session_id, decision_id, decision)
+
+    def record_handoff(self, session_id: str, handoff_id: str, handoff: dict) -> dict:
+        return self.sessions.record_handoff(session_id, handoff_id, handoff)
+
+    def record_receipt(self, session_id: str, effect_id: str, receipt: dict) -> dict:
+        return self.sessions.record_receipt(session_id, effect_id, receipt)
+
+    def checkpoint_session(self, session_id: str, **kwargs) -> dict:
+        return self.sessions.checkpoint_session(session_id, **kwargs)
 
     def close(self): self.db.close()
