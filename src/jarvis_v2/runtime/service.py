@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import re
 from typing import Any
 
@@ -10,6 +10,12 @@ from jarvis_v2.backend.authorization import AuthorizationServer
 from jarvis_v2.backend.event_bus import EventBus, EventBusError
 from jarvis_v2.core.dispatch import DispatchError, DispatchStore
 from jarvis_v2.core.registry import CoreRegistryError, ModuleRegistry
+
+from .security import (
+    SECURITY_HEADERS,
+    RuntimeSecurity,
+    RuntimeSecurityError,
+)
 
 
 RUNTIME_MODULE = "runtime"
@@ -29,9 +35,10 @@ class RuntimeResponse:
 
     status: int
     body: Mapping[str, Any]
+    headers: Mapping[str, str] = field(default_factory=lambda: dict(SECURITY_HEADERS))
 
     def as_dict(self) -> dict[str, Any]:
-        return {"status": self.status, "body": dict(self.body)}
+        return {"status": self.status, "headers": dict(self.headers), "body": dict(self.body)}
 
 
 class RuntimeService:
@@ -43,6 +50,7 @@ class RuntimeService:
         authorization: AuthorizationServer,
         dispatch: DispatchStore,
         events: EventBus,
+        security: RuntimeSecurity | None = None,
     ) -> None:
         if not isinstance(registry, ModuleRegistry):
             raise RuntimeServiceError("module registry is required")
@@ -54,6 +62,7 @@ class RuntimeService:
         self.authorization = authorization
         self.dispatch = dispatch
         self.events = events
+        self.security = security or RuntimeSecurity()
 
     def handle(self, request: Mapping[str, Any]) -> RuntimeResponse:
         """Handle one bounded request and return a redacted deterministic result."""
@@ -61,6 +70,17 @@ class RuntimeService:
             method, path, identity_id, scope = self._request_identity(request)
         except RuntimeServiceError:
             return RuntimeResponse(400, {"error": "invalid_request"})
+        try:
+            self.security.validate(
+                session_id=request.get("session_id"),
+                identity_id=identity_id,
+                method=method,
+                host=request.get("host"),
+                origin=request.get("origin"),
+                csrf_token=request.get("csrf_token"),
+            ) if self._has_owner_transport(request) else None
+        except RuntimeSecurityError as exc:
+            return RuntimeResponse(exc.status, {"error": exc.code})
 
         if method == "GET" and path == "/health":
             if not self._authorized(identity_id, scope, RUNTIME_HEALTH_SCOPE):
@@ -90,6 +110,34 @@ class RuntimeService:
             return self._acknowledge(request, match.group(1))
 
         return RuntimeResponse(404 if path.startswith("/") else 400, {"error": "not_found"})
+
+    def issue_owner_session(self, identity_id: str) -> dict[str, object]:
+        """Issue a short-lived session only to a registered operator identity."""
+        identity = self.authorization.identities().get(identity_id)
+        if identity is None or identity.kind != "operator":
+            raise RuntimeServiceError("operator identity is required")
+        return self.security.issue(identity_id).as_dict()
+
+    def rotate_owner_session(self, request: Mapping[str, Any]) -> dict[str, object]:
+        """Rotate a validated owner session and invalidate its predecessor."""
+        try:
+            method, _path, identity_id, _scope = self._request_identity(request)
+            rotated = self.security.rotate(
+                session_id=request.get("session_id"),
+                identity_id=identity_id,
+                method=method,
+                host=request.get("host"),
+                origin=request.get("origin"),
+                csrf_token=request.get("csrf_token"),
+            )
+        except (RuntimeServiceError, RuntimeSecurityError) as exc:
+            if isinstance(exc, RuntimeSecurityError):
+                raise RuntimeServiceError(exc.code) from exc
+            raise
+        return rotated.as_dict()
+
+    def revoke_owner_session(self, session_id: str) -> None:
+        self.security.revoke(session_id)
 
     def close(self) -> None:
         self.dispatch.close()
@@ -184,6 +232,10 @@ class RuntimeService:
     @staticmethod
     def _auth_failure(identity_id: str | None) -> RuntimeResponse:
         return RuntimeResponse(401 if not isinstance(identity_id, str) else 403, {"error": "access_denied"})
+
+    @staticmethod
+    def _has_owner_transport(request: Mapping[str, Any]) -> bool:
+        return any(key in request for key in ("session_id", "host", "origin", "csrf_token"))
 
     @staticmethod
     def _request_identity(request: Mapping[str, Any]) -> tuple[str, str, str, str]:
