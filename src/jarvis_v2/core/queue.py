@@ -1,6 +1,7 @@
 """Deterministic durable Core task queue: no AI model and no external effects."""
 from __future__ import annotations
 import json
+import re
 import sqlite3
 from pathlib import Path
 from uuid import uuid4
@@ -8,6 +9,8 @@ from uuid import uuid4
 PRIORITIES = ("P0", "P1", "P2", "P3", "P4", "P5")
 STATES = ("pending", "leased", "completed", "failed", "cancelled")
 MAX_HISTORY_ENTRIES = 100
+MAX_EVENT_BATCH = 100
+_CONSUMER = re.compile(r"^[A-Za-z0-9_.:-]{1,80}$")
 
 class TaskQueue:
     def __init__(self, path: Path):
@@ -27,6 +30,11 @@ class TaskQueue:
                 seq INTEGER PRIMARY KEY AUTOINCREMENT, task_id TEXT NOT NULL,
                 kind TEXT NOT NULL, detail TEXT NOT NULL,
                 FOREIGN KEY(task_id) REFERENCES tasks(id));
+            CREATE TABLE IF NOT EXISTS event_receipts (
+                consumer TEXT NOT NULL, seq INTEGER NOT NULL,
+                acknowledged_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (consumer, seq),
+                FOREIGN KEY(seq) REFERENCES events(seq));
         """)
         # The task ledger owns schema migrations; the separate monitor never writes.
         # A non-secret title lets the monitor describe work without reading payload.
@@ -83,5 +91,34 @@ class TaskQueue:
             (task_id, limit),
         )
         return [dict(row) for row in rows]
+
+    def replay_events(self, consumer: str, *, limit: int = MAX_EVENT_BATCH) -> list[dict]:
+        """Return unacknowledged event metadata in durable sequence order."""
+        if not isinstance(consumer, str) or not _CONSUMER.fullmatch(consumer):
+            raise ValueError("invalid event consumer")
+        if not isinstance(limit, int) or isinstance(limit, bool) or limit < 1:
+            raise ValueError("limit must be a positive integer")
+        limit = min(limit, MAX_EVENT_BATCH)
+        rows = self.db.execute(
+            "SELECT e.seq, e.task_id, e.kind FROM events e "
+            "WHERE NOT EXISTS (SELECT 1 FROM event_receipts r "
+            "WHERE r.consumer=? AND r.seq=e.seq) ORDER BY e.seq LIMIT ?",
+            (consumer, limit),
+        )
+        return [dict(row) for row in rows]
+
+    def ack_event(self, consumer: str, seq: int) -> None:
+        """Durably acknowledge one event; repeated acknowledgements are safe."""
+        if not isinstance(consumer, str) or not _CONSUMER.fullmatch(consumer):
+            raise ValueError("invalid event consumer")
+        if type(seq) is not int or seq < 1:
+            raise ValueError("event sequence must be a positive integer")
+        with self.db:
+            if self.db.execute("SELECT 1 FROM events WHERE seq=?", (seq,)).fetchone() is None:
+                raise ValueError("unknown event")
+            self.db.execute(
+                "INSERT OR IGNORE INTO event_receipts(consumer,seq) VALUES (?,?)",
+                (consumer, seq),
+            )
 
     def close(self): self.db.close()
