@@ -5,6 +5,7 @@ from .dispatch import DispatchError, DispatchStore
 from .dependency import DependencyError, DependencyOrchestrator
 from .event_session import EventSessionError, EventSessionInterpreter
 from .intent import IntentError, OwnerIntentRouter
+from .model_policy import ModelPolicy, ModelPolicyError, ModelResolution
 from .session import SessionError, TaskSessionStore
 
 __all__ = [
@@ -20,6 +21,9 @@ __all__ = [
     "EventSessionInterpreter",
     "IntentError",
     "OwnerIntentRouter",
+    "ModelPolicy",
+    "ModelPolicyError",
+    "ModelResolution",
     "SessionError",
     "TaskSessionStore",
 ]
