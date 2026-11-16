@@ -3,8 +3,12 @@ from __future__ import annotations
 from pathlib import Path
 from hashlib import sha256
 import json
+import re
 
 REQUIRED_GATES = ("independent_qc", "tests", "security", "rollback_ready", "owner_approved", "watchdog_ready")
+_GIT_SHA = re.compile(r"^[0-9a-f]{40}$")
+_EVIDENCE_REF = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$")
+_CANARY_EVIDENCE = ("independent_qc", "tests", "security", "rollback")
 
 def inspect(path: Path) -> dict:
     """Verify manifest evidence flags, paths and artifact hash. Not a signature verifier."""
@@ -32,3 +36,57 @@ def inspect(path: Path) -> dict:
     if not data.get("previous_healthy_artifact_sha256"):
         reasons.append("missing last-known-good rollback hash")
     return {"eligible_for_independent_review":not reasons,"reasons":reasons,"module":data.get("module"),"artifact_sha256":digest,"deployment_performed":False,"note":"This checks declared evidence flags and checksum only; it does not independently verify signatures, approvals or tests."}
+
+
+def inspect_canary(path: Path) -> dict:
+    """Return a read-only canary decision bound to accepted evidence.
+
+    A canary is only eligible when the existing release gates pass, the
+    candidate/base commits are identified, required evidence is referenced,
+    and the route remains inactive behind one fenced writer. This function
+    never changes routing or starts a candidate.
+    """
+    manifest_path = Path(path)
+    result = inspect(manifest_path)
+    try:
+        data = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        result.update({"eligible_for_canary": False, "canary_reasons": ["manifest_unreadable"]})
+        return result
+
+    reasons = list(result["reasons"])
+    for field in ("candidate_sha", "base_sha"):
+        value = data.get(field)
+        if not isinstance(value, str) or not _GIT_SHA.fullmatch(value):
+            reasons.append(f"invalid {field}")
+
+    evidence = data.get("evidence_refs")
+    if not isinstance(evidence, dict):
+        reasons.append("missing canary evidence references")
+    else:
+        for key in _CANARY_EVIDENCE:
+            value = evidence.get(key)
+            if not isinstance(value, str) or not _EVIDENCE_REF.fullmatch(value):
+                reasons.append(f"invalid {key} evidence reference")
+
+    route_gate = data.get("route_gate")
+    if not isinstance(route_gate, dict):
+        reasons.append("missing route gate")
+    elif route_gate != {"mode": "inactive", "single_writer_fenced": True}:
+        reasons.append("route gate is not closed")
+
+    previous = data.get("previous_healthy_artifact_sha256")
+    if not isinstance(previous, str) or len(previous) != 64 or any(
+        char not in "0123456789abcdef" for char in previous
+    ):
+        reasons.append("invalid last-known-good artifact hash")
+
+    return {
+        **result,
+        "eligible_for_canary": not reasons,
+        "canary_reasons": reasons,
+        "route_switched": False,
+    }
+
+
+__all__ = ["REQUIRED_GATES", "inspect", "inspect_canary"]
