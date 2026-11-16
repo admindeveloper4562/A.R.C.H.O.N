@@ -6,6 +6,7 @@ import sqlite3
 from pathlib import Path
 from uuid import uuid4
 
+from .dependency import DependencyOrchestrator
 from .dispatch import DispatchStore
 from .event_session import EventSessionInterpreter
 from .session import TaskSessionStore
@@ -53,6 +54,7 @@ class TaskQueue:
         self.events = self.event_session
         self.sessions = TaskSessionStore(self.db)
         self.dispatches = DispatchStore(self.db)
+        self.dependencies = DependencyOrchestrator(self.db)
 
     def add(self, *, task_id: str, priority: str, module: str, payload: dict, title: str = '') -> None:
         if (priority not in PRIORITIES or not task_id or not module or not isinstance(payload, dict)
@@ -101,7 +103,7 @@ class TaskQueue:
             self._emit_event(task_id, "pending", "unblocked")
 
     def lease_next(self, *, guardian_waiting: bool = False, allowed_modules: set[str] | None = None) -> dict | None:
-        """Dispatch next eligible task. This seed has no multi-host lease-expiry/recovery yet."""
+        """Dispatch the highest-priority pending task with completed dependencies."""
         where = "state='pending'"
         args: list[str] = []
         if guardian_waiting:
@@ -111,12 +113,34 @@ class TaskQueue:
             where += " AND module IN (" + ",".join("?" for _ in allowed_modules) + ")"
             args.extend(sorted(allowed_modules))
         with self.db:
-            row = self.db.execute(f"SELECT * FROM tasks WHERE {where} ORDER BY priority,created_id LIMIT 1", args).fetchone()
+            rows = self.db.execute(f"SELECT * FROM tasks WHERE {where} ORDER BY priority,created_id", args).fetchall()
+            row = next(
+                (candidate for candidate in rows if self.dependencies.ready(json.loads(candidate["payload"]))),
+                None,
+            )
             if row is None:return None
             lease = uuid4().hex
             self.db.execute("UPDATE tasks SET state='leased',lease=? WHERE id=? AND state='pending'", (lease,row["id"]))
             self._emit_event(row["id"], "leased", lease)
             return {"id":row["id"],"priority":PRIORITIES[row["priority"]],"module":row["module"],"payload":json.loads(row["payload"]),"lease":lease}
+
+    def eligible(self, *, guardian_waiting: bool = False, allowed_modules: set[str] | None = None) -> list[dict]:
+        """Return a read-only, priority/FIFO ordered ready frontier."""
+        where = "state='pending'"
+        args: list[str] = []
+        if guardian_waiting:
+            where += " AND priority <= 1"
+        if allowed_modules is not None:
+            if not allowed_modules:
+                return []
+            where += " AND module IN (" + ",".join("?" for _ in allowed_modules) + ")"
+            args.extend(sorted(allowed_modules))
+        rows = self.db.execute(f"SELECT * FROM tasks WHERE {where} ORDER BY priority,created_id", args)
+        return [
+            {"id": row["id"], "priority": PRIORITIES[row["priority"]], "module": row["module"], "payload": json.loads(row["payload"])}
+            for row in rows
+            if self.dependencies.ready(json.loads(row["payload"]))
+        ]
 
     def finish(self, task_id: str, lease: str, *, ok: bool, receipt: str) -> None:
         if not isinstance(receipt,str) or not receipt or not isinstance(lease,str): raise ValueError("receipt and lease required")
