@@ -115,6 +115,14 @@ from .retrieval import (
     RetrievalError,
     SourceRetriever,
 )
+from .reranking import (
+    EmbeddingReranker,
+    HardwareBudget,
+    LocalEmbeddingReranker,
+    RerankResult,
+    RerankerBudget,
+    RerankingError,
+)
 
 from .storage import (
     DEFAULT_MIGRATIONS,
@@ -222,6 +230,12 @@ __all__ = [
     "RAGStore",
     "RetrievalError",
     "SourceRetriever",
+    "EmbeddingReranker",
+    "HardwareBudget",
+    "LocalEmbeddingReranker",
+    "RerankResult",
+    "RerankerBudget",
+    "RerankingError",
     "StorageError",
     "StorageManager",
 ]

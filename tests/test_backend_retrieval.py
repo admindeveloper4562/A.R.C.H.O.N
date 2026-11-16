@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from jarvis_v2.backend import DocumentStore, RetrievalError
+from jarvis_v2.backend import DocumentStore, LocalEmbeddingReranker, RetrievalError
 
 
 class BackendRetrievalTests(unittest.TestCase):
@@ -55,6 +55,26 @@ class BackendRetrievalTests(unittest.TestCase):
                     store.add_document("doc-1", "x" * (512 * 1024 + 1), **values)
                 with self.assertRaises(RetrievalError):
                     store.add_document("doc-1", "alpha", access_scope="bad scope", **{k: v for k, v in values.items() if k != "access_scope"})
+
+    def test_optional_reranker_preserves_search_result_shape(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with DocumentStore(Path(directory) / "retrieval.sqlite") as store:
+                store.add_document(
+                    "doc-1", "blue house", source_id="docs-1",
+                    source_uri="docs/a.md", access_scope="public_metadata",
+                    citation="a.md#1",
+                )
+                store.add_document(
+                    "doc-2", "green garden", source_id="docs-1",
+                    source_uri="docs/b.md", access_scope="public_metadata",
+                    citation="b.md#1",
+                )
+                results = store.search(
+                    "blue house", access_scope="public_metadata",
+                    reranker=LocalEmbeddingReranker(),
+                )
+                self.assertEqual(results[0]["document_id"], "doc-1")
+                self.assertIn("citation", results[0])
 
 
 if __name__ == "__main__":

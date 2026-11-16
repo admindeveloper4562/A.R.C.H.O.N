@@ -180,6 +180,7 @@ class DocumentStore:
         access_scope: str,
         source_id: str | None = None,
         limit: int = 10,
+        reranker: Any | None = None,
     ) -> list[dict[str, Any]]:
         if not isinstance(query, str) or not query.strip() or len(query.encode("utf-8")) > MAX_QUERY_BYTES:
             raise RetrievalError("retrieval query is outside the bounded range")
@@ -205,7 +206,14 @@ class DocumentStore:
                 ORDER BY rank LIMIT ?""",
             args,
         )
-        return [dict(row) for row in rows]
+        results = [dict(row) for row in rows]
+        if reranker is None:
+            return results
+        try:
+            ranked = reranker.rerank(query, results)
+            return [dict(item) for item in ranked]
+        except (AttributeError, TypeError, ValueError) as exc:
+            raise RetrievalError("invalid reranker") from exc
 
     retrieve = search
 
