@@ -8,6 +8,16 @@ from .authorization import (
     MAX_GRANT_TTL_SECONDS,
     OwnerApproval,
 )
+from .connectors import (
+    CONNECTORS,
+    CONNECTOR_SCOPES,
+    ConnectorAccessBroker,
+    ConnectorAuthorizationError,
+    ConnectorBroker,
+    ConnectorGrant,
+    MAX_CONNECTOR_GRANT_TTL_SECONDS,
+    RevocableConnectorBroker,
+)
 
 from .event_bus import (
     DeliveryError,
@@ -161,6 +171,12 @@ __all__ = [
     "AuthorizationError",
     "AuthorizationServer",
     "CapabilityGrant",
+    "CONNECTORS",
+    "CONNECTOR_SCOPES",
+    "ConnectorAccessBroker",
+    "ConnectorAuthorizationError",
+    "ConnectorBroker",
+    "ConnectorGrant",
     "DeliveryError",
     "DeliveryInProgress",
     "DeliveryReceipt",
@@ -172,6 +188,7 @@ __all__ = [
     "MAX_EVENT_BYTES",
     "MAX_BACKUP_BYTES",
     "MAX_GRANT_TTL_SECONDS",
+    "MAX_CONNECTOR_GRANT_TTL_SECONDS",
     "MAX_SECRET_VALUE_BYTES",
     "LOCALITIES",
     "Migration",
@@ -210,6 +227,7 @@ __all__ = [
     "ProtocolResponse",
     "ProtocolToolCall",
     "ResponsesAdapter",
+    "RevocableConnectorBroker",
     "CHARS_PER_TOKEN",
     "ContextPackError",
     "ContextPacker",
