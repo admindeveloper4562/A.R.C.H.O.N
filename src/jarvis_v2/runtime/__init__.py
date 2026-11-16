@@ -12,6 +12,13 @@ from .security import OwnerSession, RuntimeSecurity, RuntimeSecurityError, SECUR
 from .chat import ChatService, ChatServiceError
 from .offline import LocalAdapter, OfflineChatService, OfflineChatServiceError
 from .speech import MAX_AUDIO_CHUNK_BYTES, MAX_AUDIO_CHUNKS, SpeechAdapter, SpeechService, SpeechServiceError
+from .browser import (
+    BrowserActionReceipt,
+    BrowserProfile,
+    BrowserProfileError,
+    BrowserProfileService,
+    LoginHandoff,
+)
 
 __all__ = [
     "RUNTIME_HEALTH_SCOPE",
@@ -34,4 +41,9 @@ __all__ = [
     "SpeechAdapter",
     "SpeechService",
     "SpeechServiceError",
+    "BrowserActionReceipt",
+    "BrowserProfile",
+    "BrowserProfileError",
+    "BrowserProfileService",
+    "LoginHandoff",
 ]
