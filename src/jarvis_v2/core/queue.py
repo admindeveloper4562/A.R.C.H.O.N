@@ -6,6 +6,7 @@ import sqlite3
 from pathlib import Path
 from uuid import uuid4
 
+from .dispatch import DispatchStore
 from .event_session import EventSessionInterpreter
 from .session import TaskSessionStore
 
@@ -51,6 +52,7 @@ class TaskQueue:
         self.event_session = EventSessionInterpreter(self.db)
         self.events = self.event_session
         self.sessions = TaskSessionStore(self.db)
+        self.dispatches = DispatchStore(self.db)
 
     def add(self, *, task_id: str, priority: str, module: str, payload: dict, title: str = '') -> None:
         if (priority not in PRIORITIES or not task_id or not module or not isinstance(payload, dict)
@@ -188,5 +190,17 @@ class TaskQueue:
 
     def checkpoint_session(self, session_id: str, **kwargs) -> dict:
         return self.sessions.checkpoint_session(session_id, **kwargs)
+
+    def dispatch(self, task_id: str, target_module: str, scope, acceptance, **kwargs) -> dict:
+        return self.dispatches.create(task_id, target_module, scope, acceptance, **kwargs)
+
+    def claim_dispatch(self, dispatch_id: str, executor_id: str, **kwargs) -> dict:
+        return self.dispatches.claim(dispatch_id, executor_id, **kwargs)
+
+    def acknowledge_dispatch(self, dispatch_id: str, executor_id: str, claim_id: str, **kwargs) -> dict:
+        return self.dispatches.acknowledge(dispatch_id, executor_id, claim_id, **kwargs)
+
+    def restore_dispatch(self, dispatch_id: str) -> dict:
+        return self.dispatches.get(dispatch_id)
 
     def close(self): self.db.close()
