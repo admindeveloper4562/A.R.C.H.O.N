@@ -7,10 +7,11 @@ from pathlib import Path
 from uuid import uuid4
 
 PRIORITIES = ("P0", "P1", "P2", "P3", "P4", "P5")
-STATES = ("pending", "leased", "completed", "failed", "cancelled")
+STATES = ("pending", "leased", "blocked", "completed", "failed", "cancelled")
 MAX_HISTORY_ENTRIES = 100
 MAX_EVENT_BATCH = 100
 _CONSUMER = re.compile(r"^[A-Za-z0-9_.:-]{1,80}$")
+_REASON = re.compile(r"^[A-Za-z0-9_.:-]{1,80}$")
 
 class TaskQueue:
     def __init__(self, path: Path):
@@ -50,6 +51,43 @@ class TaskQueue:
             seq = self.db.execute("SELECT COALESCE(MAX(created_id),0)+1 FROM tasks").fetchone()[0]
             self.db.execute("INSERT INTO tasks (id,priority,module,payload,state,created_id,lease,receipt,title) VALUES (?,?,?,?,?,?,?,?,?)", (task_id, PRIORITIES.index(priority), module, json.dumps(payload,sort_keys=True), "pending", seq, None, None, title))
             self.db.execute("INSERT INTO events(task_id,kind,detail) VALUES (?,?,?)", (task_id,"pending", "queued"))
+
+    def block(self, task_id: str, *, reason: str, lease: str | None = None) -> None:
+        """Fence pending or leased work without allowing a stale owner to block it."""
+        if not isinstance(task_id, str) or not task_id:
+            raise ValueError("task_id required")
+        if not isinstance(reason, str) or not _REASON.fullmatch(reason):
+            raise ValueError("invalid block reason")
+        if lease is not None and (not isinstance(lease, str) or not lease):
+            raise ValueError("invalid lease")
+        expected_state = "leased" if lease is not None else "pending"
+        with self.db:
+            if lease is None:
+                result = self.db.execute(
+                    "UPDATE tasks SET state='blocked',lease=NULL WHERE id=? AND state=?",
+                    (task_id, expected_state),
+                )
+            else:
+                result = self.db.execute(
+                    "UPDATE tasks SET state='blocked',lease=NULL WHERE id=? AND state=? AND lease=?",
+                    (task_id, expected_state, lease),
+                )
+            if result.rowcount != 1:
+                raise ValueError("unknown or stale task")
+            self.db.execute("INSERT INTO events(task_id,kind,detail) VALUES (?,?,?)", (task_id, "blocked", reason))
+
+    def unblock(self, task_id: str) -> None:
+        """Return one blocked task to the pending queue with an audit event."""
+        if not isinstance(task_id, str) or not task_id:
+            raise ValueError("task_id required")
+        with self.db:
+            result = self.db.execute(
+                "UPDATE tasks SET state='pending' WHERE id=? AND state='blocked'",
+                (task_id,),
+            )
+            if result.rowcount != 1:
+                raise ValueError("task is not blocked")
+            self.db.execute("INSERT INTO events(task_id,kind,detail) VALUES (?,?,?)", (task_id, "pending", "unblocked"))
 
     def lease_next(self, *, guardian_waiting: bool = False, allowed_modules: set[str] | None = None) -> dict | None:
         """Dispatch next eligible task. This seed has no multi-host lease-expiry/recovery yet."""
