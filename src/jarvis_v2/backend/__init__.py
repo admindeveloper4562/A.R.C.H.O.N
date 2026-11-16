@@ -21,6 +21,13 @@ from .event_bus import (
     MAX_EVENT_BYTES,
     PRIVACY_SCOPES,
 )
+from .secrets import (
+    MAX_SECRET_VALUE_BYTES,
+    SecretBoundaryError,
+    SecretStore,
+    SecretUnavailable,
+    SecretValue,
+)
 
 from .storage import (
     DEFAULT_MIGRATIONS,
@@ -48,12 +55,17 @@ __all__ = [
     "EventEnvelope",
     "MAX_EVENT_BYTES",
     "MAX_GRANT_TTL_SECONDS",
+    "MAX_SECRET_VALUE_BYTES",
     "Migration",
     "MigrationError",
     "ModuleStore",
     "OwnershipError",
     "PRIVACY_SCOPES",
     "OwnerApproval",
+    "SecretBoundaryError",
+    "SecretStore",
+    "SecretUnavailable",
+    "SecretValue",
     "StorageError",
     "StorageManager",
 ]
