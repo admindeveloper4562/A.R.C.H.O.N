@@ -8,6 +8,12 @@ from .model import (
     LocalGuardianModel,
 )
 from .controller import GuardianControllerError, TrustedControllerManager
+from .health import (
+    GuardianHealthError,
+    GuardianHealthEvaluator,
+    HealthEvidence,
+    ProbeResult,
+)
 
 __all__ = [
     "DEFAULT_MODEL",
@@ -17,4 +23,8 @@ __all__ = [
     "LocalGuardianModel",
     "GuardianControllerError",
     "TrustedControllerManager",
+    "GuardianHealthError",
+    "GuardianHealthEvaluator",
+    "HealthEvidence",
+    "ProbeResult",
 ]
