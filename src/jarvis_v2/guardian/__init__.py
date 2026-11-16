@@ -32,6 +32,7 @@ from .restart import (
     RestartDecision,
 )
 from .standby import StandbyError, StandbyLauncher
+from .fencing import MAX_LEASE_SECONDS, WriterFence, WriterFenceError, WriterLease
 
 __all__ = [
     "DEFAULT_MODEL",
@@ -67,4 +68,8 @@ __all__ = [
     "RestartDecision",
     "StandbyError",
     "StandbyLauncher",
+    "MAX_LEASE_SECONDS",
+    "WriterFence",
+    "WriterFenceError",
+    "WriterLease",
 ]
