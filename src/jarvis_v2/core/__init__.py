@@ -10,6 +10,10 @@ from .session import SessionError, TaskSessionStore
 from .timeline import MAX_TIMELINE_ENTRIES, TaskTimeline, TimelineError
 from .budget import ResourceBudget, ResourceBudgetError
 from .control import CONTROL_STATES, ControlError, CoreControls
+from .event_session import (
+    MAX_EVENT_FAILURE_ATTEMPTS,
+    MAX_PENDING_EVENTS_PER_CORRELATION,
+)
 
 __all__ = [
     "CoreRegistryError",
@@ -37,4 +41,6 @@ __all__ = [
     "CONTROL_STATES",
     "ControlError",
     "CoreControls",
+    "MAX_EVENT_FAILURE_ATTEMPTS",
+    "MAX_PENDING_EVENTS_PER_CORRELATION",
 ]

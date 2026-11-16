@@ -244,6 +244,12 @@ class TaskQueue:
     def submit_intent(self, intent: dict, *, approval: dict | None = None) -> dict:
         return self.intents.submit(intent, approval=approval)
 
+    def record_event_failure(self, event_id: str, failure_code: str, diagnostic: str) -> dict:
+        return self.event_session.record_failure(event_id, failure_code, diagnostic)
+
+    def event_failure(self, event_id: str) -> dict | None:
+        return self.event_session.failure(event_id)
+
     def control_status(self) -> dict[str, str]:
         return self.controls.status()
 

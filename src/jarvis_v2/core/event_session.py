@@ -1,6 +1,7 @@
 """A separate, replayable event session with causal metadata."""
 from __future__ import annotations
 
+import hashlib
 import re
 import sqlite3
 from datetime import datetime, timezone
@@ -10,7 +11,10 @@ from uuid import uuid4
 
 MAX_EVENT_DETAIL = 16 * 1024
 MAX_EVENT_BATCH = 100
+MAX_PENDING_EVENTS_PER_CORRELATION = 100
+MAX_EVENT_FAILURE_ATTEMPTS = 3
 _IDENTIFIER = re.compile(r"^[A-Za-z0-9_.:-]{1,128}$")
+_FAILURE_CODE = re.compile(r"^[A-Za-z0-9_.:-]{1,80}$")
 
 
 class EventSessionError(ValueError):
@@ -47,6 +51,14 @@ class EventSessionInterpreter:
                 name TEXT NOT NULL UNIQUE,
                 correlation_id TEXT NOT NULL,
                 created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS event_failures (
+                event_id TEXT PRIMARY KEY,
+                attempts INTEGER NOT NULL,
+                state TEXT NOT NULL,
+                failure_code TEXT NOT NULL,
+                diagnostic_sha256 TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             );
             """
@@ -160,6 +172,20 @@ class EventSessionInterpreter:
                     if existing["detail"] != detail:
                         raise EventSessionError("event id payload conflict")
                     return self._metadata(existing)
+            pending = self.db.execute(
+                """SELECT COUNT(*) FROM events e
+                   WHERE e.session_id=? AND e.correlation_id=?
+                     AND NOT EXISTS (
+                         SELECT 1 FROM event_receipts r WHERE r.seq=e.seq
+                     )
+                     AND NOT EXISTS (
+                         SELECT 1 FROM event_failures f WHERE f.event_id=e.event_id
+                           AND f.state='quarantined'
+                     )""",
+                (self.session_id, correlation_id),
+            ).fetchone()[0]
+            if pending >= MAX_PENDING_EVENTS_PER_CORRELATION:
+                raise EventSessionError("event_backpressure")
             if causation_id is None:
                 previous = self.db.execute(
                     """SELECT event_id FROM events
@@ -188,7 +214,7 @@ class EventSessionInterpreter:
                ORDER BY seq LIMIT ?""",
             (correlation_id, limit),
         )
-        return [self._metadata(row) for row in rows]
+        return [self._metadata_with_failure(row) for row in rows]
 
     def replay(self, *, limit: int = MAX_EVENT_BATCH) -> list[dict]:
         """Return unacknowledged event metadata for this event session."""
@@ -199,10 +225,13 @@ class EventSessionInterpreter:
                WHERE e.session_id=? AND NOT EXISTS (
                    SELECT 1 FROM event_receipts r
                    WHERE r.consumer=? AND r.seq=e.seq
+               ) AND NOT EXISTS (
+                   SELECT 1 FROM event_failures f
+                   WHERE f.event_id=e.event_id AND f.state='quarantined'
                ) ORDER BY e.seq LIMIT ?""",
             (self.session_id, consumer, limit),
         )
-        return [self._metadata(row) for row in rows]
+        return [self._metadata_with_failure(row) for row in rows]
 
     def interpret(self, *, limit: int = MAX_EVENT_BATCH) -> list[dict]:
         """Read the durable event stream without acknowledging effects."""
@@ -219,6 +248,46 @@ class EventSessionInterpreter:
                 "INSERT OR IGNORE INTO event_receipts(consumer,seq) VALUES (?,?)",
                 (consumer, seq),
             )
+
+    def record_failure(self, event_id: str, failure_code: str, diagnostic: str) -> dict:
+        """Record a bounded retry and quarantine after repeated failure."""
+        event_id = _identifier(event_id, "event_id")
+        if not isinstance(failure_code, str) or not _FAILURE_CODE.fullmatch(failure_code):
+            raise EventSessionError("invalid failure code")
+        if not isinstance(diagnostic, str) or not diagnostic or len(diagnostic.encode("utf-8")) > MAX_EVENT_DETAIL:
+            raise EventSessionError("invalid diagnostic")
+        diagnostic_sha256 = hashlib.sha256(diagnostic.encode("utf-8")).hexdigest()
+        with self.db:
+            if self.db.execute(
+                "SELECT 1 FROM events WHERE event_id=? AND session_id=?",
+                (event_id, self.session_id),
+            ).fetchone() is None:
+                raise EventSessionError("unknown event")
+            existing = self.db.execute(
+                "SELECT * FROM event_failures WHERE event_id=?", (event_id,)
+            ).fetchone()
+            if existing is not None and existing["state"] == "quarantined":
+                return self._failure(existing)
+            attempts = (existing["attempts"] if existing is not None else 0) + 1
+            state = "quarantined" if attempts >= MAX_EVENT_FAILURE_ATTEMPTS else "retry"
+            self.db.execute(
+                """INSERT INTO event_failures
+                   (event_id, attempts, state, failure_code, diagnostic_sha256, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?)
+                   ON CONFLICT(event_id) DO UPDATE SET attempts=excluded.attempts,
+                     state=excluded.state, failure_code=excluded.failure_code,
+                     diagnostic_sha256=excluded.diagnostic_sha256,
+                     updated_at=excluded.updated_at""",
+                (event_id, attempts, state, failure_code, diagnostic_sha256, _now()),
+            )
+            return self._failure(
+                self.db.execute("SELECT * FROM event_failures WHERE event_id=?", (event_id,)).fetchone()
+            )
+
+    def failure(self, event_id: str) -> dict | None:
+        event_id = _identifier(event_id, "event_id")
+        row = self.db.execute("SELECT * FROM event_failures WHERE event_id=?", (event_id,)).fetchone()
+        return None if row is None else self._failure(row)
 
     @staticmethod
     def _limit(limit: int) -> int:
@@ -237,6 +306,22 @@ class EventSessionInterpreter:
             "correlation_id": row["correlation_id"],
             "causation_id": row["causation_id"] or None,
             "created_at": row["created_at"],
+        }
+
+    def _metadata_with_failure(self, row: sqlite3.Row) -> dict:
+        metadata = self._metadata(row)
+        metadata["failure"] = self.failure(row["event_id"])
+        return metadata
+
+    @staticmethod
+    def _failure(row: sqlite3.Row) -> dict:
+        return {
+            "event_id": row["event_id"],
+            "attempts": row["attempts"],
+            "state": row["state"],
+            "failure_code": row["failure_code"],
+            "diagnostic_sha256": row["diagnostic_sha256"],
+            "updated_at": row["updated_at"],
         }
 
     def close(self) -> None:
