@@ -140,9 +140,23 @@ from .storage import (
     StorageError,
     StorageManager,
 )
+from .backup import (
+    BackupCipher,
+    BackupError,
+    BackupManager,
+    BackupReceipt,
+    MAX_BACKUP_BYTES,
+    RestoreReceipt,
+    SQLiteBackup,
+    SafeBackupManager,
+)
 
 __all__ = [
     "DEFAULT_MIGRATIONS",
+    "BackupCipher",
+    "BackupError",
+    "BackupManager",
+    "BackupReceipt",
     "AuthIdentity",
     "AuthorizationError",
     "AuthorizationServer",
@@ -156,6 +170,7 @@ __all__ = [
     "EventBusError",
     "EventEnvelope",
     "MAX_EVENT_BYTES",
+    "MAX_BACKUP_BYTES",
     "MAX_GRANT_TTL_SECONDS",
     "MAX_SECRET_VALUE_BYTES",
     "LOCALITIES",
@@ -250,4 +265,7 @@ __all__ = [
     "ReminderStore",
     "StorageError",
     "StorageManager",
+    "RestoreReceipt",
+    "SQLiteBackup",
+    "SafeBackupManager",
 ]
