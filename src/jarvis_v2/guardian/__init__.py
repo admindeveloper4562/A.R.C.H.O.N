@@ -33,6 +33,7 @@ from .restart import (
 )
 from .standby import StandbyError, StandbyLauncher
 from .fencing import MAX_LEASE_SECONDS, WriterFence, WriterFenceError, WriterLease
+from .cutover import CutoverCoordinator, CutoverDecision, CutoverError
 
 __all__ = [
     "DEFAULT_MODEL",
@@ -72,4 +73,7 @@ __all__ = [
     "WriterFence",
     "WriterFenceError",
     "WriterLease",
+    "CutoverCoordinator",
+    "CutoverDecision",
+    "CutoverError",
 ]
