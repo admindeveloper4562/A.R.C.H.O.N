@@ -4,6 +4,7 @@ from .registry import CoreRegistryError, CoreService, ModuleCapability, ModuleRe
 from .dispatch import DispatchError, DispatchStore
 from .dependency import DependencyError, DependencyOrchestrator
 from .event_session import EventSessionError, EventSessionInterpreter
+from .intent import IntentError, OwnerIntentRouter
 from .session import SessionError, TaskSessionStore
 
 __all__ = [
@@ -17,6 +18,8 @@ __all__ = [
     "ModuleRegistry",
     "EventSessionError",
     "EventSessionInterpreter",
+    "IntentError",
+    "OwnerIntentRouter",
     "SessionError",
     "TaskSessionStore",
 ]

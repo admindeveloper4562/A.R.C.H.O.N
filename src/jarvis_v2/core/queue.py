@@ -9,6 +9,7 @@ from uuid import uuid4
 from .dependency import DependencyOrchestrator
 from .dispatch import DispatchStore
 from .event_session import EventSessionInterpreter
+from .intent import OwnerIntentRouter
 from .session import TaskSessionStore
 
 PRIORITIES = ("P0", "P1", "P2", "P3", "P4", "P5")
@@ -55,6 +56,7 @@ class TaskQueue:
         self.sessions = TaskSessionStore(self.db)
         self.dispatches = DispatchStore(self.db)
         self.dependencies = DependencyOrchestrator(self.db)
+        self.intents = OwnerIntentRouter(self.db, queue=self)
 
     def add(self, *, task_id: str, priority: str, module: str, payload: dict, title: str = '') -> None:
         if (priority not in PRIORITIES or not task_id or not module or not isinstance(payload, dict)
@@ -226,5 +228,8 @@ class TaskQueue:
 
     def restore_dispatch(self, dispatch_id: str) -> dict:
         return self.dispatches.get(dispatch_id)
+
+    def submit_intent(self, intent: dict, *, approval: dict | None = None) -> dict:
+        return self.intents.submit(intent, approval=approval)
 
     def close(self): self.db.close()
