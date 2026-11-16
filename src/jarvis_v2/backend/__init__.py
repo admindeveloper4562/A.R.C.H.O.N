@@ -37,6 +37,15 @@ from .provider_registry import (
     ProviderResolution,
     REQUEST_LOCALITIES,
 )
+from .conversation import (
+    ConversationStore,
+    ConversationStoreError,
+    MAX_CONVERSATION_TURNS,
+    MAX_METADATA_BYTES,
+    MAX_TOOL_EFFECT_BYTES,
+    MAX_TOOL_EFFECTS,
+    MAX_TURN_CONTENT_BYTES,
+)
 
 from .storage import (
     DEFAULT_MIGRATIONS,
@@ -82,6 +91,13 @@ __all__ = [
     "ProviderRequirements",
     "ProviderResolution",
     "REQUEST_LOCALITIES",
+    "ConversationStore",
+    "ConversationStoreError",
+    "MAX_CONVERSATION_TURNS",
+    "MAX_METADATA_BYTES",
+    "MAX_TOOL_EFFECT_BYTES",
+    "MAX_TOOL_EFFECTS",
+    "MAX_TURN_CONTENT_BYTES",
     "StorageError",
     "StorageManager",
 ]

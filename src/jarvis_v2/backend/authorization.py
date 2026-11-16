@@ -8,9 +8,11 @@ import json
 import re
 import time
 from types import MappingProxyType
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
-from jarvis_v2.core.registry import ModuleRegistry
+if TYPE_CHECKING:
+    from jarvis_v2.core.registry import ModuleRegistry
 
 
 MAX_GRANT_TTL_SECONDS = 3_600
