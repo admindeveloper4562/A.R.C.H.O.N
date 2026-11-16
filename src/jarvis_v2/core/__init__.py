@@ -1,1 +1,5 @@
-"""JARVIS v2 core boundary; capabilities are gated and incomplete."""
+"""JARVIS v2 Core boundary and immutable module capability registry."""
+
+from .registry import CoreRegistryError, CoreService, ModuleCapability, ModuleRegistry
+
+__all__ = ["CoreRegistryError", "CoreService", "ModuleCapability", "ModuleRegistry"]
