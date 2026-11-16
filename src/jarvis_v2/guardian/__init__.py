@@ -34,6 +34,7 @@ from .restart import (
 from .standby import StandbyError, StandbyLauncher
 from .fencing import MAX_LEASE_SECONDS, WriterFence, WriterFenceError, WriterLease
 from .cutover import CutoverCoordinator, CutoverDecision, CutoverError
+from .recovery import GuardianRecoveryController, RecoveryError
 
 __all__ = [
     "DEFAULT_MODEL",
@@ -76,4 +77,6 @@ __all__ = [
     "CutoverCoordinator",
     "CutoverDecision",
     "CutoverError",
+    "GuardianRecoveryController",
+    "RecoveryError",
 ]
