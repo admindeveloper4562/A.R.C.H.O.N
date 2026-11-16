@@ -106,6 +106,15 @@ from .code_index import (
     MAX_SOURCE_BYTES,
     RepositoryIndex,
 )
+from .retrieval import (
+    DocumentStore,
+    MAX_DOCUMENT_BYTES,
+    MAX_QUERY_BYTES as MAX_RETRIEVAL_QUERY_BYTES,
+    MAX_RESULTS as MAX_RETRIEVAL_RESULTS,
+    RAGStore,
+    RetrievalError,
+    SourceRetriever,
+)
 
 from .storage import (
     DEFAULT_MIGRATIONS,
@@ -206,6 +215,13 @@ __all__ = [
     "MAX_RESULTS",
     "MAX_SOURCE_BYTES",
     "RepositoryIndex",
+    "DocumentStore",
+    "MAX_DOCUMENT_BYTES",
+    "MAX_RETRIEVAL_QUERY_BYTES",
+    "MAX_RETRIEVAL_RESULTS",
+    "RAGStore",
+    "RetrievalError",
+    "SourceRetriever",
     "StorageError",
     "StorageManager",
 ]
