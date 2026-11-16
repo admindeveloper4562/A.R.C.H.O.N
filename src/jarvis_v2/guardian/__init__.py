@@ -17,6 +17,13 @@ from .health import (
 from .integrity import IntegrityReport, IntegrityScanError, IntegrityScanner
 from .failure import FailureAssessment, FailureClassificationError, FailureClassifier
 from .incidents import IncidentNotice, IncidentRecord, IncidentTracker, IncidentTrackerError
+from .isolation import (
+    EffectRecord,
+    IsolationController,
+    IsolationError,
+    IsolationSnapshot,
+    MicroModuleIsolation,
+)
 
 __all__ = [
     "DEFAULT_MODEL",
@@ -40,4 +47,9 @@ __all__ = [
     "IncidentRecord",
     "IncidentTracker",
     "IncidentTrackerError",
+    "EffectRecord",
+    "IsolationController",
+    "IsolationError",
+    "IsolationSnapshot",
+    "MicroModuleIsolation",
 ]
