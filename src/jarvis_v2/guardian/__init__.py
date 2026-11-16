@@ -31,6 +31,7 @@ from .restart import (
     RestartBudgetError,
     RestartDecision,
 )
+from .standby import StandbyError, StandbyLauncher
 
 __all__ = [
     "DEFAULT_MODEL",
@@ -64,4 +65,6 @@ __all__ = [
     "RestartBudget",
     "RestartBudgetError",
     "RestartDecision",
+    "StandbyError",
+    "StandbyLauncher",
 ]
