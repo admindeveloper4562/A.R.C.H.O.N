@@ -28,6 +28,15 @@ from .secrets import (
     SecretUnavailable,
     SecretValue,
 )
+from .provider_registry import (
+    LOCALITIES,
+    ProviderCapability,
+    ProviderRegistry,
+    ProviderRegistryError,
+    ProviderRequirements,
+    ProviderResolution,
+    REQUEST_LOCALITIES,
+)
 
 from .storage import (
     DEFAULT_MIGRATIONS,
@@ -56,6 +65,7 @@ __all__ = [
     "MAX_EVENT_BYTES",
     "MAX_GRANT_TTL_SECONDS",
     "MAX_SECRET_VALUE_BYTES",
+    "LOCALITIES",
     "Migration",
     "MigrationError",
     "ModuleStore",
@@ -66,6 +76,12 @@ __all__ = [
     "SecretStore",
     "SecretUnavailable",
     "SecretValue",
+    "ProviderCapability",
+    "ProviderRegistry",
+    "ProviderRegistryError",
+    "ProviderRequirements",
+    "ProviderResolution",
+    "REQUEST_LOCALITIES",
     "StorageError",
     "StorageManager",
 ]
