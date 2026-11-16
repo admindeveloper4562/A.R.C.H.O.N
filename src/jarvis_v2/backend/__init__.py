@@ -97,6 +97,15 @@ from .effects import (
     ToolEffectJournal,
     ToolEffectJournalError,
 )
+from .code_index import (
+    ASTFTSIndex,
+    CodeIndex,
+    CodeIndexError,
+    MAX_QUERY_BYTES,
+    MAX_RESULTS,
+    MAX_SOURCE_BYTES,
+    RepositoryIndex,
+)
 
 from .storage import (
     DEFAULT_MIGRATIONS,
@@ -190,6 +199,13 @@ __all__ = [
     "MAX_EFFECT_BYTES",
     "ToolEffectJournal",
     "ToolEffectJournalError",
+    "ASTFTSIndex",
+    "CodeIndex",
+    "CodeIndexError",
+    "MAX_QUERY_BYTES",
+    "MAX_RESULTS",
+    "MAX_SOURCE_BYTES",
+    "RepositoryIndex",
     "StorageError",
     "StorageManager",
 ]
