@@ -14,6 +14,7 @@ from .health import (
     HealthEvidence,
     ProbeResult,
 )
+from .integrity import IntegrityReport, IntegrityScanError, IntegrityScanner
 
 __all__ = [
     "DEFAULT_MODEL",
@@ -27,4 +28,7 @@ __all__ = [
     "GuardianHealthEvaluator",
     "HealthEvidence",
     "ProbeResult",
+    "IntegrityReport",
+    "IntegrityScanError",
+    "IntegrityScanner",
 ]
