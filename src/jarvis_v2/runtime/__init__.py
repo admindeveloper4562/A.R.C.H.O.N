@@ -9,6 +9,7 @@ from .service import (
     RuntimeServiceError,
 )
 from .security import OwnerSession, RuntimeSecurity, RuntimeSecurityError, SECURITY_HEADERS
+from .chat import ChatService, ChatServiceError
 
 __all__ = [
     "RUNTIME_HEALTH_SCOPE",
@@ -21,4 +22,6 @@ __all__ = [
     "RuntimeSecurity",
     "RuntimeSecurityError",
     "SECURITY_HEADERS",
+    "ChatService",
+    "ChatServiceError",
 ]
