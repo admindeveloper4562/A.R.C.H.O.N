@@ -7,6 +7,7 @@ from .event_session import EventSessionError, EventSessionInterpreter
 from .intent import IntentError, OwnerIntentRouter
 from .model_policy import ModelPolicy, ModelPolicyError, ModelResolution
 from .session import SessionError, TaskSessionStore
+from .timeline import MAX_TIMELINE_ENTRIES, TaskTimeline, TimelineError
 
 __all__ = [
     "CoreRegistryError",
@@ -24,6 +25,9 @@ __all__ = [
     "ModelPolicy",
     "ModelPolicyError",
     "ModelResolution",
+    "MAX_TIMELINE_ENTRIES",
     "SessionError",
     "TaskSessionStore",
+    "TaskTimeline",
+    "TimelineError",
 ]

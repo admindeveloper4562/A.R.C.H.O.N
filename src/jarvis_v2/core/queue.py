@@ -11,6 +11,7 @@ from .dispatch import DispatchStore
 from .event_session import EventSessionInterpreter
 from .intent import OwnerIntentRouter
 from .session import TaskSessionStore
+from .timeline import TaskTimeline
 
 PRIORITIES = ("P0", "P1", "P2", "P3", "P4", "P5")
 STATES = ("pending", "leased", "blocked", "completed", "failed", "cancelled")
@@ -57,6 +58,7 @@ class TaskQueue:
         self.dispatches = DispatchStore(self.db)
         self.dependencies = DependencyOrchestrator(self.db)
         self.intents = OwnerIntentRouter(self.db, queue=self)
+        self.timeline_view = TaskTimeline(self.db)
 
     def add(self, *, task_id: str, priority: str, module: str, payload: dict, title: str = '') -> None:
         if (priority not in PRIORITIES or not task_id or not module or not isinstance(payload, dict)
@@ -231,5 +233,11 @@ class TaskQueue:
 
     def submit_intent(self, intent: dict, *, approval: dict | None = None) -> dict:
         return self.intents.submit(intent, approval=approval)
+
+    def timeline(self, task_id: str, *, limit: int = MAX_EVENT_BATCH) -> dict:
+        return self.timeline_view.timeline(task_id, limit=limit)
+
+    def progress(self, task_id: str) -> dict:
+        return self.timeline_view.progress(task_id)
 
     def close(self): self.db.close()
