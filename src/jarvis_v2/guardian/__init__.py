@@ -16,6 +16,7 @@ from .health import (
 )
 from .integrity import IntegrityReport, IntegrityScanError, IntegrityScanner
 from .failure import FailureAssessment, FailureClassificationError, FailureClassifier
+from .incidents import IncidentNotice, IncidentRecord, IncidentTracker, IncidentTrackerError
 
 __all__ = [
     "DEFAULT_MODEL",
@@ -35,4 +36,8 @@ __all__ = [
     "FailureAssessment",
     "FailureClassificationError",
     "FailureClassifier",
+    "IncidentNotice",
+    "IncidentRecord",
+    "IncidentTracker",
+    "IncidentTrackerError",
 ]
