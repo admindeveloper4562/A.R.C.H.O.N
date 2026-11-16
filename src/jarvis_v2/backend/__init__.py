@@ -71,6 +71,15 @@ from .context import (
     estimate_tokens,
     pack_context,
 )
+from .handoff import (
+    AtomicHandoffStore,
+    ContextHandoffStore,
+    HandoffError,
+    HandoffStore,
+    MAX_HANDOFF_BYTES,
+    MAX_PERMISSION_SCOPES,
+    MAX_TOOL_EFFECTS as MAX_HANDOFF_TOOL_EFFECTS,
+)
 from .routing import (
     CircuitBreaker,
     CircuitState,
@@ -153,6 +162,13 @@ __all__ = [
     "MAX_CONTEXT_TOKENS",
     "estimate_tokens",
     "pack_context",
+    "AtomicHandoffStore",
+    "ContextHandoffStore",
+    "HandoffError",
+    "HandoffStore",
+    "MAX_HANDOFF_BYTES",
+    "MAX_PERMISSION_SCOPES",
+    "MAX_HANDOFF_TOOL_EFFECTS",
     "CircuitBreaker",
     "CircuitState",
     "GatewayRouter",
