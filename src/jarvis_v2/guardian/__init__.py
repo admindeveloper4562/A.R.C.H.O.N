@@ -15,6 +15,7 @@ from .health import (
     ProbeResult,
 )
 from .integrity import IntegrityReport, IntegrityScanError, IntegrityScanner
+from .failure import FailureAssessment, FailureClassificationError, FailureClassifier
 
 __all__ = [
     "DEFAULT_MODEL",
@@ -31,4 +32,7 @@ __all__ = [
     "IntegrityReport",
     "IntegrityScanError",
     "IntegrityScanner",
+    "FailureAssessment",
+    "FailureClassificationError",
+    "FailureClassifier",
 ]
