@@ -9,6 +9,7 @@ from .model_policy import ModelPolicy, ModelPolicyError, ModelResolution
 from .session import SessionError, TaskSessionStore
 from .timeline import MAX_TIMELINE_ENTRIES, TaskTimeline, TimelineError
 from .budget import ResourceBudget, ResourceBudgetError
+from .control import CONTROL_STATES, ControlError, CoreControls
 
 __all__ = [
     "CoreRegistryError",
@@ -33,4 +34,7 @@ __all__ = [
     "TimelineError",
     "ResourceBudget",
     "ResourceBudgetError",
+    "CONTROL_STATES",
+    "ControlError",
+    "CoreControls",
 ]

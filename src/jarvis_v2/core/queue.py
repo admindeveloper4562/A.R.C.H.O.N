@@ -7,6 +7,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from .dependency import DependencyOrchestrator
+from .control import CoreControls
 from .dispatch import DispatchStore
 from .event_session import EventSessionInterpreter
 from .intent import OwnerIntentRouter
@@ -53,6 +54,7 @@ class TaskQueue:
             self.db.execute("ALTER TABLE tasks ADD COLUMN title TEXT NOT NULL DEFAULT ''")
         self.db.commit()
         self.event_session = EventSessionInterpreter(self.db)
+        self.controls = CoreControls(self.db)
         self.events = self.event_session
         self.sessions = TaskSessionStore(self.db)
         self.dispatches = DispatchStore(self.db)
@@ -108,6 +110,8 @@ class TaskQueue:
 
     def lease_next(self, *, guardian_waiting: bool = False, allowed_modules: set[str] | None = None) -> dict | None:
         """Dispatch the highest-priority pending task with completed dependencies."""
+        if not self.controls.allows_dispatch():
+            return None
         where = "state='pending'"
         args: list[str] = []
         if guardian_waiting:
@@ -124,7 +128,13 @@ class TaskQueue:
             )
             if row is None:return None
             lease = uuid4().hex
-            self.db.execute("UPDATE tasks SET state='leased',lease=? WHERE id=? AND state='pending'", (lease,row["id"]))
+            updated = self.db.execute(
+                "UPDATE tasks SET state='leased',lease=? WHERE id=? AND state='pending' "
+                "AND (SELECT state FROM core_controls WHERE control_id=1)='running'",
+                (lease, row["id"],),
+            )
+            if updated.rowcount != 1:
+                return None
             self._emit_event(row["id"], "leased", lease)
             return {"id":row["id"],"priority":PRIORITIES[row["priority"]],"module":row["module"],"payload":json.loads(row["payload"]),"lease":lease}
 
@@ -233,6 +243,18 @@ class TaskQueue:
 
     def submit_intent(self, intent: dict, *, approval: dict | None = None) -> dict:
         return self.intents.submit(intent, approval=approval)
+
+    def control_status(self) -> dict[str, str]:
+        return self.controls.status()
+
+    def stop(self, *, reason: str = "owner_stop") -> dict[str, str]:
+        return self.controls.stop(reason=reason)
+
+    def pause(self, *, reason: str = "owner_pause") -> dict[str, str]:
+        return self.controls.pause(reason=reason)
+
+    def resume(self) -> dict[str, str]:
+        return self.controls.resume()
 
     def timeline(self, task_id: str, *, limit: int = MAX_EVENT_BATCH) -> dict:
         return self.timeline_view.timeline(task_id, limit=limit)
