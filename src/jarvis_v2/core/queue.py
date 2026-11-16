@@ -6,6 +6,7 @@ import sqlite3
 from pathlib import Path
 from uuid import uuid4
 
+from .event_session import EventSessionInterpreter
 from .session import TaskSessionStore
 
 PRIORITIES = ("P0", "P1", "P2", "P3", "P4", "P5")
@@ -32,6 +33,9 @@ class TaskQueue:
             CREATE TABLE IF NOT EXISTS events (
                 seq INTEGER PRIMARY KEY AUTOINCREMENT, task_id TEXT NOT NULL,
                 kind TEXT NOT NULL, detail TEXT NOT NULL,
+                event_id TEXT NOT NULL DEFAULT '', session_id TEXT NOT NULL DEFAULT '',
+                correlation_id TEXT NOT NULL DEFAULT '', causation_id TEXT NOT NULL DEFAULT '',
+                created_at TEXT NOT NULL DEFAULT '',
                 FOREIGN KEY(task_id) REFERENCES tasks(id));
             CREATE TABLE IF NOT EXISTS event_receipts (
                 consumer TEXT NOT NULL, seq INTEGER NOT NULL,
@@ -44,6 +48,8 @@ class TaskQueue:
         if 'title' not in {r['name'] for r in self.db.execute('PRAGMA table_info(tasks)')}:
             self.db.execute("ALTER TABLE tasks ADD COLUMN title TEXT NOT NULL DEFAULT ''")
         self.db.commit()
+        self.event_session = EventSessionInterpreter(self.db)
+        self.events = self.event_session
         self.sessions = TaskSessionStore(self.db)
 
     def add(self, *, task_id: str, priority: str, module: str, payload: dict, title: str = '') -> None:
@@ -53,7 +59,7 @@ class TaskQueue:
         with self.db:
             seq = self.db.execute("SELECT COALESCE(MAX(created_id),0)+1 FROM tasks").fetchone()[0]
             self.db.execute("INSERT INTO tasks (id,priority,module,payload,state,created_id,lease,receipt,title) VALUES (?,?,?,?,?,?,?,?,?)", (task_id, PRIORITIES.index(priority), module, json.dumps(payload,sort_keys=True), "pending", seq, None, None, title))
-            self.db.execute("INSERT INTO events(task_id,kind,detail) VALUES (?,?,?)", (task_id,"pending", "queued"))
+            self._emit_event(task_id, "pending", "queued")
 
     def block(self, task_id: str, *, reason: str, lease: str | None = None) -> None:
         """Fence pending or leased work without allowing a stale owner to block it."""
@@ -77,7 +83,7 @@ class TaskQueue:
                 )
             if result.rowcount != 1:
                 raise ValueError("unknown or stale task")
-            self.db.execute("INSERT INTO events(task_id,kind,detail) VALUES (?,?,?)", (task_id, "blocked", reason))
+            self._emit_event(task_id, "blocked", reason)
 
     def unblock(self, task_id: str) -> None:
         """Return one blocked task to the pending queue with an audit event."""
@@ -90,7 +96,7 @@ class TaskQueue:
             )
             if result.rowcount != 1:
                 raise ValueError("task is not blocked")
-            self.db.execute("INSERT INTO events(task_id,kind,detail) VALUES (?,?,?)", (task_id, "pending", "unblocked"))
+            self._emit_event(task_id, "pending", "unblocked")
 
     def lease_next(self, *, guardian_waiting: bool = False, allowed_modules: set[str] | None = None) -> dict | None:
         """Dispatch next eligible task. This seed has no multi-host lease-expiry/recovery yet."""
@@ -107,7 +113,7 @@ class TaskQueue:
             if row is None:return None
             lease = uuid4().hex
             self.db.execute("UPDATE tasks SET state='leased',lease=? WHERE id=? AND state='pending'", (lease,row["id"]))
-            self.db.execute("INSERT INTO events(task_id,kind,detail) VALUES (?,?,?)", (row["id"],"leased",lease))
+            self._emit_event(row["id"], "leased", lease)
             return {"id":row["id"],"priority":PRIORITIES[row["priority"]],"module":row["module"],"payload":json.loads(row["payload"]),"lease":lease}
 
     def finish(self, task_id: str, lease: str, *, ok: bool, receipt: str) -> None:
@@ -115,7 +121,7 @@ class TaskQueue:
         with self.db:
             res=self.db.execute("UPDATE tasks SET state=?,receipt=?,lease=NULL WHERE id=? AND state='leased' AND lease=?", ("completed" if ok else "failed", receipt, task_id,lease))
             if res.rowcount!=1: raise ValueError("unknown or stale lease")
-            self.db.execute("INSERT INTO events(task_id,kind,detail) VALUES (?,?,?)", (task_id,"completed" if ok else "failed",receipt))
+            self._emit_event(task_id, "completed" if ok else "failed", receipt)
 
     def status(self) -> list[dict]:
         return [dict(row) for row in self.db.execute("SELECT id,priority,module,state,receipt FROM tasks ORDER BY created_id")]
@@ -164,6 +170,9 @@ class TaskQueue:
 
     def open_session(self, task_id: str, **kwargs) -> dict:
         return self.sessions.open_session(task_id, **kwargs)
+
+    def _emit_event(self, task_id: str, kind: str, detail: str) -> dict:
+        return self.event_session.emit(task_id, kind, detail)
 
     def restore_session(self, task_id: str | None = None, *, session_id: str | None = None) -> dict:
         return self.sessions.restore_session(task_id, session_id=session_id)
