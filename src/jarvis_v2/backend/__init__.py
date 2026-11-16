@@ -46,6 +46,21 @@ from .conversation import (
     MAX_TOOL_EFFECTS,
     MAX_TURN_CONTENT_BYTES,
 )
+from .protocol_adapters import (
+    AdapterError,
+    ChatAdapter,
+    ChatCompletionsAdapter,
+    MAX_MESSAGES,
+    MAX_PROTOCOL_BYTES,
+    MAX_TOOL_CALLS,
+    MAX_TOOLS,
+    ProtocolAdapter,
+    ProtocolMessage,
+    ProtocolRequest,
+    ProtocolResponse,
+    ProtocolToolCall,
+    ResponsesAdapter,
+)
 
 from .storage import (
     DEFAULT_MIGRATIONS,
@@ -98,6 +113,19 @@ __all__ = [
     "MAX_TOOL_EFFECT_BYTES",
     "MAX_TOOL_EFFECTS",
     "MAX_TURN_CONTENT_BYTES",
+    "AdapterError",
+    "ChatAdapter",
+    "ChatCompletionsAdapter",
+    "MAX_MESSAGES",
+    "MAX_PROTOCOL_BYTES",
+    "MAX_TOOL_CALLS",
+    "MAX_TOOLS",
+    "ProtocolAdapter",
+    "ProtocolMessage",
+    "ProtocolRequest",
+    "ProtocolResponse",
+    "ProtocolToolCall",
+    "ResponsesAdapter",
     "StorageError",
     "StorageManager",
 ]
