@@ -10,6 +10,7 @@ from .service import (
 )
 from .security import OwnerSession, RuntimeSecurity, RuntimeSecurityError, SECURITY_HEADERS
 from .chat import ChatService, ChatServiceError
+from .offline import LocalAdapter, OfflineChatService, OfflineChatServiceError
 
 __all__ = [
     "RUNTIME_HEALTH_SCOPE",
@@ -24,4 +25,7 @@ __all__ = [
     "SECURITY_HEADERS",
     "ChatService",
     "ChatServiceError",
+    "LocalAdapter",
+    "OfflineChatService",
+    "OfflineChatServiceError",
 ]
