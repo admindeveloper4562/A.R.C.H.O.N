@@ -23,6 +23,7 @@ from .browser import (
     BrowserToolService,
     LoginHandoff,
 )
+from .file_actions import FileActionError, FileActionRequest, FileActionService, FileIdentity
 
 __all__ = [
     "RUNTIME_HEALTH_SCOPE",
@@ -54,4 +55,8 @@ __all__ = [
     "BrowserToolResult",
     "BrowserToolService",
     "LoginHandoff",
+    "FileActionError",
+    "FileActionRequest",
+    "FileActionService",
+    "FileIdentity",
 ]
