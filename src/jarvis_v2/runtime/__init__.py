@@ -64,6 +64,14 @@ from .dashboard import (
     DashboardSnapshot,
     RuntimeDashboard,
 )
+from .qualification import (
+    ACCEPTANCE_GATES,
+    QUALIFICATION_STATUSES,
+    HostAcceptanceRecord,
+    HostQualificationError,
+    HostQualificationReport,
+    build_host_qualification_report,
+)
 
 __all__ = [
     "RUNTIME_HEALTH_SCOPE",
@@ -131,4 +139,10 @@ __all__ = [
     "DashboardService",
     "DashboardSnapshot",
     "RuntimeDashboard",
+    "ACCEPTANCE_GATES",
+    "QUALIFICATION_STATUSES",
+    "HostAcceptanceRecord",
+    "HostQualificationError",
+    "HostQualificationReport",
+    "build_host_qualification_report",
 ]
