@@ -95,6 +95,19 @@ from .media_rag import (
     extract_topics,
 )
 
+from .handbook import (
+    CANONICAL_HANDBOOK_PATH,
+    HandbookEditProposalV1,
+    HandbookGovernanceError,
+    HandbookOwnerApproval,
+    HandbookProposal,
+    HandbookProposalRecord,
+    HandbookProposalWorkflow,
+    HandbookReviewReceipt,
+    HandbookWorkflow,
+    sha256_text,
+)
+
 __all__ = [
     "ComparisonError",
     "FetchResult",
@@ -170,4 +183,14 @@ __all__ = [
     "instagram_reel_id_from_url",
     "chunk_video",
     "extract_topics",
+    "CANONICAL_HANDBOOK_PATH",
+    "HandbookEditProposalV1",
+    "HandbookGovernanceError",
+    "HandbookOwnerApproval",
+    "HandbookProposal",
+    "HandbookProposalRecord",
+    "HandbookProposalWorkflow",
+    "HandbookReviewReceipt",
+    "HandbookWorkflow",
+    "sha256_text",
 ]
