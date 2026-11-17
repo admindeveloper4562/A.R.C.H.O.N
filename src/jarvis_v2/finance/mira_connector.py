@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from types import MappingProxyType
+from typing import TypeVar
 
-from jarvis_v2.backend.connectors import ConnectorBroker
+from jarvis_v2.backend.connectors import ConnectorAuthorizationError, ConnectorBroker
 
 
 MIRA_READ_SCOPE = "mira:read"
+_Result = TypeVar("_Result")
 _AUDIT_FIELDS = MappingProxyType(
     {
         "grant_id": "grant_id",
@@ -62,6 +65,17 @@ class MiraConnectorTokenBroker:
 
     def revoke(self, token_id: str) -> None:
         self._broker.revoke(token_id)
+
+    def run_read_sync(
+        self,
+        identity_id: str,
+        token_id: str,
+        operation: Callable[[], _Result],
+    ) -> _Result:
+        """Run one read-only sync only while the scoped grant is active."""
+        if not self.authorize(identity_id, token_id):
+            raise ConnectorAuthorizationError("Mira sync capability denied")
+        return operation()
 
     def audit(self) -> tuple[dict[str, object], ...]:
         """Return capability metadata without credential references or values."""
