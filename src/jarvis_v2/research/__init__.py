@@ -1,5 +1,19 @@
 """Bounded ARCHON Research source and retrieval boundaries."""
 
+from .github import (
+    GitHubCommitResult,
+    GitHubRepositoryPolicy,
+    GitHubSearchHit,
+    GitHubSearchResult,
+    GitHubSourceAdapter,
+    GitHubSourceError,
+    MAX_FILES,
+    PinnedCommit,
+    PinnedCommitAnalysis,
+    RepositoryPolicy,
+    SourceFile,
+)
+
 from .web import (
     FetchResult,
     FetchedDocument,
@@ -19,15 +33,26 @@ from .web import (
 __all__ = [
     "FetchResult",
     "FetchedDocument",
+    "GitHubCommitResult",
+    "GitHubRepositoryPolicy",
+    "GitHubSearchHit",
+    "GitHubSearchResult",
+    "GitHubSourceAdapter",
+    "GitHubSourceError",
     "MAX_CONTENT_BYTES",
+    "MAX_FILES",
     "MAX_QUERY_BYTES",
     "MAX_RESULTS",
+    "PinnedCommit",
+    "PinnedCommitAnalysis",
     "ResearchError",
     "ResearchSearchResult",
     "ResearchSourcePolicy",
     "SearchHit",
     "SearchResult",
     "SourcePolicy",
+    "SourceFile",
+    "RepositoryPolicy",
     "WebDiscoveryAdapter",
     "WebDiscoveryService",
 ]
