@@ -10,6 +10,7 @@ from pathlib import Path
 import re
 import sqlite3
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from jarvis_v2.research.web import SourcePolicy
 
@@ -28,6 +29,7 @@ _CATEGORY_NAMES = frozenset({"geography", "technology", "politics", "economics",
 _MAX_SUMMARY_SEGMENTS = 32
 _MAX_WORLD_CARDS = 32
 _MAX_WATCHLIST_ITEMS = 32
+_MAX_ALERT_TOPICS = 32
 
 
 class WICError(ValueError):
@@ -1425,6 +1427,253 @@ class WatchlistStore:
 
 
 @dataclass(frozen=True)
+class AlertPolicy:
+    """Owner-scoped alert admission rules; delivery remains outside WIC."""
+
+    policy_id: str
+    owner_id: str
+    topics: tuple[str, ...]
+    cadence_seconds: int = 3600
+    quiet_start_minute: int | None = None
+    quiet_end_minute: int | None = None
+    timezone_name: str = "UTC"
+    enabled: bool = True
+
+    def __post_init__(self) -> None:
+        _identifier(self.policy_id, "alert policy id")
+        _identifier(self.owner_id, "alert policy owner id")
+        topics = _watchlist_values(self.topics, "alert topics")
+        if len(topics) > _MAX_ALERT_TOPICS or topics != self.topics:
+            raise WICError("alert topics are not canonical")
+        if type(self.cadence_seconds) is not int or not 60 <= self.cadence_seconds <= 7 * 24 * 3600:
+            raise WICError("alert cadence is outside the bounded range")
+        for value, label in ((self.quiet_start_minute, "quiet start"), (self.quiet_end_minute, "quiet end")):
+            if value is not None and (type(value) is not int or not 0 <= value < 1440):
+                raise WICError(f"invalid {label} minute")
+        if (self.quiet_start_minute is None) != (self.quiet_end_minute is None):
+            raise WICError("quiet hours must have both endpoints")
+        _text(self.timezone_name, "alert timezone", 64)
+        try:
+            ZoneInfo(self.timezone_name)
+        except ZoneInfoNotFoundError as exc:
+            raise WICError("unknown alert timezone") from exc
+        if type(self.enabled) is not bool:
+            raise WICError("alert enabled must be boolean")
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "policy_id": self.policy_id,
+            "owner_id": self.owner_id,
+            "topics": list(self.topics),
+            "cadence_seconds": self.cadence_seconds,
+            "quiet_start_minute": self.quiet_start_minute,
+            "quiet_end_minute": self.quiet_end_minute,
+            "timezone_name": self.timezone_name,
+            "enabled": self.enabled,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, object]) -> "AlertPolicy":
+        if not isinstance(data, Mapping):
+            raise WICError("stored alert policy is invalid")
+        topics = data.get("topics")
+        if not isinstance(topics, list) or not all(isinstance(item, str) for item in topics):
+            raise WICError("stored alert topics are invalid")
+        return cls(
+            _string(data.get("policy_id"), "alert policy id"),
+            _string(data.get("owner_id"), "alert policy owner id"),
+            tuple(topics),
+            data.get("cadence_seconds", 3600),
+            data.get("quiet_start_minute"), data.get("quiet_end_minute"),
+            _string(data.get("timezone_name", "UTC"), "alert timezone"),
+            data.get("enabled", True),
+        )
+
+
+@dataclass(frozen=True)
+class AlertDecision:
+    """A bounded, auditable result of evaluating one source-change digest."""
+
+    status: str
+    policy_id: str
+    change_digest: str
+    observed_at: str
+    evaluated_at: str
+    reason: str | None = None
+    alert_id: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.status not in {"queued", "duplicate", "suppressed"}:
+            raise WICError("invalid alert decision status")
+        _identifier(self.policy_id, "alert policy id")
+        if not re.fullmatch(r"[0-9a-f]{64}", self.change_digest):
+            raise WICError("invalid alert change digest")
+        _stored_timestamp(self.observed_at, "alert observation timestamp")
+        _stored_timestamp(self.evaluated_at, "alert evaluation timestamp")
+        if self.reason is not None:
+            _identifier(self.reason, "alert decision reason")
+        if self.alert_id is not None:
+            _identifier(self.alert_id, "alert id")
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "status": self.status,
+            "policy_id": self.policy_id,
+            "change_digest": self.change_digest,
+            "observed_at": self.observed_at,
+            "evaluated_at": self.evaluated_at,
+            "reason": self.reason,
+            "alert_id": self.alert_id,
+        }
+
+
+class AlertStore:
+    """Persist alert policies and one admission record per material change."""
+
+    def __init__(self, database: str | Path | sqlite3.Connection):
+        if isinstance(database, sqlite3.Connection):
+            self._owns_connection = False
+            self.db = database
+        else:
+            self._owns_connection = True
+            self.db = sqlite3.connect(str(database))
+        self.db.row_factory = sqlite3.Row
+        self.db.execute("PRAGMA busy_timeout=5000")
+        self.db.execute(
+            "CREATE TABLE IF NOT EXISTS wic_alert_policies "
+            "(policy_id TEXT PRIMARY KEY, owner_id TEXT NOT NULL, record_json TEXT NOT NULL)"
+        )
+        self.db.execute(
+            """CREATE TABLE IF NOT EXISTS wic_alerts (
+                alert_id TEXT PRIMARY KEY,
+                policy_id TEXT NOT NULL,
+                change_digest TEXT NOT NULL,
+                observed_at TEXT NOT NULL,
+                evaluated_at TEXT NOT NULL,
+                UNIQUE(policy_id, change_digest)
+            )"""
+        )
+        self.db.commit()
+
+    def __enter__(self) -> "AlertStore":
+        return self
+
+    def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
+        self.close()
+
+    def save_policy(self, policy: AlertPolicy, *, requester_id: str) -> AlertPolicy:
+        if not isinstance(policy, AlertPolicy):
+            raise WICError("alert policy is required")
+        self._assert_owner(policy.owner_id, requester_id)
+        current = self.get_policy(policy.policy_id, requester_id=requester_id)
+        if current == policy:
+            return current
+        payload = json.dumps(policy.as_dict(), ensure_ascii=True, allow_nan=False,
+                             sort_keys=True, separators=(",", ":"))
+        if len(payload.encode("utf-8")) > MAX_RECORD_BYTES:
+            raise WICError("alert policy exceeds the bounded size")
+        with self.db:
+            self.db.execute(
+                "INSERT INTO wic_alert_policies(policy_id, owner_id, record_json) VALUES (?, ?, ?) "
+                "ON CONFLICT(policy_id) DO UPDATE SET owner_id=excluded.owner_id, record_json=excluded.record_json",
+                (policy.policy_id, policy.owner_id, payload),
+            )
+        return policy
+
+    def get_policy(self, policy_id: str, *, requester_id: str) -> AlertPolicy | None:
+        policy_id = _identifier(policy_id, "alert policy id")
+        requester_id = _identifier(requester_id, "alert requester id")
+        row = self.db.execute(
+            "SELECT record_json, owner_id FROM wic_alert_policies WHERE policy_id=?", (policy_id,)
+        ).fetchone()
+        if row is None:
+            return None
+        self._assert_owner(row["owner_id"], requester_id)
+        try:
+            return AlertPolicy.from_dict(json.loads(row["record_json"]))
+        except (TypeError, ValueError, json.JSONDecodeError) as exc:
+            raise WICError("stored alert policy is invalid") from exc
+
+    def evaluate(
+        self, policy_id: str, change_digest: str, observed_at: str, *,
+        material_change: bool, requester_id: str, evaluated_at: str | None = None,
+    ) -> AlertDecision:
+        policy = self.get_policy(policy_id, requester_id=requester_id)
+        if policy is None:
+            raise WICError("unknown alert policy")
+        if not re.fullmatch(r"[0-9a-f]{64}", change_digest):
+            raise WICError("invalid alert change digest")
+        if type(material_change) is not bool:
+            raise WICError("material change must be boolean")
+        observed_at = _stored_timestamp(observed_at, "alert observation timestamp")
+        evaluated_at = _stored_timestamp(
+            evaluated_at or datetime.now(timezone.utc).isoformat(), "alert evaluation timestamp"
+        )
+        if not material_change:
+            return AlertDecision("suppressed", policy_id, change_digest, observed_at, evaluated_at, "not_material")
+        if not policy.enabled:
+            return AlertDecision("suppressed", policy_id, change_digest, observed_at, evaluated_at, "disabled")
+        existing = self.db.execute(
+            "SELECT alert_id FROM wic_alerts WHERE policy_id=? AND change_digest=?",
+            (policy_id, change_digest),
+        ).fetchone()
+        if existing is not None:
+            return AlertDecision("duplicate", policy_id, change_digest, observed_at, evaluated_at,
+                                 "already_alerted", existing["alert_id"])
+        local_time = datetime.fromisoformat(evaluated_at.replace("Z", "+00:00")).astimezone(
+            ZoneInfo(policy.timezone_name)
+        )
+        if self._quiet(policy, local_time.hour * 60 + local_time.minute):
+            return AlertDecision("suppressed", policy_id, change_digest, observed_at, evaluated_at, "quiet_hours")
+        prior = self.db.execute(
+            "SELECT evaluated_at FROM wic_alerts WHERE policy_id=? ORDER BY evaluated_at DESC LIMIT 1",
+            (policy_id,),
+        ).fetchone()
+        if prior is not None:
+            elapsed = datetime.fromisoformat(evaluated_at.replace("Z", "+00:00")) - datetime.fromisoformat(
+                prior["evaluated_at"].replace("Z", "+00:00")
+            )
+            if elapsed.total_seconds() < policy.cadence_seconds:
+                return AlertDecision("suppressed", policy_id, change_digest, observed_at, evaluated_at, "cadence")
+        alert_id = hashlib.sha256(f"{policy_id}|{change_digest}".encode("utf-8")).hexdigest()[:32]
+        with self.db:
+            self.db.execute(
+                "INSERT INTO wic_alerts(alert_id, policy_id, change_digest, observed_at, evaluated_at) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (alert_id, policy_id, change_digest, observed_at, evaluated_at),
+            )
+        return AlertDecision("queued", policy_id, change_digest, observed_at, evaluated_at, alert_id=alert_id)
+
+    def history(self, policy_id: str, *, requester_id: str) -> tuple[AlertDecision, ...]:
+        self.get_policy(policy_id, requester_id=requester_id)
+        rows = self.db.execute(
+            "SELECT alert_id, policy_id, change_digest, observed_at, evaluated_at "
+            "FROM wic_alerts WHERE policy_id=? ORDER BY evaluated_at", (policy_id,)
+        ).fetchall()
+        return tuple(
+            AlertDecision("queued", row["policy_id"], row["change_digest"], row["observed_at"],
+                          row["evaluated_at"], alert_id=row["alert_id"])
+            for row in rows
+        )
+
+    @staticmethod
+    def _assert_owner(owner_id: str, requester_id: str) -> None:
+        if _identifier(owner_id, "alert policy owner id") != _identifier(requester_id, "alert requester id"):
+            raise WICError("alert access denied")
+
+    @staticmethod
+    def _quiet(policy: AlertPolicy, minute: int) -> bool:
+        start, end = policy.quiet_start_minute, policy.quiet_end_minute
+        if start is None or end is None:
+            return False
+        return start <= minute < end if start < end else minute >= start or minute < end
+
+    def close(self) -> None:
+        if self._owns_connection:
+            self.db.close()
+
+
+@dataclass(frozen=True)
 class WorldCard:
     """One source-backed card for the read-only World overview."""
 
@@ -1651,6 +1900,9 @@ WICSourceStore = SourceStore
 __all__ = [
     "CategoryAssignment",
     "CategoryStore",
+    "AlertDecision",
+    "AlertPolicy",
+    "AlertStore",
     "CitedSituationSummary",
     "CitedSummaryComposer",
     "ClaimLedger",
