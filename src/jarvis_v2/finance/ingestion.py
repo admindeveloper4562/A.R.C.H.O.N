@@ -466,6 +466,11 @@ class FinanceStore:
             source_id, scope_id, start_date=start_date, end_date=end_date,
         )
 
+    def forecast(self, source_id: str, scope_id: str):
+        from .planning import FinancePlanningService
+
+        return FinancePlanningService(self).forecast(source_id, scope_id)
+
 
 Account = FinanceAccount
 Category = FinanceCategory
