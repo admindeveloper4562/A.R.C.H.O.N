@@ -22,6 +22,7 @@ MAX_SOURCE_POLICIES = 32
 _IDENTIFIER = re.compile(r"^[A-Za-z0-9_.:-]{1,128}$")
 _PUBLIC_SCOPES = frozenset({"public_metadata", "public_read"})
 _TRACKING_QUERY_KEYS = frozenset({"fbclid", "gclid", "mc_cid", "mc_eid"})
+_CATEGORY_NAMES = frozenset({"geography", "technology", "politics", "economics", "science", "thailand"})
 
 
 class WICError(ValueError):
@@ -55,6 +56,20 @@ def _optional_string(value: object, label: str) -> str | None:
     if value is None:
         return None
     return _string(value, label)
+
+
+def _categories(values: Iterable[str]) -> tuple[str, ...]:
+    if isinstance(values, (str, bytes)):
+        raise WICError("categories must be a collection")
+    try:
+        result = tuple(sorted(set(values)))
+    except (TypeError, ValueError) as exc:
+        raise WICError("categories must be a collection") from exc
+    if not result or len(result) > len(_CATEGORY_NAMES) or any(
+        not isinstance(value, str) or value not in _CATEGORY_NAMES for value in result
+    ):
+        raise WICError("invalid WIC category")
+    return result
 
 
 def _url(value: object, label: str) -> str:
@@ -744,6 +759,199 @@ class ClaimLedger:
             self.db.close()
 
 
+@dataclass(frozen=True)
+class CategoryAssignment:
+    """Current WIC categories for one story cluster."""
+
+    cluster_id: str
+    categories: tuple[str, ...]
+    revision: int
+    status: str
+    recorded_at: str
+    reason: str | None = None
+
+    def __post_init__(self) -> None:
+        _identifier(self.cluster_id, "cluster id")
+        if self.categories != _categories(self.categories):
+            raise WICError("categories are not canonical")
+        if type(self.revision) is not int or self.revision < 1:
+            raise WICError("invalid category revision")
+        if self.status not in {"active", "corrected"}:
+            raise WICError("invalid category status")
+        _stored_timestamp(self.recorded_at, "category timestamp")
+        if self.reason is not None:
+            _text(self.reason, "category reason", 512)
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "cluster_id": self.cluster_id,
+            "categories": list(self.categories),
+            "revision": self.revision,
+            "status": self.status,
+            "recorded_at": self.recorded_at,
+            "reason": self.reason,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, object]) -> "CategoryAssignment":
+        if not isinstance(data, Mapping):
+            raise WICError("stored category assignment is invalid")
+        raw_categories = data.get("categories")
+        if not isinstance(raw_categories, list) or not all(isinstance(item, str) for item in raw_categories):
+            raise WICError("stored categories are invalid")
+        cluster_id = _string(data.get("cluster_id"), "cluster id")
+        revision = data.get("revision")
+        if type(revision) is not int:
+            raise WICError("stored category revision is invalid")
+        status = _string(data.get("status"), "category status")
+        recorded_at = _string(data.get("recorded_at"), "category timestamp")
+        reason = data.get("reason")
+        if reason is not None and not isinstance(reason, str):
+            raise WICError("stored category reason is invalid")
+        return cls(cluster_id, tuple(raw_categories), revision, status, recorded_at, reason)
+
+
+class CategoryStore:
+    """Persist searchable category snapshots and their correction history."""
+
+    def __init__(self, database: str | Path | sqlite3.Connection):
+        if isinstance(database, sqlite3.Connection):
+            self._owns_connection = False
+            self.db = database
+        else:
+            self._owns_connection = True
+            self.db = sqlite3.connect(str(database))
+        self.db.row_factory = sqlite3.Row
+        self.db.execute("PRAGMA busy_timeout=5000")
+        self.db.execute(
+            """CREATE TABLE IF NOT EXISTS wic_category_assignments (
+                cluster_id TEXT PRIMARY KEY,
+                record_json TEXT NOT NULL
+            )"""
+        )
+        self.db.execute(
+            """CREATE TABLE IF NOT EXISTS wic_category_revisions (
+                cluster_id TEXT NOT NULL,
+                revision INTEGER NOT NULL,
+                record_json TEXT NOT NULL,
+                PRIMARY KEY (cluster_id, revision)
+            )"""
+        )
+        self.db.commit()
+
+    def __enter__(self) -> "CategoryStore":
+        return self
+
+    def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
+        self.close()
+
+    def assign(self, cluster_id: str, categories: Iterable[str], recorded_at: str) -> CategoryAssignment:
+        cluster_id = _identifier(cluster_id, "cluster id")
+        _stored_timestamp(recorded_at, "category timestamp")
+        record = CategoryAssignment(cluster_id, _categories(categories), 1, "active", recorded_at)
+        return self._insert_new(record)
+
+    def correct(
+        self, cluster_id: str, categories: Iterable[str], reason: str, recorded_at: str,
+    ) -> CategoryAssignment:
+        current = self.get(cluster_id)
+        if current is None:
+            raise WICError("category assignment is not recorded")
+        _stored_timestamp(recorded_at, "category timestamp")
+        record = CategoryAssignment(
+            current.cluster_id, _categories(categories), current.revision + 1,
+            "corrected", recorded_at, _text(reason, "category reason", 512),
+        )
+        return self._append(record)
+
+    def get(self, cluster_id: str) -> CategoryAssignment | None:
+        cluster_id = _identifier(cluster_id, "cluster id")
+        row = self.db.execute(
+            "SELECT record_json FROM wic_category_assignments WHERE cluster_id=?",
+            (cluster_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        try:
+            return CategoryAssignment.from_dict(json.loads(row["record_json"]))
+        except (TypeError, ValueError, json.JSONDecodeError) as exc:
+            raise WICError("stored category assignment is invalid") from exc
+
+    def search(self, category: str) -> tuple[CategoryAssignment, ...]:
+        category = _string(category, "category")
+        if category not in _CATEGORY_NAMES:
+            raise WICError("invalid WIC category")
+        result: list[CategoryAssignment] = []
+        for row in self.db.execute("SELECT record_json FROM wic_category_assignments ORDER BY cluster_id"):
+            try:
+                assignment = CategoryAssignment.from_dict(json.loads(row["record_json"]))
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                raise WICError("stored category assignment is invalid") from exc
+            if category in assignment.categories:
+                result.append(assignment)
+        return tuple(result)
+
+    def history(self, cluster_id: str) -> tuple[CategoryAssignment, ...]:
+        cluster_id = _identifier(cluster_id, "cluster id")
+        rows = self.db.execute(
+            "SELECT record_json FROM wic_category_revisions WHERE cluster_id=? ORDER BY revision",
+            (cluster_id,),
+        ).fetchall()
+        try:
+            return tuple(CategoryAssignment.from_dict(json.loads(row["record_json"])) for row in rows)
+        except (TypeError, ValueError, json.JSONDecodeError) as exc:
+            raise WICError("stored category history is invalid") from exc
+
+    def _insert_new(self, record: CategoryAssignment) -> CategoryAssignment:
+        payload = self._payload(record)
+        try:
+            with self.db:
+                self.db.execute(
+                    "INSERT INTO wic_category_assignments (cluster_id, record_json) VALUES (?, ?)",
+                    (record.cluster_id, payload),
+                )
+                self.db.execute(
+                    "INSERT INTO wic_category_revisions (cluster_id, revision, record_json) VALUES (?, ?, ?)",
+                    (record.cluster_id, record.revision, payload),
+                )
+        except sqlite3.IntegrityError as exc:
+            raise WICError("category assignment already exists") from exc
+        except sqlite3.Error as exc:
+            raise WICError("category assignment persistence failed") from exc
+        return record
+
+    def _append(self, record: CategoryAssignment) -> CategoryAssignment:
+        payload = self._payload(record)
+        try:
+            with self.db:
+                self.db.execute(
+                    "UPDATE wic_category_assignments SET record_json=? WHERE cluster_id=?",
+                    (payload, record.cluster_id),
+                )
+                self.db.execute(
+                    "INSERT INTO wic_category_revisions (cluster_id, revision, record_json) VALUES (?, ?, ?)",
+                    (record.cluster_id, record.revision, payload),
+                )
+        except sqlite3.Error as exc:
+            raise WICError("category history persistence failed") from exc
+        return record
+
+    @staticmethod
+    def _payload(record: CategoryAssignment) -> str:
+        payload = json.dumps(record.as_dict(), ensure_ascii=True, allow_nan=False, sort_keys=True, separators=(",", ":"))
+        if len(payload.encode("utf-8")) > MAX_RECORD_BYTES:
+            raise WICError("category assignment exceeds the bounded size")
+        return payload
+
+    def close(self) -> None:
+        if self._owns_connection:
+            self.db.close()
+
+
+StoryCategoryStore = CategoryStore
+WICCategoryStore = CategoryStore
+
+
 FeedTransport = Callable[[str, SourcePolicy, int], Iterable[Mapping[str, object]]]
 
 
@@ -855,6 +1063,8 @@ WICSourceStore = SourceStore
 
 
 __all__ = [
+    "CategoryAssignment",
+    "CategoryStore",
     "ClaimLedger",
     "ClaimRecord",
     "FeedTransport",
@@ -870,7 +1080,9 @@ __all__ = [
     "StoryCluster",
     "StoryClusterStore",
     "StoryClusterer",
+    "StoryCategoryStore",
     "WICError",
+    "WICCategoryStore",
     "WICSourceStore",
     "normalize_url",
 ]
