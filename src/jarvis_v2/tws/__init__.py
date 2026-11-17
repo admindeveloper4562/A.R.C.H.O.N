@@ -111,9 +111,39 @@ TWS_MIGRATIONS = DEFAULT_MIGRATIONS + (
             "DROP INDEX tws_quests_by_wing_state",
         ),
     ),
+    Migration(
+        module="tws",
+        version=3,
+        name="tws-quest-catalog-fields",
+        tables=("tws_quests",),
+        up_sql=(
+            "ALTER TABLE tws_quests ADD COLUMN kind TEXT NOT NULL DEFAULT 'skill'",
+            "ALTER TABLE tws_quests ADD COLUMN cadence TEXT NOT NULL DEFAULT 'once'",
+        ),
+        down_sql=(
+            "ALTER TABLE tws_quests DROP COLUMN cadence",
+            "ALTER TABLE tws_quests DROP COLUMN kind",
+        ),
+    ),
 )
 
-TWS_SCHEMA_VERSION = 2
+TWS_SCHEMA_VERSION = 3
+_QUEST_KINDS = frozenset({"daily", "weekly", "skill", "story", "trial"})
+_CADENCES = frozenset({"once", "daily", "weekly"})
+_STATE_ALIASES = {"submitted": "proof_submitted"}
+_TRANSITIONS = {
+    "draft": frozenset({"offered", "rejected", "expired"}),
+    "offered": frozenset({"accepted", "rejected", "expired"}),
+    "accepted": frozenset({"in_progress", "proof_submitted", "rejected", "expired"}),
+    "in_progress": frozenset({"proof_submitted", "rejected", "expired", "disputed"}),
+    "proof_submitted": frozenset({"verified", "rejected", "disputed"}),
+    "verified": frozenset({"rewarded"}),
+    "rewarded": frozenset({"archived"}),
+    "rejected": frozenset(),
+    "expired": frozenset(),
+    "disputed": frozenset(),
+    "archived": frozenset(),
+}
 
 
 class QuestStore:
@@ -167,24 +197,89 @@ class QuestStore:
         )
         return self._one("SELECT * FROM tws_wings WHERE wing_id=?", (wing_id,)) or {}
 
-    def create_quest(self, quest_id: str, wing_id: str, title: str) -> dict[str, Any]:
+    def create_quest(
+        self,
+        quest_id: str,
+        wing_id: str,
+        title: str,
+        *,
+        kind: str = "skill",
+        cadence: str = "once",
+    ) -> dict[str, Any]:
         quest_id = _identifier(quest_id, "quest id")
         wing_id = _identifier(wing_id, "wing id")
         title = _text(title, "quest title")
+        if kind not in _QUEST_KINDS:
+            raise TWSStoreError("invalid quest kind")
+        if cadence not in _CADENCES:
+            raise TWSStoreError("invalid quest cadence")
         if self._one("SELECT * FROM tws_wings WHERE wing_id=?", (wing_id,)) is None:
             raise TWSStoreError("quest references an unknown wing")
         existing = self._one("SELECT * FROM tws_quests WHERE quest_id=?", (quest_id,))
         if existing is not None:
-            if existing["wing_id"] != wing_id or existing["title"] != title:
+            if (
+                existing["wing_id"] != wing_id
+                or existing["title"] != title
+                or existing["kind"] != kind
+                or existing["cadence"] != cadence
+            ):
                 raise TWSStoreError("quest identity conflict")
             return existing
         now = _now()
         self.storage.module("tws").insert(
             "tws_quests",
             {"quest_id": quest_id, "wing_id": wing_id, "title": title,
-             "state": "draft", "created_at": now, "updated_at": now},
+             "state": "draft", "created_at": now, "updated_at": now,
+             "kind": kind, "cadence": cadence},
         )
         return self._one("SELECT * FROM tws_quests WHERE quest_id=?", (quest_id,)) or {}
+
+    def transition_quest(self, quest_id: str, state: str) -> dict[str, Any]:
+        """Advance one quest through the approved lifecycle exactly once."""
+        quest_id = _identifier(quest_id, "quest id")
+        state = _STATE_ALIASES.get(state, state)
+        if state not in _TRANSITIONS:
+            raise TWSStoreError("invalid quest state")
+        existing = self._one("SELECT * FROM tws_quests WHERE quest_id=?", (quest_id,))
+        if existing is None:
+            raise TWSStoreError("unknown quest")
+        if state not in _TRANSITIONS[existing["state"]]:
+            raise TWSStoreError("invalid quest state transition")
+        if state == "proof_submitted" and not self.proofs(quest_id):
+            raise TWSStoreError("quest requires proof before submission")
+        if state == "verified" and not self.proofs(quest_id):
+            raise TWSStoreError("quest requires proof before verification")
+        with self.db:
+            self.db.execute(
+                "UPDATE tws_quests SET state=?, updated_at=? WHERE quest_id=? AND state=?",
+                (state, _now(), quest_id, existing["state"]),
+            )
+        return self._one("SELECT * FROM tws_quests WHERE quest_id=?", (quest_id,)) or {}
+
+    def catalog(
+        self, *, kind: str | None = None, state: str | None = None
+    ) -> list[dict[str, Any]]:
+        if kind is not None and kind not in _QUEST_KINDS:
+            raise TWSStoreError("invalid quest kind")
+        if state is not None:
+            state = _STATE_ALIASES.get(state, state)
+            if state not in _TRANSITIONS:
+                raise TWSStoreError("invalid quest state")
+        clauses: list[str] = []
+        values: list[object] = []
+        if kind is not None:
+            clauses.append("kind=?")
+            values.append(kind)
+        if state is not None:
+            clauses.append("state=?")
+            values.append(state)
+        where = " WHERE " + " AND ".join(clauses) if clauses else ""
+        return [
+            dict(row) for row in self.db.execute(
+                "SELECT * FROM tws_quests" + where + " ORDER BY created_at, quest_id",
+                tuple(values),
+            )
+        ]
 
     def append_proof(
         self, proof_id: str, quest_id: str, evidence: Mapping[str, object]
