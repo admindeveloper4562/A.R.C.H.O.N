@@ -108,6 +108,18 @@ from .handbook import (
     sha256_text,
 )
 
+from .subscriptions import (
+    ACCESS_SCOPE,
+    MAX_CADENCE_SECONDS,
+    MAX_REFRESH_BATCH,
+    MIN_CADENCE_SECONDS,
+    RefreshResult,
+    Subscription,
+    SubscriptionError,
+    SubscriptionService,
+    SubscriptionStore,
+)
+
 __all__ = [
     "ComparisonError",
     "FetchResult",
@@ -193,4 +205,13 @@ __all__ = [
     "HandbookReviewReceipt",
     "HandbookWorkflow",
     "sha256_text",
+    "ACCESS_SCOPE",
+    "MAX_CADENCE_SECONDS",
+    "MAX_REFRESH_BATCH",
+    "MIN_CADENCE_SECONDS",
+    "RefreshResult",
+    "Subscription",
+    "SubscriptionError",
+    "SubscriptionService",
+    "SubscriptionStore",
 ]
