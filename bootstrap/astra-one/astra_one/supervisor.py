@@ -393,6 +393,7 @@ class SupervisorController:
             "FIN-001": "mira_readonly_inventory",
             "MIG-002": "github_policy_and_ci",
             "RES-015": "research_live_source_benchmark",
+            "AUTO-013": "cloudflare_worker_deployment",
         }
         if task_id == "WIN-002":
             raise ValueError("WIN-002 requires real Windows device evidence")
@@ -402,6 +403,8 @@ class SupervisorController:
             raise ValueError("external evidence must preserve the ARCHON read-only policy")
         if task_id == "RES-015":
             self._validate_research_benchmark_evidence(evidence)
+        if task_id == "AUTO-013":
+            self._validate_cloudflare_deployment_evidence(evidence)
         evidence_sha = hashlib.sha256(raw).hexdigest()
         with self.state.master_lock():
             stamp = re.sub(r"[^0-9A-Za-z_-]", "", now())[:32]
@@ -505,6 +508,36 @@ class SupervisorController:
                 db.execute("COMMIT")
         return {"task_id": task_id, "state": "pending", "idempotent": False,
                 "evidence_sha256": evidence_sha, "backup_sha256": backup_sha}
+
+    def _validate_cloudflare_deployment_evidence(self, evidence: dict) -> None:
+        """Require bounded, non-secret proof of the owner-operated monitor deployment."""
+        if evidence.get("worker_name") != "astra-one-monitor":
+            raise ValueError("Cloudflare worker name is incorrect")
+        worker_url = evidence.get("worker_url")
+        if not isinstance(worker_url, str) or not re.fullmatch(
+                r"https://[A-Za-z0-9][A-Za-z0-9.-]*\.workers\.dev", worker_url):
+            raise ValueError("Cloudflare worker URL is invalid")
+        if evidence.get("health_status") != 200 or evidence.get("health_service") != "astra-one-monitor":
+            raise ValueError("Cloudflare health evidence is incomplete")
+        if not re.fullmatch(r"[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}",
+                            str(evidence.get("deployment_version_id", ""))):
+            raise ValueError("Cloudflare deployment version is invalid")
+        if evidence.get("d1_name") != "astra-one-monitor" or not re.fullmatch(
+                r"[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}",
+                str(evidence.get("d1_id", ""))):
+            raise ValueError("Cloudflare D1 evidence is incomplete")
+        tables = evidence.get("d1_tables")
+        if (not isinstance(tables, list) or len(tables) > 16
+                or any(not isinstance(item, str) or len(item) > 80 for item in tables)
+                or not {"astra_events", "astra_runs"}.issubset(tables)):
+            raise ValueError("Cloudflare D1 schema evidence is incomplete")
+        if evidence.get("d1_rows_written") != 0:
+            raise ValueError("Cloudflare evidence must be read-only")
+        if evidence.get("owner_deployment_confirmed") is not True:
+            raise ValueError("owner deployment confirmation is required")
+        if (not isinstance(evidence.get("release_approval_reference"), str)
+                or not 1 <= len(evidence["release_approval_reference"]) <= 200):
+            raise ValueError("release approval reference is required")
 
     def _validate_research_benchmark_evidence(self, evidence: dict) -> None:
         """Require a bounded source report before re-admitting RES-015."""

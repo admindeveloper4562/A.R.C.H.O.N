@@ -369,6 +369,25 @@ class SupervisorV3Tests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "digest mismatch"):
             self.supervisor._validate_research_benchmark_evidence(evidence)
 
+    def test_cloudflare_deployment_evidence_requires_read_only_health_and_schema(self):
+        evidence = {
+            "worker_name": "astra-one-monitor",
+            "worker_url": "https://astra-one-monitor.admin-developer4562.workers.dev",
+            "health_status": 200,
+            "health_service": "astra-one-monitor",
+            "deployment_version_id": "e2adef30-cd8a-49ad-b3c1-a46bfb569317",
+            "d1_name": "astra-one-monitor",
+            "d1_id": "e3d42451-9dfa-457d-abd0-b1b45609a0b4",
+            "d1_tables": ["_cf_KV", "astra_events", "astra_runs"],
+            "d1_rows_written": 0,
+            "owner_deployment_confirmed": True,
+            "release_approval_reference": "owner-executed-deployment-command",
+        }
+        self.supervisor._validate_cloudflare_deployment_evidence(evidence)
+        evidence["d1_rows_written"] = 1
+        with self.assertRaisesRegex(ValueError, "read-only"):
+            self.supervisor._validate_cloudflare_deployment_evidence(evidence)
+
     def test_external_blocker_clears_stale_pending_claim_and_survives_refresh(self):
         with self.state.db() as db:
             db.execute(
