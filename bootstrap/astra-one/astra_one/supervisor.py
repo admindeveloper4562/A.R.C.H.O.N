@@ -350,6 +350,11 @@ class SupervisorController:
                 for queue in ("pending_queue", "rebuild_queue", "review_queue", "merge_queue"):
                     db.execute(f"DELETE FROM {queue} WHERE parent_id=?", (row["parent_id"],))
                 db.execute(
+                    "UPDATE subtasks SET status='waiting',updated_at=? "
+                    "WHERE parent_id=? AND status IN ('running','pending')",
+                    (timestamp, row["parent_id"]),
+                )
+                db.execute(
                     "UPDATE supervisor_cases SET state='external_blocker',category=?,failure_code=?,updated_at=? "
                     "WHERE case_id=?",
                     (category, failure_code[:160], timestamp, case_id),

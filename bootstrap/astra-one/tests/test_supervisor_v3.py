@@ -358,6 +358,7 @@ class SupervisorV3Tests(unittest.TestCase):
                 "ON CONFLICT(parent_id) DO UPDATE SET available_at=excluded.available_at",
                 ("2026-01-01T00:00:00+00:00",),
             )
+            db.execute("UPDATE subtasks SET status='running' WHERE id='V3-001.S01'")
         case = self.supervisor.triage_failure("V3-001", "credential_required", generation=1)
         with self.state.db() as db:
             db.execute("UPDATE tasks SET status='pending',last_error='credential_required' WHERE id='V3-001'")
@@ -368,6 +369,7 @@ class SupervisorV3Tests(unittest.TestCase):
         with self.state.db() as db:
             self.assertEqual(db.execute("SELECT status FROM tasks WHERE id='V3-001'").fetchone()[0], "blocked")
             self.assertIsNone(db.execute("SELECT 1 FROM pending_queue WHERE parent_id='V3-001'").fetchone())
+            self.assertEqual(db.execute("SELECT status FROM subtasks WHERE id='V3-001.S01'").fetchone()[0], "waiting")
             db.execute("UPDATE tasks SET status='pending' WHERE id='V3-001'")
             self.state._refresh_project_queues_db(db, "ARCHON-JARVIS-V2")
             self.assertEqual(db.execute("SELECT status FROM tasks WHERE id='V3-001'").fetchone()[0], "blocked")
