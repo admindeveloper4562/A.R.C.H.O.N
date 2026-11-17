@@ -23,6 +23,7 @@ _IDENTIFIER = re.compile(r"^[A-Za-z0-9_.:-]{1,128}$")
 _PUBLIC_SCOPES = frozenset({"public_metadata", "public_read"})
 _TRACKING_QUERY_KEYS = frozenset({"fbclid", "gclid", "mc_cid", "mc_eid"})
 _CATEGORY_NAMES = frozenset({"geography", "technology", "politics", "economics", "science", "thailand"})
+_MAX_SUMMARY_SEGMENTS = 32
 
 
 class WICError(ValueError):
@@ -952,6 +953,205 @@ StoryCategoryStore = CategoryStore
 WICCategoryStore = CategoryStore
 
 
+@dataclass(frozen=True)
+class SummarySegment:
+    """One cited statement that can be safely included in a summary."""
+
+    claim_id: str
+    text: str
+    citation_url: str
+    certainty: str
+    observed_at: str
+    uncertainty_note: str | None = None
+
+    def __post_init__(self) -> None:
+        _identifier(self.claim_id, "claim id")
+        _text(self.text, "summary text", 2048)
+        _url(self.citation_url, "citation URL")
+        if self.certainty not in {"verified", "supported", "uncertain"}:
+            raise WICError("invalid summary certainty")
+        _stored_timestamp(self.observed_at, "observation timestamp")
+        if self.certainty == "uncertain" and self.uncertainty_note is None:
+            raise WICError("uncertain summary requires a note")
+        if self.uncertainty_note is not None:
+            _text(self.uncertainty_note, "uncertainty note", 512)
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "claim_id": self.claim_id,
+            "text": self.text,
+            "citation_url": self.citation_url,
+            "certainty": self.certainty,
+            "observed_at": self.observed_at,
+            "uncertainty_note": self.uncertainty_note,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, object]) -> "SummarySegment":
+        if not isinstance(data, Mapping):
+            raise WICError("stored summary segment is invalid")
+        claim_id = _string(data.get("claim_id"), "claim id")
+        text = _string(data.get("text"), "summary text")
+        citation_url = _string(data.get("citation_url"), "citation URL")
+        certainty = _string(data.get("certainty"), "summary certainty")
+        observed_at = _string(data.get("observed_at"), "observation timestamp")
+        uncertainty_note = data.get("uncertainty_note")
+        if uncertainty_note is not None and not isinstance(uncertainty_note, str):
+            raise WICError("stored uncertainty note is invalid")
+        return cls(claim_id, text, citation_url, certainty, observed_at, uncertainty_note)
+
+
+@dataclass(frozen=True)
+class SituationSummary:
+    """A dated summary whose text is assembled only from cited segments."""
+
+    summary_id: str
+    text: str
+    segments: tuple[SummarySegment, ...]
+    citations: tuple[str, ...]
+    status: str
+    freshness: str
+    created_at: str
+
+    def __post_init__(self) -> None:
+        _identifier(self.summary_id, "summary id")
+        _text(self.text, "summary text", MAX_RECORD_BYTES)
+        if not self.segments or len(self.segments) > _MAX_SUMMARY_SEGMENTS:
+            raise WICError("summary segments are outside the bounded range")
+        if self.status not in {"verified", "supported", "uncertain"}:
+            raise WICError("invalid summary status")
+        if self.freshness not in {"dated", "stale"}:
+            raise WICError("live freshness requires fresh verified evidence")
+        _stored_timestamp(self.created_at, "summary timestamp")
+        if not self.citations or len(self.citations) != len(set(self.citations)):
+            raise WICError("summary citations are invalid")
+        for citation in self.citations:
+            _url(citation, "citation URL")
+        expected = "uncertain" if any(item.certainty == "uncertain" for item in self.segments) else (
+            "verified" if all(item.certainty == "verified" for item in self.segments) else "supported"
+        )
+        if self.status != expected:
+            raise WICError("summary status does not match evidence")
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "summary_id": self.summary_id,
+            "text": self.text,
+            "segments": [item.as_dict() for item in self.segments],
+            "citations": list(self.citations),
+            "status": self.status,
+            "freshness": self.freshness,
+            "created_at": self.created_at,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, object]) -> "SituationSummary":
+        if not isinstance(data, Mapping):
+            raise WICError("stored summary is invalid")
+        raw_segments = data.get("segments")
+        raw_citations = data.get("citations")
+        if not isinstance(raw_segments, list) or not isinstance(raw_citations, list):
+            raise WICError("stored summary evidence is invalid")
+        segments = tuple(SummarySegment.from_dict(item) for item in raw_segments)
+        if not all(isinstance(item, str) for item in raw_citations):
+            raise WICError("stored summary citations are invalid")
+        return cls(
+            _string(data.get("summary_id"), "summary id"),
+            _string(data.get("text"), "summary text"),
+            segments, tuple(raw_citations), _string(data.get("status"), "summary status"),
+            _string(data.get("freshness"), "summary freshness"),
+            _string(data.get("created_at"), "summary timestamp"),
+        )
+
+
+class CitedSummaryComposer:
+    """Compose dated summaries without accepting unsupported live assertions."""
+
+    def compose(
+        self, summary_id: str, segments: Iterable[SummarySegment], created_at: str,
+        *, freshness: str = "dated",
+    ) -> SituationSummary:
+        values = tuple(segments)
+        if not values or len(values) > _MAX_SUMMARY_SEGMENTS or any(
+            not isinstance(item, SummarySegment) for item in values
+        ):
+            raise WICError("summary segments are outside the bounded range")
+        _stored_timestamp(created_at, "summary timestamp")
+        if freshness not in {"dated", "stale"}:
+            raise WICError("live freshness requires fresh verified evidence")
+        status = "uncertain" if any(item.certainty == "uncertain" for item in values) else (
+            "verified" if all(item.certainty == "verified" for item in values) else "supported"
+        )
+        text_parts = []
+        citations: list[str] = []
+        for index, item in enumerate(values, 1):
+            note = f" (uncertain: {item.uncertainty_note})" if item.uncertainty_note else ""
+            text_parts.append(f"{item.text}{note} [{index}]")
+            if item.citation_url not in citations:
+                citations.append(item.citation_url)
+        return SituationSummary(
+            summary_id, " ".join(text_parts), values, tuple(citations), status, freshness, created_at,
+        )
+
+
+class SummaryStore:
+    """Persist bounded cited summaries for dated retrieval."""
+
+    def __init__(self, database: str | Path | sqlite3.Connection):
+        if isinstance(database, sqlite3.Connection):
+            self._owns_connection = False
+            self.db = database
+        else:
+            self._owns_connection = True
+            self.db = sqlite3.connect(str(database))
+        self.db.row_factory = sqlite3.Row
+        self.db.execute("PRAGMA busy_timeout=5000")
+        self.db.execute(
+            "CREATE TABLE IF NOT EXISTS wic_summaries (summary_id TEXT PRIMARY KEY, record_json TEXT NOT NULL)"
+        )
+        self.db.commit()
+
+    def __enter__(self) -> "SummaryStore":
+        return self
+
+    def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
+        self.close()
+
+    def save(self, summary: SituationSummary) -> bool:
+        if not isinstance(summary, SituationSummary):
+            raise WICError("summary is required")
+        payload = json.dumps(summary.as_dict(), ensure_ascii=True, allow_nan=False, sort_keys=True, separators=(",", ":"))
+        if len(payload.encode("utf-8")) > MAX_RECORD_BYTES:
+            raise WICError("summary exceeds the bounded size")
+        try:
+            with self.db:
+                cursor = self.db.execute(
+                    "INSERT OR IGNORE INTO wic_summaries (summary_id, record_json) VALUES (?, ?)",
+                    (summary.summary_id, payload),
+                )
+            return cursor.rowcount == 1
+        except sqlite3.Error as exc:
+            raise WICError("summary persistence failed") from exc
+
+    def get(self, summary_id: str) -> SituationSummary | None:
+        summary_id = _identifier(summary_id, "summary id")
+        row = self.db.execute("SELECT record_json FROM wic_summaries WHERE summary_id=?", (summary_id,)).fetchone()
+        if row is None:
+            return None
+        try:
+            return SituationSummary.from_dict(json.loads(row["record_json"]))
+        except (TypeError, ValueError, json.JSONDecodeError) as exc:
+            raise WICError("stored summary is invalid") from exc
+
+    def close(self) -> None:
+        if self._owns_connection:
+            self.db.close()
+
+
+CitedSituationSummary = CitedSummaryComposer
+WICSummaries = SummaryStore
+
+
 FeedTransport = Callable[[str, SourcePolicy, int], Iterable[Mapping[str, object]]]
 
 
@@ -1065,6 +1265,8 @@ WICSourceStore = SourceStore
 __all__ = [
     "CategoryAssignment",
     "CategoryStore",
+    "CitedSituationSummary",
+    "CitedSummaryComposer",
     "ClaimLedger",
     "ClaimRecord",
     "FeedTransport",
@@ -1081,8 +1283,12 @@ __all__ = [
     "StoryClusterStore",
     "StoryClusterer",
     "StoryCategoryStore",
+    "SituationSummary",
+    "SummarySegment",
+    "SummaryStore",
     "WICError",
     "WICCategoryStore",
+    "WICSummaries",
     "WICSourceStore",
     "normalize_url",
 ]
