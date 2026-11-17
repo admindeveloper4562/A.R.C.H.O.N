@@ -34,6 +34,21 @@ from .calendar import (
     CalendarEvent,
     CalendarService,
 )
+from .email import (
+    EMAIL_DRAFT_SCOPE,
+    EMAIL_READ_SCOPE,
+    EMAIL_SEND_SCOPE,
+    EmailAdapter,
+    EmailAuthorizationError,
+    EmailConnector,
+    EmailError,
+    EmailMessage,
+    EmailReceipt,
+    EmailReconciliationRequired,
+    EmailService,
+    EmailSummary,
+    EmailTimeout,
+)
 
 __all__ = [
     "RUNTIME_HEALTH_SCOPE",
@@ -77,4 +92,17 @@ __all__ = [
     "CalendarError",
     "CalendarEvent",
     "CalendarService",
+    "EMAIL_DRAFT_SCOPE",
+    "EMAIL_READ_SCOPE",
+    "EMAIL_SEND_SCOPE",
+    "EmailAdapter",
+    "EmailAuthorizationError",
+    "EmailConnector",
+    "EmailError",
+    "EmailMessage",
+    "EmailReceipt",
+    "EmailReconciliationRequired",
+    "EmailService",
+    "EmailSummary",
+    "EmailTimeout",
 ]
