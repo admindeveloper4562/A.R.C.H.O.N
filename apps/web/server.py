@@ -11,7 +11,7 @@ from jarvis_v2.runtime.security import SECURITY_HEADERS
 
 ROUTES = frozenset({
     "/", "/calendar", "/email", "/actions", "/files", "/system",
-    "/projects", "/voice", "/activity", "/settings",
+    "/projects", "/voice", "/activity", "/settings", "/world", "/world/timeline",
 })
 ASSETS = frozenset({"/dashboard.css", "/dashboard.js", "/index.html"})
 WEB_ROOT = Path(__file__).resolve().parent

@@ -24,6 +24,7 @@ _PUBLIC_SCOPES = frozenset({"public_metadata", "public_read"})
 _TRACKING_QUERY_KEYS = frozenset({"fbclid", "gclid", "mc_cid", "mc_eid"})
 _CATEGORY_NAMES = frozenset({"geography", "technology", "politics", "economics", "science", "thailand"})
 _MAX_SUMMARY_SEGMENTS = 32
+_MAX_WORLD_CARDS = 32
 
 
 class WICError(ValueError):
@@ -1148,6 +1149,104 @@ class SummaryStore:
             self.db.close()
 
 
+@dataclass(frozen=True)
+class WorldCard:
+    """One source-backed card for the read-only World overview."""
+
+    card_id: str
+    title: str
+    source_urls: tuple[str, ...]
+    fetched_at: str
+    published_at: str | None = None
+    event_at: str | None = None
+    status: str = "active"
+    correction: str | None = None
+
+    def __post_init__(self) -> None:
+        _identifier(self.card_id, "world card id")
+        _text(self.title, "world card title", MAX_TITLE_BYTES)
+        if not self.source_urls or len(self.source_urls) > MAX_FEED_ITEMS:
+            raise WICError("world card sources are outside the bounded range")
+        if len(self.source_urls) != len(set(self.source_urls)):
+            raise WICError("world card sources are duplicated")
+        for source_url in self.source_urls:
+            _url(source_url, "world source URL")
+        _stored_timestamp(self.fetched_at, "world fetched timestamp")
+        _stored_timestamp(self.published_at, "world published timestamp", optional=True)
+        _stored_timestamp(self.event_at, "world event timestamp", optional=True)
+        if self.status not in {"active", "corrected", "retracted", "stale"}:
+            raise WICError("invalid world card status")
+        if self.correction is not None:
+            _text(self.correction, "world correction", 512)
+        if self.status in {"corrected", "retracted"} and self.correction is None:
+            raise WICError("corrected world card requires a correction")
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "card_id": self.card_id,
+            "title": self.title,
+            "source_urls": list(self.source_urls),
+            "fetched_at": self.fetched_at,
+            "published_at": self.published_at,
+            "event_at": self.event_at,
+            "status": self.status,
+            "correction": self.correction,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, object]) -> "WorldCard":
+        if not isinstance(data, Mapping):
+            raise WICError("stored world card is invalid")
+        source_urls = data.get("source_urls")
+        if not isinstance(source_urls, list) or not all(isinstance(item, str) for item in source_urls):
+            raise WICError("stored world card sources are invalid")
+        correction = data.get("correction")
+        if correction is not None and not isinstance(correction, str):
+            raise WICError("stored world correction is invalid")
+        return cls(
+            _string(data.get("card_id"), "world card id"),
+            _string(data.get("title"), "world card title"),
+            tuple(source_urls),
+            _string(data.get("fetched_at"), "world fetched timestamp"),
+            _optional_string(data.get("published_at"), "world published timestamp"),
+            _optional_string(data.get("event_at"), "world event timestamp"),
+            _string(data.get("status"), "world card status"),
+            correction,
+        )
+
+
+@dataclass(frozen=True)
+class WorldTimeline:
+    """Bounded newest-first projection for the World overview and timeline."""
+
+    cards: tuple[WorldCard, ...]
+
+    def __post_init__(self) -> None:
+        if len(self.cards) > _MAX_WORLD_CARDS:
+            raise WICError("world timeline cards are outside the bounded range")
+        if any(not isinstance(card, WorldCard) for card in self.cards):
+            raise WICError("world timeline card is invalid")
+        if len({card.card_id for card in self.cards}) != len(self.cards):
+            raise WICError("world timeline cards are duplicated")
+
+    @classmethod
+    def from_cards(cls, cards: Iterable[WorldCard]) -> "WorldTimeline":
+        values = tuple(cards)
+        if any(not isinstance(card, WorldCard) for card in values):
+            raise WICError("world timeline card is invalid")
+        ordered = tuple(sorted(values, key=cls._sort_key, reverse=True))
+        return cls(ordered)
+
+    @staticmethod
+    def _sort_key(card: WorldCard) -> tuple[datetime, str]:
+        timestamp = card.event_at or card.published_at or card.fetched_at
+        parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+        return parsed.astimezone(timezone.utc), card.card_id
+
+    def as_dict(self) -> dict[str, object]:
+        return {"cards": [card.as_dict() for card in self.cards]}
+
+
 CitedSituationSummary = CitedSummaryComposer
 WICSummaries = SummaryStore
 
@@ -1290,5 +1389,7 @@ __all__ = [
     "WICCategoryStore",
     "WICSummaries",
     "WICSourceStore",
+    "WorldCard",
+    "WorldTimeline",
     "normalize_url",
 ]

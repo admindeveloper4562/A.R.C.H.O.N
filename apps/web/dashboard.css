@@ -28,6 +28,16 @@ body {
 .content { min-height: 55vh; padding-block: clamp(1.5rem, 6vw, 4rem); }
 .eyebrow { color: var(--muted); font-size: .85rem; letter-spacing: .08em; text-transform: uppercase; }
 .status-card { max-width: 42rem; padding: 1rem 1.25rem; border: 1px solid var(--border); border-radius: .6rem; background: var(--panel); }
+.world-overview { margin-top: 1rem; }
+.world-timeline { display: grid; gap: 1rem; margin: 0; padding: 0; list-style: none; }
+.world-card { padding: 1rem 1.25rem; border: 1px solid var(--border); border-radius: .6rem; background: var(--panel); }
+.world-card h3 { margin-top: 0; }
+.world-card dl { display: grid; grid-template-columns: max-content 1fr; gap: .25rem .75rem; color: var(--muted); }
+.world-card dt { font-weight: 650; }
+.world-card dd { margin: 0; }
+.world-card-sources, .world-card-correction { margin-bottom: 0; }
+.world-card-sources { display: flex; flex-wrap: wrap; gap: .75rem; }
+.world-card-correction { color: var(--muted); }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 @media (max-width: 520px) {
   .nav-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }

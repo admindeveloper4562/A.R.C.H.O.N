@@ -53,6 +53,15 @@ class RuntimeDashboardTests(unittest.TestCase):
         self.assertIn("frame-ancestors 'none'", headers["content-security-policy"])
         self.assertEqual(headers["cache-control"], "no-store")
 
+    def test_world_overview_is_source_backed_and_date_explicit(self):
+        status, _headers, body = self.get("/world")
+        self.assertEqual(status, 200)
+        self.assertIn(b"data-world-overview", body)
+        script = (WEB_ROOT / "dashboard.js").read_text(encoding="utf-8")
+        for label in ("Source/published date", "Fetched date", "Event date", "Correction"):
+            self.assertIn(label, script)
+        self.assertIn("No verified source-backed stories are available.", body.decode())
+
 
 if __name__ == "__main__":
     unittest.main()

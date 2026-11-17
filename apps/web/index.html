@@ -22,6 +22,7 @@
         <li><a data-route="/voice" href="/voice">Voice</a></li>
         <li><a data-route="/activity" href="/activity">Activity</a></li>
         <li><a data-route="/settings" href="/settings">Settings</a></li>
+        <li><a data-route="/world" href="/world">World</a></li>
       </ul>
     </nav>
   </header>
@@ -32,6 +33,11 @@
     <section class="status-card" aria-live="polite">
       <h2>Read-only shell</h2>
       <p>Data panels are supplied by authenticated Runtime and Backend services.</p>
+    </section>
+    <section class="world-overview" data-world-overview hidden aria-labelledby="world-heading">
+      <h2 id="world-heading">World overview</h2>
+      <p data-world-empty>No verified source-backed stories are available.</p>
+      <ol class="world-timeline" data-world-timeline aria-label="Chronological world timeline" hidden></ol>
     </section>
   </main>
   <script src="/dashboard.js" defer></script>
