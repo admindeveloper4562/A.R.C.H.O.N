@@ -8,6 +8,7 @@ from jarvis_v2.finance import (
     FinanceStore,
     FinanceTransaction,
     PaperAccount,
+    PaperFillPolicy,
     PaperLedger,
     PaperLedgerError,
     PaperOrder,
@@ -51,6 +52,26 @@ class FinancePaperTests(unittest.TestCase):
             paper.place_order(PaperOrder("sell-1", "demo", "ARCH", "sell", 1, 100, "pending", STAMP))
             with self.assertRaisesRegex(PaperLedgerError, "insufficient"):
                 paper.fill_order("sell-1", filled_at=STAMP)
+
+    def test_fill_policy_records_spread_slippage_and_fee(self):
+        with tempfile.TemporaryDirectory() as directory, PaperLedger(Path(directory) / "paper.sqlite") as paper:
+            paper.open_account(PaperAccount("demo", "person-1", "THB", 10_000, STAMP))
+            paper.place_order(PaperOrder("buy-1", "demo", "ARCH", "buy", 2, 1_000, "pending", STAMP))
+            filled = paper.fill_order(
+                "buy-1", filled_at=STAMP,
+                policy=PaperFillPolicy(spread_bps=100, fee_bps=100, slippage_bps=50),
+            )
+            self.assertEqual((filled.filled_price_satang, filled.fee_satang), (1_010, 20))
+            self.assertEqual(paper.account("demo").cash_satang, 7_960)
+
+    def test_market_hours_and_liquidity_reject_invalid_fills(self):
+        with tempfile.TemporaryDirectory() as directory, PaperLedger(Path(directory) / "paper.sqlite") as paper:
+            paper.open_account(PaperAccount("demo", "person-1", "THB", 10_000, STAMP))
+            paper.place_order(PaperOrder("buy-1", "demo", "ARCH", "buy", 2, 100, "pending", STAMP))
+            with self.assertRaisesRegex(PaperLedgerError, "closed"):
+                paper.fill_order("buy-1", filled_at="2026-11-01T10:00:00Z", policy=PaperFillPolicy(enforce_market_hours=True))
+            with self.assertRaisesRegex(PaperLedgerError, "liquidity"):
+                paper.fill_order("buy-1", filled_at="2026-11-02T10:00:00Z", policy=PaperFillPolicy(max_fill_quantity=1))
 
 
 if __name__ == "__main__":

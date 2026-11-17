@@ -32,7 +32,7 @@ from .reports import FinanceReport, FinanceReportError, FinanceReportService
 from .planning import FinanceForecast, FinanceGoal, FinancePlanningError, FinancePlanningService
 from .alerts import FinanceAlert, FinanceAlertError, FinanceAlertService
 from .advice import FinanceAdviceError, FinanceAdviceService, FinanceNotification, FinanceRecommendation
-from .paper import PaperAccount, PaperLedger, PaperLedgerError, PaperOrder, PaperPosition
+from .paper import PaperAccount, PaperFillPolicy, PaperLedger, PaperLedgerError, PaperOrder, PaperPosition
 
 __all__ = [
     "Account",
@@ -72,6 +72,7 @@ __all__ = [
     "FinanceNotification",
     "FinanceRecommendation",
     "PaperAccount",
+    "PaperFillPolicy",
     "PaperLedger",
     "PaperLedgerError",
     "PaperOrder",

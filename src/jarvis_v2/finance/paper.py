@@ -20,6 +20,41 @@ def _quantity(value: object, label: str = "quantity") -> int:
 
 
 @dataclass(frozen=True)
+class PaperFillPolicy:
+    """Deterministic paper-only execution rules."""
+
+    spread_bps: int = 0
+    fee_bps: int = 0
+    slippage_bps: int = 0
+    max_fill_quantity: int | None = None
+    enforce_market_hours: bool = False
+    market_open_hour: int = 9
+    market_close_hour: int = 16
+
+    def __post_init__(self) -> None:
+        for label, value in (("spread", self.spread_bps), ("fee", self.fee_bps), ("slippage", self.slippage_bps)):
+            if type(value) is not int or value < 0 or value > 10_000:
+                raise PaperLedgerError(f"{label} basis points are invalid")
+        if self.max_fill_quantity is not None:
+            _quantity(self.max_fill_quantity, "maximum fill quantity")
+        if type(self.enforce_market_hours) is not bool:
+            raise PaperLedgerError("market-hours flag is invalid")
+        if type(self.market_open_hour) is not int or not 0 <= self.market_open_hour < 24:
+            raise PaperLedgerError("market open hour is invalid")
+        if type(self.market_close_hour) is not int or not 0 <= self.market_close_hour <= 24:
+            raise PaperLedgerError("market close hour is invalid")
+        if self.market_open_hour >= self.market_close_hour:
+            raise PaperLedgerError("market hours are reversed")
+
+    def validate(self, filled_at: str) -> None:
+        if not self.enforce_market_hours:
+            return
+        moment = datetime.fromisoformat(filled_at.replace("Z", "+00:00"))
+        if moment.weekday() >= 5 or not self.market_open_hour <= moment.hour < self.market_close_hour:
+            raise PaperLedgerError("paper market is closed")
+
+
+@dataclass(frozen=True)
 class PaperAccount:
     account_id: str
     scope_id: str
@@ -54,6 +89,9 @@ class PaperOrder:
     price_satang: int
     status: str
     created_at: str
+    filled_price_satang: int | None = None
+    fee_satang: int = 0
+    filled_at: str | None = None
 
     def __post_init__(self) -> None:
         _identifier(self.order_id, "paper order id")
@@ -68,6 +106,18 @@ class PaperOrder:
         if self.status not in {"pending", "filled"}:
             raise PaperLedgerError("paper order status is invalid")
         _timestamp(self.created_at, "paper order timestamp")
+        if self.status == "pending" and (self.filled_price_satang is not None or self.fee_satang or self.filled_at is not None):
+            raise PaperLedgerError("pending paper order has fill data")
+        if self.status == "filled":
+            if self.filled_price_satang is None:
+                raise PaperLedgerError("filled paper order lacks fill price")
+            _satang(self.filled_price_satang, "paper fill price", nonnegative=True)
+            if self.filled_price_satang == 0:
+                raise PaperLedgerError("paper fill price must be positive")
+            _satang(self.fee_satang, "paper fee", nonnegative=True)
+            if self.filled_at is None:
+                raise PaperLedgerError("filled paper order lacks fill timestamp")
+            _timestamp(self.filled_at, "paper fill timestamp")
 
     @property
     def notional_satang(self) -> int:
@@ -83,6 +133,9 @@ class PaperOrder:
             "price_satang": self.price_satang,
             "status": self.status,
             "created_at": self.created_at,
+            "filled_price_satang": self.filled_price_satang,
+            "fee_satang": self.fee_satang,
+            "filled_at": self.filled_at,
         }
 
 
@@ -128,7 +181,8 @@ class PaperLedger:
             CREATE TABLE IF NOT EXISTS paper_orders (
                 order_id TEXT PRIMARY KEY, account_id TEXT NOT NULL, symbol TEXT NOT NULL,
                 side TEXT NOT NULL, quantity INTEGER NOT NULL, price_satang INTEGER NOT NULL,
-                status TEXT NOT NULL, created_at TEXT NOT NULL,
+                status TEXT NOT NULL, created_at TEXT NOT NULL, filled_price_satang INTEGER,
+                fee_satang INTEGER NOT NULL DEFAULT 0, filled_at TEXT,
                 FOREIGN KEY(account_id) REFERENCES paper_accounts(account_id)
             );
             CREATE TABLE IF NOT EXISTS paper_positions (
@@ -138,6 +192,13 @@ class PaperLedger:
                 FOREIGN KEY(account_id) REFERENCES paper_accounts(account_id)
             );"""
         )
+        columns = {row[1] for row in self.db.execute("PRAGMA table_info(paper_orders)")}
+        if "filled_price_satang" not in columns:
+            self.db.execute("ALTER TABLE paper_orders ADD COLUMN filled_price_satang INTEGER")
+        if "fee_satang" not in columns:
+            self.db.execute("ALTER TABLE paper_orders ADD COLUMN fee_satang INTEGER NOT NULL DEFAULT 0")
+        if "filled_at" not in columns:
+            self.db.execute("ALTER TABLE paper_orders ADD COLUMN filled_at TEXT")
         self.db.commit()
 
     def __enter__(self) -> "PaperLedger":
@@ -178,15 +239,19 @@ class PaperLedger:
                 raise PaperLedgerError("paper order registration conflict")
             return prior
         self.db.execute(
-            "INSERT INTO paper_orders(order_id,account_id,symbol,side,quantity,price_satang,status,created_at) VALUES(?,?,?,?,?,?,?,?)",
-            (order.order_id, order.account_id, order.symbol, order.side, order.quantity, order.price_satang, order.status, order.created_at),
+            "INSERT INTO paper_orders(order_id,account_id,symbol,side,quantity,price_satang,status,created_at,filled_price_satang,fee_satang,filled_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+            (order.order_id, order.account_id, order.symbol, order.side, order.quantity, order.price_satang, order.status, order.created_at, None, 0, None),
         )
         self.db.commit()
         return order
 
-    def fill_order(self, order_id: str, *, filled_at: str) -> PaperOrder:
+    def fill_order(self, order_id: str, *, filled_at: str, policy: PaperFillPolicy | None = None) -> PaperOrder:
         _identifier(order_id, "paper order id")
         _timestamp(filled_at, "paper fill timestamp")
+        policy = PaperFillPolicy() if policy is None else policy
+        if not isinstance(policy, PaperFillPolicy):
+            raise PaperLedgerError("paper fill policy is invalid")
+        policy.validate(filled_at)
         try:
             self.db.execute("BEGIN IMMEDIATE")
             row = self.db.execute("SELECT * FROM paper_orders WHERE order_id=?", (order_id,)).fetchone()
@@ -198,21 +263,28 @@ class PaperLedger:
                 return order
             account_row = self.db.execute("SELECT * FROM paper_accounts WHERE account_id=?", (order.account_id,)).fetchone()
             account = self._account(account_row)
+            if policy.max_fill_quantity is not None and order.quantity > policy.max_fill_quantity:
+                raise PaperLedgerError("paper market has insufficient liquidity")
+            spread = order.price_satang * policy.spread_bps // 20_000
+            slippage = order.price_satang * policy.slippage_bps // 10_000
+            filled_price = order.price_satang + spread + slippage if order.side == "buy" else max(1, order.price_satang - spread - slippage)
+            notional = order.quantity * filled_price
+            fee = notional * policy.fee_bps // 10_000
             position_row = self.db.execute(
                 "SELECT * FROM paper_positions WHERE account_id=? AND symbol=?", (order.account_id, order.symbol),
             ).fetchone()
             prior_quantity = 0 if position_row is None else position_row["quantity"]
             if order.side == "buy":
-                if account.cash_satang < order.notional_satang:
+                if account.cash_satang < notional + fee:
                     raise PaperLedgerError("paper account has insufficient cash")
-                cash = account.cash_satang - order.notional_satang
+                cash = account.cash_satang - notional - fee
                 quantity = prior_quantity + order.quantity
                 prior_average = 0 if position_row is None else position_row["average_price_satang"]
-                average = ((prior_quantity * prior_average) + order.notional_satang) // quantity
+                average = ((prior_quantity * prior_average) + notional) // quantity
             else:
                 if prior_quantity < order.quantity:
                     raise PaperLedgerError("paper position is insufficient")
-                cash = account.cash_satang + order.notional_satang
+                cash = account.cash_satang + notional - fee
                 quantity = prior_quantity - order.quantity
                 average = 0 if quantity == 0 else position_row["average_price_satang"]
             self.db.execute("UPDATE paper_accounts SET cash_satang=? WHERE account_id=?", (cash, order.account_id))
@@ -224,9 +296,15 @@ class PaperLedger:
                 )
             else:
                 self.db.execute("DELETE FROM paper_positions WHERE account_id=? AND symbol=?", (order.account_id, order.symbol))
-            self.db.execute("UPDATE paper_orders SET status='filled' WHERE order_id=?", (order_id,))
+            self.db.execute(
+                "UPDATE paper_orders SET status='filled',filled_price_satang=?,fee_satang=?,filled_at=? WHERE order_id=?",
+                (filled_price, fee, filled_at, order_id),
+            )
             self.db.commit()
-            return PaperOrder(order.order_id, order.account_id, order.symbol, order.side, order.quantity, order.price_satang, "filled", order.created_at)
+            return PaperOrder(
+                order.order_id, order.account_id, order.symbol, order.side, order.quantity,
+                order.price_satang, "filled", order.created_at, filled_price, fee, filled_at,
+            )
         except (sqlite3.Error, PaperLedgerError) as exc:
             self.db.rollback()
             if isinstance(exc, PaperLedgerError):
@@ -254,11 +332,15 @@ class PaperLedger:
 
     @staticmethod
     def _order(row: sqlite3.Row) -> PaperOrder:
-        return PaperOrder(row["order_id"], row["account_id"], row["symbol"], row["side"], row["quantity"], row["price_satang"], row["status"], row["created_at"])
+        return PaperOrder(
+            row["order_id"], row["account_id"], row["symbol"], row["side"], row["quantity"],
+            row["price_satang"], row["status"], row["created_at"], row["filled_price_satang"],
+            row["fee_satang"], row["filled_at"],
+        )
 
     @staticmethod
     def _position(row: sqlite3.Row) -> PaperPosition:
         return PaperPosition(row["account_id"], row["symbol"], row["quantity"], row["average_price_satang"], row["updated_at"])
 
 
-__all__ = ["PaperAccount", "PaperLedger", "PaperLedgerError", "PaperOrder", "PaperPosition"]
+__all__ = ["PaperAccount", "PaperFillPolicy", "PaperLedger", "PaperLedgerError", "PaperOrder", "PaperPosition"]
