@@ -478,6 +478,13 @@ class FinanceStore:
             source_id, scope_id, unusual_multiplier=unusual_multiplier,
         )
 
+    def recommendations(self, source_id: str, scope_id: str, *, consent_granted=False):
+        from .advice import FinanceAdviceService
+
+        return FinanceAdviceService(self).recommendations(
+            source_id, scope_id, consent_granted=consent_granted,
+        )
+
 
 Account = FinanceAccount
 Category = FinanceCategory

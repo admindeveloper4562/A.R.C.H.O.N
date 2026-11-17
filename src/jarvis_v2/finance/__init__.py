@@ -31,6 +31,7 @@ from .dashboard import (
 from .reports import FinanceReport, FinanceReportError, FinanceReportService
 from .planning import FinanceForecast, FinanceGoal, FinancePlanningError, FinancePlanningService
 from .alerts import FinanceAlert, FinanceAlertError, FinanceAlertService
+from .advice import FinanceAdviceError, FinanceAdviceService, FinanceNotification, FinanceRecommendation
 
 __all__ = [
     "Account",
@@ -65,4 +66,8 @@ __all__ = [
     "FinanceAlert",
     "FinanceAlertError",
     "FinanceAlertService",
+    "FinanceAdviceError",
+    "FinanceAdviceService",
+    "FinanceNotification",
+    "FinanceRecommendation",
 ]
