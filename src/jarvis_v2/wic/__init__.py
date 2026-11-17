@@ -25,6 +25,7 @@ _TRACKING_QUERY_KEYS = frozenset({"fbclid", "gclid", "mc_cid", "mc_eid"})
 _CATEGORY_NAMES = frozenset({"geography", "technology", "politics", "economics", "science", "thailand"})
 _MAX_SUMMARY_SEGMENTS = 32
 _MAX_WORLD_CARDS = 32
+_MAX_WATCHLIST_ITEMS = 32
 
 
 class WICError(ValueError):
@@ -1149,6 +1150,178 @@ class SummaryStore:
             self.db.close()
 
 
+def _watchlist_values(values: Iterable[str], label: str) -> tuple[str, ...]:
+    if isinstance(values, (str, bytes)):
+        raise WICError(f"{label} must be a collection")
+    try:
+        items = tuple(values)
+    except TypeError as exc:
+        raise WICError(f"{label} must be a collection") from exc
+    if len(items) > _MAX_WATCHLIST_ITEMS or any(not isinstance(item, str) for item in items):
+        raise WICError(f"{label} is outside the bounded range")
+    if len(items) != len(set(items)):
+        raise WICError(f"{label} are duplicated")
+    normalized = tuple(sorted({_text(item, label, 128) for item in items}))
+    return normalized
+
+
+@dataclass(frozen=True)
+class WatchlistPreferences:
+    """Owner-selected WIC filters, addressed only by the authenticated owner."""
+
+    owner_id: str
+    countries: tuple[str, ...]
+    regions: tuple[str, ...]
+    topics: tuple[str, ...]
+    revision: int
+    updated_at: str
+
+    def __post_init__(self) -> None:
+        _identifier(self.owner_id, "watchlist owner id")
+        if self.countries != _watchlist_values(self.countries, "countries"):
+            raise WICError("countries are not canonical")
+        if self.regions != _watchlist_values(self.regions, "regions"):
+            raise WICError("regions are not canonical")
+        if self.topics != _watchlist_values(self.topics, "topics"):
+            raise WICError("topics are not canonical")
+        if type(self.revision) is not int or self.revision < 1:
+            raise WICError("invalid watchlist revision")
+        _stored_timestamp(self.updated_at, "watchlist timestamp")
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "owner_id": self.owner_id,
+            "countries": list(self.countries),
+            "regions": list(self.regions),
+            "topics": list(self.topics),
+            "revision": self.revision,
+            "updated_at": self.updated_at,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, object]) -> "WatchlistPreferences":
+        if not isinstance(data, Mapping):
+            raise WICError("stored watchlist is invalid")
+        values = []
+        for key, label in (("countries", "countries"), ("regions", "regions"), ("topics", "topics")):
+            raw = data.get(key)
+            if not isinstance(raw, list) or not all(isinstance(item, str) for item in raw):
+                raise WICError(f"stored {label} are invalid")
+            values.append(tuple(raw))
+        revision = data.get("revision")
+        if type(revision) is not int:
+            raise WICError("stored watchlist revision is invalid")
+        return cls(
+            _string(data.get("owner_id"), "watchlist owner id"),
+            values[0], values[1], values[2], revision,
+            _string(data.get("updated_at"), "watchlist timestamp"),
+        )
+
+
+class WatchlistStore:
+    """Persist current watchlists and revisions behind an owner identity fence."""
+
+    def __init__(self, database: str | Path | sqlite3.Connection):
+        if isinstance(database, sqlite3.Connection):
+            self._owns_connection = False
+            self.db = database
+        else:
+            self._owns_connection = True
+            self.db = sqlite3.connect(str(database))
+        self.db.row_factory = sqlite3.Row
+        self.db.execute("PRAGMA busy_timeout=5000")
+        self.db.execute(
+            "CREATE TABLE IF NOT EXISTS wic_watchlists (owner_id TEXT PRIMARY KEY, record_json TEXT NOT NULL)"
+        )
+        self.db.execute(
+            """CREATE TABLE IF NOT EXISTS wic_watchlist_revisions (
+                owner_id TEXT NOT NULL,
+                revision INTEGER NOT NULL,
+                record_json TEXT NOT NULL,
+                PRIMARY KEY (owner_id, revision)
+            )"""
+        )
+        self.db.commit()
+
+    def __enter__(self) -> "WatchlistStore":
+        return self
+
+    def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
+        self.close()
+
+    def save(
+        self, owner_id: str, countries: Iterable[str], regions: Iterable[str],
+        topics: Iterable[str], updated_at: str, *, requester_id: str,
+    ) -> WatchlistPreferences:
+        owner_id = self._assert_owner(owner_id, requester_id)
+        current = self._get(owner_id)
+        candidate = WatchlistPreferences(
+            owner_id, _watchlist_values(countries, "countries"),
+            _watchlist_values(regions, "regions"), _watchlist_values(topics, "topics"),
+            current.revision + 1 if current is not None else 1, updated_at,
+        )
+        if current is not None and (
+            candidate.countries, candidate.regions, candidate.topics
+        ) == (current.countries, current.regions, current.topics):
+            return current
+        payload = self._payload(candidate)
+        try:
+            with self.db:
+                self.db.execute(
+                    "INSERT INTO wic_watchlists(owner_id, record_json) VALUES (?, ?) "
+                    "ON CONFLICT(owner_id) DO UPDATE SET record_json=excluded.record_json",
+                    (owner_id, payload),
+                )
+                self.db.execute(
+                    "INSERT INTO wic_watchlist_revisions(owner_id, revision, record_json) VALUES (?, ?, ?)",
+                    (owner_id, candidate.revision, payload),
+                )
+        except sqlite3.Error as exc:
+            raise WICError("watchlist persistence failed") from exc
+        return candidate
+
+    def get(self, owner_id: str, *, requester_id: str) -> WatchlistPreferences | None:
+        return self._get(self._assert_owner(owner_id, requester_id))
+
+    def history(self, owner_id: str, *, requester_id: str) -> tuple[WatchlistPreferences, ...]:
+        owner_id = self._assert_owner(owner_id, requester_id)
+        rows = self.db.execute(
+            "SELECT record_json FROM wic_watchlist_revisions WHERE owner_id=? ORDER BY revision", (owner_id,)
+        ).fetchall()
+        try:
+            return tuple(WatchlistPreferences.from_dict(json.loads(row["record_json"])) for row in rows)
+        except (TypeError, ValueError, json.JSONDecodeError) as exc:
+            raise WICError("stored watchlist history is invalid") from exc
+
+    def _get(self, owner_id: str) -> WatchlistPreferences | None:
+        row = self.db.execute("SELECT record_json FROM wic_watchlists WHERE owner_id=?", (owner_id,)).fetchone()
+        if row is None:
+            return None
+        try:
+            return WatchlistPreferences.from_dict(json.loads(row["record_json"]))
+        except (TypeError, ValueError, json.JSONDecodeError) as exc:
+            raise WICError("stored watchlist is invalid") from exc
+
+    @staticmethod
+    def _assert_owner(owner_id: str, requester_id: str) -> str:
+        owner_id = _identifier(owner_id, "watchlist owner id")
+        requester_id = _identifier(requester_id, "watchlist requester id")
+        if owner_id != requester_id:
+            raise WICError("watchlist access denied")
+        return owner_id
+
+    @staticmethod
+    def _payload(record: WatchlistPreferences) -> str:
+        payload = json.dumps(record.as_dict(), ensure_ascii=True, allow_nan=False, sort_keys=True, separators=(",", ":"))
+        if len(payload.encode("utf-8")) > MAX_RECORD_BYTES:
+            raise WICError("watchlist exceeds the bounded size")
+        return payload
+
+    def close(self) -> None:
+        if self._owns_connection:
+            self.db.close()
+
+
 @dataclass(frozen=True)
 class WorldCard:
     """One source-backed card for the read-only World overview."""
@@ -1249,6 +1422,7 @@ class WorldTimeline:
 
 CitedSituationSummary = CitedSummaryComposer
 WICSummaries = SummaryStore
+WICWatchlistStore = WatchlistStore
 
 
 FeedTransport = Callable[[str, SourcePolicy, int], Iterable[Mapping[str, object]]]
@@ -1389,6 +1563,9 @@ __all__ = [
     "WICCategoryStore",
     "WICSummaries",
     "WICSourceStore",
+    "WICWatchlistStore",
+    "WatchlistPreferences",
+    "WatchlistStore",
     "WorldCard",
     "WorldTimeline",
     "normalize_url",
