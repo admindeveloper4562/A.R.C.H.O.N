@@ -956,10 +956,24 @@ class AureliaDialogue:
         return self._store.aurelia_turns(profile_id)
 
 
+from .aurelia_model import (  # noqa: E402
+    MAGIC,
+    ModelValidationError,
+    build_portable_model,
+    default_aurelia_spec,
+    validate_portable_model,
+)
+
+
 __all__ = [
     "AureliaDialogue",
+    "MAGIC",
+    "ModelValidationError",
     "QuestStore",
     "TWS_MIGRATIONS",
     "TWS_SCHEMA_VERSION",
     "TWSStoreError",
+    "build_portable_model",
+    "default_aurelia_spec",
+    "validate_portable_model",
 ]
