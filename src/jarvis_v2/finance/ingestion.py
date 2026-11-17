@@ -471,6 +471,13 @@ class FinanceStore:
 
         return FinancePlanningService(self).forecast(source_id, scope_id)
 
+    def alerts(self, source_id: str, scope_id: str, *, unusual_multiplier=2):
+        from .alerts import FinanceAlertService
+
+        return FinanceAlertService(self).detect(
+            source_id, scope_id, unusual_multiplier=unusual_multiplier,
+        )
+
 
 Account = FinanceAccount
 Category = FinanceCategory
