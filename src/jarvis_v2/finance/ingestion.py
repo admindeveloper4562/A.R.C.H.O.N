@@ -459,6 +459,13 @@ class FinanceStore:
             source_id, scope_id, reconciled_balances=reconciled_balances,
         )
 
+    def report(self, source_id: str, scope_id: str, *, start_date=None, end_date=None):
+        from .reports import FinanceReportService
+
+        return FinanceReportService(self).report(
+            source_id, scope_id, start_date=start_date, end_date=end_date,
+        )
+
 
 Account = FinanceAccount
 Category = FinanceCategory

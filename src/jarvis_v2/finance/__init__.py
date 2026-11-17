@@ -28,6 +28,7 @@ from .dashboard import (
     FinanceDashboardError,
     FinanceDashboardService,
 )
+from .reports import FinanceReport, FinanceReportError, FinanceReportService
 
 __all__ = [
     "Account",
@@ -52,4 +53,7 @@ __all__ = [
     "FinanceDashboard",
     "FinanceDashboardError",
     "FinanceDashboardService",
+    "FinanceReport",
+    "FinanceReportError",
+    "FinanceReportService",
 ]
