@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 import re
 import sqlite3
-from urllib.parse import urlsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from jarvis_v2.research.web import SourcePolicy
 
@@ -21,6 +21,7 @@ MAX_URL_BYTES = 2048
 MAX_SOURCE_POLICIES = 32
 _IDENTIFIER = re.compile(r"^[A-Za-z0-9_.:-]{1,128}$")
 _PUBLIC_SCOPES = frozenset({"public_metadata", "public_read"})
+_TRACKING_QUERY_KEYS = frozenset({"fbclid", "gclid", "mc_cid", "mc_eid"})
 
 
 class WICError(ValueError):
@@ -94,6 +95,22 @@ def _stored_timestamp(value: object, label: str, *, optional: bool = False) -> s
     if parsed.tzinfo is None or parsed.utcoffset() is None:
         raise WICError(f"invalid {label}")
     return parsed.astimezone(timezone.utc).isoformat(timespec="microseconds").replace("+00:00", "Z")
+
+
+def normalize_url(value: str) -> str:
+    """Normalize one already-allowlisted article URL without changing attribution."""
+    value = _url(value, "article URL")
+    parsed = urlsplit(value)
+    hostname = parsed.hostname
+    if hostname is None:
+        raise WICError("invalid article URL")
+    query = [
+        (key, item) for key, item in parse_qsl(parsed.query, keep_blank_values=True)
+        if key.casefold() not in _TRACKING_QUERY_KEYS and not key.casefold().startswith("utm_")
+    ]
+    query.sort()
+    path = parsed.path.rstrip("/") or "/"
+    return urlunsplit(("https", hostname.casefold(), path, urlencode(query), ""))
 
 
 @dataclass(frozen=True)
@@ -288,6 +305,184 @@ class SourceStore:
             self.db.close()
 
 
+@dataclass(frozen=True)
+class StoryCluster:
+    """A deduplicated incident view that retains every source observation."""
+
+    cluster_id: str
+    cluster_key: str
+    observation_ids: tuple[str, ...]
+    source_ids: tuple[str, ...]
+    article_urls: tuple[str, ...]
+    normalized_article_urls: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        _identifier(self.cluster_id, "cluster id")
+        _text(self.cluster_key, "cluster key", MAX_URL_BYTES)
+        if not self.observation_ids or len(self.observation_ids) > MAX_FEED_ITEMS:
+            raise WICError("cluster observations are outside the bounded range")
+        if len(self.observation_ids) != len(set(self.observation_ids)):
+            raise WICError("cluster observations are duplicated")
+        if len(self.source_ids) != len(set(self.source_ids)) or not self.source_ids:
+            raise WICError("cluster sources are invalid")
+        if len(self.article_urls) != len(self.normalized_article_urls):
+            raise WICError("cluster URL lists are inconsistent")
+        for value in self.observation_ids:
+            _identifier(value, "observation id")
+        for value in self.source_ids:
+            _identifier(value, "source id")
+        for value in self.article_urls:
+            _url(value, "article URL")
+        for value in self.normalized_article_urls:
+            _url(value, "normalized article URL")
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "cluster_id": self.cluster_id,
+            "cluster_key": self.cluster_key,
+            "observation_ids": list(self.observation_ids),
+            "source_ids": list(self.source_ids),
+            "article_urls": list(self.article_urls),
+            "normalized_article_urls": list(self.normalized_article_urls),
+        }
+
+
+class StoryClusterStore:
+    """Persist cluster membership while keeping original source URLs intact."""
+
+    def __init__(self, database: str | Path | sqlite3.Connection):
+        if isinstance(database, sqlite3.Connection):
+            self._owns_connection = False
+            self.db = database
+        else:
+            self._owns_connection = True
+            self.db = sqlite3.connect(str(database))
+        self.db.row_factory = sqlite3.Row
+        self.db.execute("PRAGMA busy_timeout=5000")
+        self.db.execute(
+            """CREATE TABLE IF NOT EXISTS wic_story_clusters (
+                cluster_id TEXT PRIMARY KEY,
+                cluster_key TEXT NOT NULL UNIQUE
+            )"""
+        )
+        self.db.execute(
+            """CREATE TABLE IF NOT EXISTS wic_story_cluster_members (
+                cluster_id TEXT NOT NULL REFERENCES wic_story_clusters(cluster_id),
+                observation_id TEXT NOT NULL UNIQUE,
+                source_id TEXT NOT NULL,
+                article_url TEXT NOT NULL,
+                normalized_url TEXT NOT NULL,
+                PRIMARY KEY (cluster_id, observation_id)
+            )"""
+        )
+        self.db.commit()
+
+    def __enter__(self) -> "StoryClusterStore":
+        return self
+
+    def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
+        self.close()
+
+    def add(self, cluster_key: str, observations: Iterable[SourceObservation]) -> StoryCluster:
+        cluster_key = _text(cluster_key, "cluster key", MAX_URL_BYTES)
+        values = tuple(observations)
+        if not values or len(values) > MAX_FEED_ITEMS or any(
+            not isinstance(item, SourceObservation) for item in values
+        ):
+            raise WICError("cluster observations are outside the bounded range")
+        if len({item.observation_id for item in values}) != len(values):
+            raise WICError("cluster observations are duplicated")
+        cluster_id = hashlib.sha256(cluster_key.encode("utf-8")).hexdigest()[:32]
+        try:
+            with self.db:
+                self.db.execute(
+                    "INSERT OR IGNORE INTO wic_story_clusters (cluster_id, cluster_key) VALUES (?, ?)",
+                    (cluster_id, cluster_key),
+                )
+                existing = self.db.execute(
+                    "SELECT cluster_id FROM wic_story_cluster_members WHERE observation_id IN ({})".format(
+                        ",".join("?" for _ in values)
+                    ),
+                    tuple(item.observation_id for item in values),
+                ).fetchall()
+                if any(row["cluster_id"] != cluster_id for row in existing):
+                    raise WICError("observation already belongs to another cluster")
+                for item in values:
+                    self.db.execute(
+                        """INSERT OR IGNORE INTO wic_story_cluster_members
+                           (cluster_id, observation_id, source_id, article_url, normalized_url)
+                           VALUES (?, ?, ?, ?, ?)""",
+                        (
+                            cluster_id, item.observation_id, item.source_id,
+                            item.article_url, normalize_url(item.article_url),
+                        ),
+                    )
+        except sqlite3.Error as exc:
+            raise WICError("cluster persistence failed") from exc
+        return self.get(cluster_key)  # type: ignore[return-value]
+
+    def get(self, cluster_key: str) -> StoryCluster | None:
+        cluster_key = _text(cluster_key, "cluster key", MAX_URL_BYTES)
+        row = self.db.execute(
+            "SELECT cluster_id, cluster_key FROM wic_story_clusters WHERE cluster_key=?",
+            (cluster_key,),
+        ).fetchone()
+        if row is None:
+            return None
+        members = self.db.execute(
+            """SELECT observation_id, source_id, article_url, normalized_url
+               FROM wic_story_cluster_members WHERE cluster_id=?
+               ORDER BY observation_id""",
+            (row["cluster_id"],),
+        ).fetchall()
+        return StoryCluster(
+            row["cluster_id"], row["cluster_key"],
+            tuple(item["observation_id"] for item in members),
+            tuple(sorted({item["source_id"] for item in members})),
+            tuple(item["article_url"] for item in members),
+            tuple(item["normalized_url"] for item in members),
+        )
+
+    def clusters(self) -> tuple[StoryCluster, ...]:
+        result: list[StoryCluster] = []
+        for row in self.db.execute("SELECT cluster_key FROM wic_story_clusters ORDER BY cluster_key"):
+            cluster = self.get(row["cluster_key"])
+            if cluster is not None:
+                result.append(cluster)
+        return tuple(result)
+
+    def close(self) -> None:
+        if self._owns_connection:
+            self.db.close()
+
+
+class StoryClusterer:
+    """Group observations by an explicit incident key or normalized URL."""
+
+    def __init__(self, store: StoryClusterStore):
+        if not isinstance(store, StoryClusterStore):
+            raise WICError("story cluster store is required")
+        self.store = store
+
+    def cluster(
+        self, observations: Iterable[SourceObservation], *, incident_key: str | None = None,
+    ) -> StoryCluster:
+        values = tuple(observations)
+        if not values:
+            raise WICError("at least one observation is required")
+        if any(not isinstance(item, SourceObservation) for item in values):
+            raise WICError("cluster observations are invalid")
+        if incident_key is None:
+            normalized = {normalize_url(item.article_url) for item in values}
+            if len(normalized) != 1:
+                raise WICError("incident key is required for different URLs")
+            cluster_key = "url:" + next(iter(normalized))
+        else:
+            incident_key = _text(incident_key, "incident key", 512)
+            cluster_key = "incident:" + incident_key
+        return self.store.add(cluster_key, values)
+
+
 FeedTransport = Callable[[str, SourcePolicy, int], Iterable[Mapping[str, object]]]
 
 
@@ -409,6 +604,10 @@ __all__ = [
     "SourceObservation",
     "SourcePolicy",
     "SourceStore",
+    "StoryCluster",
+    "StoryClusterStore",
+    "StoryClusterer",
     "WICError",
     "WICSourceStore",
+    "normalize_url",
 ]
