@@ -33,6 +33,7 @@ from .planning import FinanceForecast, FinanceGoal, FinancePlanningError, Financ
 from .alerts import FinanceAlert, FinanceAlertError, FinanceAlertService
 from .advice import FinanceAdviceError, FinanceAdviceService, FinanceNotification, FinanceRecommendation
 from .paper import PaperAccount, PaperFillPolicy, PaperLedger, PaperLedgerError, PaperOrder, PaperPosition
+from .performance import PaperMarketMark, PaperPerformance, PaperPerformanceError, PaperPerformanceService, PaperSplit, PaperTrade
 
 __all__ = [
     "Account",
@@ -77,4 +78,10 @@ __all__ = [
     "PaperLedgerError",
     "PaperOrder",
     "PaperPosition",
+    "PaperMarketMark",
+    "PaperPerformance",
+    "PaperPerformanceError",
+    "PaperPerformanceService",
+    "PaperSplit",
+    "PaperTrade",
 ]
