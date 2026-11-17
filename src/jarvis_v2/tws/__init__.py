@@ -195,11 +195,36 @@ TWS_MIGRATIONS = DEFAULT_MIGRATIONS + (
             "DROP TABLE tws_cultivation_achievements",
         ),
     ),
+    Migration(
+        module="tws",
+        version=7,
+        name="tws-aurelia-dialogue-state",
+        tables=("tws_aurelia_states", "tws_aurelia_turns"),
+        up_sql=(
+            "CREATE TABLE tws_aurelia_states ("
+            "profile_id TEXT PRIMARY KEY, personality TEXT NOT NULL, mood TEXT NOT NULL, "
+            "narrative_node TEXT NOT NULL, updated_at TEXT NOT NULL"
+            ")",
+            "CREATE TABLE tws_aurelia_turns ("
+            "turn_id TEXT PRIMARY KEY, profile_id TEXT NOT NULL, mood TEXT NOT NULL, "
+            "narrative_node TEXT NOT NULL, line_sha256 TEXT NOT NULL, created_at TEXT NOT NULL, "
+            "UNIQUE(profile_id, turn_id), FOREIGN KEY(profile_id) REFERENCES tws_aurelia_states(profile_id)"
+            ")",
+            "CREATE INDEX tws_aurelia_turns_by_profile "
+            "ON tws_aurelia_turns(profile_id, created_at, turn_id)",
+        ),
+        down_sql=(
+            "DROP INDEX tws_aurelia_turns_by_profile",
+            "DROP TABLE tws_aurelia_turns",
+            "DROP TABLE tws_aurelia_states",
+        ),
+    ),
 )
 
-TWS_SCHEMA_VERSION = 6
+TWS_SCHEMA_VERSION = 7
 _QUEST_KINDS = frozenset({"daily", "weekly", "skill", "story", "trial"})
 _CADENCES = frozenset({"once", "daily", "weekly"})
+_AURELIA_MOODS = frozenset({"calm", "curious", "encouraging", "reflective", "playful", "concerned"})
 _STATE_ALIASES = {"submitted": "proof_submitted"}
 _TRANSITIONS = {
     "draft": frozenset({"offered", "rejected", "expired"}),
@@ -731,6 +756,116 @@ class QuestStore:
             (adaptation_id,),
         ) or {}
 
+    def set_aurelia_state(
+        self,
+        profile_id: str,
+        *,
+        personality: str = "aurelia",
+        mood: str = "calm",
+        narrative_node: str = "sanctuary",
+    ) -> dict[str, Any]:
+        """Update dialogue state only; it has no XP or finance side effects."""
+        profile_id = _identifier(profile_id, "profile id")
+        personality = _identifier(personality, "personality")
+        mood = _identifier(mood, "dialogue mood")
+        narrative_node = _identifier(narrative_node, "narrative node")
+        if mood not in _AURELIA_MOODS:
+            raise TWSStoreError("invalid dialogue mood")
+        existing = self._one(
+            "SELECT * FROM tws_aurelia_states WHERE profile_id=?", (profile_id,)
+        )
+        if existing is None:
+            self.storage.module("tws").insert(
+                "tws_aurelia_states",
+                {
+                    "profile_id": profile_id,
+                    "personality": personality,
+                    "mood": mood,
+                    "narrative_node": narrative_node,
+                    "updated_at": _now(),
+                },
+            )
+        else:
+            with self.db:
+                self.db.execute(
+                    "UPDATE tws_aurelia_states SET personality=?, mood=?, narrative_node=?, updated_at=? "
+                    "WHERE profile_id=?",
+                    (personality, mood, narrative_node, _now(), profile_id),
+                )
+        return self._one(
+            "SELECT * FROM tws_aurelia_states WHERE profile_id=?", (profile_id,)
+        ) or {}
+
+    def record_aurelia_turn(
+        self,
+        profile_id: str,
+        turn_id: str,
+        line: str,
+        *,
+        personality: str = "aurelia",
+        mood: str = "calm",
+        narrative_node: str = "sanctuary",
+    ) -> dict[str, Any]:
+        """Record only a bounded hash of dialogue content and its narrative state."""
+        profile_id = _identifier(profile_id, "profile id")
+        turn_id = _identifier(turn_id, "dialogue turn id")
+        line = _text(line, "dialogue line")
+        line_sha256 = hashlib.sha256(line.encode("utf-8")).hexdigest()
+        personality = _identifier(personality, "personality")
+        mood = _identifier(mood, "dialogue mood")
+        narrative_node = _identifier(narrative_node, "narrative node")
+        if mood not in _AURELIA_MOODS:
+            raise TWSStoreError("invalid dialogue mood")
+        existing = self._one(
+            "SELECT * FROM tws_aurelia_turns WHERE turn_id=?", (turn_id,)
+        )
+        if existing is not None:
+            if (
+                existing["profile_id"] != profile_id
+                or existing["mood"] != mood
+                or existing["narrative_node"] != narrative_node
+                or existing["line_sha256"] != line_sha256
+            ):
+                raise TWSStoreError("dialogue turn identity conflict")
+            return existing
+        self.set_aurelia_state(
+            profile_id,
+            personality=personality,
+            mood=mood,
+            narrative_node=narrative_node,
+        )
+        self.storage.module("tws").insert(
+            "tws_aurelia_turns",
+            {
+                "turn_id": turn_id,
+                "profile_id": profile_id,
+                "mood": mood,
+                "narrative_node": narrative_node,
+                "line_sha256": line_sha256,
+                "created_at": _now(),
+            },
+        )
+        return self._one(
+            "SELECT * FROM tws_aurelia_turns WHERE turn_id=?", (turn_id,)
+        ) or {}
+
+    def aurelia_state(self, profile_id: str) -> dict[str, Any] | None:
+        return self._one(
+            "SELECT * FROM tws_aurelia_states WHERE profile_id=?",
+            (_identifier(profile_id, "profile id"),),
+        )
+
+    def aurelia_turns(self, profile_id: str) -> list[dict[str, Any]]:
+        profile_id = _identifier(profile_id, "profile id")
+        return [
+            dict(row)
+            for row in self.db.execute(
+                "SELECT turn_id, profile_id, mood, narrative_node, line_sha256, created_at "
+                "FROM tws_aurelia_turns WHERE profile_id=? ORDER BY created_at, turn_id",
+                (profile_id,),
+            )
+        ]
+
     def wing(self, wing_id: str) -> dict[str, Any] | None:
         return self._one("SELECT * FROM tws_wings WHERE wing_id=?", (_identifier(wing_id, "wing id"),))
 
@@ -747,7 +882,40 @@ class QuestStore:
         ]
 
 
+class AureliaDialogue:
+    """Narrow dialogue façade; XP and finance APIs are intentionally absent."""
+
+    def __init__(self, store: QuestStore) -> None:
+        self._store = store
+
+    def record_turn(
+        self,
+        profile_id: str,
+        turn_id: str,
+        line: str,
+        *,
+        personality: str = "aurelia",
+        mood: str = "calm",
+        narrative_node: str = "sanctuary",
+    ) -> dict[str, Any]:
+        return self._store.record_aurelia_turn(
+            profile_id,
+            turn_id,
+            line,
+            personality=personality,
+            mood=mood,
+            narrative_node=narrative_node,
+        )
+
+    def state(self, profile_id: str) -> dict[str, Any] | None:
+        return self._store.aurelia_state(profile_id)
+
+    def turns(self, profile_id: str) -> list[dict[str, Any]]:
+        return self._store.aurelia_turns(profile_id)
+
+
 __all__ = [
+    "AureliaDialogue",
     "QuestStore",
     "TWS_MIGRATIONS",
     "TWS_SCHEMA_VERSION",
