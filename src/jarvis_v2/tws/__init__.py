@@ -6,7 +6,7 @@ dialogue is never an input to cultivation or skill adaptation.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -15,6 +15,7 @@ import re
 from typing import Any
 
 from ..backend.event_bus import PRIVACY_SCOPES
+from ..backend.module_manifest import ACTIVE_MODULE_KEYS
 from ..backend.storage import DEFAULT_MIGRATIONS, Migration, StorageError, StorageManager
 
 
@@ -219,9 +220,31 @@ TWS_MIGRATIONS = DEFAULT_MIGRATIONS + (
             "DROP TABLE tws_aurelia_states",
         ),
     ),
+    Migration(
+        module="tws",
+        version=8,
+        name="tws-task-quest-proposals",
+        tables=("tws_task_quest_proposals",),
+        up_sql=(
+            "CREATE TABLE tws_task_quest_proposals ("
+            "proposal_id TEXT PRIMARY KEY, source_task_id TEXT NOT NULL UNIQUE, "
+            "source_module TEXT NOT NULL, source_sha256 TEXT NOT NULL, quest_id TEXT NOT NULL UNIQUE, "
+            "consent_id TEXT NOT NULL, consent_scope TEXT NOT NULL, "
+            "reward_gate TEXT NOT NULL CHECK(reward_gate='explicit_review'), "
+            "created_at TEXT NOT NULL, updated_at TEXT NOT NULL, "
+            "FOREIGN KEY(quest_id) REFERENCES tws_quests(quest_id)"
+            ")",
+            "CREATE INDEX tws_task_quest_proposals_by_module "
+            "ON tws_task_quest_proposals(source_module, created_at, source_task_id)",
+        ),
+        down_sql=(
+            "DROP INDEX tws_task_quest_proposals_by_module",
+            "DROP TABLE tws_task_quest_proposals",
+        ),
+    ),
 )
 
-TWS_SCHEMA_VERSION = 7
+TWS_SCHEMA_VERSION = 8
 _QUEST_KINDS = frozenset({"daily", "weekly", "skill", "story", "trial"})
 _CADENCES = frozenset({"once", "daily", "weekly"})
 _AURELIA_MOODS = frozenset({"calm", "curious", "encouraging", "reflective", "playful", "concerned"})
@@ -328,6 +351,149 @@ class QuestStore:
              "kind": kind, "cadence": cadence},
         )
         return self._one("SELECT * FROM tws_quests WHERE quest_id=?", (quest_id,)) or {}
+
+    def import_tasks_as_quests(
+        self,
+        tasks: Sequence[Mapping[str, Any]],
+        *,
+        consent_id: str,
+        consent_scope: str,
+    ) -> list[dict[str, Any]]:
+        """Create draft quest proposals from consented cross-module task metadata.
+
+        Import is deliberately proposal-only: it never offers a quest, submits
+        proof, verifies work or writes an XP reward.  ``source_sha256`` binds a
+        task identity so replaying a changed source cannot silently mutate it.
+        """
+        consent_id = _identifier(consent_id, "consent id")
+        if not isinstance(consent_scope, str) or consent_scope not in PRIVACY_SCOPES:
+            raise TWSStoreError("invalid consent scope")
+        if not isinstance(tasks, Sequence) or isinstance(tasks, (str, bytes)):
+            raise TWSStoreError("task proposals must be a sequence")
+
+        prepared: list[dict[str, str]] = []
+        seen: set[str] = set()
+        for item in tasks:
+            if not isinstance(item, Mapping):
+                raise TWSStoreError("task proposal must be an object")
+            task_id = _identifier(item.get("task_id"), "source task id")
+            source_module = item.get("source_module", item.get("module"))
+            if not isinstance(source_module, str) or source_module not in ACTIVE_MODULE_KEYS or source_module == "tws":
+                raise TWSStoreError("task proposal must come from another active module")
+            source_sha256 = item.get("source_sha256")
+            if not isinstance(source_sha256, str) or not re.fullmatch(r"[a-f0-9]{64}", source_sha256):
+                raise TWSStoreError("invalid source SHA")
+            wing_id = _identifier(item.get("wing_id"), "wing id")
+            title = item.get("title", item.get("objective"))
+            title = _text(title, "quest title")
+            kind = item.get("kind", "skill")
+            cadence = item.get("cadence", "once")
+            if (
+                not isinstance(kind, str) or kind not in _QUEST_KINDS
+                or not isinstance(cadence, str) or cadence not in _CADENCES
+            ):
+                raise TWSStoreError("invalid quest metadata")
+            if task_id in seen:
+                raise TWSStoreError("duplicate source task")
+            seen.add(task_id)
+            quest_id = _identifier(item.get("quest_id", f"task-{task_id}"), "quest id")
+            proposal_id = "proposal-" + hashlib.sha256(
+                f"{task_id}:{source_sha256}".encode("ascii")
+            ).hexdigest()[:32]
+            prepared.append({
+                "task_id": task_id,
+                "source_module": source_module,
+                "source_sha256": source_sha256,
+                "wing_id": wing_id,
+                "title": title,
+                "kind": kind,
+                "cadence": cadence,
+                "quest_id": quest_id,
+                "proposal_id": proposal_id,
+            })
+
+        results: list[dict[str, Any]] = []
+        with self.db:
+            for item in prepared:
+                existing = self.db.execute(
+                    "SELECT * FROM tws_task_quest_proposals WHERE source_task_id=?",
+                    (item["task_id"],),
+                ).fetchone()
+                if existing is not None:
+                    if any(existing[key] != item[value] for key, value in (
+                        ("source_module", "source_module"),
+                        ("source_sha256", "source_sha256"),
+                        ("quest_id", "quest_id"),
+                    )) or existing["consent_id"] != consent_id or existing["consent_scope"] != consent_scope:
+                        raise TWSStoreError("task proposal identity conflict")
+                    quest = self.db.execute(
+                        "SELECT * FROM tws_quests WHERE quest_id=?", (item["quest_id"],)
+                    ).fetchone()
+                    results.append({"proposal": dict(existing), "quest": dict(quest)})
+                    continue
+                if self.db.execute(
+                    "SELECT 1 FROM tws_wings WHERE wing_id=?", (item["wing_id"],)
+                ).fetchone() is None:
+                    raise TWSStoreError("quest references an unknown wing")
+                existing_quest = self.db.execute(
+                    "SELECT * FROM tws_quests WHERE quest_id=?", (item["quest_id"],)
+                ).fetchone()
+                if existing_quest is not None:
+                    if any(existing_quest[key] != item[value] for key, value in (
+                        ("wing_id", "wing_id"), ("title", "title"),
+                        ("kind", "kind"), ("cadence", "cadence"),
+                    )):
+                        raise TWSStoreError("quest identity conflict")
+                else:
+                    timestamp = _now()
+                    self.db.execute(
+                        "INSERT INTO tws_quests(quest_id,wing_id,title,state,created_at,updated_at,kind,cadence) "
+                        "VALUES(?,?,?,?,?,?,?,?)",
+                        (item["quest_id"], item["wing_id"], item["title"], "draft",
+                         timestamp, timestamp, item["kind"], item["cadence"]),
+                    )
+                timestamp = _now()
+                self.db.execute(
+                    "INSERT INTO tws_task_quest_proposals "
+                    "(proposal_id,source_task_id,source_module,source_sha256,quest_id,consent_id,"
+                    "consent_scope,reward_gate,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)",
+                    (item["proposal_id"], item["task_id"], item["source_module"],
+                     item["source_sha256"], item["quest_id"], consent_id, consent_scope,
+                     "explicit_review", timestamp, timestamp),
+                )
+                quest = self.db.execute(
+                    "SELECT * FROM tws_quests WHERE quest_id=?", (item["quest_id"],)
+                ).fetchone()
+                proposal = self.db.execute(
+                    "SELECT * FROM tws_task_quest_proposals WHERE proposal_id=?",
+                    (item["proposal_id"],),
+                ).fetchone()
+                results.append({"proposal": dict(proposal), "quest": dict(quest)})
+        return results
+
+    def propose_task_quests(
+        self,
+        tasks: Sequence[Mapping[str, Any]],
+        *,
+        consent_id: str,
+        consent_scope: str,
+    ) -> list[dict[str, Any]]:
+        """Compatibility name for the proposal-only task import boundary."""
+        return self.import_tasks_as_quests(
+            tasks, consent_id=consent_id, consent_scope=consent_scope
+        )
+
+    def task_quest_proposals(self, source_task_id: str | None = None) -> list[dict[str, Any]]:
+        """Return bounded provenance records for imported task proposals."""
+        if source_task_id is not None:
+            source_task_id = _identifier(source_task_id, "source task id")
+        rows = self.db.execute(
+            "SELECT * FROM tws_task_quest_proposals"
+            + (" WHERE source_task_id=?" if source_task_id is not None else "")
+            + " ORDER BY created_at, source_task_id",
+            (source_task_id,) if source_task_id is not None else (),
+        )
+        return [dict(row) for row in rows]
 
     def transition_quest(self, quest_id: str, state: str) -> dict[str, Any]:
         """Advance one quest through the approved lifecycle exactly once."""
