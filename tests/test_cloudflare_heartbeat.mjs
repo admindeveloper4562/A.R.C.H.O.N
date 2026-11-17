@@ -31,7 +31,7 @@ class MockDB {
 }
 
 const env = { DB: new MockDB(), HEARTBEAT_INGEST_TOKEN: "ingest", HEARTBEAT_VIEW_TOKEN: "view",
-  HEARTBEAT_TIMEOUT_SECONDS: "30", __now: () => 100 };
+  HEARTBEAT_TIMEOUT_SECONDS: "30", __now: () => 100, __rateLimit: async () => true };
 
 async function call(path, method = "GET", body, token = "") {
   const headers = token ? { authorization: `Bearer ${token}` } : {};

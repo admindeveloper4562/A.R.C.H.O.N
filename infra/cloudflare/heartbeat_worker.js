@@ -1,3 +1,5 @@
+import { allowRequest } from "./rate_limit.js";
+
 const DEFAULT_TIMEOUT_SECONDS = 120;
 const MAX_BODY_BYTES = 512;
 const DEVICE_ID = /^[A-Za-z0-9_.:-]{1,128}$/;
@@ -94,6 +96,9 @@ export default {
     if (!env.DB || !env.HEARTBEAT_INGEST_TOKEN || !env.HEARTBEAT_VIEW_TOKEN || timeoutSeconds === null) {
       return json({ error: "not_configured" }, 503);
     }
+    try {
+      if (!await allowRequest(request, env, `heartbeat:${route.action}`)) return json({ error: "rate_limited" }, 429);
+    } catch { return json({ error: "rate_limit_unavailable" }, 503); }
     const now = clock(env);
     if (!Number.isSafeInteger(now) || now < 0) return json({ error: "clock_unavailable" }, 503);
     if (route.action === "heartbeat" && request.method === "POST") {

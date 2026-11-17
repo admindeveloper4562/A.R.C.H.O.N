@@ -27,7 +27,7 @@ class MockDB {
   }
   prepare(sql) { return new Statement(this, sql); }
 }
-const env = { DB: new MockDB(), DASHBOARD_VIEW_TOKEN: "view" };
+const env = { DB: new MockDB(), DASHBOARD_VIEW_TOKEN: "view", __rateLimit: async () => true };
 
 async function call(path, token = "") {
   const request = new Request(`https://dashboard.test${path}`, { headers: token ? { authorization: `Bearer ${token}` } : {} });

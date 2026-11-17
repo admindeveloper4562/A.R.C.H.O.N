@@ -1,3 +1,5 @@
+import { allowRequest } from "./rate_limit.js";
+
 const TASK_ID = /^[A-Z][A-Z0-9-]{2,48}$/;
 const JSON_HEADERS = {
   "content-type": "application/json; charset=utf-8",
@@ -90,6 +92,9 @@ export default {
     if (request.method === "GET" && url.pathname === "/") return new Response(DASHBOARD, { headers: HTML_HEADERS });
     if (request.method === "GET" && url.pathname === "/dashboard.js") return new Response(DASHBOARD_JS, { headers: { ...HTML_HEADERS, "content-type": "text/javascript; charset=utf-8" } });
     if (!env.DB || !env.DASHBOARD_VIEW_TOKEN) return json({ error: "not_configured" }, 503);
+    try {
+      if (!await allowRequest(request, env, `dashboard:${url.pathname}`)) return json({ error: "rate_limited" }, 429);
+    } catch { return json({ error: "rate_limit_unavailable" }, 503); }
     if (request.method === "GET" && url.pathname === "/api/public/summary") {
       try {
         const rows = await env.DB.prepare(`SELECT r.stage, COUNT(*) AS count FROM astra_runs r
