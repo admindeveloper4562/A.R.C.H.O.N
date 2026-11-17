@@ -56,6 +56,14 @@ from .reminders import (
     ReminderService,
     ReminderServiceError,
 )
+from .dashboard import (
+    DashboardError,
+    DashboardReader,
+    DashboardRecord,
+    DashboardService,
+    DashboardSnapshot,
+    RuntimeDashboard,
+)
 
 __all__ = [
     "RUNTIME_HEALTH_SCOPE",
@@ -117,4 +125,10 @@ __all__ = [
     "ReminderNotification",
     "ReminderService",
     "ReminderServiceError",
+    "DashboardError",
+    "DashboardReader",
+    "DashboardRecord",
+    "DashboardService",
+    "DashboardSnapshot",
+    "RuntimeDashboard",
 ]
