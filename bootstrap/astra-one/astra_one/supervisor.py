@@ -392,6 +392,7 @@ class SupervisorController:
             "BASE-013": "cloudflare_readonly_inventory",
             "FIN-001": "mira_readonly_inventory",
             "MIG-002": "github_policy_and_ci",
+            "RES-015": "research_live_source_benchmark",
         }
         if task_id == "WIN-002":
             raise ValueError("WIN-002 requires real Windows device evidence")
@@ -399,6 +400,8 @@ class SupervisorController:
             raise ValueError("unsupported or mismatched external evidence kind")
         if evidence.get("archon_read_only_policy") is not True:
             raise ValueError("external evidence must preserve the ARCHON read-only policy")
+        if task_id == "RES-015":
+            self._validate_research_benchmark_evidence(evidence)
         evidence_sha = hashlib.sha256(raw).hexdigest()
         with self.state.master_lock():
             stamp = re.sub(r"[^0-9A-Za-z_-]", "", now())[:32]
@@ -502,6 +505,41 @@ class SupervisorController:
                 db.execute("COMMIT")
         return {"task_id": task_id, "state": "pending", "idempotent": False,
                 "evidence_sha256": evidence_sha, "backup_sha256": backup_sha}
+
+    def _validate_research_benchmark_evidence(self, evidence: dict) -> None:
+        """Require a bounded source report before re-admitting RES-015."""
+        if evidence.get("benchmark_status") != "ready_for_qc":
+            raise ValueError("research benchmark is not ready for independent QC")
+        if evidence.get("no_credentials_used") is not True:
+            raise ValueError("research evidence must confirm no credentials were used")
+        for key in ("live_source_count", "timestamped_source_count"):
+            if type(evidence.get(key)) is not int or evidence[key] < 2:
+                raise ValueError("research evidence has too few live timestamped sources")
+        source_ids = evidence.get("source_ids")
+        if (
+            not isinstance(source_ids, list)
+            or any(not isinstance(item, str) for item in source_ids)
+            or not {"python_docs", "youtube"}.issubset(source_ids)
+        ):
+            raise ValueError("research evidence source identities are incomplete")
+        limitations = evidence.get("known_limitations")
+        if not isinstance(limitations, list) or not limitations or any(
+            not isinstance(item, str) or not item.strip() for item in limitations
+        ):
+            raise ValueError("research evidence must record known limitations")
+        report_value = evidence.get("report_path")
+        report_sha = evidence.get("report_sha256")
+        if not isinstance(report_value, str) or not re.fullmatch(r"[0-9a-f]{64}", str(report_sha)):
+            raise ValueError("research evidence report binding is invalid")
+        report_path = Path(report_value).expanduser().resolve()
+        try:
+            report_path.relative_to((self.state.home / "worktrees").resolve())
+        except ValueError as exc:
+            raise ValueError("research evidence report must be in an Astra worktree") from exc
+        if report_path.is_symlink() or not report_path.is_file():
+            raise ValueError("research evidence report is unavailable")
+        if hashlib.sha256(report_path.read_bytes()).hexdigest() != report_sha:
+            raise ValueError("research evidence report digest mismatch")
 
     def claim_recovery(self, case_id: str, lane_id: str) -> dict:
         if lane_id not in RECOVERY_LANES or not _SAFE_CODE.fullmatch(case_id):

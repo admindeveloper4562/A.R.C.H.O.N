@@ -350,6 +350,25 @@ class SupervisorV3Tests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "real Windows device evidence"):
             self.supervisor.resolve_external("WIN-002", evidence)
 
+    def test_research_external_evidence_binds_report_and_limits(self):
+        report = self.state.home / "worktrees" / "res-015" / "benchmark.md"
+        report.parent.mkdir(parents=True)
+        report.write_text("live benchmark\n", encoding="utf-8")
+        evidence = {
+            "benchmark_status": "ready_for_qc",
+            "known_limitations": ["chapter timestamps are not caption offsets"],
+            "live_source_count": 2,
+            "no_credentials_used": True,
+            "report_path": str(report),
+            "report_sha256": hashlib.sha256(report.read_bytes()).hexdigest(),
+            "source_ids": ["python_docs", "youtube"],
+            "timestamped_source_count": 2,
+        }
+        self.supervisor._validate_research_benchmark_evidence(evidence)
+        evidence["report_sha256"] = "0" * 64
+        with self.assertRaisesRegex(ValueError, "digest mismatch"):
+            self.supervisor._validate_research_benchmark_evidence(evidence)
+
     def test_external_blocker_clears_stale_pending_claim_and_survives_refresh(self):
         with self.state.db() as db:
             db.execute(
