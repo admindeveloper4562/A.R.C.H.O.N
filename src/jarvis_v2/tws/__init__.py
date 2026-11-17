@@ -866,6 +866,48 @@ class QuestStore:
             )
         ]
 
+    def wings(self) -> list[dict[str, Any]]:
+        """Read the current wing ledger for a view without client-side state."""
+        return [
+            dict(row)
+            for row in self.db.execute(
+                "SELECT wing_id, name, state, created_at, updated_at "
+                "FROM tws_wings ORDER BY created_at, wing_id"
+            )
+        ]
+
+    def sanctuary_snapshot(self, profile_id: str | None = None) -> dict[str, Any]:
+        """Return a bounded, read-only Sanctuary view from the live TWS ledger."""
+        if profile_id is not None:
+            profile_id = _identifier(profile_id, "profile id")
+        quests = [
+            dict(row)
+            for row in self.db.execute(
+                "SELECT quest_id, wing_id, title, kind, cadence, state, created_at, updated_at "
+                "FROM tws_quests ORDER BY created_at, quest_id"
+            )
+        ]
+        snapshot: dict[str, Any] = {
+            "source": "tws_ledger",
+            "captured_at": _now(),
+            "wings": self.wings(),
+            "quests": quests,
+        }
+        if profile_id is not None:
+            snapshot["progress"] = {
+                "profile_id": profile_id,
+                "xp": self.xp_total(profile_id),
+                "unlocked_realms": [
+                    row["realm_id"]
+                    for row in self.db.execute(
+                        "SELECT realm_id FROM tws_realm_progress WHERE profile_id=? "
+                        "ORDER BY unlocked_at, realm_id",
+                        (profile_id,),
+                    )
+                ],
+            }
+        return snapshot
+
     def wing(self, wing_id: str) -> dict[str, Any] | None:
         return self._one("SELECT * FROM tws_wings WHERE wing_id=?", (_identifier(wing_id, "wing id"),))
 
