@@ -40,6 +40,20 @@ from .web import (
     WebDiscoveryService,
 )
 
+from .youtube import (
+    MAX_DURATION_MS,
+    MAX_SEGMENTS,
+    TranscriptSegment,
+    VideoRecord,
+    VideoResearchStore,
+    VideoResult,
+    YouTubeAdapter,
+    YouTubeResearchError,
+    YouTubeResearchService,
+    YouTubeStore,
+    video_id_from_url,
+)
+
 __all__ = [
     "ComparisonError",
     "FetchResult",
@@ -52,9 +66,11 @@ __all__ = [
     "GitHubSourceError",
     "MAX_CONTENT_BYTES",
     "MAX_CLAIMS",
+    "MAX_DURATION_MS",
     "MAX_FILES",
     "MAX_QUERY_BYTES",
     "MAX_RESULTS",
+    "MAX_SEGMENTS",
     "PinnedCommit",
     "PinnedCommitAnalysis",
     "ResearchError",
@@ -69,7 +85,16 @@ __all__ = [
     "SourceComparator",
     "SourceComparisonResult",
     "SourceFile",
+    "TranscriptSegment",
+    "VideoRecord",
+    "VideoResearchStore",
+    "VideoResult",
+    "YouTubeAdapter",
+    "YouTubeResearchError",
+    "YouTubeResearchService",
+    "YouTubeStore",
     "RepositoryPolicy",
     "WebDiscoveryAdapter",
     "WebDiscoveryService",
+    "video_id_from_url",
 ]
