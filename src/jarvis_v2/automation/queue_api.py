@@ -208,6 +208,32 @@ class CoordinatorQueue:
             )
         return QueueEnvelope(leased["id"], leased["priority"], leased["module"], leased["payload"], leased["lease"])
 
+    def eligible(self, *, guardian_waiting: bool = False, allowed_modules: set[str] | None = None) -> list[QueueEnvelope]:
+        """Return ready work without claiming it."""
+        self._requeue_expired()
+        return [
+            QueueEnvelope(row["id"], row["priority"], row["module"], row["payload"])
+            for row in self._queue.eligible(guardian_waiting=guardian_waiting, allowed_modules=allowed_modules)
+        ]
+
+    def release(self, item: QueueEnvelope, *, reason: str = "dispatch_deferred") -> None:
+        """Return a leased item to pending after a bounded handoff failure."""
+        if not item.lease:
+            raise QueueApiError("leased item required")
+        if not isinstance(reason, str) or not reason or len(reason) > 80 or any(
+            not (char.isalnum() or char in "_.:-") for char in reason
+        ):
+            raise QueueApiError("invalid release reason")
+        with self._queue.db:
+            updated = self._queue.db.execute(
+                "update tasks set state='pending',lease=null,lease_expires_at=0 "
+                "where id=? and state='leased' and lease=?",
+                (item.task_id, item.lease),
+            )
+            if updated.rowcount != 1:
+                raise QueueApiError("unknown or stale lease")
+            self._queue._emit_event(item.task_id, "pending", reason)
+
     def renew(self, item: QueueEnvelope, *, lease_seconds: int = DEFAULT_LEASE_SECONDS) -> QueueEnvelope:
         if not item.lease:
             raise QueueApiError("leased item required")
