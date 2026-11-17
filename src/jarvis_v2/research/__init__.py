@@ -65,6 +65,16 @@ from .instagram import (
     instagram_reel_id_from_url,
 )
 
+from .analysis import (
+    MAX_FINDING_BYTES,
+    MediaAnalysisError,
+    MediaAnalysisEvidence,
+    MediaAnalysisResult,
+    MediaAnalysisService,
+    MediaAnalysisStore,
+    MediaAnalyzer,
+)
+
 __all__ = [
     "ComparisonError",
     "FetchResult",
@@ -82,6 +92,7 @@ __all__ = [
     "InstagramResearchError",
     "InstagramResult",
     "InstagramStore",
+    "MAX_FINDING_BYTES",
     "MAX_CONTENT_BYTES",
     "MAX_CLAIMS",
     "MAX_DURATION_MS",
@@ -89,6 +100,12 @@ __all__ = [
     "MAX_QUERY_BYTES",
     "MAX_RESULTS",
     "MAX_SEGMENTS",
+    "MediaAnalysisError",
+    "MediaAnalysisEvidence",
+    "MediaAnalysisResult",
+    "MediaAnalysisService",
+    "MediaAnalysisStore",
+    "MediaAnalyzer",
     "PinnedCommit",
     "PinnedCommitAnalysis",
     "ResearchError",
