@@ -210,6 +210,21 @@ CREATE TABLE IF NOT EXISTS supervisor_cases(
   created_at TEXT NOT NULL,
   UNIQUE(parent_id,generation,failure_fingerprint));
 CREATE INDEX IF NOT EXISTS idx_supervisor_cases_state ON supervisor_cases(state,updated_at);
+CREATE TABLE IF NOT EXISTS external_resolution_receipts(
+  receipt_id TEXT PRIMARY KEY,
+  case_id TEXT NOT NULL REFERENCES supervisor_cases(case_id),
+  task_id TEXT NOT NULL REFERENCES tasks(id),
+  category TEXT NOT NULL,
+  evidence_path TEXT NOT NULL,
+  evidence_sha256 TEXT NOT NULL,
+  backup_path TEXT NOT NULL,
+  backup_sha256 TEXT NOT NULL,
+  source_sha TEXT NOT NULL,
+  integration_sha TEXT NOT NULL,
+  verifier TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  UNIQUE(case_id,evidence_sha256));
+CREATE INDEX IF NOT EXISTS idx_external_resolution_task ON external_resolution_receipts(task_id,created_at);
 CREATE TABLE IF NOT EXISTS supervisor_lanes(
   lane_id TEXT PRIMARY KEY CHECK(lane_id IN ('repair_1','repair_2','upgrade_auditor')),
   role TEXT NOT NULL,

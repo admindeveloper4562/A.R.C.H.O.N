@@ -359,6 +359,145 @@ class SupervisorController:
                 "state": "external_blocker", "category": category,
                 "failure_code": failure_code[:160]}
 
+    def resolve_external(self, task_id: str, evidence_path: Path) -> dict:
+        """Re-admit one external blocker only after task-specific evidence passes."""
+        if not _SAFE_CODE.fullmatch(task_id):
+            raise ValueError("invalid task ID")
+        self.state.ensure_full_plan_schema()
+        path = evidence_path.expanduser().resolve()
+        try:
+            path.relative_to((self.state.home / "private").resolve())
+        except ValueError as exc:
+            raise ValueError("external evidence must be below private state") from exc
+        if path.is_symlink() or not path.is_file() or (path.stat().st_mode & 0o777) != 0o600:
+            raise ValueError("external evidence must be a regular owner-private mode 0600 file")
+        raw = path.read_bytes()
+        if len(raw) > 32_000:
+            raise ValueError("external evidence exceeds the size limit")
+        try:
+            evidence = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ValueError("external evidence is not valid JSON") from exc
+        if not isinstance(evidence, dict) or evidence.get("task_id") != task_id:
+            raise ValueError("external evidence task mismatch")
+        if any(any(word in str(key).lower() for word in ("secret", "password", "private_key", "raw_token"))
+               for key in evidence):
+            raise ValueError("external evidence contains a sensitive field")
+        expected_kinds = {
+            "BASE-013": "cloudflare_readonly_inventory",
+            "FIN-001": "mira_readonly_inventory",
+            "MIG-002": "github_policy_and_ci",
+        }
+        if task_id == "WIN-002":
+            raise ValueError("WIN-002 requires real Windows device evidence")
+        if evidence.get("kind") != expected_kinds.get(task_id):
+            raise ValueError("unsupported or mismatched external evidence kind")
+        if evidence.get("archon_read_only_policy") is not True:
+            raise ValueError("external evidence must preserve the ARCHON read-only policy")
+        evidence_sha = hashlib.sha256(raw).hexdigest()
+        with self.state.master_lock():
+            stamp = re.sub(r"[^0-9A-Za-z_-]", "", now())[:32]
+            directory = self.state.home / "backups" / f"pre-external-resolution-{task_id}-{stamp}"
+            directory.mkdir(mode=0o700, parents=True, exist_ok=False)
+            backup_path = directory / "sda.sqlite3"
+            with sqlite3.connect(self.state.database) as source, sqlite3.connect(backup_path) as target:
+                source.backup(target)
+                integrity = target.execute("PRAGMA integrity_check").fetchone()[0]
+                schema = target.execute("PRAGMA user_version").fetchone()[0]
+            if integrity != "ok":
+                raise ValueError("external-resolution backup integrity failed")
+            backup_sha = hashlib.sha256(backup_path.read_bytes()).hexdigest()
+            manifest = directory / "DB_BACKUP_MANIFEST.json"
+            fd = os.open(manifest, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            with os.fdopen(fd, "w", encoding="utf-8") as handle:
+                json.dump({"purpose": "pre-external-blocker-resolution", "task_id": task_id,
+                           "backup_path": str(backup_path), "backup_sha256": backup_sha,
+                           "schema_version": schema, "integrity_check": integrity,
+                           "created_at_utc": now()}, handle, sort_keys=True, indent=2)
+                handle.write("\n")
+            with self.state.db() as db:
+                db.execute("BEGIN IMMEDIATE")
+                row = db.execute(
+                    "SELECT t.*,c.case_id,c.state AS case_state,c.category AS case_category "
+                    "FROM tasks t JOIN supervisor_cases c ON c.parent_id=t.id "
+                    "WHERE t.id=? AND c.case_id=? LIMIT 1",
+                    (task_id, evidence.get("case_id", "")),
+                ).fetchone()
+                if not row or row["case_state"] != "external_blocker" or row["status"] != "blocked":
+                    db.execute("ROLLBACK")
+                    raise ValueError("task has no matching external blocker case")
+                settings = {item[0]: item[1] for item in db.execute(
+                    "SELECT key,value FROM settings WHERE key IN ('source_sha','integration_sha')"
+                )}
+                if evidence.get("source_sha") != settings.get("source_sha") or evidence.get("integration_sha") != settings.get("integration_sha"):
+                    db.execute("ROLLBACK")
+                    raise ValueError("external evidence checkpoint mismatch")
+                spec = json.loads(row["spec"])
+                dependencies = [db.execute("SELECT status FROM tasks WHERE id=?", (dep,)).fetchone()
+                                for dep in spec.get("depends_on", [])]
+                if any(item is None or item[0] != "completed" for item in dependencies):
+                    db.execute("ROLLBACK")
+                    raise ValueError("external evidence dependencies are incomplete")
+                if task_id == "FIN-001":
+                    if any(evidence.get(key) != value for key, value in {
+                        "worker_name": "personal-management",
+                        "d1_name": "mira-finance",
+                        "archon_read_only_policy": True,
+                        "no_financial_rows_read": True,
+                    }.items()):
+                        db.execute("ROLLBACK")
+                        raise ValueError("FIN-001 Mira evidence is incomplete")
+                    if not re.fullmatch(r"[0-9a-f]{64}", str(evidence.get("worker_source_sha256", ""))) or not re.fullmatch(r"[0-9a-f]{64}", str(evidence.get("d1_schema_sha256", ""))):
+                        db.execute("ROLLBACK")
+                        raise ValueError("FIN-001 source evidence digest is invalid")
+                    owner = db.execute(
+                        "SELECT receipt_sha256 FROM owner_approval_receipts "
+                        "WHERE task_id=? AND decision='APPROVE' ORDER BY created_at DESC LIMIT 1",
+                        (task_id,),
+                    ).fetchone()
+                    if not owner or evidence.get("owner_receipt_sha256") != owner[0]:
+                        db.execute("ROLLBACK")
+                        raise ValueError("FIN-001 owner receipt binding is missing")
+                if db.execute(
+                    "SELECT 1 FROM external_resolution_receipts WHERE case_id=? AND evidence_sha256=?",
+                    (row["case_id"], evidence_sha),
+                ).fetchone():
+                    db.execute("ROLLBACK")
+                    return {"task_id": task_id, "state": "pending", "idempotent": True,
+                            "evidence_sha256": evidence_sha}
+                timestamp = now()
+                db.execute(
+                    "INSERT INTO external_resolution_receipts(receipt_id,case_id,task_id,category,evidence_path,evidence_sha256,"
+                    "backup_path,backup_sha256,source_sha,integration_sha,verifier,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (str(uuid.uuid4()), row["case_id"], task_id, row["case_category"], str(path), evidence_sha,
+                     str(backup_path), backup_sha, settings["source_sha"], settings["integration_sha"],
+                     "deterministic_master", timestamp),
+                )
+                db.execute("UPDATE supervisor_cases SET state='resolved_external',updated_at=? WHERE case_id=?",
+                           (timestamp, row["case_id"]))
+                db.execute("UPDATE tasks SET status='pending',available_at=0,last_run='',last_error='',updated_at=? WHERE id=?",
+                           (timestamp, task_id))
+                for queue in ("pending_queue", "rebuild_queue", "review_queue", "merge_queue"):
+                    db.execute(f"DELETE FROM {queue} WHERE parent_id=?", (task_id,))
+                db.execute(
+                    "INSERT INTO pending_queue(parent_id,project_id,enqueue_seq,available_at,created_at) VALUES(?,?,?,?,?)",
+                    (task_id, row["project_id"], row["enqueue_seq"], 0, timestamp),
+                )
+                db.execute("UPDATE subtasks SET status='waiting',evidence='',updated_at=? WHERE parent_id=? AND status NOT IN ('completed','archived')",
+                           (timestamp, task_id))
+                first = db.execute(
+                    "SELECT id,spec FROM subtasks WHERE parent_id=? AND status='waiting' ORDER BY sequence LIMIT 1",
+                    (task_id,),
+                ).fetchone()
+                if first and all(db.execute("SELECT status FROM subtasks WHERE id=?", (dep,)).fetchone()[0] == "completed"
+                                 for dep in json.loads(first["spec"]).get("depends_on", [])):
+                    db.execute("UPDATE subtasks SET status='pending',updated_at=? WHERE id=?", (timestamp, first["id"]))
+                db.execute("UPDATE batch_members SET state='admitted',updated_at=? WHERE parent_id=? AND state='external_blocker'",
+                           (timestamp, task_id))
+                db.execute("COMMIT")
+        return {"task_id": task_id, "state": "pending", "idempotent": False,
+                "evidence_sha256": evidence_sha, "backup_sha256": backup_sha}
+
     def claim_recovery(self, case_id: str, lane_id: str) -> dict:
         if lane_id not in RECOVERY_LANES or not _SAFE_CODE.fullmatch(case_id):
             raise ValueError("invalid recovery lane or case")

@@ -874,6 +874,7 @@ def main(argv: list[str] | None = None) -> int:
                  "pause-normal","pause-recovery","resume-normal","resume-recovery"):
         sub.add_parser(name)
     p=sub.add_parser("supervisor-block");p.add_argument("case_id");p.add_argument("--category",required=True);p.add_argument("--failure-code",default="")
+    p=sub.add_parser("resolve-external");p.add_argument("task_id");p.add_argument("--evidence",type=Path,required=True)
     p=sub.add_parser("retry");p.add_argument("task_id")
     p=sub.add_parser("reopen");p.add_argument("task_ids",nargs="+")
     sub.add_parser("supervisor-status")
@@ -994,6 +995,8 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command=="reopen":report({"reopened":state.reopen_failed(args.task_ids),"history_preserved":True})
         elif args.command == "supervisor-block":
             report(SupervisorController(state).mark_external_blocker(args.case_id, args.category, args.failure_code))
+        elif args.command == "resolve-external":
+            report(SupervisorController(state).resolve_external(args.task_id, args.evidence))
         elif args.command == "supervisor-recover":
             raise ValueError("autonomous_recovery_coding_disabled_use_main_codex")
         elif args.command == "upgrade-audit":

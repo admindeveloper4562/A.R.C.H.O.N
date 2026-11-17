@@ -1,5 +1,6 @@
 import hashlib
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -341,6 +342,13 @@ class SupervisorV3Tests(unittest.TestCase):
         self.assertEqual(self.supervisor.status()["cases"], {"external_blocker": 1})
         with self.state.db() as db:
             self.assertIsNone(db.execute("SELECT 1 FROM rebuild_queue WHERE parent_id='V3-001'").fetchone())
+
+    def test_external_resolution_never_reopens_windows_without_device_evidence(self):
+        evidence = self.state.home / "private" / "win-002.json"
+        evidence.write_text(json.dumps({"task_id": "WIN-002"}) + "\n", encoding="utf-8")
+        os.chmod(evidence, 0o600)
+        with self.assertRaisesRegex(ValueError, "real Windows device evidence"):
+            self.supervisor.resolve_external("WIN-002", evidence)
 
     def test_external_blocker_clears_stale_pending_claim_and_survives_refresh(self):
         with self.state.db() as db:
