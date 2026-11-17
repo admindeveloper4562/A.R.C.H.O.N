@@ -24,6 +24,16 @@ from .browser import (
     LoginHandoff,
 )
 from .file_actions import FileActionError, FileActionRequest, FileActionService, FileIdentity
+from .calendar import (
+    CALENDAR_READ_SCOPE,
+    CALENDAR_WRITE_SCOPE,
+    CalendarAdapter,
+    CalendarAuthorizationError,
+    CalendarConnector,
+    CalendarError,
+    CalendarEvent,
+    CalendarService,
+)
 
 __all__ = [
     "RUNTIME_HEALTH_SCOPE",
@@ -59,4 +69,12 @@ __all__ = [
     "FileActionRequest",
     "FileActionService",
     "FileIdentity",
+    "CALENDAR_READ_SCOPE",
+    "CALENDAR_WRITE_SCOPE",
+    "CalendarAdapter",
+    "CalendarAuthorizationError",
+    "CalendarConnector",
+    "CalendarError",
+    "CalendarEvent",
+    "CalendarService",
 ]
