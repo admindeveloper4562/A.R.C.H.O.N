@@ -242,12 +242,32 @@ TWS_MIGRATIONS = DEFAULT_MIGRATIONS + (
             "DROP TABLE tws_task_quest_proposals",
         ),
     ),
+    Migration(
+        module="tws",
+        version=9,
+        name="tws-onboarding-accessibility-preferences",
+        tables=("tws_user_preferences",),
+        up_sql=(
+            "CREATE TABLE tws_user_preferences ("
+            "profile_id TEXT PRIMARY KEY, "
+            "onboarding_state TEXT NOT NULL CHECK(onboarding_state IN ('not_started','in_progress','completed')), "
+            "immersive_mode TEXT NOT NULL CHECK(immersive_mode IN ('auto','enabled','disabled')), "
+            "reduced_motion TEXT NOT NULL CHECK(reduced_motion IN ('auto','enabled','disabled')), "
+            "fallback_mode TEXT NOT NULL CHECK(fallback_mode IN ('auto','2d','minimal')), "
+            "updated_at TEXT NOT NULL"
+            ")",
+        ),
+        down_sql=("DROP TABLE tws_user_preferences",),
+    ),
 )
 
-TWS_SCHEMA_VERSION = 8
+TWS_SCHEMA_VERSION = 9
 _QUEST_KINDS = frozenset({"daily", "weekly", "skill", "story", "trial"})
 _CADENCES = frozenset({"once", "daily", "weekly"})
 _AURELIA_MOODS = frozenset({"calm", "curious", "encouraging", "reflective", "playful", "concerned"})
+_ONBOARDING_STATES = frozenset({"not_started", "in_progress", "completed"})
+_PREFERENCE_MODES = frozenset({"auto", "enabled", "disabled"})
+_FALLBACK_MODES = frozenset({"auto", "2d", "minimal"})
 _STATE_ALIASES = {"submitted": "proof_submitted"}
 _TRANSITIONS = {
     "draft": frozenset({"offered", "rejected", "expired"}),
@@ -1031,6 +1051,80 @@ class QuestStore:
                 (profile_id,),
             )
         ]
+
+    def set_preferences(
+        self,
+        profile_id: str,
+        *,
+        immersive_mode: str | None = None,
+        reduced_motion: str | None = None,
+        fallback_mode: str | None = None,
+    ) -> dict[str, Any]:
+        """Persist independent presentation and accessibility choices."""
+        profile_id = _identifier(profile_id, "profile id")
+        for value, allowed, label in (
+            (immersive_mode, _PREFERENCE_MODES, "immersive mode"),
+            (reduced_motion, _PREFERENCE_MODES, "reduced motion"),
+            (fallback_mode, _FALLBACK_MODES, "fallback mode"),
+        ):
+            if value is not None and (not isinstance(value, str) or value not in allowed):
+                raise TWSStoreError(f"invalid {label}")
+        existing = self._one(
+            "SELECT * FROM tws_user_preferences WHERE profile_id=?", (profile_id,)
+        )
+        values = {
+            "onboarding_state": existing["onboarding_state"] if existing else "not_started",
+            "immersive_mode": immersive_mode or (existing["immersive_mode"] if existing else "auto"),
+            "reduced_motion": reduced_motion or (existing["reduced_motion"] if existing else "auto"),
+            "fallback_mode": fallback_mode or (existing["fallback_mode"] if existing else "auto"),
+        }
+        timestamp = _now()
+        with self.db:
+            if existing is None:
+                self.db.execute(
+                    "INSERT INTO tws_user_preferences(profile_id,onboarding_state,immersive_mode,"
+                    "reduced_motion,fallback_mode,updated_at) VALUES(?,?,?,?,?,?)",
+                    (profile_id, values["onboarding_state"], values["immersive_mode"],
+                     values["reduced_motion"], values["fallback_mode"], timestamp),
+                )
+            else:
+                self.db.execute(
+                    "UPDATE tws_user_preferences SET immersive_mode=?, reduced_motion=?, "
+                    "fallback_mode=?, updated_at=? WHERE profile_id=?",
+                    (values["immersive_mode"], values["reduced_motion"],
+                     values["fallback_mode"], timestamp, profile_id),
+                )
+        return self.preferences(profile_id) or {}
+
+    def preferences(self, profile_id: str) -> dict[str, Any] | None:
+        profile_id = _identifier(profile_id, "profile id")
+        return self._one(
+            "SELECT * FROM tws_user_preferences WHERE profile_id=?", (profile_id,)
+        )
+
+    def set_onboarding(self, profile_id: str, state: str) -> dict[str, Any]:
+        """Advance onboarding without coupling it to presentation choices."""
+        profile_id = _identifier(profile_id, "profile id")
+        if not isinstance(state, str) or state not in _ONBOARDING_STATES:
+            raise TWSStoreError("invalid onboarding state")
+        existing = self.preferences(profile_id)
+        timestamp = _now()
+        with self.db:
+            if existing is None:
+                self.db.execute(
+                    "INSERT INTO tws_user_preferences(profile_id,onboarding_state,immersive_mode,"
+                    "reduced_motion,fallback_mode,updated_at) VALUES(?,?,?,?,?,?)",
+                    (profile_id, state, "auto", "auto", "auto", timestamp),
+                )
+            else:
+                self.db.execute(
+                    "UPDATE tws_user_preferences SET onboarding_state=?,updated_at=? WHERE profile_id=?",
+                    (state, timestamp, profile_id),
+                )
+        return self.preferences(profile_id) or {}
+
+    def onboarding(self, profile_id: str) -> dict[str, Any] | None:
+        return self.preferences(profile_id)
 
     def wings(self) -> list[dict[str, Any]]:
         """Read the current wing ledger for a view without client-side state."""
