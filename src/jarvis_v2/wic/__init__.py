@@ -19,6 +19,8 @@ MAX_RECORD_BYTES = 128 * 1024
 MAX_TITLE_BYTES = 512
 MAX_URL_BYTES = 2048
 MAX_SOURCE_POLICIES = 32
+DEFAULT_STALE_AFTER_SECONDS = 3600
+MAX_STALE_AFTER_SECONDS = 7 * 24 * 3600
 _IDENTIFIER = re.compile(r"^[A-Za-z0-9_.:-]{1,128}$")
 _PUBLIC_SCOPES = frozenset({"public_metadata", "public_read"})
 _TRACKING_QUERY_KEYS = frozenset({"fbclid", "gclid", "mc_cid", "mc_eid"})
@@ -228,6 +230,35 @@ class IngestionResult:
         }
 
 
+@dataclass(frozen=True)
+class SourceHealth:
+    """Persisted source state that prevents stale snapshots looking live."""
+
+    source_id: str
+    status: str
+    last_attempt_at: str | None = None
+    last_success_at: str | None = None
+    failure: str | None = None
+
+    def __post_init__(self) -> None:
+        _identifier(self.source_id, "source id")
+        if self.status not in {"fresh", "stale", "outage", "unknown"}:
+            raise WICError("invalid source health status")
+        _stored_timestamp(self.last_attempt_at, "last attempt timestamp", optional=True)
+        _stored_timestamp(self.last_success_at, "last success timestamp", optional=True)
+        if self.failure is not None:
+            _identifier(self.failure, "source health failure")
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "source_id": self.source_id,
+            "status": self.status,
+            "last_attempt_at": self.last_attempt_at,
+            "last_success_at": self.last_success_at,
+            "failure": self.failure,
+        }
+
+
 class SourceStore:
     """Persist immutable WIC observations without replacing earlier fetches."""
 
@@ -252,6 +283,15 @@ class SourceStore:
                 title TEXT NOT NULL,
                 record_json TEXT NOT NULL,
                 UNIQUE(source_id, article_url, fetched_at)
+            )"""
+        )
+        self.db.execute(
+            """CREATE TABLE IF NOT EXISTS wic_source_health (
+                source_id TEXT PRIMARY KEY,
+                status TEXT NOT NULL,
+                last_attempt_at TEXT,
+                last_success_at TEXT,
+                failure TEXT
             )"""
         )
         self.db.commit()
@@ -317,6 +357,68 @@ class SourceStore:
             return SourceObservation.from_dict(json.loads(row["record_json"]))
         except (TypeError, ValueError, json.JSONDecodeError) as exc:
             raise WICError("stored observation is invalid") from exc
+
+    def record_health(
+        self, source_id: str, attempted_at: str, *, success: bool, failure: str | None = None,
+    ) -> SourceHealth:
+        source_id = _identifier(source_id, "source id")
+        attempted_at = _stored_timestamp(attempted_at, "attempt timestamp")
+        if type(success) is not bool:
+            raise WICError("source health success must be boolean")
+        if failure is not None:
+            failure = _identifier(failure, "source health failure")
+        row = self.db.execute(
+            "SELECT last_success_at FROM wic_source_health WHERE source_id=?", (source_id,)
+        ).fetchone()
+        prior_success = row["last_success_at"] if row else None
+        if success:
+            status = "fresh"
+            last_success = attempted_at
+        elif failure in {"feed_unavailable", "provider_timeout", "provider_unavailable", "provider_invalid"}:
+            status = "outage"
+            last_success = prior_success
+        else:
+            status = "stale" if prior_success else "unknown"
+            last_success = prior_success
+        with self.db:
+            self.db.execute(
+                """INSERT INTO wic_source_health
+                   (source_id, status, last_attempt_at, last_success_at, failure)
+                   VALUES (?, ?, ?, ?, ?)
+                   ON CONFLICT(source_id) DO UPDATE SET
+                   status=excluded.status, last_attempt_at=excluded.last_attempt_at,
+                   last_success_at=excluded.last_success_at, failure=excluded.failure""",
+                (source_id, status, attempted_at, last_success, failure),
+            )
+        return SourceHealth(source_id, status, attempted_at, last_success, failure)
+
+    def health(
+        self, source_id: str, *, now: str | None = None,
+        stale_after_seconds: int = DEFAULT_STALE_AFTER_SECONDS,
+    ) -> SourceHealth:
+        source_id = _identifier(source_id, "source id")
+        if type(stale_after_seconds) is not int or not 60 <= stale_after_seconds <= MAX_STALE_AFTER_SECONDS:
+            raise WICError("stale threshold is outside the bounded range")
+        row = self.db.execute(
+            "SELECT status, last_attempt_at, last_success_at, failure "
+            "FROM wic_source_health WHERE source_id=?", (source_id,)
+        ).fetchone()
+        if row is None:
+            return SourceHealth(source_id, "unknown")
+        status = row["status"]
+        last_success = row["last_success_at"]
+        if status == "fresh" and last_success:
+            current = _stored_timestamp(
+                now or datetime.now(timezone.utc).isoformat(), "health timestamp"
+            )
+            age = datetime.fromisoformat(current.replace("Z", "+00:00")) - datetime.fromisoformat(
+                last_success.replace("Z", "+00:00")
+            )
+            if age.total_seconds() > stale_after_seconds:
+                status = "stale"
+        return SourceHealth(
+            source_id, status, row["last_attempt_at"], last_success, row["failure"]
+        )
 
     def close(self) -> None:
         if self._owns_connection:
@@ -1475,7 +1577,7 @@ class PublicSourceIngestion:
         if policy is None or not policy.allows(feed_url):
             return IngestionResult("blocked", fetched_at, failure="source_not_allowlisted")
         if self.feed_transport is None:
-            return IngestionResult("failed", fetched_at, failure="feed_unavailable")
+            return self._result(source_id, fetched_at, "failed", failure="feed_unavailable")
         try:
             values = self.feed_transport(feed_url, policy, self.timeout_seconds)
             if isinstance(values, (str, bytes, Mapping)):
@@ -1493,20 +1595,31 @@ class PublicSourceIngestion:
                 self.store.save(observation)
                 observations.append(observation)
         except TimeoutError:
-            return IngestionResult("failed", fetched_at, failure="provider_timeout")
+            return self._result(source_id, fetched_at, "failed", failure="provider_timeout")
         except (ConnectionError, OSError):
-            return IngestionResult("failed", fetched_at, failure="provider_unavailable")
+            return self._result(source_id, fetched_at, "failed", failure="provider_unavailable")
         except (TypeError, ValueError, WICError):
-            return IngestionResult("failed", fetched_at, failure="provider_invalid")
+            return self._result(source_id, fetched_at, "failed", failure="provider_invalid")
         if not observations:
-            return IngestionResult(
-                "failed" if rejected else "empty", fetched_at, rejected_items=rejected,
+            return self._result(
+                source_id, fetched_at, "failed" if rejected else "empty", rejected_items=rejected,
                 failure="feed_item_rejected" if rejected else None,
             )
-        return IngestionResult(
-            "partial" if rejected else "ok", fetched_at, tuple(observations), rejected,
+        return self._result(
+            source_id, fetched_at, "partial" if rejected else "ok", tuple(observations), rejected,
             "feed_item_rejected" if rejected else None,
         )
+
+    def _result(
+        self, source_id: str, fetched_at: str, status: str,
+        observations: tuple[SourceObservation, ...] = (), rejected_items: int = 0,
+        failure: str | None = None,
+    ) -> IngestionResult:
+        self.store.record_health(
+            source_id, fetched_at, success=status in {"ok", "partial"} and bool(observations),
+            failure=failure,
+        )
+        return IngestionResult(status, fetched_at, observations, rejected_items, failure)
 
     @staticmethod
     def _observation(
@@ -1547,9 +1660,12 @@ __all__ = [
     "MAX_FEED_ITEMS",
     "MAX_RECORD_BYTES",
     "MAX_SOURCE_POLICIES",
+    "DEFAULT_STALE_AFTER_SECONDS",
+    "MAX_STALE_AFTER_SECONDS",
     "PublicNewsIngestion",
     "PublicSourceIngestion",
     "SourceObservation",
+    "SourceHealth",
     "SourcePolicy",
     "SourceStore",
     "StoryCluster",

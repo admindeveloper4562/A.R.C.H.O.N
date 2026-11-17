@@ -6,6 +6,7 @@ from jarvis_v2.wic import (
     IngestionResult,
     PublicSourceIngestion,
     SourceObservation,
+    SourceHealth,
     SourcePolicy,
     SourceStore,
     WICError,
@@ -102,6 +103,50 @@ class WICSourceTests(unittest.TestCase):
                 self.assertEqual(result.status, "failed")
                 self.assertEqual(result.failure, "provider_timeout")
                 self.assertNotIn("provider internals", str(result.as_dict()))
+
+    def test_health_becomes_stale_after_successful_snapshot_age(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with SourceStore(directory + "/wic.sqlite") as store:
+                self.service(store, feed_transport=lambda *_: [
+                    {"article_url": "https://news.example/article/1", "title": "Dated"}
+                ]).ingest("news", "https://news.example/feed")
+                fresh = store.health(
+                    "news", now="2026-11-17T01:30:00Z", stale_after_seconds=3600
+                )
+                stale = store.health(
+                    "news", now="2026-11-17T02:02:04Z", stale_after_seconds=3600
+                )
+                self.assertIsInstance(fresh, SourceHealth)
+                self.assertEqual(fresh.status, "fresh")
+                self.assertEqual(stale.status, "stale")
+                self.assertEqual(stale.last_success_at, "2026-11-17T01:02:03.000000Z")
+
+    def test_provider_outage_preserves_last_success_and_marks_outage(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with SourceStore(directory + "/wic.sqlite") as store:
+                self.service(store, feed_transport=lambda *_: [
+                    {"article_url": "https://news.example/article/1", "title": "Dated"}
+                ]).ingest("news", "https://news.example/feed")
+                outage = PublicSourceIngestion(
+                    store, (self.policy(),),
+                    feed_transport=lambda *_: (_ for _ in ()).throw(TimeoutError("provider")),
+                    clock=lambda: datetime(2026, 11, 17, 3, 2, 3, tzinfo=timezone.utc),
+                ).ingest("news", "https://news.example/feed")
+                health = store.health("news", now="2026-11-17T03:02:04Z")
+                self.assertEqual((outage.status, outage.failure), ("failed", "provider_timeout"))
+                self.assertEqual(health.status, "outage")
+                self.assertEqual(health.failure, "provider_timeout")
+                self.assertEqual(health.last_success_at, "2026-11-17T01:02:03.000000Z")
+                self.assertEqual(len(store.observations()), 1)
+
+    def test_unknown_health_has_no_false_timestamp(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with SourceStore(directory + "/wic.sqlite") as store:
+                health = store.health("news", now="2026-11-17T03:02:04Z")
+                self.assertEqual(health.as_dict(), {
+                    "source_id": "news", "status": "unknown",
+                    "last_attempt_at": None, "last_success_at": None, "failure": None,
+                })
 
     def test_invalid_dates_are_rejected_and_valid_items_remain(self):
         with tempfile.TemporaryDirectory() as directory:
