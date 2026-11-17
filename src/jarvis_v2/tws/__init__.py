@@ -1,8 +1,7 @@
 """Persistent, module-owned storage for the Twelve-Winged quest boundary.
 
-The store is intentionally limited to the data foundation.  Quest lifecycle
-transitions and reward policy belong to later TWS tasks; this layer preserves
-wings and submitted proofs across the versioned SQLite migrations.
+Progression is derived from independently accepted proof records.  Companion
+dialogue is never an input to cultivation or skill adaptation.
 """
 
 from __future__ import annotations
@@ -168,9 +167,37 @@ TWS_MIGRATIONS = DEFAULT_MIGRATIONS + (
             "DROP TABLE tws_realms",
         ),
     ),
+    Migration(
+        module="tws",
+        version=6,
+        name="tws-verified-cultivation-progress",
+        tables=("tws_cultivation_achievements", "tws_skill_adaptations"),
+        up_sql=(
+            "CREATE TABLE tws_cultivation_achievements ("
+            "achievement_id TEXT PRIMARY KEY, profile_id TEXT NOT NULL, skill_id TEXT NOT NULL, "
+            "pattern TEXT NOT NULL, quest_id TEXT NOT NULL, proof_id TEXT NOT NULL, "
+            "sync_id TEXT NOT NULL, evidence_sha256 TEXT NOT NULL, recorded_at TEXT NOT NULL, "
+            "UNIQUE(profile_id, quest_id), UNIQUE(profile_id, sync_id), "
+            "FOREIGN KEY(quest_id) REFERENCES tws_quests(quest_id), "
+            "FOREIGN KEY(proof_id) REFERENCES tws_proofs(proof_id)"
+            ")",
+            "CREATE INDEX tws_cultivation_by_profile_skill "
+            "ON tws_cultivation_achievements(profile_id, skill_id, pattern)",
+            "CREATE TABLE tws_skill_adaptations ("
+            "adaptation_id TEXT PRIMARY KEY, profile_id TEXT NOT NULL, skill_id TEXT NOT NULL, "
+            "pattern TEXT NOT NULL, basis_sha256 TEXT NOT NULL, created_at TEXT NOT NULL, "
+            "UNIQUE(profile_id, skill_id, basis_sha256)"
+            ")",
+        ),
+        down_sql=(
+            "DROP TABLE tws_skill_adaptations",
+            "DROP INDEX tws_cultivation_by_profile_skill",
+            "DROP TABLE tws_cultivation_achievements",
+        ),
+    ),
 )
 
-TWS_SCHEMA_VERSION = 5
+TWS_SCHEMA_VERSION = 6
 _QUEST_KINDS = frozenset({"daily", "weekly", "skill", "story", "trial"})
 _CADENCES = frozenset({"once", "daily", "weekly"})
 _STATE_ALIASES = {"submitted": "proof_submitted"}
@@ -515,6 +542,193 @@ class QuestStore:
         return self._one(
             "SELECT * FROM tws_realm_progress WHERE profile_id=? AND realm_id=?",
             (profile_id, realm_id),
+        ) or {}
+
+    def record_achievement(
+        self,
+        profile_id: str,
+        achievement_id: str,
+        skill_id: str,
+        pattern: str,
+        quest_id: str,
+        proof_id: str,
+        sync_id: str,
+    ) -> dict[str, Any]:
+        """Record progression only from an independently accepted quest proof."""
+        profile_id = _identifier(profile_id, "profile id")
+        achievement_id = _identifier(achievement_id, "achievement id")
+        skill_id = _identifier(skill_id, "skill id")
+        pattern = _identifier(pattern, "achievement pattern")
+        quest_id = _identifier(quest_id, "quest id")
+        proof_id = _identifier(proof_id, "proof id")
+        sync_id = _identifier(sync_id, "sync id")
+        existing = self._one(
+            "SELECT * FROM tws_cultivation_achievements WHERE achievement_id=?",
+            (achievement_id,),
+        )
+        by_quest = self._one(
+            "SELECT * FROM tws_cultivation_achievements WHERE profile_id=? AND quest_id=?",
+            (profile_id, quest_id),
+        )
+        by_sync = self._one(
+            "SELECT * FROM tws_cultivation_achievements WHERE profile_id=? AND sync_id=?",
+            (profile_id, sync_id),
+        )
+        for prior in (existing, by_quest, by_sync):
+            if prior is None:
+                continue
+            if any(
+                prior[field] != value
+                for field, value in {
+                    "profile_id": profile_id,
+                    "skill_id": skill_id,
+                    "pattern": pattern,
+                    "quest_id": quest_id,
+                    "proof_id": proof_id,
+                    "sync_id": sync_id,
+                }.items()
+            ):
+                raise TWSStoreError("achievement identity conflict")
+            return prior
+        quest = self.quest(quest_id)
+        proof = self._one("SELECT * FROM tws_proofs WHERE proof_id=?", (proof_id,))
+        if quest is None or proof is None or proof["quest_id"] != quest_id:
+            raise TWSStoreError("achievement references do not match")
+        if proof["review_state"] != "accepted" or not proof["reviewer_id"]:
+            raise TWSStoreError("achievement requires independently accepted proof")
+        if proof["privacy_scope"] not in PRIVACY_SCOPES:
+            raise TWSStoreError("achievement proof privacy scope is invalid")
+        if quest["state"] not in {"verified", "rewarded", "archived"}:
+            raise TWSStoreError("achievement requires a verified quest")
+        self.storage.module("tws").insert(
+            "tws_cultivation_achievements",
+            {
+                "achievement_id": achievement_id,
+                "profile_id": profile_id,
+                "skill_id": skill_id,
+                "pattern": pattern,
+                "quest_id": quest_id,
+                "proof_id": proof_id,
+                "sync_id": sync_id,
+                "evidence_sha256": proof["evidence_sha256"],
+                "recorded_at": _now(),
+            },
+        )
+        return self._one(
+            "SELECT * FROM tws_cultivation_achievements WHERE achievement_id=?",
+            (achievement_id,),
+        ) or {}
+
+    def achievements(
+        self, profile_id: str, *, skill_id: str | None = None
+    ) -> list[dict[str, Any]]:
+        profile_id = _identifier(profile_id, "profile id")
+        values: list[object] = [profile_id]
+        where = "profile_id=?"
+        if skill_id is not None:
+            skill_id = _identifier(skill_id, "skill id")
+            where += " AND skill_id=?"
+            values.append(skill_id)
+        return [
+            dict(row)
+            for row in self.db.execute(
+                "SELECT achievement_id, profile_id, skill_id, pattern, quest_id, proof_id, "
+                "sync_id, evidence_sha256, recorded_at "
+                "FROM tws_cultivation_achievements "
+                f"WHERE {where} ORDER BY recorded_at, achievement_id",
+                tuple(values),
+            )
+        ]
+
+    def cultivation_progress(self, profile_id: str, skill_id: str) -> dict[str, Any]:
+        """Summarize verified progress without exposing proof contents."""
+        profile_id = _identifier(profile_id, "profile id")
+        skill_id = _identifier(skill_id, "skill id")
+        rows = self.achievements(profile_id, skill_id=skill_id)
+        pattern_counts: dict[str, int] = {}
+        for row in rows:
+            pattern_counts[row["pattern"]] = pattern_counts.get(row["pattern"], 0) + 1
+        xp = int(self.db.execute(
+            "SELECT COALESCE(SUM(r.xp), 0) FROM tws_xp_rewards r "
+            "JOIN tws_cultivation_achievements a ON a.quest_id=r.quest_id "
+            "WHERE a.profile_id=? AND a.skill_id=?",
+            (profile_id, skill_id),
+        ).fetchone()[0])
+        return {
+            "profile_id": profile_id,
+            "skill_id": skill_id,
+            "verified_achievements": len(rows),
+            "pattern_counts": dict(sorted(pattern_counts.items())),
+            "xp": xp,
+        }
+
+    def adapt_skill(
+        self,
+        profile_id: str,
+        adaptation_id: str,
+        skill_id: str,
+        *,
+        pattern: str | None = None,
+    ) -> dict[str, Any]:
+        """Persist a deterministic adaptation selected from verified patterns."""
+        profile_id = _identifier(profile_id, "profile id")
+        adaptation_id = _identifier(adaptation_id, "adaptation id")
+        skill_id = _identifier(skill_id, "skill id")
+        if pattern is not None:
+            pattern = _identifier(pattern, "adaptation pattern")
+        rows = self.achievements(profile_id, skill_id=skill_id)
+        if not rows:
+            raise TWSStoreError("skill adaptation requires verified achievement")
+        counts: dict[str, int] = {}
+        for row in rows:
+            counts[row["pattern"]] = counts.get(row["pattern"], 0) + 1
+        if pattern is None:
+            pattern = min(counts, key=lambda item: (-counts[item], item))
+        elif pattern not in counts:
+            raise TWSStoreError("adaptation pattern has no verified achievement")
+        basis = json.dumps(
+            [
+                (row["achievement_id"], row["quest_id"], row["evidence_sha256"])
+                for row in rows
+            ],
+            separators=(",", ":"),
+        )
+        basis_sha256 = hashlib.sha256(basis.encode("utf-8")).hexdigest()
+        existing = self._one(
+            "SELECT * FROM tws_skill_adaptations WHERE adaptation_id=?",
+            (adaptation_id,),
+        )
+        if existing is not None:
+            if (
+                existing["profile_id"] != profile_id
+                or existing["skill_id"] != skill_id
+                or existing["pattern"] != pattern
+                or existing["basis_sha256"] != basis_sha256
+            ):
+                raise TWSStoreError("skill adaptation identity conflict")
+            return existing
+        prior = self._one(
+            "SELECT * FROM tws_skill_adaptations WHERE profile_id=? AND skill_id=? AND basis_sha256=?",
+            (profile_id, skill_id, basis_sha256),
+        )
+        if prior is not None:
+            if prior["pattern"] != pattern:
+                raise TWSStoreError("skill adaptation identity conflict")
+            return prior
+        self.storage.module("tws").insert(
+            "tws_skill_adaptations",
+            {
+                "adaptation_id": adaptation_id,
+                "profile_id": profile_id,
+                "skill_id": skill_id,
+                "pattern": pattern,
+                "basis_sha256": basis_sha256,
+                "created_at": _now(),
+            },
+        )
+        return self._one(
+            "SELECT * FROM tws_skill_adaptations WHERE adaptation_id=?",
+            (adaptation_id,),
         ) or {}
 
     def wing(self, wing_id: str) -> dict[str, Any] | None:
