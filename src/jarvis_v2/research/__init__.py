@@ -54,6 +54,17 @@ from .youtube import (
     video_id_from_url,
 )
 
+from .instagram import (
+    InstagramAdapter,
+    InstagramReelRecord,
+    InstagramReelService,
+    InstagramReelStore,
+    InstagramResearchError,
+    InstagramResult,
+    InstagramStore,
+    instagram_reel_id_from_url,
+)
+
 __all__ = [
     "ComparisonError",
     "FetchResult",
@@ -64,6 +75,13 @@ __all__ = [
     "GitHubSearchResult",
     "GitHubSourceAdapter",
     "GitHubSourceError",
+    "InstagramAdapter",
+    "InstagramReelRecord",
+    "InstagramReelService",
+    "InstagramReelStore",
+    "InstagramResearchError",
+    "InstagramResult",
+    "InstagramStore",
     "MAX_CONTENT_BYTES",
     "MAX_CLAIMS",
     "MAX_DURATION_MS",
@@ -97,4 +115,5 @@ __all__ = [
     "WebDiscoveryAdapter",
     "WebDiscoveryService",
     "video_id_from_url",
+    "instagram_reel_id_from_url",
 ]
