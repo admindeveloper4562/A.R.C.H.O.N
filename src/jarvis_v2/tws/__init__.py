@@ -15,7 +15,8 @@ from pathlib import Path
 import re
 from typing import Any
 
-from ..backend.storage import DEFAULT_MIGRATIONS, Migration, StorageManager
+from ..backend.event_bus import PRIVACY_SCOPES
+from ..backend.storage import DEFAULT_MIGRATIONS, Migration, StorageError, StorageManager
 
 
 _IDENTIFIER = re.compile(r"^[A-Za-z0-9_.:-]{1,128}$")
@@ -125,9 +126,51 @@ TWS_MIGRATIONS = DEFAULT_MIGRATIONS + (
             "ALTER TABLE tws_quests DROP COLUMN kind",
         ),
     ),
+    Migration(
+        module="tws",
+        version=4,
+        name="tws-proof-review-scope",
+        tables=("tws_proofs",),
+        up_sql=(
+            "ALTER TABLE tws_proofs ADD COLUMN privacy_scope TEXT NOT NULL DEFAULT 'internal_metadata'",
+            "ALTER TABLE tws_proofs ADD COLUMN reviewer_id TEXT NOT NULL DEFAULT ''",
+        ),
+        down_sql=(
+            "ALTER TABLE tws_proofs DROP COLUMN reviewer_id",
+            "ALTER TABLE tws_proofs DROP COLUMN privacy_scope",
+        ),
+    ),
+    Migration(
+        module="tws",
+        version=5,
+        name="tws-xp-rewards-and-realm-gates",
+        tables=("tws_realms", "tws_realm_progress", "tws_xp_rewards"),
+        up_sql=(
+            "CREATE TABLE tws_realms ("
+            "realm_id TEXT PRIMARY KEY, name TEXT NOT NULL, min_xp INTEGER NOT NULL CHECK(min_xp >= 0), "
+            "prerequisites_json TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL"
+            ")",
+            "CREATE TABLE tws_realm_progress ("
+            "profile_id TEXT NOT NULL, realm_id TEXT NOT NULL, unlocked_at TEXT NOT NULL, "
+            "PRIMARY KEY(profile_id, realm_id), FOREIGN KEY(realm_id) REFERENCES tws_realms(realm_id)"
+            ")",
+            "CREATE TABLE tws_xp_rewards ("
+            "reward_id TEXT PRIMARY KEY, profile_id TEXT NOT NULL, quest_id TEXT NOT NULL, "
+            "proof_id TEXT NOT NULL, sync_id TEXT NOT NULL, xp INTEGER NOT NULL CHECK(xp > 0), "
+            "awarded_at TEXT NOT NULL, UNIQUE(profile_id, quest_id), UNIQUE(profile_id, sync_id), "
+            "FOREIGN KEY(quest_id) REFERENCES tws_quests(quest_id), "
+            "FOREIGN KEY(proof_id) REFERENCES tws_proofs(proof_id)"
+            ")",
+        ),
+        down_sql=(
+            "DROP TABLE tws_xp_rewards",
+            "DROP TABLE tws_realm_progress",
+            "DROP TABLE tws_realms",
+        ),
+    ),
 )
 
-TWS_SCHEMA_VERSION = 3
+TWS_SCHEMA_VERSION = 5
 _QUEST_KINDS = frozenset({"daily", "weekly", "skill", "story", "trial"})
 _CADENCES = frozenset({"once", "daily", "weekly"})
 _STATE_ALIASES = {"submitted": "proof_submitted"}
@@ -247,8 +290,11 @@ class QuestStore:
             raise TWSStoreError("invalid quest state transition")
         if state == "proof_submitted" and not self.proofs(quest_id):
             raise TWSStoreError("quest requires proof before submission")
-        if state == "verified" and not self.proofs(quest_id):
-            raise TWSStoreError("quest requires proof before verification")
+        if state == "verified" and self._one(
+            "SELECT 1 FROM tws_proofs WHERE quest_id=? AND review_state='accepted'",
+            (quest_id,),
+        ) is None:
+            raise TWSStoreError("quest requires accepted proof before verification")
         with self.db:
             self.db.execute(
                 "UPDATE tws_quests SET state=?, updated_at=? WHERE quest_id=? AND state=?",
@@ -282,10 +328,17 @@ class QuestStore:
         ]
 
     def append_proof(
-        self, proof_id: str, quest_id: str, evidence: Mapping[str, object]
+        self,
+        proof_id: str,
+        quest_id: str,
+        evidence: Mapping[str, object],
+        *,
+        privacy_scope: str = "internal_metadata",
     ) -> dict[str, Any]:
         proof_id = _identifier(proof_id, "proof id")
         quest_id = _identifier(quest_id, "quest id")
+        if privacy_scope not in PRIVACY_SCOPES:
+            raise TWSStoreError("invalid privacy scope")
         evidence_json, evidence_sha256 = _evidence(evidence)
         if self._one("SELECT 1 FROM tws_quests WHERE quest_id=?", (quest_id,)) is None:
             raise TWSStoreError("proof references an unknown quest")
@@ -305,9 +358,164 @@ class QuestStore:
             {"proof_id": proof_id, "quest_id": quest_id,
              "evidence_json": evidence_json, "evidence_sha256": evidence_sha256,
              "review_state": "submitted", "submitted_at": _now(),
-             "reviewed_at": None},
+             "reviewed_at": None, "privacy_scope": privacy_scope, "reviewer_id": ""},
         )
         return self._one("SELECT * FROM tws_proofs WHERE proof_id=?", (proof_id,)) or {}
+
+    def review_proof(self, proof_id: str, decision: str, reviewer_id: str) -> dict[str, Any]:
+        """Record one independent proof decision; repeated same decisions are idempotent."""
+        proof_id = _identifier(proof_id, "proof id")
+        reviewer_id = _identifier(reviewer_id, "reviewer id")
+        if decision not in {"accepted", "rejected"}:
+            raise TWSStoreError("invalid proof review decision")
+        existing = self._one("SELECT * FROM tws_proofs WHERE proof_id=?", (proof_id,))
+        if existing is None:
+            raise TWSStoreError("unknown proof")
+        if existing["review_state"] == decision:
+            return existing
+        if existing["review_state"] != "submitted":
+            raise TWSStoreError("proof review is already final")
+        with self.db:
+            self.db.execute(
+                "UPDATE tws_proofs SET review_state=?, reviewed_at=?, reviewer_id=? WHERE proof_id=? AND review_state='submitted'",
+                (decision, _now(), reviewer_id, proof_id),
+            )
+        return self._one("SELECT * FROM tws_proofs WHERE proof_id=?", (proof_id,)) or {}
+
+    def define_realm(
+        self,
+        realm_id: str,
+        name: str,
+        *,
+        min_xp: int = 0,
+        prerequisites: tuple[str, ...] = (),
+    ) -> dict[str, Any]:
+        realm_id = _identifier(realm_id, "realm id")
+        name = _text(name, "realm name")
+        if type(min_xp) is not int or min_xp < 0:
+            raise TWSStoreError("invalid realm XP threshold")
+        if not isinstance(prerequisites, (tuple, list)):
+            raise TWSStoreError("realm prerequisites must be ordered identifiers")
+        prerequisite_ids = tuple(_identifier(item, "realm prerequisite") for item in prerequisites)
+        if len(prerequisite_ids) != len(set(prerequisite_ids)) or realm_id in prerequisite_ids:
+            raise TWSStoreError("invalid realm prerequisites")
+        for prerequisite in prerequisite_ids:
+            if self._one("SELECT 1 FROM tws_realms WHERE realm_id=?", (prerequisite,)) is None:
+                raise TWSStoreError("unknown realm prerequisite")
+        encoded = json.dumps(prerequisite_ids, separators=(",", ":"))
+        existing = self._one("SELECT * FROM tws_realms WHERE realm_id=?", (realm_id,))
+        if existing is not None:
+            if (
+                existing["name"] != name
+                or existing["min_xp"] != min_xp
+                or json.loads(existing["prerequisites_json"]) != list(prerequisite_ids)
+            ):
+                raise TWSStoreError("realm identity conflict")
+            return existing
+        now = _now()
+        self.storage.module("tws").insert(
+            "tws_realms",
+            {"realm_id": realm_id, "name": name, "min_xp": min_xp,
+             "prerequisites_json": encoded, "created_at": now, "updated_at": now},
+        )
+        return self._one("SELECT * FROM tws_realms WHERE realm_id=?", (realm_id,)) or {}
+
+    def xp_total(self, profile_id: str) -> int:
+        profile_id = _identifier(profile_id, "profile id")
+        return int(self.db.execute(
+            "SELECT COALESCE(SUM(xp), 0) FROM tws_xp_rewards WHERE profile_id=?",
+            (profile_id,),
+        ).fetchone()[0])
+
+    def award_xp(
+        self,
+        profile_id: str,
+        reward_id: str,
+        quest_id: str,
+        proof_id: str,
+        xp: int,
+        sync_id: str,
+    ) -> dict[str, Any]:
+        """Append one reward only after reviewed proof and verified quest state."""
+        profile_id = _identifier(profile_id, "profile id")
+        reward_id = _identifier(reward_id, "reward id")
+        quest_id = _identifier(quest_id, "quest id")
+        proof_id = _identifier(proof_id, "proof id")
+        sync_id = _identifier(sync_id, "sync id")
+        if type(xp) is not int or xp <= 0:
+            raise TWSStoreError("invalid XP amount")
+        existing = self._one("SELECT * FROM tws_xp_rewards WHERE reward_id=?", (reward_id,))
+        by_sync = self._one(
+            "SELECT * FROM tws_xp_rewards WHERE profile_id=? AND sync_id=?",
+            (profile_id, sync_id),
+        )
+        by_quest = self._one(
+            "SELECT * FROM tws_xp_rewards WHERE profile_id=? AND quest_id=?",
+            (profile_id, quest_id),
+        )
+        for prior in (existing, by_sync, by_quest):
+            if prior is None:
+                continue
+            if (
+                prior["profile_id"] != profile_id
+                or prior["quest_id"] != quest_id
+                or prior["proof_id"] != proof_id
+                or prior["xp"] != xp
+            ):
+                raise TWSStoreError("reward identity conflict")
+            return prior
+        quest = self.quest(quest_id)
+        proof = self._one("SELECT * FROM tws_proofs WHERE proof_id=?", (proof_id,))
+        if quest is None or proof is None or proof["quest_id"] != quest_id:
+            raise TWSStoreError("reward references do not match")
+        if quest["state"] != "verified" or proof["review_state"] != "accepted":
+            raise TWSStoreError("proof is not independently accepted")
+        if proof["privacy_scope"] not in PRIVACY_SCOPES:
+            raise TWSStoreError("proof privacy scope is invalid")
+        try:
+            self.storage.module("tws").insert(
+                "tws_xp_rewards",
+                {"reward_id": reward_id, "profile_id": profile_id, "quest_id": quest_id,
+                 "proof_id": proof_id, "sync_id": sync_id, "xp": xp, "awarded_at": _now()},
+            )
+        except StorageError as exc:
+            prior = self._one(
+                "SELECT * FROM tws_xp_rewards WHERE profile_id=? AND (sync_id=? OR quest_id=?)",
+                (profile_id, sync_id, quest_id),
+            )
+            if prior is not None and prior["quest_id"] == quest_id and prior["proof_id"] == proof_id and prior["xp"] == xp:
+                return prior
+            raise TWSStoreError("reward identity conflict") from exc
+        return self._one("SELECT * FROM tws_xp_rewards WHERE reward_id=?", (reward_id,)) or {}
+
+    def unlock_realm(self, profile_id: str, realm_id: str) -> dict[str, Any]:
+        profile_id = _identifier(profile_id, "profile id")
+        realm_id = _identifier(realm_id, "realm id")
+        realm = self._one("SELECT * FROM tws_realms WHERE realm_id=?", (realm_id,))
+        if realm is None:
+            raise TWSStoreError("unknown realm")
+        existing = self._one(
+            "SELECT * FROM tws_realm_progress WHERE profile_id=? AND realm_id=?",
+            (profile_id, realm_id),
+        )
+        if existing is not None:
+            return existing
+        if self.xp_total(profile_id) < realm["min_xp"]:
+            raise TWSStoreError("realm XP prerequisite is not met")
+        for prerequisite in json.loads(realm["prerequisites_json"]):
+            if self._one(
+                "SELECT 1 FROM tws_realm_progress WHERE profile_id=? AND realm_id=?",
+                (profile_id, prerequisite),
+            ) is None:
+                raise TWSStoreError("realm prerequisite is not unlocked")
+        self.storage.module("tws").insert(
+            "tws_realm_progress",
+            {"profile_id": profile_id, "realm_id": realm_id, "unlocked_at": _now()},
+        )
+        return self._one(
+            "SELECT * FROM tws_realm_progress WHERE profile_id=? AND realm_id=?",
+            (profile_id, realm_id),
+        ) or {}
 
     def wing(self, wing_id: str) -> dict[str, Any] | None:
         return self._one("SELECT * FROM tws_wings WHERE wing_id=?", (_identifier(wing_id, "wing id"),))

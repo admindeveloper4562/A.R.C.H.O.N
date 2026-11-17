@@ -18,7 +18,9 @@ class TWSLifecycleTests(unittest.TestCase):
             for state in ("offered", "accepted", "in_progress"):
                 quest = store.transition_quest("quest-1", state)
             store.append_proof("proof-1", "quest-1", {"result": "done"})
-            for state in ("submitted", "verified", "rewarded"):
+            quest = store.transition_quest("quest-1", "submitted")
+            store.review_proof("proof-1", "accepted", "reviewer-1")
+            for state in ("verified", "rewarded"):
                 quest = store.transition_quest("quest-1", state)
             self.assertEqual(quest["state"], "rewarded")
             self.assertEqual(store.catalog(kind="daily", state="rewarded")[0]["quest_id"], "quest-1")
