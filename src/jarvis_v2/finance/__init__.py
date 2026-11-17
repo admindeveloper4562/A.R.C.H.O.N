@@ -14,6 +14,14 @@ from .ingestion import (
     IngestionStore,
     Transaction,
 )
+from .reconciliation import (
+    FinanceOperation,
+    FinanceReconciliationError,
+    FinanceReconciliationResult,
+    FinanceReconciliationStore,
+    ReconciliationStore,
+    TransferOperation,
+)
 
 __all__ = [
     "Account",
@@ -26,6 +34,12 @@ __all__ = [
     "FinanceStore",
     "FinanceSyncResult",
     "FinanceTransaction",
+    "FinanceOperation",
+    "FinanceReconciliationError",
+    "FinanceReconciliationResult",
+    "FinanceReconciliationStore",
     "IngestionStore",
+    "ReconciliationStore",
     "Transaction",
+    "TransferOperation",
 ]
