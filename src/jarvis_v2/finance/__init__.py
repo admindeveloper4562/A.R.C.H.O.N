@@ -22,6 +22,12 @@ from .reconciliation import (
     ReconciliationStore,
     TransferOperation,
 )
+from .dashboard import (
+    FinanceBalance,
+    FinanceDashboard,
+    FinanceDashboardError,
+    FinanceDashboardService,
+)
 
 __all__ = [
     "Account",
@@ -42,4 +48,8 @@ __all__ = [
     "ReconciliationStore",
     "Transaction",
     "TransferOperation",
+    "FinanceBalance",
+    "FinanceDashboard",
+    "FinanceDashboardError",
+    "FinanceDashboardService",
 ]

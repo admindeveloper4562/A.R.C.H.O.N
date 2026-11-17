@@ -452,6 +452,13 @@ class FinanceStore:
     def transactions(self, source_id: str, scope_id: str) -> tuple[FinanceTransaction, ...]:
         return self._records(_identifier(source_id, "source id"), _identifier(scope_id, "scope id"), FinanceTransaction)
 
+    def dashboard(self, source_id: str, scope_id: str, *, reconciled_balances=()):
+        from .dashboard import FinanceDashboardService
+
+        return FinanceDashboardService(self).snapshot(
+            source_id, scope_id, reconciled_balances=reconciled_balances,
+        )
+
 
 Account = FinanceAccount
 Category = FinanceCategory
