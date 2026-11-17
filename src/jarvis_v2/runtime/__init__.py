@@ -49,6 +49,13 @@ from .email import (
     EmailSummary,
     EmailTimeout,
 )
+from .reminders import (
+    NotificationPreferences,
+    ReminderConnector,
+    ReminderNotification,
+    ReminderService,
+    ReminderServiceError,
+)
 
 __all__ = [
     "RUNTIME_HEALTH_SCOPE",
@@ -105,4 +112,9 @@ __all__ = [
     "EmailService",
     "EmailSummary",
     "EmailTimeout",
+    "NotificationPreferences",
+    "ReminderConnector",
+    "ReminderNotification",
+    "ReminderService",
+    "ReminderServiceError",
 ]
