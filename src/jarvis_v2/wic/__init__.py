@@ -483,6 +483,267 @@ class StoryClusterer:
         return self.store.add(cluster_key, values)
 
 
+@dataclass(frozen=True)
+class ClaimRecord:
+    """One bounded claim revision with explicit verification state."""
+
+    claim_id: str
+    cluster_id: str
+    statement_digest: str
+    status: str
+    confidence: float | None
+    observation_ids: tuple[str, ...]
+    source_ids: tuple[str, ...]
+    revision: int
+    updated_at: str
+    reason: str | None = None
+
+    def __post_init__(self) -> None:
+        _identifier(self.claim_id, "claim id")
+        _identifier(self.cluster_id, "cluster id")
+        if not re.fullmatch(r"[0-9a-f]{64}", self.statement_digest):
+            raise WICError("invalid statement digest")
+        if self.status not in {"uncertain", "supported", "verified", "corrected", "retracted"}:
+            raise WICError("invalid claim status")
+        if self.confidence is not None and (
+            type(self.confidence) is not float or not 0.0 <= self.confidence <= 1.0
+        ):
+            raise WICError("invalid claim confidence")
+        if not self.observation_ids or len(self.observation_ids) != len(set(self.observation_ids)):
+            raise WICError("claim observations are invalid")
+        if not self.source_ids or len(self.source_ids) != len(set(self.source_ids)):
+            raise WICError("claim sources are invalid")
+        for value in self.observation_ids:
+            _identifier(value, "observation id")
+        for value in self.source_ids:
+            _identifier(value, "source id")
+        if type(self.revision) is not int or self.revision < 1:
+            raise WICError("invalid claim revision")
+        _stored_timestamp(self.updated_at, "claim timestamp")
+        if self.reason is not None:
+            _text(self.reason, "claim reason", 512)
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "claim_id": self.claim_id,
+            "cluster_id": self.cluster_id,
+            "statement_digest": self.statement_digest,
+            "status": self.status,
+            "confidence": self.confidence,
+            "observation_ids": list(self.observation_ids),
+            "source_ids": list(self.source_ids),
+            "revision": self.revision,
+            "updated_at": self.updated_at,
+            "reason": self.reason,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, object]) -> "ClaimRecord":
+        if not isinstance(data, Mapping):
+            raise WICError("stored claim is invalid")
+        observation_ids = data.get("observation_ids")
+        source_ids = data.get("source_ids")
+        if (
+            not isinstance(observation_ids, list) or not all(isinstance(item, str) for item in observation_ids)
+            or not isinstance(source_ids, list) or not all(isinstance(item, str) for item in source_ids)
+        ):
+            raise WICError("stored claim sources are invalid")
+        claim_id = _string(data.get("claim_id"), "claim id")
+        cluster_id = _string(data.get("cluster_id"), "cluster id")
+        statement_digest = _string(data.get("statement_digest"), "statement digest")
+        status = _string(data.get("status"), "claim status")
+        confidence = data.get("confidence")
+        if confidence is not None and type(confidence) is not float:
+            raise WICError("stored claim confidence is invalid")
+        revision = data.get("revision")
+        if type(revision) is not int:
+            raise WICError("stored claim revision is invalid")
+        updated_at = _string(data.get("updated_at"), "claim timestamp")
+        reason = data.get("reason")
+        if reason is not None and not isinstance(reason, str):
+            raise WICError("stored claim reason is invalid")
+        return cls(
+            claim_id, cluster_id, statement_digest, status, confidence,
+            tuple(observation_ids), tuple(source_ids), revision, updated_at, reason,
+        )
+
+
+class ClaimLedger:
+    """Append-only claim history that cannot promote uncertainty directly."""
+
+    def __init__(self, database: str | Path | sqlite3.Connection):
+        if isinstance(database, sqlite3.Connection):
+            self._owns_connection = False
+            self.db = database
+        else:
+            self._owns_connection = True
+            self.db = sqlite3.connect(str(database))
+        self.db.row_factory = sqlite3.Row
+        self.db.execute("PRAGMA busy_timeout=5000")
+        self.db.execute(
+            "CREATE TABLE IF NOT EXISTS wic_claims (claim_id TEXT PRIMARY KEY, record_json TEXT NOT NULL)"
+        )
+        self.db.execute(
+            """CREATE TABLE IF NOT EXISTS wic_claim_revisions (
+                claim_id TEXT NOT NULL,
+                revision INTEGER NOT NULL,
+                record_json TEXT NOT NULL,
+                PRIMARY KEY (claim_id, revision)
+            )"""
+        )
+        self.db.commit()
+
+    def __enter__(self) -> "ClaimLedger":
+        return self
+
+    def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
+        self.close()
+
+    def create(
+        self, claim_id: str, cluster: StoryCluster, statement_digest: str,
+        recorded_at: str, confidence: float | None = None,
+    ) -> ClaimRecord:
+        claim_id = _identifier(claim_id, "claim id")
+        if not isinstance(cluster, StoryCluster):
+            raise WICError("story cluster is required")
+        _stored_timestamp(recorded_at, "claim timestamp")
+        status = "supported" if len(cluster.source_ids) >= 2 and confidence is not None else "uncertain"
+        record = ClaimRecord(
+            claim_id, cluster.cluster_id, statement_digest, status, confidence,
+            cluster.observation_ids, cluster.source_ids, 1, recorded_at,
+        )
+        return self._insert_new(record)
+
+    def corroborate(
+        self, claim_id: str, cluster: StoryCluster, recorded_at: str,
+        confidence: float | None,
+    ) -> ClaimRecord:
+        current = self.get(claim_id)
+        if current is None:
+            raise WICError("claim is not recorded")
+        if current.status == "retracted":
+            raise WICError("retracted claim requires correction")
+        _stored_timestamp(recorded_at, "claim timestamp")
+        sources = tuple(sorted(set(cluster.source_ids)))
+        observations = tuple(sorted(set(cluster.observation_ids)))
+        status = "supported" if len(sources) >= 2 and confidence is not None else "uncertain"
+        record = ClaimRecord(
+            current.claim_id, cluster.cluster_id, current.statement_digest, status, confidence,
+            observations, sources, current.revision + 1, recorded_at,
+        )
+        return self._append(record)
+
+    def verify(self, claim_id: str, recorded_at: str) -> ClaimRecord:
+        current = self.get(claim_id)
+        if current is None:
+            raise WICError("claim is not recorded")
+        if current.status != "supported" or len(current.source_ids) < 2 or current.confidence is None:
+            raise WICError("uncertain claim cannot be verified")
+        _stored_timestamp(recorded_at, "claim timestamp")
+        return self._append(
+            ClaimRecord(
+                current.claim_id, current.cluster_id, current.statement_digest, "verified",
+                current.confidence, current.observation_ids, current.source_ids,
+                current.revision + 1, recorded_at,
+            )
+        )
+
+    def retract(self, claim_id: str, reason: str, recorded_at: str) -> ClaimRecord:
+        current = self.get(claim_id)
+        if current is None:
+            raise WICError("claim is not recorded")
+        _stored_timestamp(recorded_at, "claim timestamp")
+        return self._append(
+            ClaimRecord(
+                current.claim_id, current.cluster_id, current.statement_digest, "retracted",
+                None, current.observation_ids, current.source_ids, current.revision + 1,
+                recorded_at, _text(reason, "claim reason", 512),
+            )
+        )
+
+    def correct(
+        self, claim_id: str, cluster: StoryCluster, statement_digest: str,
+        reason: str, recorded_at: str, confidence: float | None = None,
+    ) -> ClaimRecord:
+        current = self.get(claim_id)
+        if current is None:
+            raise WICError("claim is not recorded")
+        _stored_timestamp(recorded_at, "claim timestamp")
+        return self._append(
+            ClaimRecord(
+                current.claim_id, cluster.cluster_id, statement_digest, "corrected", confidence,
+                cluster.observation_ids, cluster.source_ids, current.revision + 1,
+                recorded_at, _text(reason, "claim reason", 512),
+            )
+        )
+
+    def get(self, claim_id: str) -> ClaimRecord | None:
+        claim_id = _identifier(claim_id, "claim id")
+        row = self.db.execute("SELECT record_json FROM wic_claims WHERE claim_id=?", (claim_id,)).fetchone()
+        if row is None:
+            return None
+        try:
+            return ClaimRecord.from_dict(json.loads(row["record_json"]))
+        except (TypeError, ValueError, json.JSONDecodeError) as exc:
+            raise WICError("stored claim is invalid") from exc
+
+    def history(self, claim_id: str) -> tuple[ClaimRecord, ...]:
+        claim_id = _identifier(claim_id, "claim id")
+        rows = self.db.execute(
+            "SELECT record_json FROM wic_claim_revisions WHERE claim_id=? ORDER BY revision",
+            (claim_id,),
+        ).fetchall()
+        try:
+            return tuple(ClaimRecord.from_dict(json.loads(row["record_json"])) for row in rows)
+        except (TypeError, ValueError, json.JSONDecodeError) as exc:
+            raise WICError("stored claim history is invalid") from exc
+
+    def _insert_new(self, record: ClaimRecord) -> ClaimRecord:
+        payload = self._payload(record)
+        try:
+            with self.db:
+                self.db.execute(
+                    "INSERT INTO wic_claims (claim_id, record_json) VALUES (?, ?)",
+                    (record.claim_id, payload),
+                )
+                self.db.execute(
+                    "INSERT INTO wic_claim_revisions (claim_id, revision, record_json) VALUES (?, ?, ?)",
+                    (record.claim_id, record.revision, payload),
+                )
+        except sqlite3.IntegrityError as exc:
+            raise WICError("claim already exists") from exc
+        except sqlite3.Error as exc:
+            raise WICError("claim persistence failed") from exc
+        return record
+
+    def _append(self, record: ClaimRecord) -> ClaimRecord:
+        payload = self._payload(record)
+        try:
+            with self.db:
+                self.db.execute(
+                    "UPDATE wic_claims SET record_json=? WHERE claim_id=?",
+                    (payload, record.claim_id),
+                )
+                self.db.execute(
+                    "INSERT INTO wic_claim_revisions (claim_id, revision, record_json) VALUES (?, ?, ?)",
+                    (record.claim_id, record.revision, payload),
+                )
+        except sqlite3.Error as exc:
+            raise WICError("claim history persistence failed") from exc
+        return record
+
+    @staticmethod
+    def _payload(record: ClaimRecord) -> str:
+        payload = json.dumps(record.as_dict(), ensure_ascii=True, allow_nan=False, sort_keys=True, separators=(",", ":"))
+        if len(payload.encode("utf-8")) > MAX_RECORD_BYTES:
+            raise WICError("claim exceeds the bounded size")
+        return payload
+
+    def close(self) -> None:
+        if self._owns_connection:
+            self.db.close()
+
+
 FeedTransport = Callable[[str, SourcePolicy, int], Iterable[Mapping[str, object]]]
 
 
@@ -594,6 +855,8 @@ WICSourceStore = SourceStore
 
 
 __all__ = [
+    "ClaimLedger",
+    "ClaimRecord",
     "FeedTransport",
     "IngestionResult",
     "MAX_FEED_ITEMS",
