@@ -363,7 +363,10 @@ def _audit_markdown_paths(task: dict | None, paths: list[str] | set[str]) -> set
 
 def _migration_blob_paths(task: dict | None, paths: list[str] | set[str]) -> set[str]:
     """Preserve exact legacy blob bytes during a bounded migration candidate."""
-    if not isinstance(task, dict) or task.get("execution_mode") != "migration":
+    if not isinstance(task, dict):
+        return set()
+    task_area = str(task.get("area", task.get("module", ""))).casefold()
+    if task_area != "mig":
         return set()
     if "migration/" not in task.get("suggested_scope_roots", []):
         return set()
