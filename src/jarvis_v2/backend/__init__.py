@@ -80,6 +80,7 @@ from .task_capability import (
     ValidatedTaskRequest,
     validate_task_request,
 )
+from .generation_scheduler import GenerationLease, GenerationRequest, GenerationScheduler, GenerationSchedulerError
 from .cloudflare_jobs import CloudflareJobAdapter, CloudflareJobAdapterError, CloudflareJobRecord
 from .conversation import (
     ConversationStore,
@@ -217,6 +218,10 @@ __all__ = [
     "TaskCapabilityManifest",
     "ValidatedTaskRequest",
     "validate_task_request",
+    "GenerationLease",
+    "GenerationRequest",
+    "GenerationScheduler",
+    "GenerationSchedulerError",
     "CloudflareJobAdapter",
     "CloudflareJobAdapterError",
     "CloudflareJobRecord",
