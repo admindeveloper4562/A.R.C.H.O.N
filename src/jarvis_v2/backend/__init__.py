@@ -72,6 +72,7 @@ from .ollama_profile import (
     OllamaProfileError,
     parse_ollama_probe,
 )
+from .linux_service import LinuxServiceError, LinuxServiceProfile, startup_decision
 from .conversation import (
     ConversationStore,
     ConversationStoreError,
