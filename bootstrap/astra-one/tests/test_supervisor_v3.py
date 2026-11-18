@@ -8,7 +8,7 @@ import subprocess
 
 from astra_one.full_plan import FullPlan, PROJECT_ID, payload_sha
 from astra_one.linux_runtime import _write_receipt_artifact
-from astra_one.linux_sda import State, _amendment_payload_sha, file_sha256
+from astra_one.linux_sda import State, _amendment_payload_sha, file_sha256, now
 from astra_one.supervisor import SupervisorController, classify_failure
 
 
@@ -640,6 +640,68 @@ class SupervisorV3Tests(unittest.TestCase):
         self.assertTrue(self.state.record_plan_amendment(path)["idempotent"])
         with self.state.db() as db:
             self.assertEqual(db.execute("SELECT count(*) FROM task_plan_amendments").fetchone()[0], 1)
+
+    def test_mig010_single_builder_amendment_releases_obsolete_blocker(self):
+        self.state.add_tasks({
+            "task_id": "MIG-010", "objective": "Qualify the approved single-builder pipeline.",
+            "acceptance": ["Five independent Codex worker tasks + QC + Merger + recoverability host-proven."],
+            "depends_on": [], "area": "migration",
+        })
+        with self.state.db() as db:
+            db.execute(
+                "UPDATE tasks SET project_id='ARCHON-JARVIS-V2',status='blocked',"
+                "last_error='five_worker_acceptance_conflicts_single_builder_contract' WHERE id='MIG-010'"
+            )
+            db.execute(
+                "INSERT INTO supervisor_cases(case_id,parent_id,generation,state,category,failure_fingerprint,"
+                "failure_code,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)",
+                ("MIG-010-test", "MIG-010", 1, "external_blocker", "approval_required",
+                 "test-fingerprint", "five_worker_acceptance_conflicts_single_builder_contract", now(), now()),
+            )
+        plan_path = self.repo / "docs" / "tasks" / "JARVIS_V2_TASK_PLAN.json"
+        plan_path.parent.mkdir(parents=True, exist_ok=True)
+        plan_path.write_text('{"parents":1}\n', encoding="utf-8")
+        with self.state.db() as db:
+            graph = self.state._plan_graph_bindings(db)
+            original_payload = db.execute("SELECT payload_sha FROM tasks WHERE id='MIG-010'").fetchone()[0]
+        artifact = {
+            "format": "archon-task-plan-amendment-v1",
+            "amendment_id": "MIG-010-SINGLE-BUILDER-TEST", "parent_id": "MIG-010", "version": 2,
+            "original_plan_sha256": file_sha256(plan_path), "amended_plan_sha256": "",
+            "original_task_payload_sha256": original_payload,
+            "original_acceptance": ["Five independent Codex worker tasks + QC + Merger + recoverability host-proven."],
+            "amended_acceptance": [
+                "The approved single-builder pipeline admits one isolated builder, passes independent QC, "
+                "integrates through the serialized Merger, records durable receipts, and recovers safely."
+            ],
+            "owner_authorization": {"authorized": True, "reference": "owner-test-MIG-010",
+                                    "scope": "replace obsolete five-worker acceptance with single-builder qualification"},
+            "acceptance_matrix": [{
+                "original_requirement": "Five coding workers", "github_free_support": "not applicable",
+                "alternative": "One Main Codex builder", "security_properties": "One-writer fencing and independent QC",
+                "residual_risks": "Historical five-worker evidence is not reproduced",
+                "owner_acknowledgment": "single-builder architecture authorized",
+                "verification": "MIG-010 qualification tests",
+            }],
+            "graph": graph,
+            "residual_risks": ["Historical five-worker qualification is retained as provenance but not reactivated."],
+            "verification": {"architecture_reference": "MIG-005", "qualification": "required_before_completion"},
+        }
+        artifact["amended_plan_sha256"] = _amendment_payload_sha(artifact)
+        path = self.repo / "mig010-amendment.json"
+        path.write_text(json.dumps(artifact, sort_keys=True) + "\n", encoding="utf-8")
+        preview = self.state.validate_plan_amendment(path)
+        self.assertEqual(preview["status"], "validated")
+        recorded = self.state.record_plan_amendment(path)
+        self.assertTrue(recorded["blocker_resolved"])
+        self.assertTrue(recorded["amended_payload_sha256"])
+        with self.state.db() as db:
+            task = db.execute("SELECT status,spec FROM tasks WHERE id='MIG-010'").fetchone()
+            case = db.execute("SELECT state,category FROM supervisor_cases WHERE case_id='MIG-010-test'").fetchone()
+            self.assertEqual(task["status"], "pending")
+            self.assertIn("approved single-builder pipeline", task["spec"])
+            self.assertEqual(tuple(case), ("resolved_external", "plan_amendment"))
+            self.assertEqual(db.execute("SELECT count(*) FROM pending_queue WHERE parent_id='MIG-010'").fetchone()[0], 1)
 
     def test_tws_blender_evidence_is_artifact_bound_and_device_honest(self):
         blend = self.state.home / "artifacts" / "candidate.blend"

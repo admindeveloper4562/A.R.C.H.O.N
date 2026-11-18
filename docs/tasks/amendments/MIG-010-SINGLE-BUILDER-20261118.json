@@ -1,0 +1,46 @@
+{
+  "acceptance_matrix": [
+    {
+      "alternative": "One Main Codex builder with deterministic Master admission, independent QC and serialized Merger.",
+      "github_free_support": "Not applicable; this is an ARCHON runtime acceptance contract.",
+      "original_requirement": "Five independent Codex worker tasks plus QC, Merger and recoverability host proof.",
+      "owner_acknowledgment": "Owner authorized the single-builder replacement on 2026-11-18.",
+      "residual_risks": "Historical five-worker qualification evidence remains provenance only and is not reactivated.",
+      "security_properties": "One-writer builder authority, isolated worktree, independent read-only QC, durable receipts and owner/security gate preservation.",
+      "verification": "MIG-010 bounded end-to-end qualification before completion."
+    }
+  ],
+  "amended_acceptance": [
+    "Demonstrate real end-to-end operation of the approved single-builder development pipeline, including deterministic task admission, isolated implementation, independent QC, serialized integration, durable receipts, restart recovery, rollback verification, and preservation of owner/security gates."
+  ],
+  "amended_plan_sha256": "9cc6d35ca10d350ceebb753f4a5f8fc4db6d1fa0e4d2123c96cd139755098e2e",
+  "amendment_id": "MIG-010-SINGLE-BUILDER-20261118",
+  "format": "archon-task-plan-amendment-v1",
+  "graph": {
+    "child_count": 1359,
+    "child_ids_sha256": "4c3187c0df09d64807a54dfc22b963e9df8e9e2993c852dde0cfcdeb2b376ff2",
+    "dependency_edges": 446,
+    "dependency_edges_sha256": "bc40d3e0af291a9cc9826cedf05942cd05e35d895bea9ac3c24f6b1ab2db897c",
+    "parent_count": 247,
+    "parent_ids_sha256": "07771b33b103546d4ef561f2441cc8bc3eb4ca91e25f347d97894e4edcc52791"
+  },
+  "original_acceptance": [
+    "Five independent Codex worker tasks + QC + Merger + recoverability host-proven"
+  ],
+  "original_plan_sha256": "10cb1ed53eace6af1c5d052ef0ad0a85eaf9f535db5ae0be794cc7d12752b154",
+  "original_task_payload_sha256": "983a8525e19be43e0fce5c0590143051fdae826fffc18e4a819ff78c1ce359e2",
+  "owner_authorization": {
+    "authorized": true,
+    "reference": "ARCHON owner authorization 2026-11-18 MIG-010 single-builder continuation",
+    "scope": "Replace obsolete five-worker acceptance; do not reactivate Astra coding workers; require Main Codex, independent QC, serialized Merger, restart recovery, rollback and owner/security gates."
+  },
+  "parent_id": "MIG-010",
+  "residual_risks": [
+    "Historical five-worker qualification evidence remains provenance only; this amendment does not recreate parallel coding."
+  ],
+  "verification": {
+    "architecture_reference": "MIG-005",
+    "qualification": "required_before_completion"
+  },
+  "version": 2
+}
