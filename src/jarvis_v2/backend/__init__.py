@@ -73,6 +73,7 @@ from .ollama_profile import (
     parse_ollama_probe,
 )
 from .linux_service import LinuxServiceError, LinuxServiceProfile, startup_decision
+from .cloudflare_jobs import CloudflareJobAdapter, CloudflareJobAdapterError, CloudflareJobRecord
 from .conversation import (
     ConversationStore,
     ConversationStoreError,
@@ -204,6 +205,9 @@ __all__ = [
     "ConnectorAuthorizationError",
     "ConnectorBroker",
     "ConnectorGrant",
+    "CloudflareJobAdapter",
+    "CloudflareJobAdapterError",
+    "CloudflareJobRecord",
     "DATA_SCOPES",
     "DeliveryError",
     "DeliveryInProgress",
