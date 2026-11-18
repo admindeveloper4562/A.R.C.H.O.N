@@ -65,6 +65,13 @@ from .provider_registry import (
     ProviderResolution,
     REQUEST_LOCALITIES,
 )
+from .ollama_profile import (
+    KV_CACHE_TYPES,
+    OllamaInferenceProfile,
+    OllamaProbeEvidence,
+    OllamaProfileError,
+    parse_ollama_probe,
+)
 from .conversation import (
     ConversationStore,
     ConversationStoreError,
