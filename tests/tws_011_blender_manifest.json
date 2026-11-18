@@ -1,0 +1,37 @@
+{
+  "task_id": "TWS-011",
+  "candidate_scope": "blender-linux",
+  "source": {
+    "path": "/home/r34p3r/Projects/jarvis-tws/scenes/jarvis_tws_blockout.blend",
+    "sha256": "23e20c5ba2da1f68b90243368b42b9fb63ac3855c672b04468cfc942fce394bf"
+  },
+  "tool": {
+    "name": "Blender",
+    "version": "5.3.0",
+    "binary_sha256": "baaa36cb5d7a35092388e6d123739b0829012c252b0705bc2debec292e4ebffb"
+  },
+  "artifacts": {
+    "blend_path": "/home/r34p3r/.local/state/archon-astra/tws-011-candidate/jarvis_tws_blockout_rigged.blend",
+    "blend_sha256": "1c3888a6122729e7a1aa43c7f3999f9adba55eac1974d1e333a3916e30959c3f",
+    "usdz_path": "/home/r34p3r/.local/state/archon-astra/tws-011-candidate/jarvis_tws_blockout_rigged.usdz",
+    "usdz_sha256": "30b3e13de9b42091c4ce432c63e51a1fe893bc86da3d5c2fe23ff8124012633d",
+    "mesh_count": 8,
+    "armature_count": 1,
+    "armature_modifier_count": 8,
+    "blend_reopen": "PASS",
+    "usdz_archive_check": "PASS"
+  },
+  "rollback": {
+    "mode": "disposable_staging_copy",
+    "mutation_then_restore": "PASS",
+    "restored_blend_sha256": "1c3888a6122729e7a1aa43c7f3999f9adba55eac1974d1e333a3916e30959c3f",
+    "restored_usdz_sha256": "30b3e13de9b42091c4ce432c63e51a1fe893bc86da3d5c2fe23ff8124012633d",
+    "source_unchanged_sha256": "23e20c5ba2da1f68b90243368b42b9fb63ac3855c672b04468cfc942fce394bf"
+  },
+  "native_validation": {
+    "linux_blender": "PASS",
+    "apple_scenekit_xcode_device": "NOT_RUN",
+    "physical_device": "NOT_RUN",
+    "follow_on_device_validation": "not_claimed"
+  }
+}
