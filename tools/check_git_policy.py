@@ -1,9 +1,9 @@
 """Enforce clean Git naming on PRs (requires full checkout to inspect commits)."""
 from __future__ import annotations
 import argparse, re, sys, subprocess
-BRANCH = re.compile(r"^(feat|fix|refactor|test|docs|chore|recovery|experiment|hotfix)/(core|sda|backend|runtime|research|tws|wic|finance|guardian|automation|platform|migration)/([A-Z]{2,8}-[0-9]{3,4})-([a-z0-9]+(?:-[a-z0-9]+)*)$")
+BRANCH = re.compile(r"^(feat|fix|refactor|test|docs|chore|recovery|experiment|hotfix)/(core|sda|backend|runtime|research|tws|wic|finance|guardian|automation|platform|migration|release)/([A-Z]{2,8}-[0-9]{3,4})-([a-z0-9]+(?:-[a-z0-9]+)*)$")
 COMMIT = re.compile(r"^(feat|fix|refactor|test|docs|chore|perf|build|ci|revert)\(([a-z][a-z0-9-]*)\)!?: ([a-z][^\n]{0,71}?) \[([A-Z]{2,8}-[0-9]{3,4})\]$")
-ALIASES={"tws":"TWS","wic":"WIC","automation":"AUTO","migration":"MIG","runtime":"RUN","guardian":"GUARD","backend":"BACK","finance":"FIN","research":"RES","platform":"BASE"}
+ALIASES={"tws":"TWS","wic":"WIC","automation":"AUTO","migration":"MIG","runtime":"RUN","guardian":"GUARD","backend":"BACK","finance":"FIN","research":"RES","platform":"BASE","release":"REL"}
 def check_branch(name: str):
  if name in ("main","develop") or re.fullmatch(r"release/[1-9][0-9]*\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)", name): return True
  m=BRANCH.fullmatch(name)

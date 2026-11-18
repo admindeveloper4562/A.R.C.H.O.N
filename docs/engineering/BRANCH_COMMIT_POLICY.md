@@ -9,7 +9,10 @@
 **Pattern:** `<kind>/<module>/<TASK-ID>-<kebab-description>`
 
 Kinds: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `recovery`, `experiment`, `hotfix`.
-Modules: `core`, `sda`, `backend`, `runtime`, `research`, `tws`, `wic`, `finance`, `guardian`, `automation`, `platform`, `migration`.
+Modules: `core`, `sda`, `backend`, `runtime`, `research`, `tws`, `wic`, `finance`, `guardian`, `automation`, `platform`, `migration`, `release`.
+
+The `release` branch category is used for the `REL` verification workstream; it is
+not permission to publish a release or modify protected `main`.
 
 Examples:
 - `feat/core/CORE-004-durable-task-sessions`

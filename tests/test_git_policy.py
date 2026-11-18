@@ -2,7 +2,7 @@ import unittest
 from tools.check_git_policy import check_branch, check_commit
 class PolicyTests(unittest.TestCase):
  def test_good_branch(self):
-  for b in ['main','develop','release/2.0.0','feat/core/CORE-004-durable-sessions','fix/guardian/GUARD-006-priority','docs/migration/MIG-003-source-provenance','feat/automation/AUTO-007-queue-reconnect']:
+  for b in ['main','develop','release/2.0.0','feat/core/CORE-004-durable-sessions','fix/guardian/GUARD-006-priority','docs/migration/MIG-003-source-provenance','feat/automation/AUTO-007-queue-reconnect','fix/release/REL-005-pending-jobs']:
    self.assertTrue(check_branch(b),b)
  def test_bad_branch(self):
   for b in ['feature/CORE-004-x','feat/core/CORE-004_wrong','feat/sda/CORE-004-oops','feat/business/FIN-001-x','feat/core/CORE-004-../x','release/2.00.0']:
