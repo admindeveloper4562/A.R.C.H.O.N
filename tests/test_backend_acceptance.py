@@ -11,10 +11,13 @@ from jarvis_v2.backend import (
     ConnectorBroker,
     ContextPackError,
     ContextPacker,
+    EffectJournal,
     LocalAgentJob,
     NodeManifest,
+    OllamaInferenceProfile,
     OwnerApproval,
     WindowsAgentRegistry,
+    parse_ollama_telemetry,
 )
 from jarvis_v2.backend.backup import BackupManager
 from jarvis_v2.backend.storage import StorageManager
@@ -100,6 +103,49 @@ class BackendAcceptanceTests(unittest.TestCase):
         )
         self.assertEqual(result["status"], "completed")
         self.assertEqual(result["result_sha256"], RESULT_SHA)
+
+    def test_linux_authenticated_inference_roundtrip_preserves_context_and_audit(self):
+        modules = ModuleRegistry.from_config(ROOT / "config/modules.json")
+        authorization = AuthorizationServer(modules)
+        authorization.register_identity("backend-service", "backend")
+        authorization.grant("backend-service", "backend", ["backend:read"])
+        self.assertTrue(authorization.authorize("backend-service", "backend", "backend:read"))
+
+        profile = OllamaInferenceProfile(model="qwen3:4b", num_ctx=4_096)
+        telemetry = parse_ollama_telemetry({
+            "model": "qwen3:4b",
+            "done": True,
+            "context": [1, 2],
+            "total_duration": 4_000_000_000,
+            "prompt_eval_count": 2,
+            "prompt_eval_duration": 1_000_000_000,
+            "eval_count": 4,
+            "eval_duration": 1_000_000_000,
+        }, profile)
+        packet = ContextPacker().pack(
+            {"task_id": "WIN-011", "acceptance": ["preserve context"]},
+            {"stop": False},
+            [telemetry.as_dict()],
+        )
+        self.assertEqual(packet["recent_receipts"][0]["context_tokens"], 2)
+
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "audit.sqlite"
+            with EffectJournal(path) as journal:
+                prepared = journal.prepare(
+                    "win011-result", "WIN-011", operation="inference.record",
+                    target="ollama-local", request={"result_sha256": RESULT_SHA},
+                )
+                self.assertTrue(prepared["execution_permitted"])
+                completed = journal.complete("win011-result", {"result_sha256": RESULT_SHA})
+                self.assertEqual(completed["status"], "completed")
+            with EffectJournal(path) as reopened:
+                replay = reopened.prepare(
+                    "win011-result", "WIN-011", operation="inference.record",
+                    target="ollama-local", request={"result_sha256": RESULT_SHA},
+                )
+                self.assertFalse(replay["execution_permitted"])
+                self.assertEqual(replay["result"], {"result_sha256": RESULT_SHA})
 
     def test_backup_restore_preserves_owned_backend_state(self):
         with tempfile.TemporaryDirectory() as directory:
