@@ -21,6 +21,7 @@ import sqlite3
 
 from .linux_sda import (MODEL, EFFORT, MAX_FAILURES, PROTECTED, PROTECTED_PARTS, SHA, State,
                         control_blocked, git, now)
+from .test_evidence_cache import EvidenceCache, build_cache_material, cache_key
 
 ALLOWED_SUFFIXES = {".py", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".json", ".toml", ".md", ".html", ".css", ".sql", ".yaml", ".yml", ".sh", ".swift"}
 MAX_FILES = 30
@@ -1100,12 +1101,22 @@ def docker_test(worktree: Path, image: str, command: list[str], timeout: int = 3
         raise DockerTestError("docker_test_config_invalid")
     if not shutil_which("docker"):
         raise DockerTestError("docker_unavailable")
-    inspected=subprocess.run(["docker","image","inspect",image],stdout=subprocess.DEVNULL,stderr=subprocess.PIPE,text=True,timeout=15)
+    inspected=subprocess.run(["docker","image","inspect","--format={{.Id}}",image],stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,timeout=15)
     if inspected.returncode:
         detail=inspected.stderr.lower()
         if "permission denied" in detail or "connect to the docker api" in detail:
             raise DockerTestError("docker_access_denied")
         raise DockerTestError("docker_image_missing")
+    image_digest = inspected.stdout.strip()
+    cache = EvidenceCache(receipt_dir.parent / "test-cache") if receipt_dir is not None else None
+    material = (build_cache_material(worktree, image_digest, command, receipt_context)
+                if cache is not None else None)
+    key = cache_key(material) if material is not None else None
+    if cache is not None and key is not None:
+        cached = cache.load(key)
+        if cached is not None:
+            cached.update({"cache_hit": True, "cache_key": key})
+            return _complete_test_receipt(cached, receipt_dir=receipt_dir, receipt_context=receipt_context)
     temporary, staged = _docker_context(worktree)
     try:
         args=["docker","run","--rm","--pull=never","--network=none","--read-only",
@@ -1124,10 +1135,14 @@ def docker_test(worktree: Path, image: str, command: list[str], timeout: int = 3
                 count=re.search(r"Ran (\d+) tests?",output)
                 ran=bool(count and int(count.group(1))>=1)
             receipt = {"passed": finished.returncode == 0 and ran, "exit_code": finished.returncode,
-                       "sandbox": "docker_no_network", "tests_detected": ran}
+                       "sandbox": "docker_no_network", "tests_detected": ran,
+                       "cache_hit": False, **({"cache_key": key} if key else {})}
+            if cache is not None and key is not None:
+                cache.store(key, receipt)
             return _complete_test_receipt(receipt, receipt_dir=receipt_dir, receipt_context=receipt_context)
         except subprocess.TimeoutExpired:
-            receipt = {"passed": False, "exit_code": 124, "sandbox": "docker_timeout", "tests_detected": False}
+            receipt = {"passed": False, "exit_code": 124, "sandbox": "docker_timeout", "tests_detected": False,
+                       "cache_hit": False, **({"cache_key": key} if key else {})}
             return _complete_test_receipt(receipt, receipt_dir=receipt_dir, receipt_context=receipt_context)
     finally:
         temporary.cleanup()
