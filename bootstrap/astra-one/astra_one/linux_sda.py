@@ -39,6 +39,9 @@ EFFORT = "medium"
 MAX_WORKERS = 5
 MAX_FAILURES = 20
 QUEUE_NAMES = ("project_queue", "pending_queue", "rebuild_queue", "review_queue", "merge_queue")
+LINUX_PLATFORM_AMENDMENT_PARENT_IDS = frozenset(
+    f"WIN-{number:03d}" for number in range(2, 12)
+)
 TASK_EXECUTION_MODES = frozenset({
     "worker", "implementation", "audit", "verification", "migration", "design",
     "owner_gate", "ci_local_only",
@@ -1483,8 +1486,9 @@ class State:
         }
         if not isinstance(artifact, dict) or set(artifact) != required:
             raise ValueError("plan amendment fields are incomplete or unexpected")
+        supported_parent_ids = {"MIG-002", "MIG-010", "REL-003"} | LINUX_PLATFORM_AMENDMENT_PARENT_IDS
         if (artifact["format"] != "archon-task-plan-amendment-v1"
-                or artifact["parent_id"] not in {"MIG-002", "MIG-010", "REL-003"}):
+                or artifact["parent_id"] not in supported_parent_ids):
             raise ValueError("unsupported plan amendment")
         if type(artifact["version"]) is not int or artifact["version"] < 2:
             raise ValueError("plan amendment version is invalid")
@@ -1537,7 +1541,12 @@ class State:
                 raise ValueError("GitHub Free limitation evidence is incomplete")
         elif (verification.get("architecture_reference") != "MIG-005"
               or verification.get("qualification") != "required_before_completion"):
-            raise ValueError("single-builder qualification binding is incomplete")
+            if artifact["parent_id"] not in LINUX_PLATFORM_AMENDMENT_PARENT_IDS:
+                raise ValueError("single-builder qualification binding is incomplete")
+            if (verification.get("platform") != "linux"
+                    or verification.get("deferred_platform") != "windows"
+                    or verification.get("completion_policy") != "linux_scope_only"):
+                raise ValueError("Linux platform amendment binding is incomplete")
         return {
             "artifact": artifact,
             "artifact_path": str(path),
@@ -1606,7 +1615,7 @@ class State:
                      result["artifact_path"], result["artifact_sha256"], result["owner_authorization"],
                      "active", self.get("source_sha"), self.get("integration_sha"), timestamp),
                 )
-                if artifact["parent_id"] in {"MIG-010", "REL-003"}:
+                if artifact["parent_id"] in {"MIG-010", "REL-003"} | LINUX_PLATFORM_AMENDMENT_PARENT_IDS:
                     task = db.execute(
                         "SELECT * FROM tasks WHERE id=?", (artifact["parent_id"],)
                     ).fetchone()
@@ -1621,6 +1630,20 @@ class State:
                     if artifact["parent_id"] == "REL-003" and task["status"] not in {"pending", "queued"}:
                         db.execute("ROLLBACK")
                         raise ValueError("REL-003 is not pending or queued")
+                    if artifact["parent_id"] in LINUX_PLATFORM_AMENDMENT_PARENT_IDS:
+                        if task["status"] != "blocked":
+                            db.execute("ROLLBACK")
+                            raise ValueError("Linux platform amendment requires a blocked task")
+                        dependencies = json.loads(task["spec"]).get("depends_on", [])
+                        if any(
+                            (dependency_row := db.execute(
+                                "SELECT status FROM tasks WHERE id=?", (dependency,)
+                            ).fetchone()) is None
+                            or dependency_row["status"] != "completed"
+                            for dependency in dependencies
+                        ):
+                            db.execute("ROLLBACK")
+                            raise ValueError("Linux platform amendment dependencies are incomplete")
                     spec = json.loads(task["spec"])
                     amended_spec = dict(spec)
                     amended_spec["acceptance"] = artifact["amended_acceptance"]

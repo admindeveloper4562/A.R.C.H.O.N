@@ -769,6 +769,70 @@ class SupervisorV3Tests(unittest.TestCase):
             self.assertEqual(db.execute("SELECT count(*) FROM pending_queue WHERE parent_id='REL-003'").fetchone()[0], 1)
         self.assertTrue(self.state.record_plan_amendment(path)["idempotent"])
 
+    def test_linux_platform_amendment_preserves_windows_requirement_and_releases_root(self):
+        original_acceptance = ["16K/Q8 KV/Flash setup verified; performance measured not assumed"]
+        self.state.add_tasks({
+            "task_id": "WIN-002", "objective": "Set a Linux-portable inference profile.",
+            "acceptance": original_acceptance, "depends_on": [], "area": "backend",
+        })
+        with self.state.db() as db:
+            db.execute(
+                "UPDATE tasks SET project_id='ARCHON-JARVIS-V2',status='blocked',"
+                "last_error='device_unavailable' WHERE id='WIN-002'"
+            )
+        plan_path = self.repo / "docs" / "tasks" / "JARVIS_V2_TASK_PLAN.json"
+        plan_path.parent.mkdir(parents=True, exist_ok=True)
+        plan_path.write_text('{"parents":247}\n', encoding="utf-8")
+        with self.state.db() as db:
+            graph = self.state._plan_graph_bindings(db)
+            original_payload = db.execute(
+                "SELECT payload_sha FROM tasks WHERE id='WIN-002'"
+            ).fetchone()[0]
+        artifact = {
+            "format": "archon-task-plan-amendment-v1",
+            "amendment_id": "WIN-002-LINUX-FIRST-TEST", "parent_id": "WIN-002", "version": 2,
+            "original_plan_sha256": file_sha256(plan_path), "amended_plan_sha256": "",
+            "original_task_payload_sha256": original_payload,
+            "original_acceptance": original_acceptance,
+            "amended_acceptance": [
+                "Linux-side model capability/profile validation is implemented and measured on the current host; "
+                "Windows hardware and Windows-specific Qwen3-8B evidence remain explicitly deferred."
+            ],
+            "owner_authorization": {
+                "authorized": True, "reference": "owner-test-WIN-002-linux-first",
+                "scope": "Do Linux-side WIN work only and preserve the Windows acceptance as deferred.",
+            },
+            "acceptance_matrix": [{
+                "original_requirement": original_acceptance[0],
+                "github_free_support": "not applicable",
+                "alternative": "Linux host capability/profile and measured local inference evidence",
+                "security_properties": "No remote device claim; bounded local evidence only",
+                "residual_risks": "Windows hardware acceptance remains unverified",
+                "owner_acknowledgment": "Linux-first scope authorized",
+                "verification": "Independent Linux QC with source and artifact digests",
+            }],
+            "graph": graph,
+            "residual_risks": ["The original Windows acceptance remains deferred and is not claimed by this amendment."],
+            "verification": {
+                "platform": "linux", "deferred_platform": "windows",
+                "completion_policy": "linux_scope_only",
+            },
+        }
+        artifact["amended_plan_sha256"] = _amendment_payload_sha(artifact)
+        path = self.repo / "win002-linux-first-amendment.json"
+        path.write_text(json.dumps(artifact, sort_keys=True) + "\n", encoding="utf-8")
+        self.assertEqual(self.state.validate_plan_amendment(path)["status"], "validated")
+        result = self.state.record_plan_amendment(path)
+        self.assertTrue(result["blocker_resolved"])
+        with self.state.db() as db:
+            task = db.execute("SELECT status,spec FROM tasks WHERE id='WIN-002'").fetchone()
+            self.assertEqual(task["status"], "pending")
+            self.assertIn("Linux-side model capability/profile", task["spec"])
+            self.assertEqual(
+                db.execute("SELECT count(*) FROM pending_queue WHERE parent_id='WIN-002'").fetchone()[0], 1
+            )
+        self.assertEqual(self.state.record_plan_amendment(path)["idempotent"], True)
+
     def test_tws_blender_evidence_is_artifact_bound_and_device_honest(self):
         blend = self.state.home / "artifacts" / "candidate.blend"
         usdz = self.state.home / "artifacts" / "candidate.usdz"
