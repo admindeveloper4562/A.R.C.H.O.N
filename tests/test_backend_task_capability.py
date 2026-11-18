@@ -44,6 +44,15 @@ class TaskCapabilityTests(unittest.TestCase):
             with self.assertRaisesRegex(TaskCapabilityError, "sandbox"):
                 validate_task_request(manifest, "index", "a" * 64, path=link / "data.txt")
 
+    def test_sensitive_paths_are_rejected_even_inside_an_allowed_root(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            manifest = TaskCapabilityManifest.create(["index"], [root])
+            with self.assertRaisesRegex(TaskCapabilityError, "sensitive"):
+                validate_task_request(manifest, "index", "a" * 64, path=root / ".ssh" / "id_ed25519")
+            with self.assertRaisesRegex(TaskCapabilityError, "sensitive"):
+                validate_task_request(manifest, "index", "a" * 64, path=root / ".env.local")
+
 
 if __name__ == "__main__":
     unittest.main()

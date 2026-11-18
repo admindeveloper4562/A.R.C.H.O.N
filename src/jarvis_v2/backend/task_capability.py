@@ -12,6 +12,9 @@ from .windows_agent import LOCAL_OPERATIONS
 _SHA256 = re.compile(r"^[0-9a-fA-F]{64}$")
 MAX_ALLOWED_PATHS = 32
 
+_SENSITIVE_COMPONENTS = frozenset({".aws", ".azure", ".docker", ".gnupg", ".kube", ".ssh"})
+_SENSITIVE_FILES = frozenset({".git-credentials", ".netrc", ".npmrc", ".pypirc"})
+
 
 class TaskCapabilityError(ValueError):
     """Raised when a local task exceeds its capability manifest."""
@@ -86,6 +89,10 @@ class TaskCapabilityManifest:
             resolved = candidate.resolve(strict=False)
         except OSError as exc:
             raise TaskCapabilityError("task path cannot be resolved") from exc
+        names = {part.casefold() for part in resolved.parts}
+        filename = resolved.name.casefold()
+        if names & _SENSITIVE_COMPONENTS or filename in _SENSITIVE_FILES or filename.startswith(".env"):
+            raise TaskCapabilityError("task path is sensitive")
         if not any(resolved == root or root in resolved.parents for root in self.allowed_paths):
             raise TaskCapabilityError("task path is outside the capability sandbox")
         return resolved
