@@ -416,6 +416,43 @@ class SupervisorV3Tests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "metadata-only"):
             self.supervisor._validate_pending_jobs_evidence(evidence)
 
+    def test_pending_jobs_resolution_accepts_required_no_secrets_attestation(self):
+        self.state.add_tasks({
+            "task_id": "REL-005", "objective": "Reconnect pending jobs.",
+            "acceptance": ["The deployed worker reconnects pending jobs."],
+            "depends_on": [], "area": "automation", "execution_mode": "verification",
+            "subtasks": [],
+        })
+        self.state.set_task("REL-005", "failed", error="dependency_wait:cloudflare_pending_job_worker")
+        case = self.supervisor.triage_failure("REL-005", "dependency_wait:cloudflare_pending_job_worker", generation=1)
+        self.supervisor.mark_external_blocker(
+            case["case_id"], "dependency_wait", "dependency_wait:cloudflare_pending_job_worker"
+        )
+        evidence = {
+            "task_id": "REL-005", "case_id": case["case_id"],
+            "kind": "cloudflare_pending_jobs", "archon_read_only_policy": True,
+            "source_sha": self.state.get("source_sha"), "integration_sha": self.state.get("integration_sha"),
+            "worker_name": "astra-one-monitor",
+            "worker_url": "https://astra-one-monitor.admin-developer4562.workers.dev",
+            "health_status": 200, "health_service": "astra-one-monitor",
+            "deployment_version_id": "15381dca-c6d0-44d9-9eaf-c7cc7b293e59",
+            "d1_name": "astra-one-monitor", "d1_id": "e3d42451-9dfa-457d-abd0-b1b45609a0b4",
+            "d1_tables": ["_cf_KV", "astra_events", "astra_jobs", "astra_runs"],
+            "d1_job_rows": 1, "d1_rows_written": 0, "metadata_only": True,
+            "no_secrets_or_payloads": True, "local_typecheck_passed": True,
+            "wrangler_dry_run_passed": True, "local_test_count": 7,
+            "live_job_smoke_passed": True, "live_job_final_state": "completed",
+            "live_job_id": "rel005-smoke-test", "schema_migration_applied": True,
+            "owner_deployment_confirmed": True,
+            "release_approval_reference": "owner-executed-pending-job-deployment",
+        }
+        evidence_path = self.state.home / "private" / "rel-005.json"
+        evidence_path.write_text(json.dumps(evidence) + "\n", encoding="utf-8")
+        os.chmod(evidence_path, 0o600)
+        result = self.supervisor.resolve_external("REL-005", evidence_path)
+        self.assertEqual(result["state"], "pending")
+        self.assertFalse(result["idempotent"])
+
     def test_external_blocker_clears_stale_pending_claim_and_survives_refresh(self):
         with self.state.db() as db:
             db.execute(

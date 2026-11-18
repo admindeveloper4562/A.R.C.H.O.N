@@ -385,8 +385,11 @@ class SupervisorController:
             raise ValueError("external evidence is not valid JSON") from exc
         if not isinstance(evidence, dict) or evidence.get("task_id") != task_id:
             raise ValueError("external evidence task mismatch")
-        if any(any(word in str(key).lower() for word in ("secret", "password", "private_key", "raw_token"))
-               for key in evidence):
+        if any(
+            str(key).lower() != "no_secrets_or_payloads"
+            and any(word in str(key).lower() for word in ("secret", "password", "private_key", "raw_token"))
+            for key in evidence
+        ):
             raise ValueError("external evidence contains a sensitive field")
         expected_kinds = {
             "BASE-013": "cloudflare_readonly_inventory",
