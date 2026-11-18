@@ -1788,7 +1788,13 @@ class State:
                 if any((found:=db.execute("SELECT status FROM tasks WHERE id=?",(d,)).fetchone()) is None or found[0] != "completed" for d in deps):
                     continue
                 if row["owner_gate"]:
-                    continue
+                    approved = db.execute(
+                        "SELECT 1 FROM owner_approval_receipts "
+                        "WHERE task_id=? AND decision='APPROVE' LIMIT 1",
+                        (row["id"],),
+                    ).fetchone()
+                    if approved is None:
+                        continue
                 if row["project_id"]:
                     t["subtasks"] = [json.loads(child["spec"]) for child in db.execute(
                         "SELECT spec FROM subtasks WHERE parent_id=? ORDER BY sequence", (row["id"],)

@@ -226,6 +226,53 @@ class FullPlanImportTests(unittest.TestCase):
             self.state.approve_owner("FULL-003")
         self.assertEqual(self.state.full_plan_status()["parent_status"]["approval_required"], 1)
 
+    def test_approved_owner_gate_is_claimable_but_unapproved_gate_is_not(self):
+        self.state.import_full_plan(self.plan())
+        with self.state.db() as db:
+            now = "now"
+            db.execute("UPDATE tasks SET status='blocked',updated_at=? WHERE id='FULL-001'", (now,))
+            db.execute("DELETE FROM pending_queue WHERE parent_id='FULL-001'")
+            task = db.execute("SELECT * FROM tasks WHERE id='FULL-003'").fetchone()
+            db.execute("UPDATE tasks SET status='pending',updated_at=? WHERE id='FULL-003'", (now,))
+            db.execute(
+                "INSERT INTO pending_queue(parent_id,project_id,enqueue_seq,available_at,created_at) "
+                "VALUES(?,?,?,?,?)",
+                ("FULL-003", task["project_id"], task["enqueue_seq"], 0, now),
+            )
+
+        self.assertIsNone(self.state.claim())
+
+        with self.state.db() as db:
+            task = db.execute("SELECT * FROM tasks WHERE id='FULL-003'").fetchone()
+            db.execute(
+                "INSERT INTO owner_approval_receipts("
+                "receipt_id,task_id,decision,packet_sha256,full_architecture_sha256,"
+                "bounded_focus_sha256,parent_payload_sha256,source_sha,integration_sha,"
+                "owner_identity,receipt_path,receipt_sha256,allowed_signers_sha256,"
+                "signature_algorithm,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                (
+                    "owner-receipt",
+                    "FULL-003",
+                    "APPROVE",
+                    "",
+                    "",
+                    task["architecture_sha"],
+                    task["payload_sha"],
+                    "a" * 40,
+                    "b" * 40,
+                    "owner",
+                    str(self.base / "owner-receipt.json"),
+                    "c" * 64,
+                    "d" * 64,
+                    "ssh-ed25519",
+                    "now",
+                ),
+            )
+
+        claim = self.state.claim()
+        self.assertIsNotNone(claim)
+        self.assertEqual(claim["task"]["task_id"], "FULL-003")
+
     def test_task_markdown_round_trips_to_sqlite_ids_and_payloads(self):
         self.state.import_full_plan(self.plan())
         output = self.base / "reports" / "TASK.md"
