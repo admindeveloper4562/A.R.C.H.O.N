@@ -388,6 +388,31 @@ class SupervisorV3Tests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "read-only"):
             self.supervisor._validate_cloudflare_deployment_evidence(evidence)
 
+    def test_pending_jobs_evidence_requires_metadata_only_deployment(self):
+        evidence = {
+            "worker_name": "astra-one-monitor",
+            "worker_url": "https://astra-one-monitor.admin-developer4562.workers.dev",
+            "health_status": 200,
+            "health_service": "astra-one-monitor",
+            "deployment_version_id": "e2adef30-cd8a-49ad-b3c1-a46bfb569317",
+            "d1_name": "astra-one-monitor",
+            "d1_id": "e3d42451-9dfa-457d-abd0-b1b45609a0b4",
+            "d1_tables": ["_cf_KV", "astra_events", "astra_jobs", "astra_runs"],
+            "d1_job_rows": 0,
+            "metadata_only": True,
+            "no_secrets_or_payloads": True,
+            "local_typecheck_passed": True,
+            "wrangler_dry_run_passed": True,
+            "local_test_count": 7,
+            "schema_migration_applied": True,
+            "owner_deployment_confirmed": True,
+            "release_approval_reference": "owner-executed-pending-job-deployment",
+        }
+        self.supervisor._validate_pending_jobs_evidence(evidence)
+        evidence["metadata_only"] = False
+        with self.assertRaisesRegex(ValueError, "metadata-only"):
+            self.supervisor._validate_pending_jobs_evidence(evidence)
+
     def test_external_blocker_clears_stale_pending_claim_and_survives_refresh(self):
         with self.state.db() as db:
             db.execute(

@@ -394,6 +394,7 @@ class SupervisorController:
             "MIG-002": "github_policy_and_ci",
             "RES-015": "research_live_source_benchmark",
             "AUTO-013": "cloudflare_worker_deployment",
+            "REL-005": "cloudflare_pending_jobs",
         }
         if task_id == "WIN-002":
             raise ValueError("WIN-002 requires real Windows device evidence")
@@ -405,6 +406,8 @@ class SupervisorController:
             self._validate_research_benchmark_evidence(evidence)
         if task_id == "AUTO-013":
             self._validate_cloudflare_deployment_evidence(evidence)
+        if task_id == "REL-005":
+            self._validate_pending_jobs_evidence(evidence)
         evidence_sha = hashlib.sha256(raw).hexdigest()
         with self.state.master_lock():
             stamp = re.sub(r"[^0-9A-Za-z_-]", "", now())[:32]
@@ -533,6 +536,44 @@ class SupervisorController:
             raise ValueError("Cloudflare D1 schema evidence is incomplete")
         if evidence.get("d1_rows_written") != 0:
             raise ValueError("Cloudflare evidence must be read-only")
+        if evidence.get("owner_deployment_confirmed") is not True:
+            raise ValueError("owner deployment confirmation is required")
+        if (not isinstance(evidence.get("release_approval_reference"), str)
+                or not 1 <= len(evidence["release_approval_reference"]) <= 200):
+            raise ValueError("release approval reference is required")
+
+    def _validate_pending_jobs_evidence(self, evidence: dict) -> None:
+        """Require deployed, metadata-only reconnect evidence for REL-005."""
+        if evidence.get("worker_name") != "astra-one-monitor":
+            raise ValueError("Cloudflare pending-job worker name is incorrect")
+        worker_url = evidence.get("worker_url")
+        if not isinstance(worker_url, str) or not re.fullmatch(
+                r"https://[A-Za-z0-9][A-Za-z0-9.-]*\.workers\.dev", worker_url):
+            raise ValueError("Cloudflare pending-job worker URL is invalid")
+        if evidence.get("health_status") != 200 or evidence.get("health_service") != "astra-one-monitor":
+            raise ValueError("Cloudflare pending-job health evidence is incomplete")
+        if not re.fullmatch(r"[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}",
+                            str(evidence.get("deployment_version_id", ""))):
+            raise ValueError("Cloudflare pending-job deployment version is invalid")
+        if evidence.get("d1_name") != "astra-one-monitor" or not re.fullmatch(
+                r"[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}",
+                str(evidence.get("d1_id", ""))):
+            raise ValueError("Cloudflare pending-job D1 evidence is incomplete")
+        tables = evidence.get("d1_tables")
+        if (not isinstance(tables, list) or len(tables) > 16
+                or any(not isinstance(item, str) or len(item) > 80 for item in tables)
+                or not {"astra_events", "astra_runs", "astra_jobs"}.issubset(tables)):
+            raise ValueError("Cloudflare pending-job schema evidence is incomplete")
+        if evidence.get("d1_job_rows") != 0 or evidence.get("metadata_only") is not True:
+            raise ValueError("pending-job evidence must be empty and metadata-only")
+        if evidence.get("no_secrets_or_payloads") is not True:
+            raise ValueError("pending-job evidence must exclude secrets and payloads")
+        if evidence.get("local_typecheck_passed") is not True or evidence.get("wrangler_dry_run_passed") is not True:
+            raise ValueError("pending-job deterministic checks are incomplete")
+        if type(evidence.get("local_test_count")) is not int or evidence["local_test_count"] < 7:
+            raise ValueError("pending-job test evidence is incomplete")
+        if evidence.get("schema_migration_applied") is not True:
+            raise ValueError("pending-job schema migration evidence is incomplete")
         if evidence.get("owner_deployment_confirmed") is not True:
             raise ValueError("owner deployment confirmation is required")
         if (not isinstance(evidence.get("release_approval_reference"), str)
