@@ -1,9 +1,12 @@
 import unittest
 
 from jarvis_v2.backend import (
+    OllamaErrorEvidence,
     OllamaInferenceProfile,
     OllamaProfileError,
+    classify_ollama_error,
     parse_ollama_probe,
+    parse_ollama_telemetry,
 )
 
 
@@ -56,6 +59,36 @@ class OllamaProfileTests(unittest.TestCase):
         ):
             with self.subTest(payload=payload), self.assertRaises(OllamaProfileError):
                 parse_ollama_probe(payload, profile)
+
+    def test_linux_telemetry_reports_rates_limits_and_unavailable_accelerator(self):
+        profile = OllamaInferenceProfile(model="qwen3:4b", num_ctx=4_096)
+        telemetry = parse_ollama_telemetry({
+            "model": "qwen3:4b",
+            "done": True,
+            "context": [1, 2, 3, 4],
+            "total_duration": 4_000_000_000,
+            "prompt_eval_count": 20,
+            "prompt_eval_duration": 2_000_000_000,
+            "eval_count": 40,
+            "eval_duration": 2_000_000_000,
+            "resource_limits": {"num_gpu": 0},
+        }, profile)
+        self.assertEqual(telemetry.context_tokens, 4)
+        self.assertEqual(telemetry.generated_tokens_per_second, 20.0)
+        self.assertEqual(telemetry.as_dict()["accelerator"], "unavailable")
+        self.assertEqual(telemetry.as_dict()["resource_limits"]["num_ctx"], 4_096)
+        self.assertNotIn("context", telemetry.as_dict())
+
+    def test_error_attribution_requires_a_bounded_category(self):
+        error = classify_ollama_error({"error": "redacted", "error_category": "resource", "retryable": True})
+        self.assertIsInstance(error, OllamaErrorEvidence)
+        self.assertEqual(error.as_dict(), {"category": "resource", "retryable": True})
+        for payload in (
+            {"error": "redacted"},
+            {"error": "redacted", "error_category": "other"},
+        ):
+            with self.subTest(payload=payload), self.assertRaises(OllamaProfileError):
+                classify_ollama_error(payload)
 
 
 if __name__ == "__main__":

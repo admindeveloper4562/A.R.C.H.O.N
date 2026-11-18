@@ -66,11 +66,17 @@ from .provider_registry import (
     REQUEST_LOCALITIES,
 )
 from .ollama_profile import (
+    ACCELERATOR_STATES,
+    ERROR_CATEGORIES,
     KV_CACHE_TYPES,
+    OllamaErrorEvidence,
     OllamaInferenceProfile,
     OllamaProbeEvidence,
     OllamaProfileError,
+    OllamaTelemetry,
+    classify_ollama_error,
     parse_ollama_probe,
+    parse_ollama_telemetry,
 )
 from .linux_service import LinuxServiceError, LinuxServiceProfile, startup_decision
 from .task_capability import (
