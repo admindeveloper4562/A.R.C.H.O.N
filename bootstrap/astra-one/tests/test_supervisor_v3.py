@@ -777,7 +777,7 @@ class SupervisorV3Tests(unittest.TestCase):
         })
         with self.state.db() as db:
             db.execute(
-                "UPDATE tasks SET project_id='ARCHON-JARVIS-V2',status='blocked',"
+                "UPDATE tasks SET project_id='ARCHON-JARVIS-V2',status='pending',"
                 "last_error='device_unavailable' WHERE id='WIN-002'"
             )
         plan_path = self.repo / "docs" / "tasks" / "JARVIS_V2_TASK_PLAN.json"

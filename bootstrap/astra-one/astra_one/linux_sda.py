@@ -1631,9 +1631,9 @@ class State:
                         db.execute("ROLLBACK")
                         raise ValueError("REL-003 is not pending or queued")
                     if artifact["parent_id"] in LINUX_PLATFORM_AMENDMENT_PARENT_IDS:
-                        if task["status"] != "blocked":
+                        if task["status"] not in {"blocked", "pending"}:
                             db.execute("ROLLBACK")
-                            raise ValueError("Linux platform amendment requires a blocked task")
+                            raise ValueError("Linux platform amendment requires a blocked or pending task")
                         dependencies = json.loads(task["spec"]).get("depends_on", [])
                         if any(
                             (dependency_row := db.execute(
