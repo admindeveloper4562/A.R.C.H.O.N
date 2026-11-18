@@ -44,6 +44,26 @@ class CoordinatorQueueTests(unittest.TestCase):
                 queue.complete(leased, ok=True, receipt="verified")
                 self.assertEqual(queue.status()[0]["state"], "completed")
 
+    def test_reopen_requeues_expired_lease_and_duplicate_receipt_is_idempotent(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "queue.sqlite"
+            now = [100.0]
+            queue = CoordinatorQueue.open(path, clock=lambda: now[0])
+            queue.enqueue(task_id="AUTO-007", priority="P1", module="automation", payload={})
+            self.assertIsNotNone(queue.lease_next(lease_seconds=10))
+            queue.close()
+
+            now[0] = 111.0
+            with CoordinatorQueue.open(path, clock=lambda: now[0]) as reopened:
+                self.assertEqual(reopened.eligible()[0].task_id, "AUTO-007")
+                resumed = reopened.lease_next()
+                self.assertEqual(resumed.task_id, "AUTO-007")
+                reopened.complete(resumed, ok=True, receipt="verified")
+                self.assertEqual(
+                    reopened.complete(resumed, ok=True, receipt="verified")["state"],
+                    "completed",
+                )
+
 
 if __name__ == "__main__":
     unittest.main()
