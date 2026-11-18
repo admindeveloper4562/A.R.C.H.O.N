@@ -1093,6 +1093,7 @@ def bind_execution_receipts(state: State, *, task_id: str, run_id: str, attempt:
 def docker_test(worktree: Path, image: str, command: list[str], timeout: int = 300,
                 *, receipt_dir: Path | None = None, receipt_context: dict | None = None) -> dict:
     """Run candidate tests without network in an existing local Docker image."""
+    started = time.monotonic()
     if not image or not re.fullmatch(r"[a-zA-Z0-9_.:/@-]{1,160}",image):
         raise DockerTestError("docker_test_config_invalid")
     if not command or len(command)>16 or any(not isinstance(x,str) or not 0<len(x)<200 for x in command):
@@ -1112,10 +1113,12 @@ def docker_test(worktree: Path, image: str, command: list[str], timeout: int = 3
     material = (build_cache_material(worktree, image_digest, command, receipt_context)
                 if cache is not None else None)
     key = cache_key(material) if material is not None else None
+    cache_status = "miss" if key is not None else "disabled"
     if cache is not None and key is not None:
         cached = cache.load(key)
         if cached is not None:
-            cached.update({"cache_hit": True, "cache_key": key})
+            cached.update({"cache_hit": True, "cache_key": key, "cache_status": "hit",
+                           "duration_ms": round((time.monotonic() - started) * 1000)})
             return _complete_test_receipt(cached, receipt_dir=receipt_dir, receipt_context=receipt_context)
     temporary, staged = _docker_context(worktree)
     try:
@@ -1136,13 +1139,17 @@ def docker_test(worktree: Path, image: str, command: list[str], timeout: int = 3
                 ran=bool(count and int(count.group(1))>=1)
             receipt = {"passed": finished.returncode == 0 and ran, "exit_code": finished.returncode,
                        "sandbox": "docker_no_network", "tests_detected": ran,
-                       "cache_hit": False, **({"cache_key": key} if key else {})}
+                       "cache_hit": False, "cache_status": cache_status,
+                       "duration_ms": round((time.monotonic() - started) * 1000),
+                       **({"cache_key": key} if key else {})}
             if cache is not None and key is not None:
                 cache.store(key, receipt)
             return _complete_test_receipt(receipt, receipt_dir=receipt_dir, receipt_context=receipt_context)
         except subprocess.TimeoutExpired:
             receipt = {"passed": False, "exit_code": 124, "sandbox": "docker_timeout", "tests_detected": False,
-                       "cache_hit": False, **({"cache_key": key} if key else {})}
+                       "cache_hit": False, "cache_status": cache_status,
+                       "duration_ms": round((time.monotonic() - started) * 1000),
+                       **({"cache_key": key} if key else {})}
             return _complete_test_receipt(receipt, receipt_dir=receipt_dir, receipt_context=receipt_context)
     finally:
         temporary.cleanup()
