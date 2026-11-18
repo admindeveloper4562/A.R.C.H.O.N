@@ -724,6 +724,30 @@ class SupervisorV3Tests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "artifacts must remain"):
             self.supervisor._validate_tws_blender_evidence(evidence)
 
+    def test_tws_motion_review_requires_approved_bound_manifest(self):
+        manifest = self.state.home / "tws-012" / "manifest.json"
+        manifest.parent.mkdir(parents=True)
+        payload = {
+            "task_id": "TWS-012",
+            "motion_present": True,
+            "motion_actions": ["Greeting"],
+            "views": [{"index": index} for index in range(24)],
+            "source": {"sha256": "a" * 64},
+            "tool": {"version": "5.3.0"},
+        }
+        manifest.write_text(json.dumps(payload), encoding="utf-8")
+        evidence = {
+            "review_decision": "APPROVE", "artist_review": "approved",
+            "reviewer_id": "owner-reviewer", "reviewed_at_utc": "2026-11-18T12:00:00Z",
+            "no_secrets_or_payloads": True, "manifest_path": str(manifest),
+            "manifest_sha256": hashlib.sha256(manifest.read_bytes()).hexdigest(),
+            "source_sha256": "a" * 64,
+        }
+        self.supervisor._validate_tws_motion_artist_review(evidence)
+        evidence["review_decision"] = "REJECT"
+        with self.assertRaisesRegex(ValueError, "artist review is not approved"):
+            self.supervisor._validate_tws_motion_artist_review(evidence)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -399,6 +399,7 @@ class SupervisorController:
             "AUTO-013": "cloudflare_worker_deployment",
             "REL-005": "cloudflare_pending_jobs",
             "TWS-011": "tws_blender_asset",
+            "TWS-012": "tws_motion_artist_review",
         }
         if task_id == "WIN-002":
             raise ValueError("WIN-002 requires real Windows device evidence")
@@ -416,6 +417,8 @@ class SupervisorController:
             self._validate_github_free_evidence(evidence)
         if task_id == "TWS-011":
             self._validate_tws_blender_evidence(evidence)
+        if task_id == "TWS-012":
+            self._validate_tws_motion_artist_review(evidence)
         evidence_sha = hashlib.sha256(raw).hexdigest()
         with self.state.master_lock():
             stamp = re.sub(r"[^0-9A-Za-z_-]", "", now())[:32]
@@ -576,6 +579,59 @@ class SupervisorController:
             digest = hashlib.sha256(path.read_bytes()).hexdigest()
             if digest != evidence[f"{key[:-5]}_sha256"]:
                 raise ValueError("TWS-011 artifact digest mismatch")
+
+    def _validate_tws_motion_artist_review(self, evidence: dict) -> None:
+        """Bind TWS-012 completion to a real motion package and human approval."""
+        if (evidence.get("review_decision") != "APPROVE"
+                or evidence.get("artist_review") != "approved"):
+            raise ValueError("TWS-012 artist review is not approved")
+        reviewer = evidence.get("reviewer_id")
+        if not isinstance(reviewer, str) or not 1 <= len(reviewer) <= 120:
+            raise ValueError("TWS-012 reviewer identity is invalid")
+        reviewed_at = evidence.get("reviewed_at_utc")
+        if not isinstance(reviewed_at, str) or not reviewed_at.endswith("Z"):
+            raise ValueError("TWS-012 review timestamp is invalid")
+        try:
+            datetime.fromisoformat(reviewed_at[:-1] + "+00:00")
+        except ValueError as exc:
+            raise ValueError("TWS-012 review timestamp is invalid") from exc
+        if evidence.get("no_secrets_or_payloads") is not True:
+            raise ValueError("TWS-012 evidence must exclude secrets and payloads")
+        manifest_value = evidence.get("manifest_path")
+        if not isinstance(manifest_value, str):
+            raise ValueError("TWS-012 manifest path is invalid")
+        manifest_path = Path(manifest_value).expanduser().resolve()
+        try:
+            manifest_path.relative_to(self.state.home.resolve())
+        except ValueError as exc:
+            raise ValueError("TWS-012 manifest must remain in Astra state") from exc
+        if (manifest_path.is_symlink() or not manifest_path.is_file()
+                or manifest_path.stat().st_size > 2 * 1024 * 1024):
+            raise ValueError("TWS-012 manifest is unavailable or too large")
+        manifest_sha = evidence.get("manifest_sha256")
+        if not re.fullmatch(r"[0-9a-f]{64}", str(manifest_sha)):
+            raise ValueError("TWS-012 manifest digest is invalid")
+        if hashlib.sha256(manifest_path.read_bytes()).hexdigest() != manifest_sha:
+            raise ValueError("TWS-012 manifest digest mismatch")
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ValueError("TWS-012 manifest is invalid") from exc
+        if (manifest.get("task_id") != "TWS-012"
+                or manifest.get("motion_present") is not True
+                or not isinstance(manifest.get("views"), list)
+                or len(manifest["views"]) != 24
+                or not isinstance(manifest.get("motion_actions"), list)
+                or not manifest["motion_actions"]):
+            raise ValueError("TWS-012 motion manifest is incomplete")
+        source = manifest.get("source")
+        tool = manifest.get("tool")
+        if (not isinstance(source, dict)
+                or not re.fullmatch(r"[0-9a-f]{64}", str(source.get("sha256", "")))
+                or not isinstance(tool, dict) or tool.get("version") != "5.3.0"):
+            raise ValueError("TWS-012 source or tool provenance is invalid")
+        if evidence.get("source_sha256") != source["sha256"]:
+            raise ValueError("TWS-012 source digest does not match manifest")
 
     def _validate_cloudflare_deployment_evidence(self, evidence: dict) -> None:
         """Require bounded, non-secret proof of the owner-operated monitor deployment."""
