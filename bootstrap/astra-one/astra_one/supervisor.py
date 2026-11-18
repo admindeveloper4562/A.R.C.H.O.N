@@ -398,6 +398,7 @@ class SupervisorController:
             "RES-015": "research_live_source_benchmark",
             "AUTO-013": "cloudflare_worker_deployment",
             "REL-005": "cloudflare_pending_jobs",
+            "TWS-011": "tws_blender_asset",
         }
         if task_id == "WIN-002":
             raise ValueError("WIN-002 requires real Windows device evidence")
@@ -411,6 +412,10 @@ class SupervisorController:
             self._validate_cloudflare_deployment_evidence(evidence)
         if task_id == "REL-005":
             self._validate_pending_jobs_evidence(evidence)
+        if task_id == "MIG-002":
+            self._validate_github_free_evidence(evidence)
+        if task_id == "TWS-011":
+            self._validate_tws_blender_evidence(evidence)
         evidence_sha = hashlib.sha256(raw).hexdigest()
         with self.state.master_lock():
             stamp = re.sub(r"[^0-9A-Za-z_-]", "", now())[:32]
@@ -514,6 +519,63 @@ class SupervisorController:
                 db.execute("COMMIT")
         return {"task_id": task_id, "state": "pending", "idempotent": False,
                 "evidence_sha256": evidence_sha, "backup_sha256": backup_sha}
+
+    def _validate_github_free_evidence(self, evidence: dict) -> None:
+        """Bind MIG-002 to the recorded Free-plan amendment, never to a fake pass."""
+        for key in ("original_plan_sha256", "amended_plan_sha256", "amendment_artifact_sha256"):
+            if not re.fullmatch(r"[0-9a-f]{64}", str(evidence.get(key, ""))):
+                raise ValueError("MIG-002 plan amendment digest is invalid")
+        if evidence.get("github_private") is not True or evidence.get("remote_protection_status") != 403:
+            raise ValueError("MIG-002 GitHub Free limitation evidence is incomplete")
+        if evidence.get("hosted_ci_status") != "deferred_plan":
+            raise ValueError("MIG-002 hosted CI status must remain explicitly deferred")
+        if evidence.get("local_policy_status") != "verified":
+            raise ValueError("MIG-002 local policy evidence is incomplete")
+        if evidence.get("no_secrets_or_payloads") is not True:
+            raise ValueError("MIG-002 evidence must exclude secrets and payloads")
+        with self.state.db() as db:
+            row = db.execute(
+                "SELECT original_plan_sha256,amended_plan_sha256,artifact_sha256,status "
+                "FROM task_plan_amendments WHERE amendment_id=? AND parent_id='MIG-002'",
+                (evidence.get("amendment_id", ""),),
+            ).fetchone()
+        if (not row or row["status"] != "active" or
+                (row["original_plan_sha256"], row["amended_plan_sha256"], row["artifact_sha256"]) != (
+                    evidence["original_plan_sha256"], evidence["amended_plan_sha256"],
+                    evidence["amendment_artifact_sha256"])):
+            raise ValueError("MIG-002 evidence is not bound to an active plan amendment")
+
+    def _validate_tws_blender_evidence(self, evidence: dict) -> None:
+        """Validate real Linux Blender artifacts while keeping device gates open."""
+        if (evidence.get("native_validation_scope") != "blender-linux" or
+                evidence.get("follow_on_device_validation") != "not_claimed"):
+            raise ValueError("TWS-011 evidence scope is invalid")
+        if evidence.get("no_secrets_or_payloads") is not True:
+            raise ValueError("TWS-011 evidence must exclude secrets and payloads")
+        if evidence.get("blender_version") != "5.3.0":
+            raise ValueError("TWS-011 Blender version is not pinned")
+        if (evidence.get("blend_reopen_passed") is not True or
+                evidence.get("usd_export_passed") is not True or
+                evidence.get("mesh_count") != 8 or evidence.get("armature_count") != 1 or
+                evidence.get("armature_modifier_count") != 8):
+            raise ValueError("TWS-011 Blender validation evidence is incomplete")
+        for key in ("source_sha256", "blender_sha256"):
+            if not re.fullmatch(r"[0-9a-f]{64}", str(evidence.get(key, ""))):
+                raise ValueError("TWS-011 provenance digest is invalid")
+        for key, suffix in (("blend_path", ".blend"), ("usdz_path", ".usdz")):
+            value = evidence.get(key)
+            if not isinstance(value, str) or not value.endswith(suffix):
+                raise ValueError("TWS-011 artifact path is invalid")
+            path = Path(value).expanduser().resolve()
+            try:
+                path.relative_to(self.state.home.resolve())
+            except ValueError as exc:
+                raise ValueError("TWS-011 artifacts must remain in Astra state") from exc
+            if path.is_symlink() or not path.is_file() or path.stat().st_size > 64 * 1024 * 1024:
+                raise ValueError("TWS-011 artifact is unavailable or too large")
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            if digest != evidence[f"{key[:-5]}_sha256"]:
+                raise ValueError("TWS-011 artifact digest mismatch")
 
     def _validate_cloudflare_deployment_evidence(self, evidence: dict) -> None:
         """Require bounded, non-secret proof of the owner-operated monitor deployment."""

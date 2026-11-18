@@ -1,0 +1,83 @@
+{
+  "format": "archon-task-plan-amendment-v1",
+  "amendment_id": "MIG-002-GITHUB-FREE-20261118",
+  "parent_id": "MIG-002",
+  "version": 2,
+  "original_plan_sha256": "10cb1ed53eace6af1c5d052ef0ad0a85eaf9f535db5ae0be794cc7d12752b154",
+  "amended_plan_sha256": "3dcd4e9c599ee30505b054da24252c85a1dbc7cb502ad610e0698b74451faf39",
+  "original_task_payload_sha256": "cb42941bde888c64c1b888b6c15b28278624ac481956dfc41ca7079c7e238e93",
+  "original_acceptance": [
+    "main/develop protections verified with rejected unauthorized push and executed CI"
+  ],
+  "amended_acceptance": [
+    "The private GitHub Free limitation for server-enforced main/develop protection is documented with the observed HTTP 403 response; remote rejection is not claimed.",
+    "Local source-policy checks, signed SHA-bound owner receipts, independent QC, deterministic serialized integration, ancestry checks and audit logging pass on the pinned source and integration SHAs.",
+    "The configured GitHub Actions workflows and available run evidence are recorded; hosted enforcement remains DEFERRED_PLAN and local tests are not represented as hosted CI.",
+    "Publication remains owner-authorized and fast-forward-only; main is not changed by this amendment."
+  ],
+  "owner_authorization": {
+    "authorized": true,
+    "authorization_mode": "owner_directive",
+    "reference": "OWNER-AUTH-2026-11-18-GITHUB-FREE-MIG-002",
+    "scope": "Replace the GitHub Pro-dependent MIG-002 requirement with a versioned private-repository GitHub Free development-security baseline; do not purchase Pro, make the repository public, or weaken security controls."
+  },
+  "acceptance_matrix": [
+    {
+      "original_requirement": "Server-enforced main/develop branch protection and rejected unauthorized push",
+      "github_free_support": "No for this private repository; the API returned HTTP 403 requiring Pro or public visibility.",
+      "alternative": "Deterministic local policy validation, one serialized Merger, fast-forward ancestry checks and owner-controlled publication.",
+      "security_properties": "One integration writer, protected main workflow, SHA-bound candidate and audit receipts.",
+      "residual_risks": "A remote actor with repository write access is not rejected by GitHub server-side rules.",
+      "owner_acknowledgment": "The owner accepts this documented residual risk for the private development baseline.",
+      "verification": "Run local policy, ancestry, Merger and negative isolated-repository tests."
+    },
+    {
+      "original_requirement": "Executed hosted CI evidence",
+      "github_free_support": "Workflow execution is available, but quota and plan limits prevent treating it as a protected gate here.",
+      "alternative": "Run deterministic local unit, integration, security and no-network Docker checks; record hosted-only checks as DEFERRED_PLAN.",
+      "security_properties": "A candidate cannot enter the Merger without bounded deterministic and independent QC evidence.",
+      "residual_risks": "Hosted runner drift is not covered by local execution.",
+      "owner_acknowledgment": "No local result is represented as hosted CI.",
+      "verification": "Record exact local commands, exit codes, artifact hashes and observed hosted run metadata."
+    },
+    {
+      "original_requirement": "Review gates and provenance",
+      "github_free_support": "Repository-side rulesets are unavailable on the current private plan.",
+      "alternative": "Use signed SHA-bound owner receipts where required, independent QC and serialized Merger admission.",
+      "security_properties": "Candidate, base, source, test and reviewer evidence remain bound in SQLite.",
+      "residual_risks": "Local controls depend on the operator preserving the approved workflow.",
+      "owner_acknowledgment": "The local controls are supplementary and are not described as GitHub branch protection.",
+      "verification": "Inspect receipts, ancestry and rejected-candidate audit records."
+    },
+    {
+      "original_requirement": "Safe publication",
+      "github_free_support": "Fast-forward publication is available but is not a server-enforced review gate.",
+      "alternative": "Require explicit owner authorization, source-SHA verification and fast-forward-only publication tooling.",
+      "security_properties": "No force-push, no main rewrite and no publication without an authorized integration checkpoint.",
+      "residual_risks": "A manually bypassed local workflow could still publish if credentials permit it.",
+      "owner_acknowledgment": "Publication remains a separately authorized operation.",
+      "verification": "Use isolated negative tests and verify remote ancestry read-only before publication."
+    }
+  ],
+  "graph": {
+    "parent_count": 247,
+    "child_count": 1359,
+    "dependency_edges": 446,
+    "parent_ids_sha256": "07771b33b103546d4ef561f2441cc8bc3eb4ca91e25f347d97894e4edcc52791",
+    "child_ids_sha256": "4c3187c0df09d64807a54dfc22b963e9df8e9e2993c852dde0cfcdeb2b376ff2",
+    "dependency_edges_sha256": "bc40d3e0af291a9cc9826cedf05942cd05e35d895bea9ac3c24f6b1ab2db897c"
+  },
+  "residual_risks": [
+    "GitHub Free does not provide server-enforced branch protection for this private repository.",
+    "Hosted CI and runner-environment enforcement remain explicitly deferred where quota or plan policy prevents verification.",
+    "Local controls cannot technically prevent a separately authorized operator from bypassing them."
+  ],
+  "verification": {
+    "private_repository": true,
+    "remote_protection_status": 403,
+    "rulesets_status": 403,
+    "hosted_ci_status": "deferred_plan",
+    "local_policy_status": "verified",
+    "no_secrets_or_payloads": true
+  }
+}

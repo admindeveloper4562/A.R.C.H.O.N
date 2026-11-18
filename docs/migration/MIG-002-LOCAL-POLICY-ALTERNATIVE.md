@@ -1,5 +1,13 @@
 # MIG-002 GitHub protection alternative
 
+## Versioned plan amendment
+
+The owner-authorized GitHub Free baseline is recorded in
+[`MIG-002-GITHUB-FREE-AMENDMENT-v2.json`](MIG-002-GITHUB-FREE-AMENDMENT-v2.json).
+The immutable original parent plan remains unchanged. The Master records both
+the original plan SHA-256 and the amendment payload SHA-256, together with the
+247-parent/1,359-child/446-edge graph binding, before re-admitting MIG-002.
+
 Status: **remote GitHub acceptance remains blocked; local development can continue
 without weakening the repository or making it public.**
 
@@ -40,6 +48,8 @@ python3 -m unittest discover -s tests
 ```
 
 The local alternative preserves development safety and evidence integrity, but it
-does **not** satisfy MIG-002's required GitHub-hosted protection/rejected-push or
-executed-hosted-CI evidence. MIG-002 must remain blocked until those remote
-requirements are available or the owner approves a task-plan amendment.
+does **not** provide GitHub server-side rejection of an unauthorized push. The
+amended baseline therefore records hosted protection and hosted-only CI as
+`DEFERRED_PLAN`, never as passed local evidence. MIG-002 may complete only after
+the amended local acceptance matrix, independent QC and serialized integration
+have passed.

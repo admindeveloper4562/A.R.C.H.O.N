@@ -8,7 +8,7 @@ import subprocess
 
 from astra_one.full_plan import FullPlan, PROJECT_ID, payload_sha
 from astra_one.linux_runtime import _write_receipt_artifact
-from astra_one.linux_sda import State
+from astra_one.linux_sda import State, _amendment_payload_sha, file_sha256
 from astra_one.supervisor import SupervisorController, classify_failure
 
 
@@ -595,6 +595,72 @@ class SupervisorV3Tests(unittest.TestCase):
         self.supervisor.transition_upgrade("upgrade-1", "HEALTH_SOAK")
         with self.assertRaisesRegex(ValueError, "invalid upgrade state"):
             self.supervisor.transition_upgrade("upgrade-1", "COMMITTED")
+
+    def test_github_free_plan_amendment_is_sha_bound_and_idempotent(self):
+        self.state.add_tasks({
+            "task_id": "MIG-002", "objective": "Record a bounded GitHub policy amendment.",
+            "acceptance": ["The amended policy is independently verifiable."],
+            "depends_on": [], "area": "migration",
+        })
+        with self.state.db() as db:
+            db.execute("UPDATE tasks SET project_id='ARCHON-JARVIS-V2' WHERE id='MIG-002'")
+        plan_path = self.repo / "docs" / "tasks" / "JARVIS_V2_TASK_PLAN.json"
+        plan_path.parent.mkdir(parents=True)
+        plan_path.write_text('{"parents":1}\n', encoding="utf-8")
+        with self.state.db() as db:
+            graph = self.state._plan_graph_bindings(db)
+            original_payload = db.execute("SELECT payload_sha FROM tasks WHERE id='MIG-002'").fetchone()[0]
+        artifact = {
+            "format": "archon-task-plan-amendment-v1",
+            "amendment_id": "MIG-002-GITHUB-FREE-TEST",
+            "parent_id": "MIG-002", "version": 2,
+            "original_plan_sha256": file_sha256(plan_path),
+            "amended_plan_sha256": "",
+            "original_task_payload_sha256": original_payload,
+            "original_acceptance": ["The amended policy is independently verifiable."],
+            "amended_acceptance": ["Local policy and residual risk are verified."],
+            "owner_authorization": {"authorized": True, "reference": "owner-test", "scope": "MIG-002"},
+            "acceptance_matrix": [{
+                "original_requirement": "Hosted protection", "github_free_support": "no",
+                "alternative": "Local policy", "security_properties": "Signed SHA checks",
+                "residual_risks": "No hosted rejection", "owner_acknowledgment": "required",
+                "verification": "Deterministic tests",
+            }],
+            "graph": graph,
+            "residual_risks": ["GitHub Free cannot reject a remote push server-side."],
+            "verification": {"remote_protection_status": 403},
+        }
+        artifact["amended_plan_sha256"] = _amendment_payload_sha(artifact)
+        path = self.repo / "amendment.json"
+        path.write_text(json.dumps(artifact, sort_keys=True) + "\n", encoding="utf-8")
+        preview = self.state.validate_plan_amendment(path)
+        self.assertEqual(preview["status"], "validated")
+        recorded = self.state.record_plan_amendment(path)
+        self.assertFalse(recorded["idempotent"])
+        self.assertTrue(self.state.record_plan_amendment(path)["idempotent"])
+        with self.state.db() as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM task_plan_amendments").fetchone()[0], 1)
+
+    def test_tws_blender_evidence_is_artifact_bound_and_device_honest(self):
+        blend = self.state.home / "artifacts" / "candidate.blend"
+        usdz = self.state.home / "artifacts" / "candidate.usdz"
+        blend.parent.mkdir(parents=True)
+        blend.write_bytes(b"blend")
+        usdz.write_bytes(b"usdz")
+        evidence = {
+            "native_validation_scope": "blender-linux",
+            "follow_on_device_validation": "not_claimed",
+            "no_secrets_or_payloads": True, "blender_version": "5.3.0",
+            "blend_reopen_passed": True, "usd_export_passed": True,
+            "mesh_count": 8, "armature_count": 1, "armature_modifier_count": 8,
+            "source_sha256": "a" * 64, "blender_sha256": "b" * 64,
+            "blend_path": str(blend), "blend_sha256": hashlib.sha256(b"blend").hexdigest(),
+            "usdz_path": str(usdz), "usdz_sha256": hashlib.sha256(b"usdz").hexdigest(),
+        }
+        self.supervisor._validate_tws_blender_evidence(evidence)
+        evidence["blend_path"] = str(self.repo / "outside.blend")
+        with self.assertRaisesRegex(ValueError, "artifacts must remain"):
+            self.supervisor._validate_tws_blender_evidence(evidence)
 
 
 if __name__ == "__main__":

@@ -225,6 +225,25 @@ CREATE TABLE IF NOT EXISTS external_resolution_receipts(
   created_at TEXT NOT NULL,
   UNIQUE(case_id,evidence_sha256));
 CREATE INDEX IF NOT EXISTS idx_external_resolution_task ON external_resolution_receipts(task_id,created_at);
+CREATE TABLE IF NOT EXISTS task_plan_amendments(
+  amendment_id TEXT PRIMARY KEY,
+  parent_id TEXT NOT NULL REFERENCES tasks(id),
+  version INTEGER NOT NULL,
+  original_plan_sha256 TEXT NOT NULL,
+  amended_plan_sha256 TEXT NOT NULL,
+  original_payload_sha256 TEXT NOT NULL,
+  amended_acceptance_sha256 TEXT NOT NULL,
+  artifact_path TEXT NOT NULL,
+  artifact_sha256 TEXT NOT NULL,
+  owner_authorization TEXT NOT NULL,
+  status TEXT NOT NULL,
+  source_sha TEXT NOT NULL,
+  integration_sha TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  UNIQUE(parent_id,version),
+  UNIQUE(parent_id,amended_plan_sha256));
+CREATE INDEX IF NOT EXISTS idx_task_plan_amendments_parent
+  ON task_plan_amendments(parent_id,version);
 CREATE TABLE IF NOT EXISTS supervisor_lanes(
   lane_id TEXT PRIMARY KEY CHECK(lane_id IN ('repair_1','repair_2','upgrade_auditor')),
   role TEXT NOT NULL,
@@ -364,6 +383,13 @@ def file_sha256(path: Path) -> str:
 
 def _canonical_json(value: object) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+
+
+def _amendment_payload_sha(value: dict) -> str:
+    """Hash an amendment without allowing a self-referential digest field."""
+    payload = dict(value)
+    payload.pop("amended_plan_sha256", None)
+    return hashlib.sha256(_canonical_json(payload)).hexdigest()
 
 
 def _checkpoint_value(value: object) -> object:
@@ -734,7 +760,7 @@ class State:
         counts = {}
         for table in ("tasks", "runs", "events", "subtasks", "subtask_receipts",
                       "owner_approval_receipts", "candidate_submissions", "review_queue",
-                      "merge_queue", "pending_queue", "rebuild_queue"):
+                      "merge_queue", "pending_queue", "rebuild_queue", "task_plan_amendments"):
             if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)).fetchone():
                 counts[table] = int(db.execute(f'SELECT count(*) FROM "{table}"').fetchone()[0])
         counts["task_status"] = {
@@ -1383,6 +1409,160 @@ class State:
                 "queues": queues,
                 "payload_sha": project["payload_sha"],
             }
+
+    def _plan_graph_bindings(self, db: sqlite3.Connection) -> dict:
+        """Return stable, content-free identity bindings for the imported DAG."""
+        parents = [row["id"] for row in db.execute(
+            "SELECT id FROM tasks WHERE project_id=? ORDER BY id", (PROJECT_ID,)
+        )]
+        children = [row["id"] for row in db.execute(
+            "SELECT id FROM subtasks WHERE project_id=? ORDER BY id", (PROJECT_ID,)
+        )]
+        edges = []
+        for row in db.execute("SELECT id,spec FROM tasks WHERE project_id=? ORDER BY id", (PROJECT_ID,)):
+            for dependency in json.loads(row["spec"]).get("depends_on", []):
+                edges.append(f"{row['id']}->{dependency}")
+        edges.sort()
+        digest = lambda values: hashlib.sha256("\n".join(values).encode("utf-8")).hexdigest()
+        return {
+            "parent_count": len(parents),
+            "child_count": len(children),
+            "dependency_edges": len(edges),
+            "parent_ids_sha256": digest(parents),
+            "child_ids_sha256": digest(children),
+            "dependency_edges_sha256": digest(edges),
+        }
+
+    def _plan_file(self) -> Path:
+        candidates = [
+            Path(self.get("source")) / "docs/tasks/JARVIS_V2_TASK_PLAN.json",
+            Path(self.get("integration_path")) / "docs/tasks/JARVIS_V2_TASK_PLAN.json",
+        ]
+        for path in candidates:
+            if path.is_file() and not path.is_symlink():
+                return path.resolve()
+        raise ValueError("authoritative parent task plan is unavailable")
+
+    def _validate_plan_amendment(self, path: Path) -> dict:
+        path = path.expanduser().resolve()
+        if path.is_symlink() or not path.is_file() or path.stat().st_size > 64_000:
+            raise ValueError("plan amendment must be a bounded regular file")
+        try:
+            artifact = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+            raise ValueError("plan amendment is not valid JSON") from exc
+        required = {
+            "format", "amendment_id", "parent_id", "version", "original_plan_sha256",
+            "amended_plan_sha256", "original_task_payload_sha256", "original_acceptance",
+            "amended_acceptance", "owner_authorization", "acceptance_matrix", "graph",
+            "residual_risks", "verification",
+        }
+        if not isinstance(artifact, dict) or set(artifact) != required:
+            raise ValueError("plan amendment fields are incomplete or unexpected")
+        if artifact["format"] != "archon-task-plan-amendment-v1" or artifact["parent_id"] != "MIG-002":
+            raise ValueError("unsupported plan amendment")
+        if type(artifact["version"]) is not int or artifact["version"] < 2:
+            raise ValueError("plan amendment version is invalid")
+        if not SHA256.fullmatch(artifact["original_plan_sha256"]):
+            raise ValueError("original plan SHA-256 is invalid")
+        computed_new = _amendment_payload_sha(artifact)
+        if artifact["amended_plan_sha256"] != computed_new:
+            raise ValueError("amended plan SHA-256 does not match payload")
+        plan_path = self._plan_file()
+        if file_sha256(plan_path) != artifact["original_plan_sha256"]:
+            raise ValueError("original plan SHA-256 does not match the authoritative checkout")
+        with self.db() as db:
+            task = db.execute("SELECT payload_sha,spec FROM tasks WHERE id='MIG-002'").fetchone()
+            if not task:
+                raise ValueError("MIG-002 is not imported")
+            graph = self._plan_graph_bindings(db)
+        if artifact["original_task_payload_sha256"] != task["payload_sha"]:
+            raise ValueError("MIG-002 payload binding does not match the ledger")
+        if artifact["original_acceptance"] != json.loads(task["spec"]).get("acceptance"):
+            raise ValueError("original MIG-002 acceptance was not preserved")
+        amended = artifact["amended_acceptance"]
+        if (not isinstance(amended, list) or not amended or
+                any(not isinstance(item, str) or not item.strip() or len(item) > 500 for item in amended)):
+            raise ValueError("amended acceptance is invalid")
+        owner = artifact["owner_authorization"]
+        if (not isinstance(owner, dict) or owner.get("authorized") is not True or
+                not isinstance(owner.get("reference"), str) or not owner["reference"] or
+                not isinstance(owner.get("scope"), str) or not owner["scope"]):
+            raise ValueError("owner authorization is incomplete")
+        matrix = artifact["acceptance_matrix"]
+        matrix_keys = {"original_requirement", "github_free_support", "alternative",
+                       "security_properties", "residual_risks", "owner_acknowledgment", "verification"}
+        if (not isinstance(matrix, list) or not matrix or len(matrix) > 16 or
+                any(not isinstance(item, dict) or set(item) != matrix_keys or
+                    any(not isinstance(item[key], str) or not item[key].strip() for key in matrix_keys)
+                    for item in matrix)):
+            raise ValueError("acceptance matrix is invalid")
+        if (not isinstance(artifact["residual_risks"], list) or not artifact["residual_risks"] or
+                any(not isinstance(item, str) or not item.strip() for item in artifact["residual_risks"])):
+            raise ValueError("residual risks are missing")
+        if artifact["graph"] != graph:
+            raise ValueError("plan amendment graph binding does not match the ledger")
+        if not isinstance(artifact["verification"], dict) or artifact["verification"].get("remote_protection_status") != 403:
+            raise ValueError("GitHub Free limitation evidence is incomplete")
+        return {
+            "artifact": artifact,
+            "artifact_path": str(path),
+            "artifact_sha256": file_sha256(path),
+            "original_plan_sha256": artifact["original_plan_sha256"],
+            "amended_plan_sha256": computed_new,
+            "original_payload_sha256": artifact["original_task_payload_sha256"],
+            "amended_acceptance_sha256": hashlib.sha256(_canonical_json(amended)).hexdigest(),
+            "graph": graph,
+            "owner_authorization": json.dumps(owner, sort_keys=True, separators=(",", ":")),
+        }
+
+    def validate_plan_amendment(self, path: Path) -> dict:
+        """Preview a plan amendment without changing SQLite state."""
+        result = self._validate_plan_amendment(path)
+        return {"preview": True, "status": "validated", **{key: result[key] for key in (
+            "artifact_path", "artifact_sha256", "original_plan_sha256", "amended_plan_sha256",
+            "original_payload_sha256", "amended_acceptance_sha256", "graph")}}
+
+    def record_plan_amendment(self, path: Path) -> dict:
+        """Record a verified amendment through the Master, preserving the old plan."""
+        result = self._validate_plan_amendment(path)
+        existing = None
+        with self.db() as db:
+            if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='task_plan_amendments'").fetchone():
+                existing = db.execute(
+                    "SELECT amendment_id,version,artifact_sha256,amended_plan_sha256,status "
+                    "FROM task_plan_amendments WHERE parent_id=? AND version=?",
+                    (result["artifact"]["parent_id"], result["artifact"]["version"]),
+                ).fetchone()
+        if existing:
+            if (existing["artifact_sha256"], existing["amended_plan_sha256"]) != (
+                    result["artifact_sha256"], result["amended_plan_sha256"]):
+                raise ValueError("plan amendment version already exists with different content")
+            return {"status": existing["status"], "idempotent": True,
+                    "amendment_id": existing["amendment_id"],
+                    "amended_plan_sha256": existing["amended_plan_sha256"]}
+        backup = self.export_checkpoint()
+        self.ensure_full_plan_schema()
+        artifact = result["artifact"]
+        timestamp = now()
+        with self.master_lock():
+            with self.db() as db:
+                db.execute("BEGIN IMMEDIATE")
+                db.execute(
+                    "INSERT INTO task_plan_amendments(amendment_id,parent_id,version,original_plan_sha256,"
+                    "amended_plan_sha256,original_payload_sha256,amended_acceptance_sha256,artifact_path,"
+                    "artifact_sha256,owner_authorization,status,source_sha,integration_sha,created_at) "
+                    "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (artifact["amendment_id"], artifact["parent_id"], artifact["version"],
+                     result["original_plan_sha256"], result["amended_plan_sha256"],
+                     result["original_payload_sha256"], result["amended_acceptance_sha256"],
+                     result["artifact_path"], result["artifact_sha256"], result["owner_authorization"],
+                     "active", self.get("source_sha"), self.get("integration_sha"), timestamp),
+                )
+                db.execute("COMMIT")
+        return {"status": "active", "idempotent": False, "amendment_id": artifact["amendment_id"],
+                "amended_plan_sha256": result["amended_plan_sha256"], "artifact_sha256": result["artifact_sha256"],
+                "backup": backup}
 
     def _task_markdown_records(self, db: sqlite3.Connection) -> tuple[dict, list[dict], dict[str, str]]:
         project_row = db.execute("SELECT * FROM projects WHERE id=?", (PROJECT_ID,)).fetchone()
