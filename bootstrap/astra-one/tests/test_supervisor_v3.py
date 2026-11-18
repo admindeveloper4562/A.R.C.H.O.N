@@ -703,6 +703,72 @@ class SupervisorV3Tests(unittest.TestCase):
             self.assertEqual(tuple(case), ("resolved_external", "plan_amendment"))
             self.assertEqual(db.execute("SELECT count(*) FROM pending_queue WHERE parent_id='MIG-010'").fetchone()[0], 1)
 
+    def test_rel003_single_builder_amendment_updates_pending_task_idempotently(self):
+        old_acceptance = ["Real project flows through Supervisor, 5 workers, QC, merger to Core event"]
+        self.state.add_tasks({
+            "task_id": "REL-003", "objective": "Verify Core-SDA project delegation and completion result.",
+            "acceptance": old_acceptance, "depends_on": [], "area": "rel",
+        })
+        with self.state.db() as db:
+            db.execute(
+                "UPDATE tasks SET project_id='ARCHON-JARVIS-V2',status='pending' WHERE id='REL-003'"
+            )
+            row = db.execute("SELECT project_id,enqueue_seq FROM tasks WHERE id='REL-003'").fetchone()
+            db.execute(
+                "INSERT INTO pending_queue(parent_id,project_id,enqueue_seq,available_at,created_at) "
+                "VALUES(?,?,?,0,?)", ("REL-003", row[0], row[1], now())
+            )
+        plan_path = self.repo / "docs" / "tasks" / "JARVIS_V2_TASK_PLAN.json"
+        plan_path.parent.mkdir(parents=True, exist_ok=True)
+        plan_path.write_text('{"parents":247}\n', encoding="utf-8")
+        with self.state.db() as db:
+            graph = self.state._plan_graph_bindings(db)
+            original_payload = db.execute("SELECT payload_sha FROM tasks WHERE id='REL-003'").fetchone()[0]
+        amended = [
+            "Real project flows through the approved Main Codex single-builder pipeline: "
+            "deterministic task admission, isolated implementation, independent QC, serialized Merger, "
+            "durable Core-SDA completion event, restart/replay recovery, rollback verification, and "
+            "preservation of owner/security gates."
+        ]
+        artifact = {
+            "format": "archon-task-plan-amendment-v1",
+            "amendment_id": "REL-003-SINGLE-BUILDER-TEST", "parent_id": "REL-003", "version": 2,
+            "original_plan_sha256": file_sha256(plan_path), "amended_plan_sha256": "",
+            "original_task_payload_sha256": original_payload,
+            "original_acceptance": old_acceptance, "amended_acceptance": amended,
+            "owner_authorization": {
+                "authorized": True, "reference": "owner-test-REL-003",
+                "scope": "replace obsolete five-worker acceptance with the approved single-builder qualification",
+            },
+            "acceptance_matrix": [{
+                "original_requirement": "Five worker project flow",
+                "github_free_support": "not applicable",
+                "alternative": "One Main Codex builder with deterministic QC and Merger",
+                "security_properties": "One-writer fencing and independent QC",
+                "residual_risks": "Historical five-worker evidence is not reproduced",
+                "owner_acknowledgment": "REL-003 single-builder amendment authorized",
+                "verification": "REL-003 qualification tests",
+            }],
+            "graph": graph,
+            "residual_risks": ["The retired five-worker coding architecture remains historical provenance only."],
+            "verification": {"architecture_reference": "MIG-005", "qualification": "required_before_completion"},
+        }
+        artifact["amended_plan_sha256"] = _amendment_payload_sha(artifact)
+        path = self.repo / "rel003-amendment.json"
+        path.write_text(json.dumps(artifact, sort_keys=True) + "\n", encoding="utf-8")
+        preview = self.state.validate_plan_amendment(path)
+        self.assertEqual(preview["status"], "validated")
+        recorded = self.state.record_plan_amendment(path)
+        self.assertTrue(recorded["blocker_resolved"])
+        self.assertTrue(recorded["amended_payload_sha256"])
+        with self.state.db() as db:
+            task = db.execute("SELECT status,spec,payload_sha FROM tasks WHERE id='REL-003'").fetchone()
+            self.assertEqual(task["status"], "pending")
+            self.assertIn("approved Main Codex single-builder pipeline", task["spec"])
+            self.assertNotEqual(task["payload_sha"], original_payload)
+            self.assertEqual(db.execute("SELECT count(*) FROM pending_queue WHERE parent_id='REL-003'").fetchone()[0], 1)
+        self.assertTrue(self.state.record_plan_amendment(path)["idempotent"])
+
     def test_tws_blender_evidence_is_artifact_bound_and_device_honest(self):
         blend = self.state.home / "artifacts" / "candidate.blend"
         usdz = self.state.home / "artifacts" / "candidate.usdz"

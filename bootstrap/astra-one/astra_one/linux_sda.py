@@ -1484,7 +1484,7 @@ class State:
         if not isinstance(artifact, dict) or set(artifact) != required:
             raise ValueError("plan amendment fields are incomplete or unexpected")
         if (artifact["format"] != "archon-task-plan-amendment-v1"
-                or artifact["parent_id"] not in {"MIG-002", "MIG-010"}):
+                or artifact["parent_id"] not in {"MIG-002", "MIG-010", "REL-003"}):
             raise ValueError("unsupported plan amendment")
         if type(artifact["version"]) is not int or artifact["version"] < 2:
             raise ValueError("plan amendment version is invalid")
@@ -1537,7 +1537,7 @@ class State:
                 raise ValueError("GitHub Free limitation evidence is incomplete")
         elif (verification.get("architecture_reference") != "MIG-005"
               or verification.get("qualification") != "required_before_completion"):
-            raise ValueError("MIG-010 single-builder qualification binding is incomplete")
+            raise ValueError("single-builder qualification binding is incomplete")
         return {
             "artifact": artifact,
             "artifact_path": str(path),
@@ -1559,22 +1559,33 @@ class State:
 
     def record_plan_amendment(self, path: Path) -> dict:
         """Record a verified amendment through the Master, preserving the old plan."""
-        result = self._validate_plan_amendment(path)
+        candidate = path.expanduser().resolve()
+        if candidate.is_symlink() or not candidate.is_file() or candidate.stat().st_size > 64_000:
+            raise ValueError("plan amendment must be a bounded regular file")
+        try:
+            identity = json.loads(candidate.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+            raise ValueError("plan amendment is not valid JSON") from exc
+        if (not isinstance(identity, dict) or not isinstance(identity.get("parent_id"), str)
+                or type(identity.get("version")) is not int):
+            raise ValueError("plan amendment identity is invalid")
+        artifact_sha = file_sha256(candidate)
         existing = None
         with self.db() as db:
             if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='task_plan_amendments'").fetchone():
                 existing = db.execute(
                     "SELECT amendment_id,version,artifact_sha256,amended_plan_sha256,status "
                     "FROM task_plan_amendments WHERE parent_id=? AND version=?",
-                    (result["artifact"]["parent_id"], result["artifact"]["version"]),
+                    (identity.get("parent_id"), identity.get("version")),
                 ).fetchone()
         if existing:
             if (existing["artifact_sha256"], existing["amended_plan_sha256"]) != (
-                    result["artifact_sha256"], result["amended_plan_sha256"]):
+                    artifact_sha, identity.get("amended_plan_sha256")):
                 raise ValueError("plan amendment version already exists with different content")
             return {"status": existing["status"], "idempotent": True,
                     "amendment_id": existing["amendment_id"],
                     "amended_plan_sha256": existing["amended_plan_sha256"]}
+        result = self._validate_plan_amendment(candidate)
         backup = self.export_checkpoint()
         self.ensure_full_plan_schema()
         artifact = result["artifact"]
@@ -1595,40 +1606,48 @@ class State:
                      result["artifact_path"], result["artifact_sha256"], result["owner_authorization"],
                      "active", self.get("source_sha"), self.get("integration_sha"), timestamp),
                 )
-                if artifact["parent_id"] == "MIG-010":
+                if artifact["parent_id"] in {"MIG-010", "REL-003"}:
                     task = db.execute(
-                        "SELECT * FROM tasks WHERE id='MIG-010'"
+                        "SELECT * FROM tasks WHERE id=?", (artifact["parent_id"],)
                     ).fetchone()
-                    if (not task or task["status"] != "blocked"
+                    if not task:
+                        db.execute("ROLLBACK")
+                        raise ValueError(f"{artifact['parent_id']} is not imported")
+                    if artifact["parent_id"] == "MIG-010" and (
+                            task["status"] != "blocked"
                             or task["last_error"] != "five_worker_acceptance_conflicts_single_builder_contract"):
                         db.execute("ROLLBACK")
                         raise ValueError("MIG-010 is not at the expected obsolete-worker blocker")
+                    if artifact["parent_id"] == "REL-003" and task["status"] not in {"pending", "queued"}:
+                        db.execute("ROLLBACK")
+                        raise ValueError("REL-003 is not pending or queued")
                     spec = json.loads(task["spec"])
                     amended_spec = dict(spec)
                     amended_spec["acceptance"] = artifact["amended_acceptance"]
                     amended_payload_sha256 = payload_sha(amended_spec)
-                    updated = db.execute(
-                        "UPDATE supervisor_cases SET state='resolved_external',category='plan_amendment',"
-                        "failure_code='single_builder_contract_amended',updated_at=? "
-                        "WHERE parent_id='MIG-010' AND state='external_blocker' "
-                        "AND failure_code='five_worker_acceptance_conflicts_single_builder_contract'",
-                        (timestamp,),
-                    ).rowcount
-                    if updated != 1:
-                        db.execute("ROLLBACK")
-                        raise ValueError("MIG-010 obsolete-worker blocker case is missing")
+                    if artifact["parent_id"] == "MIG-010":
+                        updated = db.execute(
+                            "UPDATE supervisor_cases SET state='resolved_external',category='plan_amendment',"
+                            "failure_code='single_builder_contract_amended',updated_at=? "
+                            "WHERE parent_id='MIG-010' AND state='external_blocker' "
+                            "AND failure_code='five_worker_acceptance_conflicts_single_builder_contract'",
+                            (timestamp,),
+                        ).rowcount
+                        if updated != 1:
+                            db.execute("ROLLBACK")
+                            raise ValueError("MIG-010 obsolete-worker blocker case is missing")
                     db.execute(
                         "UPDATE tasks SET spec=?,payload_sha=?,status='pending',available_at=0,"
-                        "last_run='',last_error='',updated_at=? WHERE id='MIG-010'",
+                        "last_run='',last_error='',updated_at=? WHERE id=?",
                         (json.dumps(amended_spec, ensure_ascii=False, sort_keys=True),
-                         amended_payload_sha256, timestamp),
+                         amended_payload_sha256, timestamp, artifact["parent_id"]),
                     )
                     for queue in ("pending_queue", "rebuild_queue", "review_queue", "merge_queue"):
-                        db.execute(f"DELETE FROM {queue} WHERE parent_id='MIG-010'")
+                        db.execute(f"DELETE FROM {queue} WHERE parent_id=?", (artifact["parent_id"],))
                     db.execute(
                         "INSERT INTO pending_queue(parent_id,project_id,enqueue_seq,available_at,created_at) "
-                        "VALUES('MIG-010',?,?,0,?)",
-                        (task["project_id"], task["enqueue_seq"], timestamp),
+                        "VALUES(?,?,?,0,?)",
+                        (artifact["parent_id"], task["project_id"], task["enqueue_seq"], timestamp),
                     )
                     blocker_resolved = True
                 db.execute("COMMIT")
