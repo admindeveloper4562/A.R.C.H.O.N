@@ -26,18 +26,33 @@ printf '%s\n' "$SUPERVISOR_OUTPUT"
 # dependency-ready replacements. After the target is met, normal dispatch
 # resumes over the full queue.
 BATCH_ID="${ARCHON_ASTRA_BATCH_ID:-ARCHON-V3-TRIAL-020}"
-BATCH_STATUS=$("${CLI[@]}" batch-status "$BATCH_ID" 2>/dev/null || true)
-if [[ -n "$BATCH_STATUS" ]] && python3 - "$BATCH_STATUS" <<'PY'
+BATCH_STATUS=$("${CLI[@]}" batch-status "$BATCH_ID") || {
+  rc=$?
+  printf '[ARCHON/ATLAS] batch-status failed for %s (exit %s)\n' "$BATCH_ID" "$rc" >&2
+  exit "$rc"
+}
+BATCH_DECISION=0
+if python3 - "$BATCH_STATUS" <<'PY'
 import json, sys
 try:
     item=json.loads(sys.argv[1])
-    raise SystemExit(0 if item.get('completed_count', 0) < item.get('target_count', 20) else 1)
-except (TypeError, ValueError, KeyError):
-    raise SystemExit(1)
+    completed=item["completed_count"]
+    target=item["target_count"]
+    if not isinstance(completed, int) or not isinstance(target, int) or target < 1:
+        raise ValueError("invalid batch counts")
+    raise SystemExit(0 if completed < target else 1)
+except (TypeError, ValueError, KeyError, json.JSONDecodeError):
+    raise SystemExit(2)
 PY
 then
   printf '[ARCHON/ATLAS] Replenishing qualification cohort %s\n' "$BATCH_ID"
   "${CLI[@]}" batch-replenish "$BATCH_ID" --target 20
+else
+  BATCH_DECISION=$?
+  if (( BATCH_DECISION == 2 )); then
+    printf '[ARCHON/ATLAS] batch-status returned invalid JSON or counts\n' >&2
+    exit 1
+  fi
 fi
 # Astra One is now a control-plane runner.  Main Codex claims and writes the
 # candidate; this service only performs independent QC and serial merging.
@@ -45,10 +60,11 @@ RUN_RC=0
 RUN_OUTPUT=$("${CLI[@]}" qc-merge \
   --limit 1 --test-image "$TEST_IMAGE" --max-seconds 1800 2>&1) || RUN_RC=$?
 printf '%s\n' "$RUN_OUTPUT"
-# A refusal to start is an operational error. No coding or recovery process is
-# launched by this service.
-if (( RUN_RC == 2 )); then
-  exit 2
+# Any nonzero QC/Merger result is an operational error. Do not continue to
+# publication checks after an incomplete or failed control-plane pass.
+if (( RUN_RC != 0 )); then
+  printf '[ARCHON/ATLAS] qc-merge failed (exit %s); publication skipped\n' "$RUN_RC" >&2
+  exit "$RUN_RC"
 fi
 # STOP, PAUSE or exhausted quota blocks Git publication.
 for marker in STOP PAUSE PAUSED_QUOTA; do
