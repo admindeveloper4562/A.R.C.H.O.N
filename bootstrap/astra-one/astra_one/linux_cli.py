@@ -484,6 +484,7 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
         # Each task has its own worktree and subprocess; max 5 coding agents.
         with ThreadPoolExecutor(max_workers=workers,thread_name_prefix="astra-worker") as pool:
             try:
+                observed_data_version = state.data_version()
                 while time.monotonic()<deadline:
                     stopped=(state.home/"STOP").exists()
                     paused=control_blocked(state.home, "normal")
@@ -502,7 +503,8 @@ def run_master(state: State, *, workers: int, max_tasks: int, max_minutes: int, 
                         with state.db() as db:
                             next_available=db.execute("SELECT MIN(available_at) FROM tasks WHERE status='queued' AND available_at>?",(int(time.time()),)).fetchone()[0]
                         if next_available and next_available<=int(time.time())+10:
-                            time.sleep(1)
+                            changed, observed_data_version = state.wait_for_data_change(
+                                observed_data_version, timeout=min(1.0, max(0.01, deadline-time.monotonic())))
                             continue
                         break
                     done,_=wait(pending.keys(),timeout=1,return_when=FIRST_COMPLETED)

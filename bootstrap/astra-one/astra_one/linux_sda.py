@@ -590,6 +590,30 @@ class State:
         finally:
             db.close()
 
+    def data_version(self) -> int:
+        """Return SQLite's commit generation without mutating canonical state."""
+        with self.db() as db:
+            return int(db.execute("PRAGMA data_version").fetchone()[0])
+
+    def wait_for_data_change(self, observed: int, timeout: float = 1.0) -> tuple[bool, int]:
+        """Wait for a committed ledger change with a bounded SQLite fallback.
+
+        SQLite has no portable cross-process commit notification.  ``data_version``
+        is the event signal; the 50ms poll is only the bounded fallback.
+        """
+        if not isinstance(observed, int) or observed < 0 or not 0 < timeout <= 300:
+            raise ValueError("invalid data-version wait")
+        with self.db() as db:
+            deadline = time.monotonic() + timeout
+            while True:
+                current = int(db.execute("PRAGMA data_version").fetchone()[0])
+                if current != observed:
+                    return True, current
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    return False, current
+                time.sleep(min(0.05, remaining))
+
     @contextlib.contextmanager
     def master_lock(self, blocking: bool = False, timeout: float = 30.0):
         if timeout <= 0 or timeout > 300:
