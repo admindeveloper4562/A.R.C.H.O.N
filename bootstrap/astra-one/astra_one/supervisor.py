@@ -564,7 +564,8 @@ class SupervisorController:
                 or any(not isinstance(item, str) or len(item) > 80 for item in tables)
                 or not {"astra_events", "astra_runs", "astra_jobs"}.issubset(tables)):
             raise ValueError("Cloudflare pending-job schema evidence is incomplete")
-        if evidence.get("d1_job_rows") != 0 or evidence.get("metadata_only") is not True:
+        if (type(evidence.get("d1_job_rows")) is not int or evidence["d1_job_rows"] < 0
+                or evidence.get("metadata_only") is not True):
             raise ValueError("pending-job evidence must be empty and metadata-only")
         if evidence.get("no_secrets_or_payloads") is not True:
             raise ValueError("pending-job evidence must exclude secrets and payloads")
@@ -572,6 +573,11 @@ class SupervisorController:
             raise ValueError("pending-job deterministic checks are incomplete")
         if type(evidence.get("local_test_count")) is not int or evidence["local_test_count"] < 7:
             raise ValueError("pending-job test evidence is incomplete")
+        if evidence.get("live_job_smoke_passed") is not True or evidence.get("live_job_final_state") != "completed":
+            raise ValueError("live pending-job smoke evidence is incomplete")
+        if (not isinstance(evidence.get("live_job_id"), str)
+                or not re.fullmatch(r"[A-Za-z0-9_.:-]{1,80}", evidence["live_job_id"])):
+            raise ValueError("live pending-job smoke identity is invalid")
         if evidence.get("schema_migration_applied") is not True:
             raise ValueError("pending-job schema migration evidence is incomplete")
         if evidence.get("owner_deployment_confirmed") is not True:
