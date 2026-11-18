@@ -804,6 +804,15 @@ class LinuxSDATests(unittest.TestCase):
         (self.repo/"worker.test.mjs").write_text("export const ok = true;\n")
         self.assertEqual(check_changes(self.repo,b),["worker.test.mjs"])
 
+    def test_static_change_accepts_scoped_swift_migration_source(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        target=self.repo/"migration"/"imported"/"tws"/"ios"/"Aurelia3DSceneView.swift"
+        target.parent.mkdir(parents=True)
+        target.write_text("struct Aurelia3DSceneView {}\n")
+        task={"suggested_scope_roots":["migration/"]}
+        self.assertEqual(check_changes(self.repo,b,task=task),
+                         ["migration/imported/tws/ios/Aurelia3DSceneView.swift"])
+
     def test_static_change_rejects_generated_artifact_paths(self):
         b=git(self.repo,"rev-parse","HEAD")
         output=self.repo/"ci-artifacts"/"report.json"
