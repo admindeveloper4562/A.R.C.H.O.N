@@ -361,6 +361,15 @@ def _audit_markdown_paths(task: dict | None, paths: list[str] | set[str]) -> set
     }
 
 
+def _migration_blob_paths(task: dict | None, paths: list[str] | set[str]) -> set[str]:
+    """Preserve exact legacy blob bytes during a bounded migration candidate."""
+    if not isinstance(task, dict) or task.get("execution_mode") != "migration":
+        return set()
+    if "migration/" not in task.get("suggested_scope_roots", []):
+        return set()
+    return {path for path in paths if path.startswith("migration/imported/")}
+
+
 def _check_markdown_hard_breaks(worktree: Path, paths: set[str]) -> None:
     """Allow exactly two spaces at line ends only in bounded audit Markdown."""
     for relative in sorted(paths):
@@ -382,7 +391,8 @@ def _check_markdown_hard_breaks(worktree: Path, paths: set[str]) -> None:
 
 
 def _check_diff_whitespace(worktree: Path, untracked_paths: list[Path],
-                           *, allow_markdown_hard_breaks: set[str] | None = None) -> None:
+                           *, allow_markdown_hard_breaks: set[str] | None = None,
+                           allow_whitespace_paths: set[str] | None = None) -> None:
     """Reject whitespace errors in tracked, staged, and untracked changes.
 
     ``git diff --check`` does not inspect untracked files, which allowed a
@@ -391,7 +401,8 @@ def _check_diff_whitespace(worktree: Path, untracked_paths: list[Path],
     clean difference and 3 when it finds whitespace errors, so only 0/1 are
     accepted for each untracked file.
     """
-    allow = allow_markdown_hard_breaks or set()
+    allow_markdown = allow_markdown_hard_breaks or set()
+    allow = allow_markdown | (allow_whitespace_paths or set())
     pathspec = ["--", ".", *[f":(exclude){path}" for path in sorted(allow)]] if allow else []
     for args in (
         ["git", "-C", str(worktree), "diff", "--check", *pathspec],
@@ -420,7 +431,7 @@ def _check_diff_whitespace(worktree: Path, untracked_paths: list[Path],
         )
         if result.returncode not in (0, 1):
             raise ChangeValidationError("git_diff_check_failed")
-    _check_markdown_hard_breaks(worktree, allow)
+    _check_markdown_hard_breaks(worktree, allow_markdown)
 
 
 def _git_common_dir(repo: Path) -> Path:
@@ -528,10 +539,12 @@ def check_changes(worktree: Path, base_sha: str, *, task: dict | None = None) ->
     except UnicodeError as ex:
         raise ChangeValidationError("git_status_invalid", "status_encoding") from ex
     paths, audit_markdown_paths = _validate_change_entries(worktree, entries, base_sha, task=task)
+    migration_blob_paths = _migration_blob_paths(task, paths)
     untracked_paths = [worktree / PurePosixPath(path) for item, path in
                        ((entry[:2], entry[3:]) for entry in entries) if item == "??"]
     _check_diff_whitespace(worktree, untracked_paths,
-                           allow_markdown_hard_breaks=audit_markdown_paths)
+                           allow_markdown_hard_breaks=audit_markdown_paths,
+                           allow_whitespace_paths=migration_blob_paths)
     return paths
 
 
@@ -571,17 +584,21 @@ def check_candidate_changes(worktree: Path, base_sha: str, candidate_sha: str, *
     except UnicodeError as ex:
         raise ChangeValidationError("git_status_invalid", "candidate_diff_encoding") from ex
     paths, audit_markdown_paths = _validate_change_entries(worktree, entries, base_sha, task=task)
+    migration_blob_paths = _migration_blob_paths(task, paths)
     _check_commit_whitespace(worktree, base_sha, candidate_sha,
-                             allow_markdown_hard_breaks=audit_markdown_paths)
+                             allow_markdown_hard_breaks=audit_markdown_paths,
+                             allow_whitespace_paths=migration_blob_paths)
     if git(worktree, "status", "--porcelain", "--untracked-files=all"):
         raise ChangeValidationError("git_status_invalid", "candidate_dirty")
     return paths
 
 
 def _check_commit_whitespace(worktree: Path, base_sha: str, candidate_sha: str,
-                             *, allow_markdown_hard_breaks: set[str] | None = None) -> None:
+                             *, allow_markdown_hard_breaks: set[str] | None = None,
+                             allow_whitespace_paths: set[str] | None = None) -> None:
     """Apply the same bounded whitespace policy to a committed candidate."""
-    allow = allow_markdown_hard_breaks or set()
+    allow_markdown = allow_markdown_hard_breaks or set()
+    allow = allow_markdown | (allow_whitespace_paths or set())
     pathspec = ["--", ".", *[f":(exclude){path}" for path in sorted(allow)]] if allow else []
     result = subprocess.run(
         ["git", "-C", str(worktree), "diff", "--check", base_sha, candidate_sha, *pathspec],
@@ -589,7 +606,7 @@ def _check_commit_whitespace(worktree: Path, base_sha: str, candidate_sha: str,
     )
     if result.returncode:
         raise ChangeValidationError("git_diff_check_failed")
-    _check_markdown_hard_breaks(worktree, allow)
+    _check_markdown_hard_breaks(worktree, allow_markdown)
 
 
 def _reference_relative_path(value: object) -> PurePosixPath:
@@ -1477,9 +1494,11 @@ def integrate(state: State, tid: str, *, merger_model: str | None = None, merger
     task_spec = json.loads(data["spec"])
     changed_paths = json.loads(data.get("changed_files") or "[]")
     allowed_audit_markdown = _audit_markdown_paths(task_spec, changed_paths)
+    allowed_migration_blobs = _migration_blob_paths(task_spec, changed_paths)
     try:
         _check_commit_whitespace(candidate, data["base_sha"], data["candidate_sha"],
-                                 allow_markdown_hard_breaks=allowed_audit_markdown)
+                                 allow_markdown_hard_breaks=allowed_audit_markdown,
+                                 allow_whitespace_paths=allowed_migration_blobs)
     except ChangeValidationError:
         state.set_task(tid, "failed", error="git_diff_check_failed",
                        run_id=data["last_run"], attempt=data["attempt"])

@@ -813,6 +813,18 @@ class LinuxSDATests(unittest.TestCase):
         self.assertEqual(check_changes(self.repo,b,task=task),
                          ["migration/imported/tws/ios/Aurelia3DSceneView.swift"])
 
+    def test_migration_blob_preserves_source_whitespace(self):
+        b=git(self.repo,"rev-parse","HEAD")
+        target=self.repo/"migration"/"imported"/"tws"/"ios"/"Legacy.swift"
+        target.parent.mkdir(parents=True)
+        target.write_bytes(b"struct Legacy {}  \n\n")
+        task={"execution_mode":"migration","suggested_scope_roots":["migration/"]}
+        changed=check_changes(self.repo,b,task=task)
+        git(self.repo,"add","--",*changed)
+        git(self.repo,"-c","user.name=as","-c","user.email=as@local.invalid","commit","-qm","migration blob")
+        candidate=git(self.repo,"rev-parse","HEAD")
+        self.assertEqual(check_candidate_changes(self.repo,b,candidate,task=task),changed)
+
     def test_static_change_rejects_generated_artifact_paths(self):
         b=git(self.repo,"rev-parse","HEAD")
         output=self.repo/"ci-artifacts"/"report.json"
