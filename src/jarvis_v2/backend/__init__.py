@@ -73,6 +73,13 @@ from .ollama_profile import (
     parse_ollama_probe,
 )
 from .linux_service import LinuxServiceError, LinuxServiceProfile, startup_decision
+from .task_capability import (
+    MAX_ALLOWED_PATHS,
+    TaskCapabilityError,
+    TaskCapabilityManifest,
+    ValidatedTaskRequest,
+    validate_task_request,
+)
 from .cloudflare_jobs import CloudflareJobAdapter, CloudflareJobAdapterError, CloudflareJobRecord
 from .conversation import (
     ConversationStore,
@@ -205,6 +212,11 @@ __all__ = [
     "ConnectorAuthorizationError",
     "ConnectorBroker",
     "ConnectorGrant",
+    "MAX_ALLOWED_PATHS",
+    "TaskCapabilityError",
+    "TaskCapabilityManifest",
+    "ValidatedTaskRequest",
+    "validate_task_request",
     "CloudflareJobAdapter",
     "CloudflareJobAdapterError",
     "CloudflareJobRecord",
