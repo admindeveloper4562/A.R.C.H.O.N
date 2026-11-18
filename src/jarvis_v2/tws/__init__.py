@@ -1221,6 +1221,7 @@ from .aurelia_model import (  # noqa: E402
     ModelValidationError,
     build_portable_model,
     default_aurelia_spec,
+    validate_visual_qa_manifest,
     validate_portable_model,
 )
 
@@ -1235,5 +1236,6 @@ __all__ = [
     "TWSStoreError",
     "build_portable_model",
     "default_aurelia_spec",
+    "validate_visual_qa_manifest",
     "validate_portable_model",
 ]

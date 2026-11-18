@@ -205,6 +205,61 @@ def validate_portable_model(package: bytes | bytearray) -> dict[str, Any]:
     }
 
 
+def validate_visual_qa_manifest(manifest: Mapping[str, object]) -> dict[str, Any]:
+    """Validate the bounded, time-sampled TWS-012 visual-QA manifest."""
+    if not isinstance(manifest, Mapping) or manifest.get("task_id") != "TWS-012":
+        raise ModelValidationError("invalid visual-QA task")
+    source = manifest.get("source")
+    tool = manifest.get("tool")
+    if (not isinstance(source, Mapping)
+            or not re.fullmatch(r"[0-9a-f]{64}", str(source.get("sha256", "")))
+            or not isinstance(tool, Mapping)
+            or tool.get("name") != "Blender"
+            or tool.get("version") != "5.3.0"):
+        raise ModelValidationError("invalid visual-QA provenance")
+    views = manifest.get("views")
+    indices = (
+        [item.get("index") if isinstance(item, Mapping) else None for item in views]
+        if isinstance(views, list) else []
+    )
+    if (not isinstance(views, list) or len(views) != 24
+            or any(type(index) is not int for index in indices)
+            or set(indices) != set(range(24))):
+        raise ModelValidationError("visual-QA manifest must contain 24 unique views")
+    if any(not isinstance(item, Mapping)
+           or not isinstance(item.get("path"), str) or not item["path"]
+           or not re.fullmatch(r"[0-9a-f]{64}", str(item.get("sha256", "")))
+           for item in views):
+        raise ModelValidationError("visual-QA view artifact is invalid")
+    actions = manifest.get("actions")
+    motion_actions = manifest.get("motion_actions")
+    if (manifest.get("motion_present") is not True
+            or not isinstance(actions, list)
+            or not isinstance(motion_actions, list)
+            or not motion_actions
+            or any(not isinstance(name, str) for name in motion_actions)
+            or len(motion_actions) != len(set(motion_actions))):
+        raise ModelValidationError("visual-QA motion evidence is missing")
+    by_track = {item.get("track"): item for item in actions if isinstance(item, Mapping)}
+    for name in motion_actions:
+        action = by_track.get(name)
+        samples = action.get("samples") if isinstance(action, Mapping) else None
+        if (not isinstance(action, Mapping) or action.get("pose_changed") is not True
+                or not isinstance(samples, list) or len(samples) < 3
+                or any(not isinstance(sample, Mapping)
+                       or type(sample.get("frame")) is not int
+                       or not re.fullmatch(r"[0-9a-f]{64}", str(sample.get("pose_sha256", "")))
+                       for sample in samples)):
+            raise ModelValidationError(f"visual-QA motion track is incomplete: {name}")
+    return {
+        "task_id": "TWS-012",
+        "view_count": len(views),
+        "motion_actions": tuple(motion_actions),
+        "source_sha256": source["sha256"],
+        "tool_version": tool["version"],
+    }
+
+
 def default_aurelia_spec() -> dict[str, Any]:
     """Return a small deterministic fixture for portable generation tests."""
     return {
@@ -242,5 +297,6 @@ __all__ = [
     "ModelValidationError",
     "build_portable_model",
     "default_aurelia_spec",
+    "validate_visual_qa_manifest",
     "validate_portable_model",
 ]
