@@ -41,6 +41,12 @@ class BackendContextTests(unittest.TestCase):
         with self.assertRaises(ContextPackError):
             ContextPacker().pack({}, {}, recent_receipts="not-a-list")
 
+    def test_oversized_context_rejects_repeatedly_without_a_retry_loop(self):
+        packer = ContextPacker(default_max_tokens=1_024)
+        for _ in range(3):
+            with self.assertRaisesRegex(ContextPackError, "exceeds token budget"):
+                packer.pack({"acceptance": "x" * 8_000}, {"stop": True}, [])
+
 
 if __name__ == "__main__":
     unittest.main()
