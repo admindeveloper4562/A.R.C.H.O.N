@@ -1,6 +1,6 @@
 # Integration results
 
-Source under test: `/home/r34p3r/dev/A.R.C.H.O.N` at implementation candidate `4149c1d75eee24880bfacd819342f9c21d05d51a`; latest evidence overlay `0d6658b0aa2449c4071c0ca05ddda0aad3609bd2` contains no production-code changes.
+Source under test: `/home/r34p3r/dev/A.R.C.H.O.N` at final checkout `2fec1e3459252f97fe900a6ade2d15e48894c70b`; production source is unchanged from implementation `4149c1d75eee24880bfacd819342f9c21d05d51a`.
 
 | Check | Command/evidence | Result |
 | --- | --- | --- |
@@ -15,8 +15,8 @@ Source under test: `/home/r34p3r/dev/A.R.C.H.O.N` at implementation candidate `4
 | Astra unavailable native import | PYTHONPATH=src without bootstrap path | PASS for native imports |
 | Native controller | Fresh one-shot, lock fencing, control-marker admission, executor success/failure receipts, eight bounded read-only probes, resumable inventory cursor, terminate/restart, and systemd unit verification | PASS for bounded read-only operations; unit not installed and domain-effect handlers not configured |
 | Native health | `jarvis_v2.cli health` against fresh runtime/ATLAS state; historical ledger explicitly not loaded | PASS |
-| Host capability inventory | Bounded root metadata scan plus Ollama model listing, NVIDIA acceleration probe, and private continuation cursor | PASS; 10,000 entries, 1,328 pending frames, scan truncated by bound |
-| Full regression | 590 unittest cases at 4149c1d | PASS; 27.762 seconds, exit 0 |
+| Host capability inventory | Bounded root metadata scan plus Ollama model listing, NVIDIA acceleration probe, and private continuation cursor | PASS; 10,000 entries, 3,459 pending frames, scan truncated by bound |
+| Full regression | 590 unittest cases at 2fec1e3 | PASS; 29.365 seconds, exit 0 |
 | Independent focused QC | Current overlay 1c27e22; native executor 8/8 and inventory 6/6 | PASS; full suite was not rerun independently |
 | Security/dependency checks | local dependency, secret, and security scans | PASS |
 

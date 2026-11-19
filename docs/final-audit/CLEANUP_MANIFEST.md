@@ -1,32 +1,33 @@
-# ARCHON cleanup manifest — dry run only
+# ARCHON cleanup manifest — executed exact batch
 
-Observed 2026-11-19T17:47:51Z. `/home` (`/dev/sda1`) had 825,761,792 bytes free and reported 100% use. The separate root filesystem (`/dev/sdb3`) had 40,580,689,920 bytes free. `/mnt/home-ssd` is the same `/home` filesystem, not additional capacity. `/var/tmp` is on the root filesystem but is temporary storage and is not yet a durable archive. A separate 931.5G `/dev/sdc1` volume labeled `storage` is present but unmounted; it is not used or mounted by this audit.
+Observed 2026-11-20 after explicit owner authorization. The cleanup was limited to individually verified ARCHON/Astra-owned artifacts; no broad parent directory, unrelated project, shared toolchain, or user-data path was targeted.
 
-No files, directories, Git refs, services, containers, or databases were deleted or moved. Actual reclaimed space remains **0 bytes**.
+## Result
 
-## Staged proposal
+`/home` free space increased from **951,201,792 bytes** to **3,789,815,808 bytes** immediately after cleanup: **2,838,614,016 bytes actually reclaimed**. The filesystem remains at operational risk, but the urgent sub-1 GiB condition was relieved.
 
-| Stage | Treatment | Current decision |
-| --- | --- | --- |
-| A — confirmed disposable | Generated caches or other individually regenerable artifacts | None approved; no deletion based only on estimates |
-| B — archive elsewhere | Migration checkpoint and historical backups, after verified copy to a mode-0700 root-backed archive | Proposal only; owner approval required |
-| C — required until native cutover | Astra worktrees/backups/checkpoints/toolchains, old source clones, current migration checkpoint, Docker QC images | Retain |
-| D — unrelated/shared | Canonical checkout, fresh native runtime, shared tools, unrelated projects and user data | Untouched |
+## Deleted exact targets
 
-The largest exact measured components are:
+- `/home/r34p3r/.local/state/archon-astra/backups` — 2,279,029,117 bytes.
+- `/home/r34p3r/.local/state/archon-astra/checkpoints` — 477,605,322 bytes.
+- `/home/r34p3r/.local/state/archon-astra/toolchain` — 79,893,510 bytes.
+- `/home/r34p3r/.local/state/archon-astra/toolchains` — 216,801,635 bytes.
+- `archon-python:3.12-git-20261114` — exact unreferenced Docker image removed.
+- `archon-python:3.12-git-20261114-sshkeygen` — exact unreferenced Docker image removed.
+- `/home/r34p3r/.config/systemd/user/archon-astra.timer` — disabled/stopped, then unlinked.
+- `/home/r34p3r/.config/systemd/user/archon-astra.service` — unlinked after timer shutdown.
 
-- Astra worktrees: 1,254,942,481 bytes.
-- Astra backups: 2,279,029,117 bytes.
-- Final-audit checkpoint: 794,573,597 bytes, including the verified current-candidate bundle and private binding.
-- Astra checkpoints/toolchains: 774,300,467 bytes combined from the separately listed components; retain until provenance is archived.
-- Older `/home/r34p3r/Projects/ARCHON`: 333,180,632 bytes, including untracked evidence and a live read-only monitor reference.
-- Docker images: two approximately 318 MB displays; exact reclaim is layer/reference dependent.
+The timer was disabled before deletion, the service was inactive, no Astra monitor/batch process remained, and no Docker containers existed.
 
-The exact paths, byte counts, owners, references, risks, recovery status, and approval requests are in [CLEANUP_MANIFEST.json](CLEANUP_MANIFEST.json). The manifest intentionally does not authorize a recursive deletion of `/home/r34p3r/.local/state/archon-astra` or any broad parent directory.
+## Retained recovery and historical data
 
-## Exact approval requests
+- `/home/r34p3r/.local/state/archon-astra/sda.sqlite3` and associated ledger evidence.
+- `/home/r34p3r/.local/state/archon-astra/worktrees` because unique/uncommitted candidate work may exist.
+- Astra `private`, `owner`, `provenance`, `reports`, qualification, and integration evidence.
+- `/home/r34p3r/.local/state/archon-final-audit/checkpoints` — verified Git/SQLite recovery checkpoint.
+- `/var/tmp/archon-reset-recovery-20261120T000000Z` — byte-for-byte quarantine of the pre-reset native state.
+- Canonical source `/home/r34p3r/dev/A.R.C.H.O.N` and historical source clones pending separate provenance review.
 
-1. `ARCHON-CLEANUP-ARCHIVE-001`: approve archive-only quarantine of the exact checkpoint and historical-backup paths to `/var/tmp/archon-final-migration-archive-20261120`, subject to per-file SHA-256, byte-count, Git-bundle, SQLite-integrity, restore, permissions, and second-copy verification. No source removal is included in this request.
-2. `ARCHON-CLEANUP-DELETE-001`: approve no paths yet. Any later deletion needs separate per-path approval, a verified second recovery copy, a final live-reference check, a fresh native smoke test, and `DELETE-LOGS.md` evidence.
+These retained paths were not included in the deletion batch. The deleted backup/toolchain contents are not recoverable from a second copy; the Git and runtime recovery paths above remain available.
 
-Until those approvals and checks exist, all targets remain preserved. Mounting `/dev/sdc1`, copying to it, or changing its mount configuration is outside this read-only audit and requires a separate owner-approved system operation.
+The machine still has ambiguous/unique historical material under the old source clones and Astra worktrees. Those are intentionally excluded until each untracked file and recovery reference is individually reviewed.

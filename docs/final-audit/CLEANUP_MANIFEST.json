@@ -1,250 +1,116 @@
 {
-  "schema_version": 2,
-  "mode": "dry_run",
-  "owner_approval": "required_before_archive_move_or_deletion",
-  "observed_at": "2026-11-19T17:47:51Z",
+  "schema_version": 3,
+  "mode": "executed_exact_batch",
+  "observed_at": "2026-11-20",
+  "owner_authorization": "Explicit user authorization to delete ARCHON/Astra backups, migration artifacts, and unused files",
+  "canonical_head": "2fec1e3459252f97fe900a6ade2d15e48894c70b",
   "filesystem": {
     "home_mount": "/home",
     "home_device": "/dev/sda1",
-    "home_available_bytes": 825761792,
-    "home_use_percent": 100,
+    "home_available_before_bytes": 951201792,
+    "home_available_after_bytes": 3789815808,
+    "home_available_current_observation_bytes": 3788345344,
     "root_mount": "/",
     "root_device": "/dev/sdb3",
-    "root_available_bytes": 40580689920,
-    "root_backed_archive_destination": "/var/tmp",
-    "root_archive_warning": "var/tmp is local temporary storage, not a durable backup until separately copied and verified",
-    "unmounted_archive_device": {
-      "device": "/dev/sdc1",
-      "label": "storage",
-      "filesystem": "ext4",
-      "size_bytes": null,
-      "reported_size": "931.5G from lsblk; exact byte size unavailable without blockdev permission",
-      "mountpoint": null,
-      "status": "available_but_unmounted",
-      "action": "do not mount or use without an explicit owner-approved system operation"
-    }
+    "root_available_current_observation_bytes": 40425947136,
+    "unmounted_storage_device": "/dev/sdc1",
+    "unmounted_storage_used": false
   },
-  "stages": {
-    "A_confirmed_disposable": {
-      "status": "none_approved",
-      "note": "Generated caches are individually recoverable but no deletion is authorized by this audit. No target is removed solely from an estimate."
-    },
-    "B_archive_elsewhere": {
-      "status": "proposal_only",
-      "destination": "/var/tmp/archon-final-migration-archive-20261120",
-      "required_verification": [
-        "create a mode-0700 archive directory",
-        "copy without crossing filesystems or following symlinks",
-        "record per-file SHA-256 and byte counts",
-        "verify Git bundles, SQLite integrity and restore readability",
-        "verify the archive is not the only recovery copy",
-        "obtain explicit owner approval before removing any source"
-      ]
-    },
-    "C_required_until_native_cutover": {
-      "status": "retain",
-      "note": "Unique worktrees, historical receipts, rollback backups, migration checkpoints, and native runtime state remain in place until native qualification, owner-approved cutover, and archive verification complete."
-    },
-    "D_unrelated_or_shared": {
-      "status": "untouched",
-      "note": "Do not scan for deletion or modify unrelated projects, user files, shared language/toolchain installations, Codex/Serena/Context Mode state, or the rest of ~/.local."
-    }
-  },
-  "targets": [
+  "deleted_targets": [
     {
-      "stage": "C_required_until_native_cutover",
-      "path": "/home/r34p3r/.local/state/archon-astra/worktrees",
-      "classification": "candidate_and_recovery_worktrees",
-      "size_bytes": 1254942481,
-      "owner": "r34p3r",
-      "runtime_references": "Git worktree metadata, candidate branches, and one conflicted owner-approval worktree",
-      "recovery": "Git bundles do not replace uncommitted worktree contents",
-      "risk": "critical",
-      "proposed_action": "retain; after owner-approved cutover, archive and verify each worktree before any quarantine"
-    },
-    {
-      "stage": "C_required_until_native_cutover",
       "path": "/home/r34p3r/.local/state/archon-astra/backups",
-      "classification": "historical_SQLite_and_watchdog_backups",
-      "size_bytes": 2279029117,
-      "owner": "r34p3r",
-      "runtime_references": "recovery and rollback evidence",
-      "recovery": "the directory itself is a recovery copy",
-      "risk": "critical",
-      "proposed_action": "retain until a verified second archive and owner-approved retirement transition exist"
+      "classification": "legacy_Astra_backup_artifacts",
+      "measured_size_bytes": 2279029117,
+      "action": "deleted_after_timer_and_process_stop"
     },
     {
-      "stage": "C_required_until_native_cutover",
       "path": "/home/r34p3r/.local/state/archon-astra/checkpoints",
-      "classification": "historical_controller_checkpoints",
-      "size_bytes": 477605322,
-      "owner": "r34p3r",
-      "runtime_references": "legacy recovery and task-state evidence",
-      "recovery": "historical Astra state and checkpoint receipts",
-      "risk": "high",
-      "proposed_action": "retain until native recovery and historical archive verification"
+      "classification": "legacy_Astra_migration_checkpoints",
+      "measured_size_bytes": 477605322,
+      "action": "deleted_after_timer_and_process_stop"
     },
     {
-      "stage": "C_required_until_native_cutover",
       "path": "/home/r34p3r/.local/state/archon-astra/toolchain",
-      "classification": "historical_ARCHON_toolchain",
-      "size_bytes": 79893510,
-      "owner": "r34p3r",
-      "runtime_references": "legacy qualification and Blender package evidence",
-      "recovery": "rebuildability not independently verified",
-      "risk": "high",
-      "proposed_action": "retain until toolchain provenance and rebuild path are archived"
+      "classification": "obsolete_legacy_toolchain",
+      "measured_size_bytes": 79893510,
+      "action": "deleted"
     },
     {
-      "stage": "C_required_until_native_cutover",
       "path": "/home/r34p3r/.local/state/archon-astra/toolchains",
-      "classification": "historical_TWS_toolchains",
-      "size_bytes": 216801635,
-      "owner": "r34p3r",
-      "runtime_references": "legacy TWS/Linux USD qualification",
-      "recovery": "rebuildability not independently verified",
-      "risk": "high",
-      "proposed_action": "retain until toolchain provenance and rebuild path are archived"
+      "classification": "obsolete_legacy_TWS_toolchains",
+      "measured_size_bytes": 216801635,
+      "action": "deleted"
     },
     {
-      "stage": "C_required_until_native_cutover",
-      "path": "/home/r34p3r/.local/state/archon-final-audit/checkpoints/20261119T125838Z",
-      "classification": "verified_migration_checkpoint",
-      "size_bytes": 794573597,
-      "owner": "r34p3r",
-      "runtime_references": "current final-audit rollback and Git/SQLite recovery",
-      "recovery": "full and incremental Git bundles plus SQLite backups; CHECKPOINT.json is historical and CURRENT_CANDIDATE.json binds current HEAD 0d6658b0aa2449c4071c0ca05ddda0aad3609bd2 and implementation 4149c1d75eee24880bfacd819342f9c21d05d51a",
-      "risk": "critical",
-      "proposed_action": "retain through current candidate acceptance, native cutover, and rollback soak; current incremental bundle is verified"
-    },
-    {
-      "stage": "C_required_until_native_cutover",
-      "path": "/home/r34p3r/.local/state/archon-astra",
-      "classification": "legacy_Astra_runtime_root",
-      "size_bytes": 4341176473,
-      "size_note": "root size is informational only and must never be used as a recursive deletion target",
-      "owner": "r34p3r",
-      "runtime_references": "archon-astra.timer, historical ledger, receipts, worktrees, backups and toolchains",
-      "recovery": "component-level evidence above",
-      "risk": "critical",
-      "proposed_action": "never recursively delete; quarantine only by individually approved component after final live-path checks"
-    },
-    {
-      "stage": "C_required_until_native_cutover",
-      "path": "/home/r34p3r/Projects/ARCHON",
-      "classification": "older_development_checkout_with_untracked_evidence",
-      "size_bytes": 333180632,
-      "owner": "r34p3r",
-      "runtime_references": "historical source, untracked Codex/Serena session records, and legacy monitor process",
-      "recovery": "development Git bundle plus unique untracked files require separate review",
-      "risk": "high",
-      "proposed_action": "retain until every untracked file and live process reference is reviewed"
-    },
-    {
-      "stage": "C_required_until_native_cutover",
-      "path": "/home/r34p3r/Projects/ARCHON-astra-source",
-      "classification": "historical_Astra_source_clone",
-      "size_bytes": 21375768,
-      "owner": "r34p3r",
-      "runtime_references": "historical Astra settings and service documentation",
-      "recovery": "integration/development Git bundles and remote history",
-      "risk": "high",
-      "proposed_action": "retain until Astra retirement archive and receipts are independently verified"
-    },
-    {
-      "stage": "C_required_until_native_cutover",
-      "path": "/home/r34p3r/Projects/ARCHON-astra-source-clean-20261116",
-      "classification": "clean_release_candidate_clone",
-      "size_bytes": 4815808,
-      "owner": "r34p3r",
-      "runtime_references": "historical REL-004 release evidence",
-      "recovery": "Git history and migration checkpoint",
-      "risk": "medium",
-      "proposed_action": "retain; no deletion approval"
-    },
-    {
-      "stage": "C_required_until_native_cutover",
       "path": "archon-python:3.12-git-20261114",
-      "classification": "ARCHON_specific_container_image",
-      "size_bytes": 318000000,
-      "size_note": "Docker-reported display size; exact reclaim requires image-layer accounting",
-      "owner": "Docker user storage",
-      "runtime_references": "historical Docker QC evidence",
-      "recovery": "rebuild recipe/evidence not independently verified",
-      "risk": "high",
-      "proposed_action": "owner review; final live-container/reference check required"
+      "classification": "unused_unreferenced_ARCHON_QC_image",
+      "docker_image_id": "df1ab2bf04e4047fdb56bca2f1eb46e574ce4dc223dfd9a0e0fd7d0493a53ded",
+      "action": "removed"
     },
     {
-      "stage": "C_required_until_native_cutover",
       "path": "archon-python:3.12-git-20261114-sshkeygen",
-      "classification": "ARCHON_specific_container_image",
-      "size_bytes": 318000000,
-      "size_note": "Docker-reported display size; exact reclaim requires image-layer accounting",
-      "owner": "Docker user storage",
-      "runtime_references": "historical Docker QC evidence",
-      "recovery": "rebuild recipe/evidence not independently verified",
-      "risk": "high",
-      "proposed_action": "owner review; final live-container/reference check required"
+      "classification": "unused_unreferenced_ARCHON_QC_image",
+      "docker_image_id": "d851e414f7d8499c920345f22e3bf7eab94cad29fe39b533924a07ba56ed4fe0",
+      "action": "removed"
     },
     {
-      "stage": "D_unrelated_or_shared",
-      "path": "/home/r34p3r/.local/state/archon",
-      "classification": "fresh_native_runtime",
-      "size_bytes": 139983764,
-      "owner": "r34p3r",
-      "runtime_references": "current native databases, code index, private inventory, logs and control state",
-      "recovery": "required active runtime and current candidate evidence",
-      "risk": "critical",
-      "proposed_action": "retain; never include in cleanup"
+      "path": "/home/r34p3r/.config/systemd/user/archon-astra.timer",
+      "classification": "obsolete_Astra_user_timer",
+      "action": "disabled_stopped_and_unlinked"
     },
     {
-      "stage": "D_unrelated_or_shared",
-      "path": "/home/r34p3r/dev/A.R.C.H.O.N",
-      "classification": "canonical_source_checkout",
-      "size_bytes": 45383126,
-      "owner": "r34p3r",
-      "runtime_references": "canonical active source",
-      "recovery": "current Git checkout and verified checkpoint",
-      "risk": "critical",
-      "proposed_action": "retain; never include in cleanup"
+      "path": "/home/r34p3r/.config/systemd/user/archon-astra.service",
+      "classification": "obsolete_Astra_user_service_unit",
+      "action": "unlinked_after_timer_stop"
     }
   ],
-  "approval_requests": [
-    {
-      "request_id": "ARCHON-CLEANUP-ARCHIVE-001",
-      "operation": "archive-only quarantine",
-      "paths": [
-        "/home/r34p3r/.local/state/archon-final-audit/checkpoints/20261119T125838Z",
-        "/home/r34p3r/.local/state/archon-astra/backups"
-      ],
-      "destination": "/var/tmp/archon-final-migration-archive-20261120",
-      "preconditions": [
-        "native qualification accepted",
-        "Astra remains available as rollback until archive verification",
-        "source and destination SHA/size manifests match",
-        "SQLite integrity and Git bundle verification pass",
-        "owner explicitly approves these exact paths"
-      ],
-      "not_authorized": "No move or deletion has been performed"
-    },
-    {
-      "request_id": "ARCHON-CLEANUP-DELETE-001",
-      "operation": "destructive deletion",
-      "paths": [],
-      "preconditions": [
-        "separate per-path owner approval",
-        "verified second recovery copy",
-        "no live process or service reference",
-        "fresh native smoke test after each quarantine batch",
-        "DELETE-LOGS.md evidence"
-      ],
-      "not_authorized": "No deletion target is currently approved"
-    }
-  ],
-  "expected_reclaim_if_all_current_targets_were_approved": {
-    "bytes_before_accounting": 5322033961,
-    "note": "Includes two approximate 318,000,000-byte Docker image displays; actual block reclaim requires final image-layer and live-reference checks"
+  "actual_reclaimed_bytes": 2838614016,
+  "verification": {
+    "deleted_targets_absent": true,
+    "astra_timer": "not-found/inactive",
+    "astra_service": "not-found/inactive",
+    "astra_processes": 0,
+    "docker_containers_before_image_removal": 0,
+    "fresh_native_smoke": "healthy",
+    "runtime_sqlite_integrity": "ok",
+    "atlas_sqlite_integrity": "ok",
+    "foreign_key_violations": 0
   },
-  "actual_reclaimed_bytes": 0,
-  "deleted_paths": []
+  "retained_targets": [
+    {
+      "path": "/home/r34p3r/.local/state/archon-astra/sda.sqlite3",
+      "size_bytes": 7700480,
+      "reason": "historical_task_ledger_and_receipts"
+    },
+    {
+      "path": "/home/r34p3r/.local/state/archon-astra/worktrees",
+      "size_bytes": 1254942481,
+      "reason": "unique_or_uncommitted_candidate_work"
+    },
+    {
+      "path": "/home/r34p3r/.local/state/archon-final-audit/checkpoints",
+      "size_bytes": 795522291,
+      "reason": "verified_final_audit_recovery_evidence"
+    },
+    {
+      "path": "/var/tmp/archon-reset-recovery-20261120T000000Z",
+      "size_bytes": 140377536,
+      "reason": "byte_for_byte_pre_reset_native_runtime_quarantine"
+    },
+    {
+      "path": "/home/r34p3r/dev/A.R.C.H.O.N",
+      "reason": "canonical_source_checkout"
+    }
+  ],
+  "remaining_cleanup": {
+    "status": "separate_review_required",
+    "paths": [
+      "/home/r34p3r/Projects/ARCHON",
+      "/home/r34p3r/Projects/ARCHON-astra-source",
+      "/home/r34p3r/Projects/ARCHON-astra-source-clean-20261116",
+      "/home/r34p3r/.local/state/archon-astra/worktrees",
+      "/home/r34p3r/.local/state/archon-final-audit/checkpoints"
+    ],
+    "reason": "unique work, historical evidence, or only recovery copy not individually reviewed"
+  }
 }

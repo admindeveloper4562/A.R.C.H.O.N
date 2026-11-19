@@ -2,8 +2,8 @@
 
 ## Executed evidence
 
-- Evidence was run against exact candidate `4149c1d75eee24880bfacd819342f9c21d05d51a`; it is not published to GitHub.
-- Full standard-library discovery: 590 tests, 590 passed, 0 failed, 27.762 seconds. Full log is `/home/r34p3r/.local/state/archon/logs/unittest-4149c1d.log`.
+- Evidence was rerun against exact final checkout `2fec1e3459252f97fe900a6ade2d15e48894c70b`; its production source is unchanged from implementation `4149c1d75eee24880bfacd819342f9c21d05d51a`.
+- Full standard-library discovery: 590 tests, 590 passed, 0 failed, 29.365 seconds. Full log is `/home/r34p3r/.local/state/archon/logs/unittest-2fec1e3.log`.
 - The suite includes the eight bounded native probes and resumable inventory tests; earlier 579/584-test receipts remain historical.
 - Native package import sweep: 106 jarvis_v2 modules, 0 import errors.
 - Native controller checks: fresh one-shot, process-lock fencing, control-marker admission, executor success/failure receipts, eight bounded read-only probes, resumable inventory cursor, terminate/restart, and systemd unit verification all passed; the unit is not installed and domain-effect handlers remain intentionally unconfigured.
@@ -22,8 +22,8 @@ Fixtures use temporary directories and disposable SQLite files. The full suite d
 ## Gaps
 
 - No coverage tool is installed, so executable line/branch coverage is not claimed.
-- Root filesystem inventory remains bounded at 10,000 entries; a private cursor records 1,328 pending directory frames, so full root coverage is not claimed.
+- Root filesystem inventory remains bounded at 10,000 entries; a private cursor records 3,459 pending directory frames after the fresh reset, so full root coverage is not claimed.
 - Tests with Astra, Windows, iOS, Blender, Cloudflare, or external providers validate contracts and fixtures; they do not prove those external environments on this Linux host.
 - Flakiness and order dependence were not statistically profiled across repeated runs.
 - Hosted CI acceptance remains unverified in this run.
-- Independent bounded QC against current HEAD `1c27e22` passed focused native executor 8/8 and inventory 6/6 checks; it did not rerun the full suite and is not an approval for cutover.
+- Independent bounded QC against the documentation-only ancestor `1c27e22` passed focused native executor 8/8 and inventory 6/6 checks; the current exact checkout passed the full suite, but no separate independent receipt was generated for the final docs-only SHA and this is not an approval for cutover.

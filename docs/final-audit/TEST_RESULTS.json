@@ -1,11 +1,11 @@
 {
   "schema_version": 2,
-  "source_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
+  "source_sha": "2fec1e3459252f97fe900a6ade2d15e48894c70b",
   "implementation_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
-  "canonical_head": "4149c1d75eee24880bfacd819342f9c21d05d51a",
-  "current_documentation_overlay_sha": "0d6658b0aa2449c4071c0ca05ddda0aad3609bd2",
-  "source_state": "tested canonical local candidate; latest evidence overlay is documentation-only and not published to GitHub",
-  "code_index_snapshot_sha": "0d6658b0aa2449c4071c0ca05ddda0aad3609bd2",
+  "canonical_head": "2fec1e3459252f97fe900a6ade2d15e48894c70b",
+  "current_documentation_overlay_sha": "2fec1e3459252f97fe900a6ade2d15e48894c70b",
+  "source_state": "exact final checkout tested; production source content is unchanged from implementation 4149c1d",
+  "code_index_snapshot_sha": "2fec1e3459252f97fe900a6ade2d15e48894c70b",
   "runner": "python3 -m unittest discover -s tests -p 'test_*.py' -q",
   "pytest_available": false,
   "independent_qc": {
@@ -22,9 +22,9 @@
     "passed": 590,
     "failed": 0,
     "errors": 0,
-    "duration_seconds": 27.762,
+    "duration_seconds": 29.365,
     "exit_code": 0,
-    "evidence_log": "/home/r34p3r/.local/state/archon/logs/unittest-4149c1d.log"
+    "evidence_log": "/home/r34p3r/.local/state/archon/logs/unittest-2fec1e3.log"
   },
   "native_import_sweep": {"modules": 106, "errors": 0, "exit_code": 0},
   "native_controller_checks": {
@@ -54,7 +54,7 @@
     "nvidia_acceleration": "NVIDIA GeForce GTX 980, 4096 MiB, driver 535.309.01",
     "filesystem_scan": "bounded_metadata_only_with_private_resume_cursor",
     "scanned_entries": 10000,
-    "pending_directory_frames": 1328,
+    "pending_directory_frames": 3459,
     "permission_denied": 17,
     "skipped_mounts": 28,
     "skipped_virtual_filesystems": 4
@@ -79,6 +79,6 @@
     "Blender execution",
     "live external provider validation",
     "trusted watchdog activation and rollback soak",
-    "native service installation or Astra retirement"
+    "native service installation, trusted watchdog activation and rollback soak"
   ]
 }

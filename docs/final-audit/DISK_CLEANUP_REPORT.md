@@ -1,22 +1,20 @@
 # Disk and cleanup report
 
-Observed 2026-11-19T17:47:51Z. The `/home` filesystem is operationally critical at 100% use with 825,761,792 bytes free. The separate root filesystem has 40,580,689,920 bytes free and is the only currently mounted archive destination with meaningful spare capacity. A separate 931.5G `/dev/sdc1` ext4 volume labeled `storage` is present but unmounted; it was not mounted or used. `/mnt/home-ssd` is a bind view of `/home`, not extra capacity. No cleanup action has been performed.
+The authorized exact cleanup batch completed on 2026-11-20. `/home` free space increased from 951,201,792 to 3,789,815,808 bytes immediately afterward, reclaiming 2,838,614,016 bytes. A later test run consumed a small amount of space; the latest observation is 3,788,345,344 bytes free.
 
-| Measurement | Current value |
+| Measurement | Value |
 | --- | ---: |
-| `/home` available | 825,761,792 bytes |
-| `/home` use | 100% |
-| `/` available | 40,580,689,920 bytes |
-| Legacy Astra root | 4,341,176,473 bytes |
-| Astra worktrees | 1,254,942,481 bytes |
-| Astra backups | 2,279,029,117 bytes |
-| Astra checkpoints | 477,605,322 bytes |
-| Astra toolchain/toolchains | 296,695,145 bytes |
-| Migration checkpoint | 794,573,597 bytes |
-| Canonical source | 45,383,126 bytes |
-| Fresh native runtime | 139,983,764 bytes |
-| Actual space reclaimed | 0 bytes |
+| `/home` available immediately before cleanup | 951,201,792 bytes |
+| `/home` available immediately after cleanup | 3,789,815,808 bytes |
+| Actual space reclaimed | 2,838,614,016 bytes |
+| Latest `/home` available | 3,788,345,344 bytes |
+| Latest `/` available | 40,425,947,136 bytes |
+| Historical Astra SQLite ledger retained | 7,700,480 bytes |
+| Verified final-audit checkpoint retained | 795,522,291 bytes |
+| Native reset quarantine retained | 140,377,536 bytes |
 
-The fresh native host inventory now has a private continuation cursor at `/home/r34p3r/.local/state/archon/host_inventory_cursor.json` with mode 0600, representing 1,328 pending directory frames after a new 10,000-entry metadata-only page. Root coverage remains intentionally incomplete; no contents of private files were read.
+Deleted targets were limited to the four legacy Astra backup/checkpoint/toolchain directories, two unreferenced ARCHON Docker images, and the obsolete Astra user timer/service unit files. The timer and monitor were stopped first; no Astra process or Docker container was live.
 
-The cleanup manifest is still a dry-run proposal. Stage C data remains required until native recovery, watchdog qualification, owner-approved Astra cutover, and verified archival complete. Stage B proposes a local archive under `/var/tmp`, but that location is temporary and no move is authorized. Stage A has no approved targets. Unrelated files and shared installations remain excluded.
+The canonical checkout, historical ledger and receipts, unique Astra worktrees, provenance/owner evidence, final-audit checkpoint, and native reset quarantine remain intact. The old source clones remain because their untracked or historical contents were not proven disposable. `/dev/sdc1` remains unmounted and untouched.
+
+The fresh native runtime remains healthy after cleanup. No unrelated user data, shared toolchain, other repository, or broad `.local` path was removed.

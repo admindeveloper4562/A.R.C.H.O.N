@@ -24,5 +24,5 @@ Status meanings: PASS is real local functionality verified; PARTIAL means local 
 - Persistent memory/RAG: PASS for local storage/retrieval fixtures; no live corpus/provider acceptance.
 - Event bus: PASS local idempotency and persistence tests.
 - Tool/MCP integrations: PARTIAL; typed local boundaries pass, live external tools were not invoked.
-- Service management: PARTIAL; the native unit candidate passes systemd verification but is not installed, while the legacy timer remains active. Service qualification is reversible/read-only only; no watchdog activation or cutover was performed.
+- Service management: PARTIAL; the native unit candidate passes systemd verification but is not installed, and the legacy Astra timer/service were retired from user startup. No watchdog activation or native cutover was performed.
 - Database persistence: PASS for fresh databases, migration, integrity, foreign keys, and backup/restore.

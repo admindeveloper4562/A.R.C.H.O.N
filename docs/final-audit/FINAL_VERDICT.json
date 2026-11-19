@@ -1,102 +1,99 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "verdict": "CONDITIONAL",
-  "source_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
-  "implementation_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
-  "canonical_head": "4149c1d75eee24880bfacd819342f9c21d05d51a",
-  "current_documentation_overlay_sha": "0d6658b0aa2449c4071c0ca05ddda0aad3609bd2",
   "canonical_path": "/home/r34p3r/dev/A.R.C.H.O.N",
-  "source_state": "implementation candidate 4149c1d tested locally; 36 commits ahead of the observed remote feature ref. Latest documentation overlay 0d6658b is 38 ahead. Neither is published to GitHub.",
+  "canonical_head": "2fec1e3459252f97fe900a6ade2d15e48894c70b",
+  "published_ref": "origin/feature/astra-linux-integration-c799784769",
+  "published_ref_sha": "2fec1e3459252f97fe900a6ade2d15e48894c70b",
+  "implementation_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
+  "main_sha_unchanged": "5227b91d2725bf4be4336a5ad26189fdf1034704",
+  "develop_sha_unchanged": "75582dbf48057e3d5b0e7cf4acfdba2386acfcff",
+  "source_state": "Final commit is published; production source is unchanged from the tested implementation and final commits bind refreshed evidence.",
   "evidence": {
-    "full_tests": {
+    "full_regression": {
+      "tests": 590,
       "passed": 590,
       "failed": 0,
-      "duration_seconds": 27.762,
-      "log": "/home/r34p3r/.local/state/archon/logs/unittest-4149c1d.log"
+      "errors": 0,
+      "duration_seconds": 29.365,
+      "exit_code": 0,
+      "source_sha": "2fec1e3459252f97fe900a6ade2d15e48894c70b",
+      "log": "/home/r34p3r/.local/state/archon/logs/unittest-2fec1e3.log"
     },
     "native_imports": {"modules": 106, "errors": 0},
-    "local_security_checks": "pass",
-    "fresh_databases": "pass",
-    "code_index": {
-      "catalog_files": 553,
-      "fts5_files": 552,
-      "fts5": true,
-      "source_sha": "0d6658b0aa2449c4071c0ca05ddda0aad3609bd2",
-      "source_files": 347,
-      "symbols": 3920,
-      "functions": 904,
-      "methods": 2448,
-      "classes": 568,
-      "parser_errors": 0
-    },
-    "native_controller": {
-      "one_shot": "pass",
-      "lock_fencing": "pass",
-      "control_markers": "pass",
-      "restart_after_termination": "pass",
-      "service_unit_verify": "pass",
-      "service_installed": false,
-      "bounded_control_plane_executor": "pass",
-      "read_only_probe_operations": 8,
-      "domain_effect_handlers": "not_configured",
-      "trusted_watchdog": "not_configured"
-    },
-    "native_execution_gap_matrix": "docs/final-audit/NATIVE_EXECUTION_GAPS.md",
-    "native_health": {
+    "fresh_runtime": {
       "status": "healthy",
-      "mode": "native_runtime",
-      "historical_ledger_loaded": false,
+      "migrations_applied": 1,
       "queue_tasks": 0,
-      "sqlite_integrity": "ok",
-      "foreign_key_violations": 0
+      "runtime_integrity": "ok",
+      "atlas_integrity": "ok",
+      "foreign_key_violations": 0,
+      "historical_ledger_loaded": false
+    },
+    "native_executor": {
+      "bounded_read_only_operations": 8,
+      "domain_effect_handlers": "not_configured",
+      "unrestricted_authority": "not_granted"
     },
     "independent_qc": {
       "status": "CONDITIONAL",
-      "target_head": "1c27e2277a7a9f88d9d0dbd9bdac6c7b8f2f80e5",
+      "receipt_target": "1c27e2277a7a9f88d9d0dbd9bdac6c7b8f2f80e5",
       "implementation_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
       "focused_native_executor": "8/8",
       "focused_system_inventory": "6/6",
-      "full_suite_rerun": false
+      "full_suite_rerun": false,
+      "note": "Production source is unchanged at the final documentation commits; no separate independent receipt was generated for the docs-only final SHA."
     },
     "inventory": {
       "entries": 10000,
       "truncated": true,
-      "continuation_cursor": true,
-      "pending_frames": 1328,
+      "pending_frames": 3459,
       "permission_denied": 17,
       "skipped_mounts": 28,
       "skipped_virtual_filesystems": 4,
-      "cursor_path": "/home/r34p3r/.local/state/archon/host_inventory_cursor.json",
-      "ollama_models": ["qwen3:4b", "qwen2.5-coder:7b", "qwen2.5-coder:3b"],
-      "nvidia_acceleration": "NVIDIA GeForce GTX 980, 4096 MiB, driver 535.309.01"
-    },
-    "cleanup": {
-      "deleted_paths": 0,
-      "actual_reclaimed_bytes": 0,
-      "owner_approval": "required_before_archive_move_or_deletion",
-      "home_available_bytes": 825761792,
-      "root_available_bytes": 40580689920
+      "cursor_path": "/home/r34p3r/.local/state/archon/host_inventory_cursor.json"
     },
     "historical_ledger": {
       "parent_total": 247,
       "completed": 240,
       "archived_or_deferred": 7,
-      "outside_envelope_completed": 5,
-      "subtask_total": 1359,
-      "verified_subtask_receipts": 1281,
+      "child_total": 1359,
+      "verified_receipt_rows": 1281,
       "integrity": "ok"
+    },
+    "cleanup": {
+      "actual_reclaimed_bytes": 2838614016,
+      "deleted_exact_target_count": 8,
+      "historical_ledger_retained": true,
+      "recovery_checkpoint_retained": true,
+      "native_reset_quarantine_retained": true
+    },
+    "astra_retirement": {
+      "timer": "not-found/inactive",
+      "service": "not-found/inactive",
+      "remaining_processes": 0,
+      "historical_state_retained": true,
+      "native_unattended_recovery": "not_proven"
     }
   },
+  "modules": {
+    "ALFRED": "PASS local",
+    "SMITH": "PARTIAL",
+    "CORTEX": "PASS local",
+    "IRIS": "PARTIAL",
+    "SAGE": "PARTIAL",
+    "LUMEN": "PARTIAL",
+    "HORIZON": "PARTIAL",
+    "CROWN": "PASS paper/read-only",
+    "PALADIN": "PARTIAL",
+    "RELAY": "PARTIAL"
+  },
   "blocking_conditions": [
-    "native read-only control-plane execution and queue/database probes are proven, but domain-effect handlers, signed owner-approval transport, unattended SDA/AEGIS execution, trusted watchdog soak and rollback application are not",
-    "legacy archon-astra.timer remains enabled and active; read-only monitor PID 20774 remains; no service or timer transition was performed",
-    "the source candidate is not published on GitHub; source branch is ahead 36 and current documentation overlay is ahead 37 of origin/feature/astra-linux-integration-c799784769",
-    "external Linux-release evidence remains incomplete for Windows, iOS, Blender, live providers, finance, communications and hosted CI",
-    "root filesystem inventory remains bounded and incomplete: 10,000 entries with 1,328 resumable pending directory frames and 17 permission-denied paths",
-    "Codex Security diff scan could not launch because the tool rejected the worktree as lacking a resolvable HEAD; repository-local dependency, secret and security scans passed",
-    "independent QC covered current HEAD with focused native and inventory checks; the full suite and qualification log remain main-session evidence",
-    "high-impact cleanup and any Astra retirement require explicit owner approval and verified recovery archives",
-    "home filesystem remains critically full with 825,761,792 bytes available"
+    "signed owner-approval transport and native domain-effect execution are not proven",
+    "unattended SDA/AEGIS ownership, trusted watchdog activation/soak, and rollback application are not proven",
+    "the existing independent QC receipt targets an earlier documentation-only ancestor rather than the exact final commit",
+    "root filesystem inventory is bounded and incomplete",
+    "Windows, Apple, Blender, live-provider, finance, communications, and hosted-CI evidence remains unavailable or intentionally excluded"
   ],
-  "next_safe_action": "Prepare—but do not execute—the exact owner-approved native service/cutover, Astra retirement, unmounted-storage, and cleanup archive operations; retain current recovery paths until approval and qualification."
+  "next_safe_action": "Keep the fresh runtime and retained recovery evidence; separately qualify native service/watchdog/recovery and obtain an exact-current-SHA independent QC receipt before any PASS or unattended cutover claim."
 }
