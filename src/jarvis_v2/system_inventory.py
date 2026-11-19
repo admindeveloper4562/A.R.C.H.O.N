@@ -84,8 +84,59 @@ def _metadata(path: Path, info: os.stat_result, kind: str) -> dict[str, Any]:
     }
 
 
-def scan_filesystem(root: Path = Path("/"), *, max_entries: int = 10_000) -> dict[str, Any]:
-    """Collect metadata without reading file contents or crossing mounts."""
+def _resume_frames(
+    root: Path, root_device: int, value: Mapping[str, Any] | None
+) -> tuple[list[dict[str, str | None]], int]:
+    if value is None:
+        return [{"path": str(root), "after": None}], 0
+    if (
+        value.get("schema") != 1
+        or value.get("root") != str(root)
+        or value.get("root_device") != root_device
+    ):
+        raise InventoryError("filesystem resume cursor does not match the root")
+    frames = value.get("pending")
+    scanned_entries = value.get("scanned_entries")
+    if not isinstance(frames, list) or type(scanned_entries) is not int or scanned_entries < 0:
+        raise InventoryError("filesystem resume cursor is malformed")
+    if scanned_entries > 2_000_000_000:
+        raise InventoryError("filesystem resume cursor is outside the supported range")
+    normalized: list[dict[str, str | None]] = []
+    for frame in frames:
+        if not isinstance(frame, Mapping):
+            raise InventoryError("filesystem resume cursor frame is malformed")
+        raw_path = frame.get("path")
+        after = frame.get("after")
+        if not isinstance(raw_path, str) or not Path(raw_path).is_absolute():
+            raise InventoryError("filesystem resume cursor path is invalid")
+        if after is not None and (not isinstance(after, str) or "/" in after):
+            raise InventoryError("filesystem resume cursor position is invalid")
+        path = Path(raw_path)
+        resolved = path.resolve(strict=False)
+        if path.is_symlink() or not resolved.is_relative_to(root):
+            raise InventoryError("filesystem resume cursor escapes the root")
+        try:
+            info = path.stat()
+        except OSError as exc:
+            raise InventoryError("filesystem resume cursor path is unavailable") from exc
+        if not stat.S_ISDIR(info.st_mode) or info.st_dev != root_device:
+            raise InventoryError("filesystem resume cursor crosses a filesystem boundary")
+        normalized.append({"path": str(path), "after": after})
+    return normalized, scanned_entries
+
+
+def scan_filesystem(
+    root: Path = Path("/"),
+    *,
+    max_entries: int = 10_000,
+    resume_cursor: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Collect bounded metadata pages without reading contents or crossing mounts.
+
+    ``coverage.resume_cursor`` is a private metadata-only continuation token.
+    It can be passed back to this function to continue a truncated scan without
+    restarting the directory traversal.
+    """
     if type(max_entries) is not int or not 1 <= max_entries <= 100_000:
         raise InventoryError("filesystem entry bound is outside the supported range")
     root = root.expanduser().resolve()
@@ -94,15 +145,19 @@ def scan_filesystem(root: Path = Path("/"), *, max_entries: int = 10_000) -> dic
     except OSError as exc:
         raise InventoryError(f"inventory root is unavailable: {root}") from exc
     root_device = root_info.st_dev
-    pending = [root]
-    entries: list[dict[str, Any]] = [_metadata(root, root_info, "directory")]
+    pending, scanned_entries = _resume_frames(root, root_device, resume_cursor)
+    entries: list[dict[str, Any]] = []
+    if resume_cursor is None:
+        entries.append(_metadata(root, root_info, "directory"))
+        scanned_entries = 1
     denied: list[str] = []
     skipped_mounts: list[str] = []
     skipped_virtual: list[str] = []
-    truncated = False
 
     while pending and len(entries) < max_entries:
-        current = pending.pop(0)
+        frame = pending.pop(0)
+        current = Path(frame["path"])
+        after = frame["after"]
         try:
             children = sorted(os.scandir(current), key=lambda item: item.name)
         except PermissionError:
@@ -111,9 +166,14 @@ def scan_filesystem(root: Path = Path("/"), *, max_entries: int = 10_000) -> dic
         except OSError:
             denied.append(str(current))
             continue
+        if after is not None:
+            children = [child for child in children if child.name > after]
+        discovered: list[dict[str, str | None]] = []
+        exhausted = True
+        last_name = after
         for child in children:
             if len(entries) >= max_entries:
-                truncated = True
+                exhausted = False
                 break
             path = Path(child.path)
             try:
@@ -133,6 +193,8 @@ def scan_filesystem(root: Path = Path("/"), *, max_entries: int = 10_000) -> dic
             else:
                 kind = "other"
             entries.append(_metadata(path, info, kind))
+            scanned_entries += 1
+            last_name = child.name
             if kind != "directory":
                 continue
             if current == root and child.name in _VIRTUAL_ROOTS:
@@ -141,20 +203,37 @@ def scan_filesystem(root: Path = Path("/"), *, max_entries: int = 10_000) -> dic
             if info.st_dev != root_device:
                 skipped_mounts.append(str(path))
                 continue
-            pending.append(path)
+            discovered.append({"path": str(path), "after": None})
+        if not exhausted:
+            pending = [
+                {"path": str(current), "after": last_name},
+                *pending,
+                *discovered,
+            ]
+            break
+        pending.extend(discovered)
+    resume = None
     if pending:
-        truncated = True
+        resume = {
+            "schema": 1,
+            "root": str(root),
+            "root_device": root_device,
+            "scanned_entries": scanned_entries,
+            "pending": pending,
+        }
     return {
         "root": str(root),
         "entries": entries,
         "coverage": {
-            "scanned_entries": len(entries),
+            "scanned_entries": scanned_entries,
+            "page_entries": len(entries),
             "max_entries": max_entries,
-            "truncated": truncated,
+            "truncated": resume is not None,
             "permission_denied": sorted(set(denied)),
             "skipped_mounts": sorted(set(skipped_mounts)),
             "skipped_virtual_filesystems": sorted(set(skipped_virtual)),
             "symlink_recursion": False,
+            "resume_cursor": resume,
         },
     }
 
@@ -208,10 +287,15 @@ def collect_inventory(
     *,
     root: Path = Path("/"),
     max_entries: int = 10_000,
+    resume_cursor: Mapping[str, Any] | None = None,
     runner: CommandRunner = _command,
 ) -> dict[str, Any]:
     """Collect safe host facts and bounded filesystem metadata."""
-    filesystem = scan_filesystem(root, max_entries=max_entries)
+    filesystem = scan_filesystem(
+        root,
+        max_entries=max_entries,
+        resume_cursor=resume_cursor,
+    )
     try:
         usage = shutil.disk_usage(root)
         filesystem["capacity"] = {

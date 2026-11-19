@@ -19,7 +19,7 @@ See [ATLAS Monitor operations](docs/operations/ATLAS_TERMINAL_MONITOR.md).
 
 ## Native controller
 
-The native controller owns one bounded queue cycle without Astra imports. Its built-in executor handles only read-only control-plane observations; domain-effect operations fail closed until separately reviewed handlers are supplied:
+The native controller owns one bounded queue cycle without Astra imports. Its built-in executor handles only read-only control-plane observations (`native_capabilities`, `module_health`, `runtime_health`, `inventory_digest`, `queue_status`, `database_inspect`, `sda_handoff_status`, and `guardian_readiness`); domain-effect operations fail closed until separately reviewed handlers are supplied:
 
 ```bash
 PYTHONPATH=src python3 -m jarvis_v2.native_controller --once --state ~/.local/state/archon

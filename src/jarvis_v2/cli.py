@@ -18,6 +18,8 @@ def main(argv=None):
     i.add_argument("--root",type=Path,default=Path("/"))
     i.add_argument("--max-entries",type=int,default=10000)
     i.add_argument("--output",type=Path)
+    i.add_argument("--resume-cursor",type=Path)
+    i.add_argument("--cursor-output",type=Path)
     h=s.add_parser("health")
     h.add_argument("--state",type=Path,default=Path(os.environ.get("ARCHON_STATE", DEFAULT_STATE)))
     h.add_argument("--repo",type=Path,default=Path.cwd())
@@ -29,9 +31,33 @@ def main(argv=None):
         else: print(json.dumps({"status":"no manifest; installed wheel has no repository config"}))
     elif args.command=="inventory":
         try:
-            inventory=collect_inventory(root=args.root,max_entries=args.max_entries)
+            resume_cursor = None
+            if args.resume_cursor:
+                try:
+                    resume_cursor = json.loads(args.resume_cursor.read_text(encoding="utf-8"))
+                except (OSError, UnicodeError, ValueError) as exc:
+                    raise InventoryError("resume cursor is unreadable") from exc
+                if not isinstance(resume_cursor, dict):
+                    raise InventoryError("resume cursor must be a JSON object")
+            inventory=collect_inventory(
+                root=args.root,
+                max_entries=args.max_entries,
+                resume_cursor=resume_cursor,
+            )
             if args.output:
                 write_inventory(args.output, inventory)
+            if args.cursor_output:
+                cursor = inventory["filesystem"]["coverage"]["resume_cursor"]
+                write_inventory(
+                    args.cursor_output,
+                    cursor or {
+                        "schema": 1,
+                        "root": str(args.root.resolve()),
+                        "root_device": args.root.resolve().stat().st_dev,
+                        "scanned_entries": inventory["filesystem"]["coverage"]["scanned_entries"],
+                        "pending": [],
+                    },
+                )
             print(json.dumps({
                 "inventory_sha256": inventory["inventory_sha256"],
                 "entries": inventory["filesystem"]["coverage"]["scanned_entries"],
@@ -39,6 +65,8 @@ def main(argv=None):
                 "permission_denied": len(inventory["filesystem"]["coverage"]["permission_denied"]),
                 "skipped_mounts": len(inventory["filesystem"]["coverage"]["skipped_mounts"]),
                 "output": str(args.output) if args.output else None,
+                "resumable": inventory["filesystem"]["coverage"]["resume_cursor"] is not None,
+                "cursor_output": str(args.cursor_output) if args.cursor_output else None,
             }, sort_keys=True))
         except InventoryError as exc:
             print(f"archon inventory: {exc}", file=__import__("sys").stderr)

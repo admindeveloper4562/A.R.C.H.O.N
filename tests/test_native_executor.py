@@ -1,5 +1,6 @@
 import json
 import os
+import sqlite3
 import subprocess
 import tempfile
 import unittest
@@ -44,6 +45,60 @@ class NativeExecutorTests(unittest.TestCase):
         root, executor = self._executor()
         with self.assertRaisesRegex(NativeExecutorError, "unsupported_native_operation"):
             executor(QueueEnvelope("unknown", "P3", "core", {"operation": "shell"}))
+
+    def test_capability_matrix_rejects_side_effect_classes(self):
+        root, executor = self._executor()
+        result = executor(
+            QueueEnvelope("capabilities", "P3", "core", {"operation": "native_capabilities"})
+        )
+        self.assertIn("queue_status", result["read_only_operations"])
+        self.assertEqual(result["rejected_operations"]["filesystem_write"], "reviewed bounded handler and owner approval required")
+        self.assertEqual(result["domain_effect_handlers"], "not_configured")
+
+    def test_queue_status_is_read_only_and_reports_durable_controls(self):
+        root, executor = self._executor()
+        with CoordinatorQueue.open(executor.state_dir / "atlas.sqlite3") as queue:
+            queue.enqueue(task_id="queued", priority="P3", module="core", payload={})
+        result = executor(
+            QueueEnvelope("queue", "P3", "core", {"operation": "queue_status"})
+        )
+        self.assertEqual(result["status"], "ready")
+        self.assertEqual(result["task_counts"], {"pending": 1})
+        self.assertEqual(result["control"]["state"], "running")
+
+    def test_database_inspect_allows_only_named_native_databases(self):
+        root, executor = self._executor()
+        database = executor.state_dir / "runtime.sqlite3"
+        with sqlite3.connect(database) as db:
+            db.execute("create table sample(value text)")
+        result = executor(
+            QueueEnvelope(
+                "database", "P3", "backend",
+                {"operation": "database_inspect", "database": "runtime"},
+            )
+        )
+        self.assertEqual(result["status"], "ready")
+        self.assertEqual(result["integrity"], "ok")
+        with self.assertRaisesRegex(NativeExecutorError, "database_name_not_allowed"):
+            executor(
+                QueueEnvelope(
+                    "database-bad", "P3", "backend",
+                    {"operation": "database_inspect", "database": "../runtime.sqlite3"},
+                )
+            )
+
+    def test_sda_and_guardian_probes_remain_blocked_without_cutover_evidence(self):
+        root, executor = self._executor()
+        handoff = executor(
+            QueueEnvelope("handoff", "P3", "sda", {"operation": "sda_handoff_status"})
+        )
+        guardian = executor(
+            QueueEnvelope("guardian", "P3", "guardian", {"operation": "guardian_readiness"})
+        )
+        self.assertEqual(handoff["status"], "blocked")
+        self.assertTrue(handoff["shadow_mode"])
+        self.assertEqual(guardian["status"], "blocked")
+        self.assertFalse(guardian["trusted_watchdog"])
 
     def test_inventory_digest_returns_metadata_only(self):
         root, executor = self._executor()

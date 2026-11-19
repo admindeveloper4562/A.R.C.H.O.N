@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 from jarvis_v2.cli import main
-from jarvis_v2.system_inventory import collect_inventory, compare_inventories, inventory_digest, scan_filesystem
+from jarvis_v2.system_inventory import InventoryError, collect_inventory, compare_inventories, inventory_digest, scan_filesystem
 
 
 class SystemInventoryTests(unittest.TestCase):
@@ -19,6 +19,31 @@ class SystemInventoryTests(unittest.TestCase):
             self.assertIn(str(root / "link"), paths)
             self.assertNotIn(str(root / "link" / "file.txt"), paths)
             self.assertFalse(inventory["coverage"]["symlink_recursion"])
+
+    def test_scan_cursor_resumes_without_duplicates_or_root_restart(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            for name in ("a", "b", "c"):
+                (root / name).mkdir()
+                (root / name / "item").write_text("metadata only", encoding="utf-8")
+            first = scan_filesystem(root, max_entries=3)
+            self.assertTrue(first["coverage"]["truncated"])
+            cursor = first["coverage"]["resume_cursor"]
+            second = scan_filesystem(root, max_entries=20, resume_cursor=cursor)
+            paths = [entry["path"] for entry in first["entries"] + second["entries"]]
+            self.assertEqual(len(paths), len(set(paths)))
+            self.assertEqual(set(paths), {str(path) for path in root.rglob("*")} | {str(root)})
+            self.assertFalse(second["coverage"]["truncated"])
+            self.assertIsNone(second["coverage"]["resume_cursor"])
+
+    def test_scan_cursor_cannot_change_root_or_cross_mount(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            first = scan_filesystem(root, max_entries=1)
+            cursor = dict(first["coverage"]["resume_cursor"])
+            cursor["root"] = str(root / "other")
+            with self.assertRaisesRegex(InventoryError, "resume cursor"):
+                scan_filesystem(root, max_entries=2, resume_cursor=cursor)
 
     def test_digest_and_comparison_ignore_collection_time(self):
         old = {
