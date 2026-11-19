@@ -313,13 +313,13 @@ def _choose_db(source: str, given: Path | None) -> Path:
     if given is not None:
         return given
     if source == 'astra':
-        for candidate in (ARCHON_DEFAULT, ASTRA_DEFAULT, ASTRA_LEGACY):
+        for candidate in (ASTRA_DEFAULT, ASTRA_LEGACY):
             if candidate.exists():
                 return candidate
-        return ARCHON_DEFAULT
+        return ASTRA_DEFAULT
     if source == 'atlas':
         return ATLAS_DEFAULT
-    for candidate in (ARCHON_DEFAULT, ASTRA_DEFAULT, ASTRA_LEGACY):
+    for candidate in (ATLAS_DEFAULT, ARCHON_DEFAULT, ASTRA_DEFAULT, ASTRA_LEGACY):
         if candidate.exists():
             return candidate
     return ATLAS_DEFAULT

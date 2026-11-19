@@ -8,8 +8,9 @@ import sys
 import tempfile
 import unittest
 from contextlib import redirect_stdout
+from unittest.mock import patch
 from jarvis_v2.core.queue import TaskQueue
-from jarvis_v2.monitor import snapshot, render, main
+from jarvis_v2.monitor import _choose_db, snapshot, render, main
 
 ASTRA_SCHEMA = '''
 CREATE TABLE settings(key TEXT PRIMARY KEY,value TEXT NOT NULL);
@@ -194,5 +195,22 @@ class MonitorTests(unittest.TestCase):
     def test_cli_rejects_simultaneous_watch_and_json(self):
         with self.assertRaises(SystemExit):
             main(['--watch','--json'])
+
+    def test_auto_prefers_native_atlas_and_explicit_astra_stays_legacy(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            atlas = root / 'atlas.sqlite3'
+            native_sda = root / 'sda.sqlite3'
+            astra = root / 'archon-astra.sqlite3'
+            legacy = root / 'astra-one.sqlite3'
+            for path in (atlas, native_sda, astra, legacy):
+                path.touch()
+            with patch('jarvis_v2.monitor.ATLAS_DEFAULT', atlas), \
+                 patch('jarvis_v2.monitor.ARCHON_DEFAULT', native_sda), \
+                 patch('jarvis_v2.monitor.ASTRA_DEFAULT', astra), \
+                 patch('jarvis_v2.monitor.ASTRA_LEGACY', legacy):
+                self.assertEqual(_choose_db('auto', None), atlas)
+                self.assertEqual(_choose_db('atlas', None), atlas)
+                self.assertEqual(_choose_db('astra', None), astra)
 
 if __name__=='__main__':unittest.main()
