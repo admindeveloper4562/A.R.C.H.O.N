@@ -29,6 +29,7 @@
     "legacy Astra timer remains enabled; the latest service attempt failed with status 143 after the legacy --json/--watch monitor argument conflict",
     "the canonical SHA is not published on GitHub",
     "external Linux-release evidence remains incomplete for Windows, iOS, Blender, live providers, finance, and hosted CI",
+    "Codex Security diff scan could not launch because the tool rejected the worktree as lacking a resolvable HEAD; local security scans passed",
     "independent QC covered the committed tree before this documentation-only refresh; the refresh itself is not separately re-QC'd",
     "high-impact cleanup requires explicit owner approval"
   ],
