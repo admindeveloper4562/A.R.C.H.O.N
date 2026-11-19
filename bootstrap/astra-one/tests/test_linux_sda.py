@@ -1375,6 +1375,19 @@ print(json.dumps({'type':'turn.completed','usage':{'input_tokens':17,'output_tok
         self.assertEqual(git(self.repo,"branch","--show-current"),"develop")
         self.assertNotEqual(self.state.get("integration_sha"),self.state.get("source_sha"))
 
+    def test_integration_accepts_verified_fast_forward_source_after_transfer(self):
+        (self.repo / "transferred-source-advance.py").write_text("VALUE = 1\n")
+        git(self.repo, "add", "--", "transferred-source-advance.py")
+        git(self.repo, "-c", "user.name=test", "-c", "user.email=test@local.invalid",
+            "commit", "-qm", "verified source advance")
+        advanced_source_sha = git(self.repo, "rev-parse", "HEAD")
+
+        integration = ensure_integration(self.state)
+
+        self.assertEqual(git(self.repo, "rev-parse", "HEAD"), advanced_source_sha)
+        self.assertEqual(git(integration, "rev-parse", "HEAD"), self.state.get("integration_sha"))
+        self.assertNotEqual(advanced_source_sha, self.state.get("source_sha"))
+
     def test_merger_rejects_non_ancestor_candidate_base_before_apply(self):
         self.state.add_tasks(task(1))
         claim = self.state.claim()

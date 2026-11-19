@@ -1,0 +1,49 @@
+{
+  "acceptance_matrix": [
+    {
+      "alternative": "Local Python 3.11/3.12 matrix, package manifest verification, and offline package smoke checks",
+      "github_free_support": "Hosted execution remains deferred by the task instruction",
+      "original_requirement": "Declared Linux/Windows CI jobs pass",
+      "owner_acknowledgment": "REL-016 packaging scope is owner-authorized",
+      "residual_risks": "Hosted quota, Windows hosted execution, and native iOS remain unverified",
+      "security_properties": "No remote Actions, credentials, or device evidence are fabricated",
+      "verification": "Deterministic local matrix and manifest checks"
+    }
+  ],
+  "amended_acceptance": [
+    "All in-scope Linux/Windows CI jobs execute and pass; native iOS runner coverage is explicitly deferred and not claimed; artifacts are stored per SHA. Owner-authorized bootstrap manifest repair and local Python matrix validation are included; hosted quota and native iOS evidence remain deferred and unclaimed."
+  ],
+  "amended_plan_sha256": "3e36632c38d3d13a044d3d48786789f4ca0f3b9d9b6e42742cdecb2d12660546",
+  "amendment_id": "REL-016-PACKAGING-SCOPE-20261119",
+  "format": "archon-task-plan-amendment-v1",
+  "graph": {
+    "child_count": 1359,
+    "child_ids_sha256": "4c3187c0df09d64807a54dfc22b963e9df8e9e2993c852dde0cfcdeb2b376ff2",
+    "dependency_edges": 443,
+    "dependency_edges_sha256": "b454a4d063c5f5484270941ac7b1aeef255d025dab81fb0fd61f1e6e126eda4c",
+    "parent_count": 247,
+    "parent_ids_sha256": "07771b33b103546d4ef561f2441cc8bc3eb4ca91e25f347d97894e4edcc52791"
+  },
+  "original_acceptance": [
+    "All in-scope Linux/Windows CI jobs execute and pass; native iOS runner coverage is explicitly deferred and not claimed; artifacts are stored per SHA."
+  ],
+  "original_plan_sha256": "10cb1ed53eace6af1c5d052ef0ad0a85eaf9f535db5ae0be794cc7d12752b154",
+  "original_task_payload_sha256": "3ea471e5da97910fe817e27468dd916c4aabfebd0222215f4e3f91445086dae5",
+  "owner_authorization": {
+    "authorized": true,
+    "reference": "User-confirmed owner authorization in the active Codex thread on 2026-11-19",
+    "scope": "Expand REL-016 only to repair bootstrap/astra-one manifest metadata and validate the declared local Python matrix; keep hosted quota and native iOS evidence deferred."
+  },
+  "parent_id": "REL-016",
+  "residual_risks": [
+    "Hosted Python quota and native iOS runner evidence remain deferred and unclaimed.",
+    "No hosted Windows execution is claimed when the current workflow declares no Windows runner job."
+  ],
+  "verification": {
+    "ci_scope": "local_matrix",
+    "manifest_repaired": true,
+    "native_ios": "deferred_unclaimed",
+    "remote_status": "DEFERRED_QUOTA"
+  },
+  "version": 2
+}

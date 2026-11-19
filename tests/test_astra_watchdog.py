@@ -87,6 +87,7 @@ class WatchdogTests(unittest.TestCase):
                 ])
                 db.execute("INSERT INTO upgrade_batches VALUES (?,?,?,?,?,?)",
                            ("upgrade-1", "HEALTH_SOAK", candidate, previous, "1", "1"))
+                db.execute("INSERT INTO tasks VALUES (?,?)", ("pending-merge", "approved"))
                 db.executemany("INSERT INTO upgrade_checks VALUES (?,?,?,?,?,?,?)",
                                (("upgrade-1", stage, "PASS", candidate if stage in {"TESTED", "CANARY"} else previous,
                                  "e" * 64, "1", "deterministic_controller")

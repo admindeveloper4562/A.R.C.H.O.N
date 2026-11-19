@@ -23,7 +23,7 @@ from .linux_sda import (MODEL, EFFORT, MAX_FAILURES, PROTECTED, PROTECTED_PARTS,
                         control_blocked, git, now)
 from .test_evidence_cache import EvidenceCache, build_cache_material, cache_key
 
-ALLOWED_SUFFIXES = {".py", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".json", ".toml", ".md", ".html", ".css", ".sql", ".yaml", ".yml", ".sh", ".swift"}
+ALLOWED_SUFFIXES = {".py", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".json", ".toml", ".md", ".html", ".css", ".sql", ".yaml", ".yml", ".sh", ".swift", ".service", ".timer", ".ps1"}
 MAX_FILES = 30
 MAX_BYTES = 2_000_000
 STOP_POLL = 0.3
@@ -1467,8 +1467,19 @@ def worker_failure_code(error: BaseException) -> str:
 def ensure_integration(state: State) -> Path:
     source=Path(state.get("source"))
     source, source_sha=__import__("astra_one.linux_sda",fromlist=["assert_source"]).assert_source(source)
-    if source_sha!=state.get("source_sha"):
-        raise ValueError("source HEAD changed since initialization")
+    configured_source_sha = state.get("source_sha")
+    if source_sha != configured_source_sha:
+        # A transferred checkpoint may intentionally pin an older clean source
+        # commit while the verified checkout has advanced on the same branch.
+        # Accept only that safe fast-forward case; unrelated history remains a
+        # hard stop and the checkpoint itself is not rewritten here.
+        lineage = subprocess.run(
+            ["git", "-C", str(source), "merge-base", "--is-ancestor",
+             configured_source_sha, source_sha],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30, check=False,
+        )
+        if lineage.returncode:
+            raise ValueError("source HEAD changed since initialization and is not a fast-forward descendant")
     worktree=Path(state.get("integration_path"))
     branch=state.get("integration_branch")
     sha=state.get("integration_sha")

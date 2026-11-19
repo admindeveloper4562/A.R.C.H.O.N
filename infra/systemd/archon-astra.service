@@ -1,0 +1,18 @@
+[Unit]
+Description=ARCHON Astra One deterministic QC and serial Merger
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=%h/Projects/ARCHON/tools/astra_batch_cycle.sh
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/Projects/ARCHON/bootstrap/astra-one
+Environment=ARCHON_ASTRA_HOME=%h/.local/state/archon-astra
+Environment=ARCHON_ASTRA_TEST_IMAGE=archon-python:3.12-git-20261119
+ExecStart=/usr/bin/env bash %h/Projects/ARCHON/tools/astra_batch_cycle.sh
+TimeoutStartSec=1800
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=%h/.local/state/archon-astra

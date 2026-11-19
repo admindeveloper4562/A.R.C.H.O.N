@@ -350,6 +350,52 @@ class SupervisorV3Tests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "real Windows device evidence"):
             self.supervisor.resolve_external("WIN-002", evidence)
 
+    def test_rel004_external_evidence_requires_real_profile_and_sanitized_linux_manifest(self):
+        root = self.state.home / "private" / "rel-004"
+        root.mkdir(parents=True)
+        source_sha = self.state.get("source_sha")
+        integration_sha = self.state.get("integration_sha")
+        checks = [
+            {"id": name, "exit_code": 0, "tests": 3, "result": "PASS", "output_sha256": "a" * 64}
+            for name in (
+                "backend_handoff", "backend_routing", "backend_windows_agent",
+                "backend_acceptance", "backend_ollama_profile",
+            )
+        ]
+        manifest = {
+            "task_id": "REL-004", "source_sha": source_sha, "integration_sha": integration_sha,
+            "status": "PASS", "no_secrets_or_payloads": True, "checks": checks,
+        }
+        manifest_path = root / "linux-tests.json"
+        manifest_path.write_text(json.dumps(manifest, sort_keys=True) + "\n", encoding="utf-8")
+        os.chmod(manifest_path, 0o600)
+        evidence = {
+            "task_id": "REL-004", "kind": "windows_linux_context_handoff",
+            "source_sha": source_sha, "integration_sha": integration_sha,
+            "verification_status": "ready_for_qc", "archon_read_only_policy": True,
+            "no_secrets_or_payloads": True, "windows_device_verified": True,
+            "windows_loopback_only": True, "windows_listener": {"address": "127.0.0.1", "port": 11434},
+            "windows_model": "qwen3:8b", "windows_model_digest": "b" * 64,
+            "windows_context_length": 16_384, "windows_kv_cache_type": "q8_0",
+            "windows_flash_attention": True, "windows_num_parallel": 1, "windows_warmup": True,
+            "windows_measurements": [
+                {"eval_count": 100, "eval_duration_ns": 1_000_000_000,
+                 "prompt_eval_count": 1, "prompt_eval_duration_ns": 0, "tokens_per_second": 100.0}
+            ] * 3,
+            "handoff_checks": {
+                "context_reconstructed": True, "task_id_preserved": True,
+                "permission_scopes_preserved": True, "tool_receipts_preserved": True,
+                "duplicate_handoff_idempotent": True, "duplicate_effect_rejected": True,
+                "explicit_provider_handoff": True, "no_raw_payloads": True,
+            },
+            "linux_test_manifest_path": str(manifest_path),
+            "linux_test_manifest_sha256": hashlib.sha256(manifest_path.read_bytes()).hexdigest(),
+        }
+        self.supervisor._validate_rel_004_evidence(evidence)
+        evidence["windows_listener"] = {"address": "0.0.0.0", "port": 11434}
+        with self.assertRaisesRegex(ValueError, "listener evidence is invalid"):
+            self.supervisor._validate_rel_004_evidence(evidence)
+
     def test_research_external_evidence_binds_report_and_limits(self):
         report = self.state.home / "worktrees" / "res-015" / "benchmark.md"
         report.parent.mkdir(parents=True)
@@ -767,6 +813,81 @@ class SupervisorV3Tests(unittest.TestCase):
             self.assertIn("approved Main Codex single-builder pipeline", task["spec"])
             self.assertNotEqual(task["payload_sha"], original_payload)
             self.assertEqual(db.execute("SELECT count(*) FROM pending_queue WHERE parent_id='REL-003'").fetchone()[0], 1)
+        self.assertTrue(self.state.record_plan_amendment(path)["idempotent"])
+
+    def test_rel016_packaging_amendment_expands_scope_and_releases_quota_blocker(self):
+        original_acceptance = [
+            "All in-scope Linux/Windows CI jobs execute and pass; native iOS runner coverage is explicitly deferred and not claimed; artifacts are stored per SHA."
+        ]
+        self.state.add_tasks({
+            "task_id": "REL-016", "objective": "Run supported platform CI.",
+            "acceptance": original_acceptance, "depends_on": [], "area": "rel",
+        })
+        with self.state.db() as db:
+            db.execute(
+                "UPDATE tasks SET project_id='ARCHON-JARVIS-V2',status='blocked',"
+                "last_error='quota_or_rate_limit:remote_ci_deferred' WHERE id='REL-016'"
+            )
+            db.execute(
+                "INSERT INTO supervisor_cases(case_id,parent_id,generation,state,category,failure_fingerprint,"
+                "failure_code,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)",
+                ("REL-016-test", "REL-016", 1, "external_blocker", "provider_quota",
+                 "rel016-test-fingerprint", "quota_or_rate_limit:remote_ci_deferred", now(), now()),
+            )
+        plan_path = self.repo / "docs" / "tasks" / "JARVIS_V2_TASK_PLAN.json"
+        plan_path.parent.mkdir(parents=True, exist_ok=True)
+        plan_path.write_text('{"parents":247}\n', encoding="utf-8")
+        with self.state.db() as db:
+            graph = self.state._plan_graph_bindings(db)
+            original_payload = db.execute(
+                "SELECT payload_sha FROM tasks WHERE id='REL-016'"
+            ).fetchone()[0]
+        artifact = {
+            "format": "archon-task-plan-amendment-v1",
+            "amendment_id": "REL-016-PACKAGING-SCOPE-TEST", "parent_id": "REL-016", "version": 2,
+            "original_plan_sha256": file_sha256(plan_path), "amended_plan_sha256": "",
+            "original_task_payload_sha256": original_payload,
+            "original_acceptance": original_acceptance,
+            "amended_acceptance": [
+                "All in-scope Linux/Windows CI jobs execute and pass; native iOS runner coverage is explicitly deferred and not claimed; artifacts are stored per SHA. Owner-authorized bootstrap manifest repair and local Python matrix validation are included; hosted quota and native iOS evidence remain deferred and unclaimed."
+            ],
+            "owner_authorization": {
+                "authorized": True, "reference": "owner-test-REL-016-packaging",
+                "scope": "Expand REL-016 to repair bootstrap manifest metadata and validate the declared local Python matrix.",
+            },
+            "acceptance_matrix": [{
+                "original_requirement": "Declared CI jobs pass",
+                "github_free_support": "Hosted execution is deferred by task policy",
+                "alternative": "Local Python 3.11/3.12 and package verification",
+                "security_properties": "No remote Actions or device evidence is fabricated",
+                "residual_risks": "Hosted quota and native iOS remain unverified",
+                "owner_acknowledgment": "REL-016 packaging scope is authorized",
+                "verification": "Deterministic local matrix and manifest checks",
+            }],
+            "graph": graph,
+            "residual_risks": [
+                "Hosted Python quota and native iOS runner evidence remain deferred and unclaimed."
+            ],
+            "verification": {
+                "ci_scope": "local_matrix", "manifest_repaired": True,
+                "remote_status": "DEFERRED_QUOTA", "native_ios": "deferred_unclaimed",
+            },
+        }
+        artifact["amended_plan_sha256"] = _amendment_payload_sha(artifact)
+        path = self.repo / "rel016-packaging-amendment.json"
+        path.write_text(json.dumps(artifact, sort_keys=True) + "\n", encoding="utf-8")
+        self.assertEqual(self.state.validate_plan_amendment(path)["status"], "validated")
+        result = self.state.record_plan_amendment(path)
+        self.assertTrue(result["blocker_resolved"])
+        with self.state.db() as db:
+            task = db.execute("SELECT status,spec FROM tasks WHERE id='REL-016'").fetchone()
+            case = db.execute("SELECT state,category FROM supervisor_cases WHERE case_id='REL-016-test'").fetchone()
+            spec = json.loads(task["spec"])
+            self.assertEqual(task["status"], "pending")
+            self.assertIn("bootstrap/astra-one/", spec["suggested_scope_roots"])
+            self.assertEqual(spec["scope_status"], "in_scope_with_packaging_repair")
+            self.assertEqual(tuple(case), ("resolved_external", "plan_amendment"))
+            self.assertEqual(db.execute("SELECT count(*) FROM pending_queue WHERE parent_id='REL-016'").fetchone()[0], 1)
         self.assertTrue(self.state.record_plan_amendment(path)["idempotent"])
 
     def test_linux_platform_amendment_preserves_windows_requirement_and_releases_root(self):

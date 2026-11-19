@@ -1,0 +1,49 @@
+{
+  "format": "archon-task-plan-amendment-v1",
+  "amendment_id": "REL-017-DEPLOYMENT-ARTIFACT-SCOPE-20261119",
+  "parent_id": "REL-017",
+  "version": 2,
+  "original_plan_sha256": "10cb1ed53eace6af1c5d052ef0ad0a85eaf9f535db5ae0be794cc7d12752b154",
+  "amended_plan_sha256": "4bc1b7e2a5ae0bc555c77203d94d1b58aa8e0ad494158494e074cedb389d2731",
+  "original_task_payload_sha256": "e753acb633ba40fa88a1c08759fc403bb0248f4a22bfe5f6a5cfffb79711fe57",
+  "original_acceptance": [
+    "Reproducible documented Linux, Windows and Cloudflare installation is verified; iOS/TWS installation is explicitly deferred and not claimed."
+  ],
+  "amended_acceptance": [
+    "Reproducible documented Linux, Windows and Cloudflare installation is verified; iOS/TWS installation is explicitly deferred and not claimed. Owner-authorized deployment manifest types (.service, .timer and .ps1) are allowlisted for the bounded repository installation contract; no remote execution or production deployment is claimed."
+  ],
+  "owner_authorization": {
+    "authorized": true,
+    "reference": "User-confirmed full owner authorization in active Codex thread on 2026-11-19",
+    "scope": "Expand REL-017 only to the repository installation contract and Astra path allowlist for Linux systemd and Windows PowerShell artifacts; preserve Cloudflare monitor-only behavior and iOS/TWS deferrals."
+  },
+  "acceptance_matrix": [
+    {
+      "original_requirement": "Document reproducible installation for Linux, Windows and Cloudflare while explicitly deferring iOS and TWS.",
+      "github_free_support": "The repository contract is local and documentation-only; no hosted workflow or paid GitHub capability is required.",
+      "alternative": "Use the checked-in manifests, systemd units and Windows PowerShell installer as the bounded local installation artifacts.",
+      "security_properties": "The validator remains read-only, path-bounded and free of execution; startup policy remains local QC/Merger only.",
+      "residual_risks": "Windows and Cloudflare operations remain owner-operated and are not live deployment evidence.",
+      "owner_acknowledgment": "The owner authorizes the narrow artifact-suffix allowlist needed for the documented installation contract.",
+      "verification": "Verify the manifest, Python tests, PowerShell parse, Docker test matrix and candidate path validator before merge."
+    }
+  ],
+  "graph": {
+    "parent_count": 247,
+    "child_count": 1359,
+    "dependency_edges": 443,
+    "parent_ids_sha256": "07771b33b103546d4ef561f2441cc8bc3eb4ca91e25f347d97894e4edcc52791",
+    "child_ids_sha256": "4c3187c0df09d64807a54dfc22b963e9df8e9e2993c852dde0cfcdeb2b376ff2",
+    "dependency_edges_sha256": "b454a4d063c5f5484270941ac7b1aeef255d025dab81fb0fd61f1e6e126eda4c"
+  },
+  "residual_risks": [
+    "Windows and Cloudflare operations remain owner-operated and are not live deployment evidence.",
+    "Native iOS/Xcode and TWS remain deferred."
+  ],
+  "verification": {
+    "deployment_scope": "repository_manifests",
+    "artifact_allowlist": "service_timer_powershell",
+    "ios": "deferred_unclaimed",
+    "tws": "out_of_scope"
+  }
+}

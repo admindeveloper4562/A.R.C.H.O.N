@@ -398,6 +398,7 @@ class SupervisorController:
             "RES-015": "research_live_source_benchmark",
             "AUTO-013": "cloudflare_worker_deployment",
             "REL-005": "cloudflare_pending_jobs",
+            "REL-004": "windows_linux_context_handoff",
             "TWS-011": "tws_blender_asset",
             "TWS-012": "tws_motion_artist_review",
         }
@@ -413,6 +414,8 @@ class SupervisorController:
             self._validate_cloudflare_deployment_evidence(evidence)
         if task_id == "REL-005":
             self._validate_pending_jobs_evidence(evidence)
+        if task_id == "REL-004":
+            self._validate_rel_004_evidence(evidence)
         if task_id == "MIG-002":
             self._validate_github_free_evidence(evidence)
         if task_id == "TWS-011":
@@ -522,6 +525,94 @@ class SupervisorController:
                 db.execute("COMMIT")
         return {"task_id": task_id, "state": "pending", "idempotent": False,
                 "evidence_sha256": evidence_sha, "backup_sha256": backup_sha}
+
+    def _validate_rel_004_evidence(self, evidence: dict) -> None:
+        """Require bounded Windows/Ollama and Linux handoff evidence for REL-004."""
+        if evidence.get("verification_status") != "ready_for_qc":
+            raise ValueError("REL-004 evidence is not ready for independent QC")
+        if evidence.get("no_secrets_or_payloads") is not True:
+            raise ValueError("REL-004 evidence must exclude secrets and payloads")
+        if evidence.get("windows_device_verified") is not True:
+            raise ValueError("REL-004 Windows device evidence is incomplete")
+        if evidence.get("windows_loopback_only") is not True:
+            raise ValueError("REL-004 Ollama listener must remain loopback-only")
+        if evidence.get("windows_listener") != {"address": "127.0.0.1", "port": 11434}:
+            raise ValueError("REL-004 Ollama listener evidence is invalid")
+        if evidence.get("windows_model") != "qwen3:8b":
+            raise ValueError("REL-004 model evidence is incomplete")
+        if not re.fullmatch(r"[0-9a-f]{64}", str(evidence.get("windows_model_digest", ""))):
+            raise ValueError("REL-004 model digest is invalid")
+        if type(evidence.get("windows_context_length")) is not int or evidence["windows_context_length"] != 16_384:
+            raise ValueError("REL-004 context length evidence is incomplete")
+        if evidence.get("windows_kv_cache_type") != "q8_0":
+            raise ValueError("REL-004 KV cache evidence is incomplete")
+        if evidence.get("windows_flash_attention") is not True or evidence.get("windows_num_parallel") != 1:
+            raise ValueError("REL-004 Ollama profile evidence is incomplete")
+        if evidence.get("windows_warmup") is not True:
+            raise ValueError("REL-004 warmup evidence is incomplete")
+        measurements = evidence.get("windows_measurements")
+        measurement_keys = {
+            "eval_count", "eval_duration_ns", "prompt_eval_count", "prompt_eval_duration_ns",
+            "tokens_per_second",
+        }
+        if not isinstance(measurements, list) or not 3 <= len(measurements) <= 8:
+            raise ValueError("REL-004 requires three to eight measured runs")
+        for measurement in measurements:
+            if not isinstance(measurement, dict) or set(measurement) != measurement_keys:
+                raise ValueError("REL-004 measurement counters are invalid")
+            if (type(measurement["eval_count"]) is not int or measurement["eval_count"] < 1
+                    or type(measurement["eval_duration_ns"]) is not int or measurement["eval_duration_ns"] < 1
+                    or type(measurement["prompt_eval_count"]) is not int or measurement["prompt_eval_count"] < 0
+                    or type(measurement["prompt_eval_duration_ns"]) is not int
+                    or measurement["prompt_eval_duration_ns"] < 0
+                    or type(measurement["tokens_per_second"]) not in (int, float)
+                    or not 0 < measurement["tokens_per_second"] < 1_000_000):
+                raise ValueError("REL-004 measurement counters are out of bounds")
+        handoff = evidence.get("handoff_checks")
+        required_handoff = {
+            "context_reconstructed", "task_id_preserved", "permission_scopes_preserved",
+            "tool_receipts_preserved", "duplicate_handoff_idempotent", "duplicate_effect_rejected",
+            "explicit_provider_handoff", "no_raw_payloads",
+        }
+        if (not isinstance(handoff, dict) or set(handoff) != required_handoff
+                or any(handoff[key] is not True for key in required_handoff)):
+            raise ValueError("REL-004 context-handoff checks are incomplete")
+        manifest_path = Path(str(evidence.get("linux_test_manifest_path", ""))).expanduser()
+        manifest_root = (self.state.home / "private" / "rel-004").resolve()
+        if manifest_path.is_symlink() or not manifest_path.is_file() or (manifest_path.stat().st_mode & 0o777) != 0o600:
+            raise ValueError("REL-004 Linux test manifest must be an owner-private mode 0600 file")
+        try:
+            manifest_path.resolve(strict=True).relative_to(manifest_root)
+        except (OSError, ValueError) as exc:
+            raise ValueError("REL-004 Linux test manifest is outside private state") from exc
+        raw = manifest_path.read_bytes()
+        if len(raw) > 32_000 or hashlib.sha256(raw).hexdigest() != evidence.get("linux_test_manifest_sha256"):
+            raise ValueError("REL-004 Linux test manifest digest is invalid")
+        try:
+            manifest = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ValueError("REL-004 Linux test manifest is not valid JSON") from exc
+        if (not isinstance(manifest, dict) or set(manifest) != {
+                "task_id", "source_sha", "integration_sha", "status", "no_secrets_or_payloads", "checks"
+        } or manifest.get("task_id") != "REL-004"
+                or manifest.get("source_sha") != evidence.get("source_sha")
+                or manifest.get("integration_sha") != evidence.get("integration_sha")
+                or manifest.get("status") != "PASS"
+                or manifest.get("no_secrets_or_payloads") is not True):
+            raise ValueError("REL-004 Linux test manifest is incomplete")
+        checks = manifest.get("checks")
+        required_checks = {
+            "backend_handoff", "backend_routing", "backend_windows_agent",
+            "backend_acceptance", "backend_ollama_profile",
+        }
+        if not isinstance(checks, list) or {item.get("id") for item in checks if isinstance(item, dict)} != required_checks:
+            raise ValueError("REL-004 Linux test checks are incomplete")
+        for item in checks:
+            if (not isinstance(item, dict) or set(item) != {"id", "exit_code", "tests", "result", "output_sha256"}
+                    or item["exit_code"] != 0 or item["result"] != "PASS"
+                    or type(item["tests"]) is not int or item["tests"] < 1
+                    or not re.fullmatch(r"[0-9a-f]{64}", str(item["output_sha256"]))):
+                raise ValueError("REL-004 Linux test receipt is invalid")
 
     def _validate_github_free_evidence(self, evidence: dict) -> None:
         """Bind MIG-002 to the recorded Free-plan amendment, never to a fake pass."""

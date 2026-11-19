@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "product": "ARCHON Astra One",
+  "source_branch": "develop",
+  "state_root": "~/.local/state/archon-astra",
+  "integration_policy": "local_serialized_merger_only",
+  "remote_execution": "disabled",
+  "platforms": [
+    {
+      "id": "linux",
+      "status": "supported_local",
+      "required_tools": ["git", "python3>=3.11", "docker", "codex"],
+      "artifacts": [
+        "infra/installation_manifest.json",
+        "infra/verify_installation.py",
+        "infra/systemd/archon-astra.service",
+        "infra/systemd/archon-astra.timer",
+        "bootstrap/astra-one/scripts/linux_preflight.sh",
+        "tools/astra_batch_cycle.sh"
+      ],
+      "runbook": "docs/operations/INSTALLATION_RUNBOOK.md",
+      "network_mode": "local_controller_optional_metadata_monitor",
+      "startup_action": "qc_merge_only"
+    },
+    {
+      "id": "windows",
+      "status": "supported_wsl_harness",
+      "required_tools": ["PowerShell 5.1+", "Git for Windows", "Python 3.11+", "WSL2", "Ollama"],
+      "artifacts": [
+        "infra/installation_manifest.json",
+        "infra/verify_installation.py",
+        "infra/windows/install.ps1",
+        "infra/windows/README.md",
+        "bootstrap/astra-one/docs/WINDOWS_QUICKSTART.md"
+      ],
+      "runbook": "docs/operations/INSTALLATION_RUNBOOK.md",
+      "network_mode": "local_only",
+      "startup_action": "explicit_qc_merge_task_only"
+    },
+    {
+      "id": "cloudflare",
+      "status": "optional_owner_operated",
+      "required_tools": ["node", "npm", "wrangler>=4"],
+      "artifacts": [
+        "infra/installation_manifest.json",
+        "infra/verify_installation.py",
+        "infra/cloudflare/README.md",
+        "bootstrap/astra-one/cloudflare/astra-one-monitor/package.json",
+        "bootstrap/astra-one/cloudflare/astra-one-monitor/wrangler.toml.example",
+        "bootstrap/astra-one/cloudflare/astra-one-monitor/schema.sql"
+      ],
+      "runbook": "docs/operations/INSTALLATION_RUNBOOK.md",
+      "network_mode": "metadata_monitor_only",
+      "startup_action": "owner_command_only",
+      "secret_names": ["ASTRA_INGEST_TOKEN", "ASTRA_VIEW_TOKEN"]
+    },
+    {
+      "id": "ios",
+      "status": "deferred_unclaimed",
+      "required_tools": ["macOS", "Xcode", "iOS simulator or device"],
+      "artifacts": [],
+      "runbook": "docs/operations/INSTALLATION_RUNBOOK.md",
+      "network_mode": "not_applicable",
+      "startup_action": "none",
+      "reason": "No macOS/Xcode/iOS device evidence is available on this Linux/WSL host."
+    },
+    {
+      "id": "tws",
+      "status": "out_of_scope",
+      "required_tools": [],
+      "artifacts": [],
+      "runbook": "docs/operations/INSTALLATION_RUNBOOK.md",
+      "network_mode": "not_applicable",
+      "startup_action": "none",
+      "reason": "Owner-requested TWS de-scope; REL development does not include TWS installation."
+    }
+  ]
+}

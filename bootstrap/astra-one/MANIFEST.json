@@ -10,11 +10,12 @@
     "astra_one/__main__.py": "131d50e7a0fee09d79d13c98590cc98d0366d150b881ec5091167d3b25d5806e",
     "astra_one/core.py": "63c6bedd7465bb963296dbee1610a9bdf6ea849aaf5e29b4aa6f4cb3a49b970f",
     "astra_one/full_plan.py": "39f42ba953d516c1077ef609f47f78342faae9173b20730ede07b27f74872f68",
-    "astra_one/linux_cli.py": "ffa10db3f24f5ec9c18f9674d7685a479e36af49885065a7c7283d76056a3858",
-    "astra_one/linux_runtime.py": "d3f7fe7e814e4c23874ef720fbb9fea3a6df64ab0fec7d2da79592f0b1c4925d",
-    "astra_one/linux_sda.py": "860e002b2ebc18e60beb1be344a46a460b5734a495566f8c9c200c50cf6d5360",
+    "astra_one/linux_cli.py": "8d3b66c70331fbe8f72ca00b544b979fc72f8f26f43aafff30a5dc92001124d4",
+    "astra_one/linux_runtime.py": "4742fc58af6020aa3e75536d796d2913a69608da133c3d19ac8061dcf5685a9d",
+    "astra_one/linux_sda.py": "b8dbe5ab0657901673f6114cb2e41e55e965d623beed44a70527639fbec9f931",
     "astra_one/owner_approval.py": "5f948322b0575feba159f16ce576d96093515f748d5c9e9b7d1538619a5aa60c",
-    "astra_one/supervisor.py": "2242c84f305305e6d1647c21f7a624088b02704920f81b6183f1d9ea91d0cc6a",
+    "astra_one/supervisor.py": "c899cca584db74cf624b8dbc23e6b3c58de6b6136f84c2325ceb708733c2220f",
+    "astra_one/test_evidence_cache.py": "03c2e0f57e15dad871b13a226fa2cd35d23b2bc83ee56a1a1634ce803de4ec72",
     "astra_one/planner.py": "9c18b26401a58c6c206b1e9d14041b0f8b6920a1dafc83d8136d73a88c017df6",
     "astra_one/runner.py": "0468a0cbf01e61d55c9f058b5d6109ac92a0c2165129b7161a4cd2bc5f7041b7",
     "cloudflare/astra-one-monitor/.gitignore": "6d562436cf993addd95932e31bd0fd97dd3b9074a9cf491dbca212aade99d31c",
@@ -42,10 +43,13 @@
     "scripts/verify_manifest.py": "5986285b372d7a5ea84f5290e256d16e7bec586a8d5079637b496a3a7b204228",
     "scripts/verify_package.py": "445fab8bf3116b71b5c3822a66bbc3878d92c08fdacebaf80d58eedb32ccafec",
     "tests/test_core.py": "26cb1356c98ba763b7aaae7870f7a1066233e5a8cb55d70dcc03e4376fbed4c5",
-    "tests/test_full_plan.py": "c6b7df2184c890aa14acb45289277d4e682e4b04895b86f55384f3f38251daf3",
-    "tests/test_linux_sda.py": "7f122c49e6dd082356955b2114ff9fc279c4f85b4bdeddedf997f392d8213cc7",
+    "tests/test_event_readiness.py": "0508bebce5262ede2cd9ac013d36f75e1f4b90a708228849c9835647670ec22c",
+    "tests/test_evidence_cache.py": "dc416c39f787f91a3e2aef2a38568e3daf3b9360bbc2674a529cf8f0c13f7009",
+    "tests/test_full_plan.py": "fc5c39830e3e7081d0658605d81469cd85594910436c6893dd47c3177e52b93c",
+    "tests/test_linux_sda.py": "92657bc68ba98c163f193aea04836be0322a752ef1cd8f1a2ea20bd3e307e456",
     "tests/test_owner_approval.py": "9fce8dafcdc37dad7888e79646ba62cd8799282c4c4b25d017839f3b440dd6fc",
     "tests/test_owner_approval_state.py": "1e37c661b3c52c209f0b8bf22e0171a4d226738f74d9a77e96e94bf29673298b",
-    "tests/test_supervisor_v3.py": "de8e7a6997d3cd97025376da72d7c5461937a64c503f4a8e48a486e5aa988e97"
+    "tests/test_scope_amendment.py": "f0f7f4a18abc287783466b0e6d9956582255ef4a603fb69f0e3305de78ca6660",
+    "tests/test_supervisor_v3.py": "2296e6562dc92539b7b721073eb75eac7e650f001815fa1b3438aeb4de4fc44b"
   }
 }

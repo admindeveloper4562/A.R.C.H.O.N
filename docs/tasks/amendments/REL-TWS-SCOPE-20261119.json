@@ -1,0 +1,101 @@
+{
+  "format": "archon-scope-amendment-v1",
+  "amendment_id": "ARCHON-TWS-OUT-OF-SCOPE-20261119",
+  "project_id": "ARCHON-JARVIS-V2",
+  "version": 1,
+  "original_plan_sha256": "10cb1ed53eace6af1c5d052ef0ad0a85eaf9f535db5ae0be794cc7d12752b154",
+  "amended_plan_sha256": "ec8eb9d28adb55828eb68aba94f1ef5b9137c0792a8c62a495d61bf754d3bef4",
+  "original_project_payload_sha256": "81a6f699b9a5a26104b1c76aeb887e2c9387680cda18d928a08d85dd46cae3a8",
+  "deferred_task_ids": [
+    "TWS-013",
+    "TWS-014",
+    "TWS-015",
+    "TWS-016",
+    "TWS-019",
+    "TWS-020",
+    "REL-009"
+  ],
+  "dependency_updates": [
+    {
+      "task_id": "REL-009",
+      "original_dependencies": ["TWS-020", "REL-001"],
+      "amended_dependencies": ["REL-001"]
+    },
+    {
+      "task_id": "REL-015",
+      "original_dependencies": ["BACK-018", "REL-009", "REL-011", "REL-013"],
+      "amended_dependencies": ["BACK-018", "REL-011", "REL-013"]
+    },
+    {
+      "task_id": "REL-018",
+      "original_dependencies": ["REL-007", "REL-008", "REL-009", "REL-010", "REL-011", "REL-017"],
+      "amended_dependencies": ["REL-007", "REL-008", "REL-010", "REL-011", "REL-017"]
+    }
+  ],
+  "acceptance_updates": [
+    {
+      "task_id": "REL-009",
+      "original_title": "Verify TWS mobile pairing, 3D fallback and cross-module quest gates",
+      "amended_title": "Record TWS mobile pairing, 3D fallback and cross-module quest gates as deferred",
+      "original_acceptance": ["Real iPhone/device evidence, XP non-duplication and graceful failure"],
+      "amended_acceptance": ["TWS/iOS/device verification is explicitly deferred and out of scope for this release; no real-device evidence or completion claim is recorded."]
+    },
+    {
+      "task_id": "REL-015",
+      "original_title": "Validate backup/restore and data retention per domain",
+      "amended_title": "Validate in-scope backup/restore and data retention per domain",
+      "original_acceptance": ["Clean-room restore preserves state without inappropriate private-data retention"],
+      "amended_acceptance": ["Clean-room restore preserves in-scope state without inappropriate private-data retention; TWS artifacts are explicitly excluded and remain deferred."]
+    },
+    {
+      "task_id": "REL-016",
+      "original_title": "Run full CI on declared Python versions and native iOS runners",
+      "amended_title": "Run full CI on declared Python versions and supported platform runners",
+      "original_acceptance": ["All required jobs execute and pass; artifacts stored per SHA"],
+      "amended_acceptance": ["All in-scope Linux/Windows CI jobs execute and pass; native iOS runner coverage is explicitly deferred and not claimed; artifacts are stored per SHA."]
+    },
+    {
+      "task_id": "REL-017",
+      "original_title": "Produce deployment IaC/manifests, installation and operator runbooks",
+      "amended_title": "Produce deployment IaC/manifests, installation and operator runbooks",
+      "original_acceptance": ["Reproducible documented Linux, Windows, Cloudflare and optional iOS install"],
+      "amended_acceptance": ["Reproducible documented Linux, Windows and Cloudflare installation is verified; iOS/TWS installation is explicitly deferred and not claimed."]
+    },
+    {
+      "task_id": "REL-018",
+      "original_title": "Run staging end-to-end user-acceptance scenarios and accessibility audit",
+      "amended_title": "Run staging non-TWS end-to-end user-acceptance scenarios and accessibility audit",
+      "original_acceptance": ["Owner-approved scripted journeys pass with objective evidence"],
+      "amended_acceptance": ["Owner-approved scripted non-TWS journeys pass with objective evidence; TWS/iOS journeys remain explicitly deferred and unclaimed."]
+    },
+    {
+      "task_id": "REL-019",
+      "original_title": "Review licensing, provenance, threat model and release-blocking defects",
+      "amended_title": "Review in-scope licensing, provenance, threat model and release-blocking defects",
+      "original_acceptance": ["No unreviewed third-party artifacts or unresolved critical findings"],
+      "amended_acceptance": ["No unreviewed third-party artifacts or unresolved critical findings remain in the in-scope release; the deferred TWS scope is recorded as a residual risk."]
+    },
+    {
+      "task_id": "REL-020",
+      "original_title": "Review exact accepted backlog IDs and frozen candidate Git SHA",
+      "amended_title": "Review accepted in-scope backlog IDs and frozen candidate Git SHA",
+      "original_acceptance": ["No required tasks incomplete, or documented owner-approved deferrals that do not violate gates"],
+      "amended_acceptance": ["No required in-scope tasks are incomplete, and the TWS/iOS work is explicitly deferred under a documented owner-approved scope decision that does not violate in-scope release gates."]
+    }
+  ],
+  "owner_authorization": {
+    "authorized": true,
+    "reference": "User-confirmed ARCHON scope instruction in the active Codex thread on 2026-11-19",
+    "scope": "De-scope unfinished TWS/iOS/device work from the current REL release; continue REL without claiming TWS evidence."
+  },
+  "residual_risks": [
+    "Native iOS/Xcode/device validation is not included in this release scope.",
+    "Physical iPhone pairing, iOS lifecycle, thermal, low-memory and device-performance evidence remains unavailable and unclaimed.",
+    "REL-021 onward remain owner/release gates; this amendment does not authorize main promotion, tagging or production release."
+  ],
+  "verification": {
+    "no_tws_implementation_claim": true,
+    "no_ios_device_evidence_claim": true,
+    "main_unchanged": true
+  }
+}

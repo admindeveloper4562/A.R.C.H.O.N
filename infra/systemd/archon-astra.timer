@@ -1,0 +1,12 @@
+[Unit]
+Description=Periodically resume ARCHON Astra One local QC and merge checks
+
+[Timer]
+OnBootSec=3min
+OnUnitInactiveSec=3min
+AccuracySec=20s
+Persistent=no
+Unit=archon-astra.service
+
+[Install]
+WantedBy=timers.target

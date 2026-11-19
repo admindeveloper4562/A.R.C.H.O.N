@@ -209,9 +209,12 @@ def _activation_ready(db: sqlite3.Connection, batch_id: str) -> sqlite3.Row:
     if any(checks.get(stage) != "PASS" for stage in ACTIVATION_CHECKS):
         raise ValueError("all upgrade checks must pass before activation")
     if "tasks" in {item[0] for item in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}:
+        # An approved task has finished coding and independent QC; it is
+        # durable merge-queue work, not an active worker lease. The master
+        # lock still serializes its merger after the controller switch.
         active = db.execute(
             "SELECT COUNT(*) FROM tasks WHERE status IN "
-            "('preflight','coding','verifying','awaiting_review','approved','running','leased')"
+            "('preflight','coding','verifying','awaiting_review','running','leased')"
         ).fetchone()[0]
         if active:
             raise ValueError("active task work prevents activation")

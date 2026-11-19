@@ -866,6 +866,7 @@ def main(argv: list[str] | None = None) -> int:
     p=sub.add_parser("validate-full-plan");p.add_argument("--parent-plan",type=Path,required=True);p.add_argument("--subtask-index",type=Path,required=True);p.add_argument("--subtask-dir",type=Path,required=True);p.add_argument("--source-ref",default="");p.add_argument("--source-commit",default="")
     p=sub.add_parser("import-full-plan");p.add_argument("--parent-plan",type=Path,required=True);p.add_argument("--subtask-index",type=Path,required=True);p.add_argument("--subtask-dir",type=Path,required=True);p.add_argument("--source-ref",default="");p.add_argument("--source-commit",default="")
     p=sub.add_parser("plan-amend");p.add_argument("--file",type=Path,required=True);p.add_argument("--apply",action="store_true")
+    p=sub.add_parser("scope-amend");p.add_argument("--file",type=Path,required=True);p.add_argument("--apply",action="store_true")
     sub.add_parser("full-plan-status")
     p=sub.add_parser("task-markdown");p.add_argument("action",choices=["write","validate"]);p.add_argument("--output","--file",dest="file",type=Path)
     p=sub.add_parser("checkpoint");p.add_argument("action",choices=["export","restore"])
@@ -960,6 +961,9 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "plan-amend":
             report(state.record_plan_amendment(args.file) if args.apply
                    else state.validate_plan_amendment(args.file))
+        elif args.command == "scope-amend":
+            report(state.record_tws_scope_amendment(args.file) if args.apply
+                   else state.validate_tws_scope_amendment(args.file))
         elif args.command=="full-plan-status":report(state.full_plan_status())
         elif args.command=="task-markdown":
             path = args.file or (state.home / "reports" / "TASK.md")
