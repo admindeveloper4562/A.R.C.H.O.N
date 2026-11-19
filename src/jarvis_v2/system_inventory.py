@@ -248,14 +248,20 @@ def inventory_digest(inventory: Mapping[str, Any]) -> str:
 
 def compare_inventories(previous: Mapping[str, Any], current: Mapping[str, Any]) -> dict[str, Any]:
     """Return bounded metadata changes between two inventories."""
+    old_filesystem = previous.get("filesystem", {})
+    new_filesystem = current.get("filesystem", {})
+    if not isinstance(old_filesystem, Mapping):
+        old_filesystem = {}
+    if not isinstance(new_filesystem, Mapping):
+        new_filesystem = {}
     old = {
         item["path"]: item
-        for item in previous.get("filesystem", {}).get("entries", [])
+        for item in old_filesystem.get("entries", [])
         if isinstance(item, Mapping) and "path" in item
     }
     new = {
         item["path"]: item
-        for item in current.get("filesystem", {}).get("entries", [])
+        for item in new_filesystem.get("entries", [])
         if isinstance(item, Mapping) and "path" in item
     }
     added = sorted(set(new) - set(old))
@@ -268,6 +274,12 @@ def compare_inventories(previous: Mapping[str, Any], current: Mapping[str, Any])
         "added_count": len(added),
         "removed_count": len(removed),
         "changed_count": len(changed),
+        "changed_sections": sorted(
+            section
+            for section in ("hardware", "software", "runtime_capabilities", "environment")
+            if previous.get(section) != current.get(section)
+        ),
+        "capacity_changed": old_filesystem.get("capacity") != new_filesystem.get("capacity"),
     }
 
 

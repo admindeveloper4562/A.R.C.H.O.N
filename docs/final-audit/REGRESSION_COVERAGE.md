@@ -12,6 +12,6 @@
 | TWS | Model, lifecycle, storage, CI, and visual-QA fixtures | PASS locally | Blender/device execution not run here |
 | WIC | Source, verification, alerts, watchlists, and world tests | PASS locally | Live feed access not run unattended |
 | Build/release/security | CI policy, secret scan, security scan, dependency scan | PASS locally | Hosted CI unavailable |
-| Host inventory | Two API regression tests and one bounded Linux scan | PASS | Scan was bounded/truncated by design |
+| Host inventory | Four API regression tests, including section/capacity comparison, and one bounded Linux scan | PASS | Scan was bounded/truncated by design |
 
 No production data was used by regression tests. No test result is promoted to external acceptance without the missing environment evidence.

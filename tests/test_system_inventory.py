@@ -21,12 +21,25 @@ class SystemInventoryTests(unittest.TestCase):
             self.assertFalse(inventory["coverage"]["symlink_recursion"])
 
     def test_digest_and_comparison_ignore_collection_time(self):
-        old = {"collected_at": "old", "filesystem": {"entries": [{"path": "/a", "size": 1}]}}
-        new = {"collected_at": "new", "filesystem": {"entries": [{"path": "/a", "size": 2}, {"path": "/b"}]}}
+        old = {
+            "collected_at": "old",
+            "hardware": {"cpu": "old"},
+            "filesystem": {"entries": [{"path": "/a", "size": 1}], "capacity": {"free": 10}},
+        }
+        new = {
+            "collected_at": "new",
+            "hardware": {"cpu": "new"},
+            "filesystem": {
+                "entries": [{"path": "/a", "size": 2}, {"path": "/b"}],
+                "capacity": {"free": 9},
+            },
+        }
         self.assertEqual(inventory_digest(old), inventory_digest({**old, "collected_at": "new"}))
         result = compare_inventories(old, new)
         self.assertEqual(result["added"], ["/b"])
         self.assertEqual(result["changed"], ["/a"])
+        self.assertEqual(result["changed_sections"], ["hardware"])
+        self.assertTrue(result["capacity_changed"])
 
     def test_inventory_reports_model_and_acceleration_capability_slots(self):
         with tempfile.TemporaryDirectory() as temp:
