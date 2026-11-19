@@ -117,7 +117,8 @@
 | `jarvis_v2.health` | `__future__`, `collections`, `json`, `pathlib`, `sqlite3`, `subprocess`, `typing` |
 | `jarvis_v2.monitor` | `.monitor_supervision`, `__future__`, `argparse`, `collections`, `contextlib`, `datetime`, `json`, `pathlib`, `re`, `sqlite3`, `sys`, `time`, `typing` |
 | `jarvis_v2.monitor_supervision` | `__future__`, `re`, `sqlite3`, `typing` |
-| `jarvis_v2.native_controller` | `.automation.queue_api`, `__future__`, `argparse`, `collections`, `collections.abc`, `fcntl`, `hashlib`, `json`, `os`, `pathlib`, `stat`, `threading`, `time`, `typing` |
+| `jarvis_v2.native_controller` | `.automation.queue_api`, `.native_executor`, `__future__`, `argparse`, `collections`, `collections.abc`, `fcntl`, `hashlib`, `json`, `os`, `pathlib`, `stat`, `threading`, `time`, `typing` |
+| `jarvis_v2.native_executor` | `.automation.queue_api`, `.backend.module_manifest`, `.health`, `__future__`, `collections.abc`, `hashlib`, `json`, `pathlib`, `typing` |
 | `jarvis_v2.research.analysis` | `.youtube`, `__future__`, `collections.abc`, `dataclasses`, `datetime`, `hashlib`, `json`, `pathlib`, `re`, `sqlite3` |
 | `jarvis_v2.research.comparison` | `__future__`, `collections.abc`, `dataclasses`, `hashlib`, `re` |
 | `jarvis_v2.research.github` | `__future__`, `collections.abc`, `dataclasses`, `datetime`, `re`, `urllib.parse` |
@@ -240,6 +241,7 @@
 | `test_monitor` | `contextlib`, `io`, `jarvis_v2.core.queue`, `jarvis_v2.monitor`, `json`, `pathlib`, `sqlite3`, `subprocess`, `sys`, `tempfile`, `unittest`, `unittest.mock` |
 | `test_monitor_supervision` | `jarvis_v2.monitor`, `json`, `pathlib`, `sqlite3`, `tempfile`, `unittest` |
 | `test_native_controller` | `jarvis_v2.native_controller`, `pathlib`, `tempfile`, `unittest` |
+| `test_native_executor` | `jarvis_v2.automation.queue_api`, `jarvis_v2.native_executor`, `json`, `os`, `pathlib`, `subprocess`, `tempfile`, `unittest` |
 | `test_owner_approval` | `astra_one.owner_approval`, `json`, `os`, `pathlib`, `subprocess`, `tempfile`, `unittest` |
 | `test_owner_approval_state` | `astra_one.linux_sda`, `hashlib`, `json`, `os`, `pathlib`, `sqlite3`, `subprocess`, `sys`, `tempfile`, `unittest` |
 | `test_packaging_policy` | `hashlib`, `importlib.util`, `json`, `pathlib`, `sys`, `tempfile`, `unittest`, `unittest.mock` |

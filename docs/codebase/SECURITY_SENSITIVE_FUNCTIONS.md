@@ -1220,15 +1220,18 @@
 | `jarvis_v2.monitor_supervision._group` | `src/jarvis_v2/monitor_supervision.py:63` | database or query access |
 | `jarvis_v2.monitor_supervision.collect` | `src/jarvis_v2/monitor_supervision.py:90` | database or query access |
 | `jarvis_v2.monitor_supervision.render_lines` | `src/jarvis_v2/monitor_supervision.py:247` | database or query access; security or trust-boundary vocabulary |
-| `jarvis_v2.native_controller._absolute` | `src/jarvis_v2/native_controller.py:36` | filesystem access; security or trust-boundary vocabulary |
-| `jarvis_v2.native_controller._child` | `src/jarvis_v2/native_controller.py:43` | security or trust-boundary vocabulary |
-| `jarvis_v2.native_controller._directory` | `src/jarvis_v2/native_controller.py:52` | security or trust-boundary vocabulary |
-| `jarvis_v2.native_controller.NativeController` | `src/jarvis_v2/native_controller.py:75` | database or query access; filesystem access; security or trust-boundary vocabulary |
-| `jarvis_v2.native_controller.NativeController.__init__` | `src/jarvis_v2/native_controller.py:78` | database or query access; filesystem access; security or trust-boundary vocabulary |
-| `jarvis_v2.native_controller.NativeController._acquire_lock` | `src/jarvis_v2/native_controller.py:119` | filesystem access |
-| `jarvis_v2.native_controller.NativeController.run_forever` | `src/jarvis_v2/native_controller.py:200` | security or trust-boundary vocabulary |
-| `jarvis_v2.native_controller._default_state` | `src/jarvis_v2/native_controller.py:219` | filesystem access; security or trust-boundary vocabulary |
-| `jarvis_v2.native_controller.main` | `src/jarvis_v2/native_controller.py:223` | security or trust-boundary vocabulary |
+| `jarvis_v2.native_controller._absolute` | `src/jarvis_v2/native_controller.py:37` | filesystem access; security or trust-boundary vocabulary |
+| `jarvis_v2.native_controller._child` | `src/jarvis_v2/native_controller.py:44` | security or trust-boundary vocabulary |
+| `jarvis_v2.native_controller._directory` | `src/jarvis_v2/native_controller.py:53` | security or trust-boundary vocabulary |
+| `jarvis_v2.native_controller.NativeController` | `src/jarvis_v2/native_controller.py:76` | database or query access; filesystem access; security or trust-boundary vocabulary |
+| `jarvis_v2.native_controller.NativeController.__init__` | `src/jarvis_v2/native_controller.py:79` | database or query access; filesystem access; security or trust-boundary vocabulary |
+| `jarvis_v2.native_controller.NativeController._acquire_lock` | `src/jarvis_v2/native_controller.py:120` | filesystem access |
+| `jarvis_v2.native_controller.NativeController.run_forever` | `src/jarvis_v2/native_controller.py:201` | security or trust-boundary vocabulary |
+| `jarvis_v2.native_controller._default_state` | `src/jarvis_v2/native_controller.py:220` | filesystem access; security or trust-boundary vocabulary |
+| `jarvis_v2.native_controller.main` | `src/jarvis_v2/native_controller.py:224` | security or trust-boundary vocabulary |
+| `jarvis_v2.native_executor.NativeControlPlaneExecutor` | `src/jarvis_v2/native_executor.py:66` | command or process execution; filesystem access; security or trust-boundary vocabulary |
+| `jarvis_v2.native_executor.NativeControlPlaneExecutor.__init__` | `src/jarvis_v2/native_executor.py:73` | filesystem access; security or trust-boundary vocabulary |
+| `jarvis_v2.native_executor.NativeControlPlaneExecutor._inventory_digest` | `src/jarvis_v2/native_executor.py:123` | security or trust-boundary vocabulary |
 | `jarvis_v2.research.analysis.MediaAnalysisEvidence` | `src/jarvis_v2/research/analysis.py:43` | security or trust-boundary vocabulary |
 | `jarvis_v2.research.analysis.MediaAnalysisEvidence.__post_init__` | `src/jarvis_v2/research/analysis.py:56` | security or trust-boundary vocabulary |
 | `jarvis_v2.research.analysis.MediaAnalysisStore` | `src/jarvis_v2/research/analysis.py:104` | database or query access; security or trust-boundary vocabulary |
@@ -1821,6 +1824,11 @@
 | `test_native_controller.NativeControllerTests.test_executor_completion_and_failure_are_digest_only_and_durable` | `tests/test_native_controller.py:39` | database or query access; filesystem access; security or trust-boundary vocabulary |
 | `test_native_controller.NativeControllerTests.test_executor_exception_is_recorded_as_failed_without_raw_error` | `tests/test_native_controller.py:61` | filesystem access; security or trust-boundary vocabulary |
 | `test_native_controller.NativeControllerTests.test_native_user_unit_points_only_to_the_native_controller` | `tests/test_native_controller.py:76` | filesystem access; security or trust-boundary vocabulary |
+| `test_native_executor.NativeExecutorTests` | `tests/test_native_executor.py:16` | command or process execution; database or query access; filesystem access; security or trust-boundary vocabulary |
+| `test_native_executor.NativeExecutorTests._executor` | `tests/test_native_executor.py:17` | filesystem access; security or trust-boundary vocabulary |
+| `test_native_executor.NativeExecutorTests.test_module_health_covers_all_ten_active_modules` | `tests/test_native_executor.py:24` | security or trust-boundary vocabulary |
+| `test_native_executor.NativeExecutorTests.test_inventory_digest_returns_metadata_only` | `tests/test_native_executor.py:48` | filesystem access; security or trust-boundary vocabulary |
+| `test_native_executor.NativeExecutorTests.test_native_cli_uses_built_in_executor_for_read_only_task` | `tests/test_native_executor.py:62` | command or process execution; database or query access; filesystem access; security or trust-boundary vocabulary |
 | `test_packaging_policy.PackagingPolicyTests` | `tests/test_packaging_policy.py:33` | filesystem access; security or trust-boundary vocabulary |
 | `test_packaging_policy.PackagingPolicyTests.make_package` | `tests/test_packaging_policy.py:34` | filesystem access; security or trust-boundary vocabulary |
 | `test_packaging_policy.PackagingPolicyTests.write_manifest` | `tests/test_packaging_policy.py:39` | filesystem access; security or trust-boundary vocabulary |

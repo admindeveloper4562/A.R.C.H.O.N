@@ -5,7 +5,7 @@ Status meanings: PASS is real local functionality verified; PARTIAL means local 
 | ID | Agent | Functional status | Security | Integration | Evidence |
 | ---: | --- | --- | --- | --- | --- |
 | 01 | ALFRED / Core | PASS local | PASS | PASS local queue/events | Core transition, fault, session, and registry tests |
-| 02 | SMITH / SDA | PARTIAL | PASS shadow handoff | PARTIAL | Native queue/controller and disposable admission, fencing, receipt, and restart checks pass; no domain executor or complete unattended native SDA cutover is configured/proven |
+| 02 | SMITH / SDA | PARTIAL | PASS shadow handoff | PARTIAL | Native queue/controller and disposable admission, fencing, receipt, restart, and read-only control-plane checks pass; domain-effect execution and complete unattended native SDA cutover remain unproven |
 | 03 | CORTEX / Backend | PASS local | PASS | PASS local storage/contracts | Backend tests, FTS5 index, migration and restore |
 | 04 | IRIS / Runtime | PASS local | PASS | PARTIAL | Runtime tests and imports; no real desktop/browser/device run |
 | 05 | SAGE / Research | PASS local | PASS | PARTIAL | Research and RAG tests; no live provider run |
@@ -17,7 +17,7 @@ Status meanings: PASS is real local functionality verified; PARTIAL means local 
 
 ## Supporting systems
 
-- ATLAS: PASS for native queue schema, read-only monitor, and the native controller's one-shot, fencing, marker, receipt, and restart checks; the default executor is unconfigured and no live native service is installed.
+- ATLAS: PASS for native queue schema, read-only monitor, and the native controller's one-shot, fencing, marker, receipt, bounded control-plane executor, and restart checks; no live native service is installed and domain-effect handlers remain unconfigured.
 - AEGIS: PASS for local Guardian recovery contracts; external trusted watchdog activation/soak not demonstrated.
 - ASEL: PASS for local policy, secret, path, and command-boundary tests.
 - Model gateway: PASS for registry/routing/fallback contracts; no real provider call.

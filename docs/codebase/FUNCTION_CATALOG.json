@@ -1,22 +1,22 @@
 {
   "coverage": {
-    "classes": 565,
-    "functions": 901,
-    "indexed_files": 550,
+    "classes": 568,
+    "functions": 903,
+    "indexed_files": 552,
     "language_files": {
       "javascript": 9,
-      "python": 319,
+      "python": 321,
       "shell": 8,
       "sql": 5,
       "swift": 1,
       "typescript": 3
     },
-    "methods": 2425,
+    "methods": 2436,
     "parser_errors": 0,
-    "source_files": 345,
-    "suspected_dead_code_paths": 1734,
-    "unresolved_symbols": 6804,
-    "untested_functions": 993
+    "source_files": 347,
+    "suspected_dead_code_paths": 1740,
+    "unresolved_symbols": 6827,
+    "untested_functions": 998
   },
   "files": [
     {
@@ -1091,11 +1091,18 @@
       "size_bytes": 14746
     },
     {
-      "content_sha256": "1b87238ad95c6d10c663331793156ff97c96393468ee3bd1d96be4f9eb4ba440",
-      "git_blob_sha": "b13b54f2612dbe27e4ff48a9a8cc223a0d4a3c65",
+      "content_sha256": "21f1910db77f6c402075e74f12323b43bfebcbed7c49ec8e1663403b060c7f6f",
+      "git_blob_sha": "ae96e298f2445f65b354287a6b742389de34873f",
       "language": "python",
       "path": "src/jarvis_v2/native_controller.py",
-      "size_bytes": 10068
+      "size_bytes": 10357
+    },
+    {
+      "content_sha256": "f52fafd4216c772bc8da8ec7998fb75daf14e68e265e54354457e3e70bfe4772",
+      "git_blob_sha": "ef1b0137463372218ca2357a3d5eb118dbc7f65b",
+      "language": "python",
+      "path": "src/jarvis_v2/native_executor.py",
+      "size_bytes": 5517
     },
     {
       "content_sha256": "226826d30a4055b98f82daf9c92428bbac8ee3cb66ba2b9bb8a45e14384600eb",
@@ -1945,6 +1952,13 @@
       "size_bytes": 4014
     },
     {
+      "content_sha256": "507946b5df4b709080b6fa08019fe87dfdc01e5aa59136bdbe8f432c35886d50",
+      "git_blob_sha": "5230212d897e51177402a30442e9773c30e487a9",
+      "language": "python",
+      "path": "tests/test_native_executor.py",
+      "size_bytes": 3436
+    },
+    {
       "content_sha256": "5a7a33b7a99b9e6873e5e412f111f0fbdfd53dfe8c5061a9d6bef1170724eccb",
       "git_blob_sha": "d31f5d8c190a861369cbc3297773bcebcf7f71f3",
       "language": "python",
@@ -2435,7 +2449,7 @@
       "size_bytes": 2766
     }
   ],
-  "generated_at": "2026-11-19T16:09:50.244958+00:00",
+  "generated_at": "2026-11-19T16:30:31.893089+00:00",
   "parse_errors": [],
   "parser": {
     "javascript": "declaration regex",
@@ -6948,7 +6962,7 @@
         "qualified_name": "imported.tws.engine.initialize"
       }
     ],
-    "suspected_dead_code_paths": 1734,
+    "suspected_dead_code_paths": 1740,
     "unresolved_examples": [
       {
         "caller": "test_scaffold.IOSScaffoldTests.test_ios_app_boundary_is_tracked",
@@ -7751,11 +7765,11 @@
         "symbol": "any"
       }
     ],
-    "unresolved_symbol_references": 6804
+    "unresolved_symbol_references": 6827
   },
   "schema_version": 1,
-  "source_sha": "13626a458bc542a5339d699a71f5c197d9a0d0a1",
-  "source_state": "catalog generated from checkout 13626a458bc542a5339d699a71f5c197d9a0d0a1; status snapshot had 0 entries before output generation",
+  "source_sha": "04eabec5cdbee2b2261272850867289fe0532091",
+  "source_state": "catalog generated from checkout 04eabec5cdbee2b2261272850867289fe0532091; status snapshot had 21 entries before output generation",
   "symbols": [
     {
       "authentication_or_permission_requirements": [
@@ -8442,6 +8456,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
@@ -12286,6 +12301,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
@@ -22776,6 +22792,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
@@ -26495,6 +26512,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
         "tests/test_rel013_recovery_drills.py",
@@ -27556,6 +27574,7 @@
         "tests/test_migration_guardrails.py",
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel013_recovery_drills.py",
@@ -28395,6 +28414,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
@@ -41937,6 +41957,7 @@
         "tests/test_migration_guardrails.py",
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel013_recovery_drills.py",
@@ -42230,6 +42251,7 @@
         "tests/test_migration_guardrails.py",
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel013_recovery_drills.py",
@@ -42576,6 +42598,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
         "tests/test_rel013_recovery_drills.py",
@@ -43135,6 +43158,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
@@ -46362,6 +46386,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
@@ -46853,6 +46878,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
         "tests/test_rel013_recovery_drills.py",
@@ -49389,6 +49415,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
         "tests/test_rel013_recovery_drills.py",
@@ -50202,6 +50229,7 @@
         "jarvis_v2.guardian.release.inspect_canary",
         "jarvis_v2.native_controller.NativeController.snapshot",
         "jarvis_v2.native_controller.NativeController.run_once",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._module_health",
         "jarvis_v2.research.comparison.ResearchFinding.as_dict",
         "jarvis_v2.research.media_rag.Topic.as_dict",
         "jarvis_v2.research.media_rag.VideoSummary.as_dict",
@@ -50831,6 +50859,7 @@
         "tests/test_migration_guardrails.py",
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
+        "tests/test_native_executor.py",
         "tests/test_rel013_recovery_drills.py",
         "tests/test_rel017_installation.py",
         "tests/test_runtime_chat.py",
@@ -51400,6 +51429,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
@@ -51712,6 +51742,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
@@ -55531,6 +55562,7 @@
         "tests/test_migration_guardrails.py",
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
+        "tests/test_native_executor.py",
         "tests/test_rel013_recovery_drills.py",
         "tests/test_rel017_installation.py",
         "tests/test_runtime_chat.py",
@@ -55892,6 +55924,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
@@ -58127,6 +58160,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
@@ -62038,6 +62072,7 @@
         "tests/test_migration_guardrails.py",
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel013_recovery_drills.py",
@@ -68196,6 +68231,7 @@
         "tests/test_migration_guardrails.py",
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
+        "tests/test_native_executor.py",
         "tests/test_rel013_recovery_drills.py",
         "tests/test_rel017_installation.py",
         "tests/test_runtime_chat.py",
@@ -69660,6 +69696,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
@@ -70775,6 +70812,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
@@ -71120,6 +71158,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
         "tests/test_rel013_recovery_drills.py",
@@ -73449,7 +73488,10 @@
         "jarvis_v2.automation.queue_api.CoordinatorQueue.lease_next",
         "jarvis_v2.automation.queue_api.CoordinatorQueue.eligible",
         "test_automation_leases.CoordinatorLeaseTests.test_stale_or_invalid_renewals_do_not_change_the_queue",
-        "test_automation_queue_api.CoordinatorQueueTests.test_versioned_envelope_round_trip_and_unknown_fields_are_rejected"
+        "test_automation_queue_api.CoordinatorQueueTests.test_versioned_envelope_round_trip_and_unknown_fields_are_rejected",
+        "test_native_executor.NativeExecutorTests.test_module_health_covers_all_ten_active_modules",
+        "test_native_executor.NativeExecutorTests.test_unknown_operation_fails_closed",
+        "test_native_executor.NativeExecutorTests.test_inventory_digest_returns_metadata_only"
       ],
       "dependencies": [
         "__future__",
@@ -73464,7 +73506,8 @@
       "exceptions_and_failure_behavior": [],
       "existing_test_coverage": [
         "tests/test_automation_leases.py",
-        "tests/test_automation_queue_api.py"
+        "tests/test_automation_queue_api.py",
+        "tests/test_native_executor.py"
       ],
       "file_path": "src/jarvis_v2/automation/queue_api.py",
       "inputs": [],
@@ -73740,6 +73783,7 @@
         "test_monitor_supervision.SupervisorTelemetryTests._fixture",
         "test_monitor_supervision.SupervisorTelemetryTests.test_new_lanes_queues_failures_and_upgrade_without_private_data",
         "test_monitor_supervision.SupervisorTelemetryTests.test_unknown_event_and_failure_values_are_redacted",
+        "test_native_executor.NativeExecutorTests.test_inventory_digest_returns_metadata_only",
         "test_packaging_policy.PackagingPolicyTests.write_manifest",
         "test_packaging_policy.PackagingPolicyTests.test_symlink_is_rejected_without_following_it",
         "test_rel013_recovery_drills.Rel013RecoveryDrillTests._release_manifest",
@@ -73786,6 +73830,7 @@
         "tests/test_migration_compatibility.py",
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel013_recovery_drills.py",
         "tests/test_sda_003_profiles.py"
@@ -73983,6 +74028,7 @@
         "jarvis_v2.guardian.rollback.select_last_known_good",
         "jarvis_v2.health._root_blockers",
         "jarvis_v2.monitor._fetch_astra",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._inventory_digest",
         "jarvis_v2.research.analysis.MediaAnalysisStore.latest",
         "jarvis_v2.research.instagram.InstagramReelStore.latest",
         "jarvis_v2.research.media_rag.MediaRAGStore.chunks_for",
@@ -74023,6 +74069,7 @@
         "test_migration_compatibility.MigrationCompatibilityTests.test_incomplete_contract_fails_closed",
         "test_migration_guardrails.MigrationGuardrailTests.test_dry_run_and_apply_preserve_commit_provenance",
         "test_monitor.MonitorTests.test_cli_one_snapshot_prints_json_and_is_not_runner",
+        "test_native_executor.NativeExecutorTests.test_native_cli_uses_built_in_executor_for_read_only_task",
         "test_rel013_recovery_drills.Rel013RecoveryDrillTests.test_pinned_migration_dry_run_apply_and_verified_rollback",
         "test_rel013_recovery_drills.Rel013RecoveryDrillTests.test_unsafe_migration_and_rollback_inputs_fail_before_writes",
         "test_rel017_installation.Rel017InstallationTests.test_manifest_artifacts_are_real_regular_files",
@@ -74070,6 +74117,7 @@
         "tests/test_migration_compatibility.py",
         "tests/test_migration_guardrails.py",
         "tests/test_monitor.py",
+        "tests/test_native_executor.py",
         "tests/test_rel013_recovery_drills.py",
         "tests/test_rel017_installation.py",
         "tests/test_rel_cross_module_contracts.py",
@@ -74178,7 +74226,8 @@
       "existing_test_coverage": [
         "tests/test_automation_dispatcher.py",
         "tests/test_automation_leases.py",
-        "tests/test_automation_queue_api.py"
+        "tests/test_automation_queue_api.py",
+        "tests/test_native_executor.py"
       ],
       "file_path": "src/jarvis_v2/automation/queue_api.py",
       "inputs": [],
@@ -74321,6 +74370,7 @@
         "test_automation_queue_api.CoordinatorQueueTests.test_existing_task_queue_reopens_without_migration_or_data_loss",
         "test_automation_queue_api.CoordinatorQueueTests.test_lease_completion_and_duplicate_enqueue_preserve_state",
         "test_automation_queue_api.CoordinatorQueueTests.test_reopen_requeues_expired_lease_and_duplicate_receipt_is_idempotent",
+        "test_native_executor.NativeExecutorTests.test_native_cli_uses_built_in_executor_for_read_only_task",
         "astra_watchdog.activate",
         "astra_watchdog.rollback",
         "ci_checks._read_workspace_file",
@@ -74342,7 +74392,8 @@
       "existing_test_coverage": [
         "tests/test_automation_dispatcher.py",
         "tests/test_automation_leases.py",
-        "tests/test_automation_queue_api.py"
+        "tests/test_automation_queue_api.py",
+        "tests/test_native_executor.py"
       ],
       "file_path": "src/jarvis_v2/automation/queue_api.py",
       "inputs": [
@@ -74391,7 +74442,8 @@
         "test_automation_queue_api.CoordinatorQueueTests.test_reopen_requeues_expired_lease_and_duplicate_receipt_is_idempotent",
         "test_native_controller.NativeControllerTests.test_controls_stop_admission_before_a_task_is_claimed",
         "test_native_controller.NativeControllerTests.test_executor_completion_and_failure_are_digest_only_and_durable",
-        "test_native_controller.NativeControllerTests.test_executor_exception_is_recorded_as_failed_without_raw_error"
+        "test_native_controller.NativeControllerTests.test_executor_exception_is_recorded_as_failed_without_raw_error",
+        "test_native_executor.NativeExecutorTests.test_native_cli_uses_built_in_executor_for_read_only_task"
       ],
       "dependencies": [
         "__future__",
@@ -74411,7 +74463,8 @@
         "tests/test_automation_dispatcher.py",
         "tests/test_automation_leases.py",
         "tests/test_automation_queue_api.py",
-        "tests/test_native_controller.py"
+        "tests/test_native_controller.py",
+        "tests/test_native_executor.py"
       ],
       "file_path": "src/jarvis_v2/automation/queue_api.py",
       "inputs": [
@@ -74898,6 +74951,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
         "tests/test_rel013_recovery_drills.py",
@@ -86189,6 +86243,7 @@
       "called_functions": [],
       "callers": [
         "jarvis_v2.backend.module_manifest.validate_module_manifest",
+        "jarvis_v2.native_executor._module_manifest",
         "test_acceptance_evidence.AcceptanceEvidenceTests.test_explicit_module_local_permissions_and_typed_compatibility"
       ],
       "dependencies": [
@@ -86319,6 +86374,7 @@
       ],
       "callers": [
         "jarvis_v2.backend.module_manifest.validate_module_manifests",
+        "jarvis_v2.native_executor._module_manifest",
         "test_acceptance_evidence.AcceptanceEvidenceTests.test_explicit_module_local_permissions_and_typed_compatibility",
         "test_acceptance_evidence.AcceptanceEvidenceTests.test_manifest_malformed_shapes_and_inferred_permissions_rejected",
         "test_backend_manifest.BackendManifestTests.test_malformed_and_incomplete_manifests_are_rejected",
@@ -91833,6 +91889,7 @@
         "tests/test_mig_015_acceptance.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel013_recovery_drills.py",
@@ -96206,6 +96263,7 @@
         "tests/test_mig_016_identity.py",
         "tests/test_monitor.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel013_recovery_drills.py",
         "tests/test_rel_cross_module_contracts.py",
@@ -98927,6 +98985,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
@@ -99932,6 +99991,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
         "tests/test_rel013_recovery_drills.py",
@@ -100483,6 +100543,7 @@
         "bootstrap/astra-one/tests/test_event_readiness.py",
         "tests/test_finance_advice.py",
         "tests/test_guardian_restart.py",
+        "tests/test_native_executor.py",
         "tests/test_runtime_browser.py",
         "tests/test_runtime_dashboard_service.py",
         "tests/test_runtime_reminders.py"
@@ -104221,6 +104282,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
         "tests/test_rel013_recovery_drills.py",
@@ -106297,6 +106359,7 @@
         "tests/test_mig_016_identity.py",
         "tests/test_monitor.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel013_recovery_drills.py",
         "tests/test_rel_cross_module_contracts.py",
@@ -118383,6 +118446,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
@@ -127652,6 +127716,7 @@
       ],
       "callers": [
         "jarvis_v2.cli.main",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._runtime_health",
         "test_health.HealthTests.test_health_reads_without_creating_or_mutating_database",
         "test_health.HealthTests.test_health_rejects_missing_canonical_database",
         "test_health.HealthTests.test_health_reads_fresh_native_runtime_without_historical_ledger"
@@ -128568,6 +128633,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
@@ -129005,6 +129071,7 @@
       ],
       "dependencies": [
         ".automation.queue_api",
+        ".native_executor",
         "__future__",
         "argparse",
         "collections",
@@ -129030,8 +129097,8 @@
       "kind": "class",
       "known_defects": [],
       "line_range": [
-        29,
-        30
+        30,
+        31
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_controller",
@@ -129059,6 +129126,7 @@
       ],
       "dependencies": [
         ".automation.queue_api",
+        ".native_executor",
         "__future__",
         "argparse",
         "collections",
@@ -129085,8 +129153,8 @@
       "kind": "function",
       "known_defects": [],
       "line_range": [
-        36,
-        40
+        37,
+        41
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_controller",
@@ -129119,6 +129187,7 @@
       ],
       "dependencies": [
         ".automation.queue_api",
+        ".native_executor",
         "__future__",
         "argparse",
         "collections",
@@ -129146,8 +129215,8 @@
       "kind": "function",
       "known_defects": [],
       "line_range": [
-        43,
-        49
+        44,
+        50
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_controller",
@@ -129176,6 +129245,7 @@
       ],
       "dependencies": [
         ".automation.queue_api",
+        ".native_executor",
         "__future__",
         "argparse",
         "collections",
@@ -129203,8 +129273,8 @@
       "kind": "function",
       "known_defects": [],
       "line_range": [
-        52,
-        59
+        53,
+        60
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_controller",
@@ -129236,6 +129306,7 @@
       ],
       "dependencies": [
         ".automation.queue_api",
+        ".native_executor",
         "__future__",
         "argparse",
         "collections",
@@ -129263,8 +129334,8 @@
       "kind": "function",
       "known_defects": [],
       "line_range": [
-        62,
-        72
+        63,
+        73
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_controller",
@@ -129296,6 +129367,7 @@
       ],
       "dependencies": [
         ".automation.queue_api",
+        ".native_executor",
         "__future__",
         "argparse",
         "collections",
@@ -129319,8 +129391,8 @@
       "kind": "class",
       "known_defects": [],
       "line_range": [
-        75,
-        216
+        76,
+        217
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_controller",
@@ -129359,6 +129431,7 @@
       "callers": [],
       "dependencies": [
         ".automation.queue_api",
+        ".native_executor",
         "__future__",
         "argparse",
         "collections",
@@ -129400,8 +129473,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        78,
-        117
+        79,
+        118
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_controller",
@@ -129435,6 +129508,7 @@
       ],
       "dependencies": [
         ".automation.queue_api",
+        ".native_executor",
         "__future__",
         "argparse",
         "collections",
@@ -129462,8 +129536,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        119,
-        136
+        120,
+        137
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_controller",
@@ -129493,6 +129567,7 @@
       ],
       "dependencies": [
         ".automation.queue_api",
+        ".native_executor",
         "__future__",
         "argparse",
         "collections",
@@ -129516,8 +129591,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        138,
-        149
+        139,
+        150
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_controller",
@@ -129541,6 +129616,7 @@
       ],
       "dependencies": [
         ".automation.queue_api",
+        ".native_executor",
         "__future__",
         "argparse",
         "collections",
@@ -129562,8 +129638,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        151,
-        152
+        152,
+        153
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_controller",
@@ -129588,6 +129664,7 @@
       "callers": [],
       "dependencies": [
         ".automation.queue_api",
+        ".native_executor",
         "__future__",
         "argparse",
         "collections",
@@ -129627,8 +129704,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        154,
-        164
+        155,
+        165
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_controller",
@@ -129659,6 +129736,7 @@
       ],
       "dependencies": [
         ".automation.queue_api",
+        ".native_executor",
         "__future__",
         "argparse",
         "collections",
@@ -129689,8 +129767,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        166,
-        198
+        167,
+        199
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_controller",
@@ -129717,6 +129795,7 @@
       ],
       "dependencies": [
         ".automation.queue_api",
+        ".native_executor",
         "__future__",
         "argparse",
         "collections",
@@ -129740,8 +129819,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        200,
-        203
+        201,
+        204
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_controller",
@@ -129772,6 +129851,7 @@
       ],
       "dependencies": [
         ".automation.queue_api",
+        ".native_executor",
         "__future__",
         "argparse",
         "collections",
@@ -129828,8 +129908,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        205,
-        210
+        206,
+        211
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_controller",
@@ -129850,6 +129930,7 @@
       "callers": [],
       "dependencies": [
         ".automation.queue_api",
+        ".native_executor",
         "__future__",
         "argparse",
         "collections",
@@ -129873,8 +129954,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        212,
-        213
+        213,
+        214
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_controller",
@@ -129897,6 +129978,7 @@
       "callers": [],
       "dependencies": [
         ".automation.queue_api",
+        ".native_executor",
         "__future__",
         "argparse",
         "collections",
@@ -129922,8 +130004,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        215,
-        216
+        216,
+        217
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_controller",
@@ -129948,6 +130030,7 @@
       ],
       "dependencies": [
         ".automation.queue_api",
+        ".native_executor",
         "__future__",
         "argparse",
         "collections",
@@ -129969,8 +130052,8 @@
       "kind": "function",
       "known_defects": [],
       "line_range": [
-        219,
-        220
+        220,
+        221
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_controller",
@@ -130003,11 +130086,13 @@
         "jarvis_v2.native_controller.NativeController",
         "jarvis_v2.native_controller.NativeController.run_forever",
         "jarvis_v2.native_controller.NativeController.run_once",
-        "jarvis_v2.native_controller._default_state"
+        "jarvis_v2.native_controller._default_state",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor"
       ],
       "callers": [],
       "dependencies": [
         ".automation.queue_api",
+        ".native_executor",
         "__future__",
         "argparse",
         "collections",
@@ -130127,6 +130212,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
@@ -130189,8 +130275,8 @@
       "kind": "function",
       "known_defects": [],
       "line_range": [
-        223,
-        253
+        224,
+        260
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_controller",
@@ -130206,6 +130292,505 @@
       "side_effects": [],
       "signature": "def main(argv: list[str] | None=None) -> int",
       "symbol_name": "main"
+    },
+    {
+      "authentication_or_permission_requirements": [],
+      "called_functions": [],
+      "callers": [
+        "jarvis_v2.native_executor._operation",
+        "jarvis_v2.native_executor._module_manifest",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor.__call__",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._module_health",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._runtime_health",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._inventory_digest"
+      ],
+      "dependencies": [
+        ".automation.queue_api",
+        ".backend.module_manifest",
+        ".health",
+        "__future__",
+        "collections.abc",
+        "hashlib",
+        "json",
+        "pathlib",
+        "typing"
+      ],
+      "exceptions_and_failure_behavior": [],
+      "existing_test_coverage": [
+        "tests/test_native_executor.py"
+      ],
+      "file_path": "src/jarvis_v2/native_executor.py",
+      "inputs": [
+        "RuntimeError"
+      ],
+      "kind": "class",
+      "known_defects": [],
+      "line_range": [
+        34,
+        35
+      ],
+      "maintenance_status": "active",
+      "module": "jarvis_v2.native_executor",
+      "outputs": [
+        "class instance"
+      ],
+      "purpose": "Raised when a queued operation is not safe for the built-in executor.",
+      "qualified_name": "jarvis_v2.native_executor.NativeExecutorError",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [],
+      "side_effects": [],
+      "signature": "class NativeExecutorError(RuntimeError)",
+      "symbol_name": "NativeExecutorError"
+    },
+    {
+      "authentication_or_permission_requirements": [],
+      "called_functions": [
+        "jarvis_v2.native_executor.NativeExecutorError"
+      ],
+      "callers": [
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor.__call__"
+      ],
+      "dependencies": [
+        ".automation.queue_api",
+        ".backend.module_manifest",
+        ".health",
+        "__future__",
+        "collections.abc",
+        "hashlib",
+        "json",
+        "pathlib",
+        "typing"
+      ],
+      "exceptions_and_failure_behavior": [
+        "NativeExecutorError('invalid_native_operation')"
+      ],
+      "existing_test_coverage": [],
+      "file_path": "src/jarvis_v2/native_executor.py",
+      "inputs": [
+        "value"
+      ],
+      "kind": "function",
+      "known_defects": [],
+      "line_range": [
+        38,
+        46
+      ],
+      "maintenance_status": "active",
+      "module": "jarvis_v2.native_executor",
+      "outputs": [
+        "str"
+      ],
+      "purpose": "undocumented",
+      "qualified_name": "jarvis_v2.native_executor._operation",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [],
+      "side_effects": [],
+      "signature": "def _operation(value: Any) -> str",
+      "symbol_name": "_operation"
+    },
+    {
+      "authentication_or_permission_requirements": [],
+      "called_functions": [
+        "jarvis_v2.backend.module_manifest.ModuleManifest",
+        "jarvis_v2.backend.module_manifest.validate_module_manifest",
+        "jarvis_v2.native_executor.NativeExecutorError"
+      ],
+      "callers": [
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._module_health"
+      ],
+      "dependencies": [
+        ".automation.queue_api",
+        ".backend.module_manifest",
+        ".health",
+        "__future__",
+        "collections.abc",
+        "hashlib",
+        "json",
+        "pathlib",
+        "typing"
+      ],
+      "exceptions_and_failure_behavior": [
+        "NativeExecutorError('unknown_native_module')"
+      ],
+      "existing_test_coverage": [],
+      "file_path": "src/jarvis_v2/native_executor.py",
+      "inputs": [
+        "module"
+      ],
+      "kind": "function",
+      "known_defects": [],
+      "line_range": [
+        49,
+        63
+      ],
+      "maintenance_status": "active",
+      "module": "jarvis_v2.native_executor",
+      "outputs": [
+        "ModuleManifest"
+      ],
+      "purpose": "undocumented",
+      "qualified_name": "jarvis_v2.native_executor._module_manifest",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [],
+      "side_effects": [],
+      "signature": "def _module_manifest(module: str) -> ModuleManifest",
+      "symbol_name": "_module_manifest"
+    },
+    {
+      "authentication_or_permission_requirements": [
+        "filesystem",
+        "path",
+        "subprocess"
+      ],
+      "called_functions": [],
+      "callers": [
+        "jarvis_v2.native_controller.main",
+        "test_native_executor.NativeExecutorTests._executor"
+      ],
+      "dependencies": [
+        ".automation.queue_api",
+        ".backend.module_manifest",
+        ".health",
+        "__future__",
+        "collections.abc",
+        "hashlib",
+        "json",
+        "pathlib",
+        "typing"
+      ],
+      "exceptions_and_failure_behavior": [],
+      "existing_test_coverage": [
+        "tests/test_native_executor.py"
+      ],
+      "file_path": "src/jarvis_v2/native_executor.py",
+      "inputs": [],
+      "kind": "class",
+      "known_defects": [],
+      "line_range": [
+        66,
+        145
+      ],
+      "maintenance_status": "active",
+      "module": "jarvis_v2.native_executor",
+      "outputs": [
+        "class instance"
+      ],
+      "purpose": "Execute only bounded local observations from the native queue.\n\nThis class deliberately does not import model clients, subprocess\nlaunchers, external connectors, or legacy Astra modules.",
+      "qualified_name": "jarvis_v2.native_executor.NativeControlPlaneExecutor",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [
+        "command or process execution",
+        "filesystem access",
+        "security or trust-boundary vocabulary"
+      ],
+      "side_effects": [
+        "filesystem",
+        "subprocess"
+      ],
+      "signature": "class NativeControlPlaneExecutor()",
+      "symbol_name": "NativeControlPlaneExecutor"
+    },
+    {
+      "authentication_or_permission_requirements": [
+        "path"
+      ],
+      "called_functions": [],
+      "callers": [],
+      "dependencies": [
+        ".automation.queue_api",
+        ".backend.module_manifest",
+        ".health",
+        "__future__",
+        "collections.abc",
+        "hashlib",
+        "json",
+        "pathlib",
+        "typing"
+      ],
+      "exceptions_and_failure_behavior": [],
+      "existing_test_coverage": [
+        "bootstrap/astra-one/tests/test_supervisor_v3.py",
+        "tests/test_runtime_browser_tools.py",
+        "tests/test_runtime_calendar.py",
+        "tests/test_runtime_email.py",
+        "tests/test_runtime_speech.py"
+      ],
+      "file_path": "src/jarvis_v2/native_executor.py",
+      "inputs": [
+        "repository",
+        "state_dir"
+      ],
+      "kind": "method",
+      "known_defects": [],
+      "line_range": [
+        73,
+        75
+      ],
+      "maintenance_status": "active",
+      "module": "jarvis_v2.native_executor",
+      "outputs": [
+        "None"
+      ],
+      "purpose": "undocumented",
+      "qualified_name": "jarvis_v2.native_executor.NativeControlPlaneExecutor.__init__",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [
+        "filesystem access",
+        "security or trust-boundary vocabulary"
+      ],
+      "side_effects": [
+        "filesystem"
+      ],
+      "signature": "def __init__(self, *, repository: str | Path, state_dir: str | Path) -> None",
+      "symbol_name": "__init__"
+    },
+    {
+      "authentication_or_permission_requirements": [],
+      "called_functions": [],
+      "callers": [],
+      "dependencies": [
+        ".automation.queue_api",
+        ".backend.module_manifest",
+        ".health",
+        "__future__",
+        "collections.abc",
+        "hashlib",
+        "json",
+        "pathlib",
+        "typing"
+      ],
+      "exceptions_and_failure_behavior": [],
+      "existing_test_coverage": [
+        "tests/test_automation_devices.py",
+        "tests/test_backend_acceptance.py",
+        "tests/test_backend_windows_agent.py",
+        "tests/test_rel004_cross_device.py"
+      ],
+      "file_path": "src/jarvis_v2/native_executor.py",
+      "inputs": [],
+      "kind": "method",
+      "known_defects": [],
+      "line_range": [
+        78,
+        80
+      ],
+      "maintenance_status": "active",
+      "module": "jarvis_v2.native_executor",
+      "outputs": [
+        "tuple[str, ...]"
+      ],
+      "purpose": "Return the operations safe for the built-in service executor.",
+      "qualified_name": "jarvis_v2.native_executor.NativeControlPlaneExecutor.capabilities",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [],
+      "side_effects": [],
+      "signature": "def capabilities() -> tuple[str, ...]",
+      "symbol_name": "capabilities"
+    },
+    {
+      "authentication_or_permission_requirements": [],
+      "called_functions": [
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._inventory_digest",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._module_health",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._runtime_health",
+        "jarvis_v2.native_executor.NativeExecutorError",
+        "jarvis_v2.native_executor._operation"
+      ],
+      "callers": [],
+      "dependencies": [
+        ".automation.queue_api",
+        ".backend.module_manifest",
+        ".health",
+        "__future__",
+        "collections.abc",
+        "hashlib",
+        "json",
+        "pathlib",
+        "typing"
+      ],
+      "exceptions_and_failure_behavior": [
+        "NativeExecutorError('queue_envelope_required')",
+        "NativeExecutorError('unsupported_native_operation')"
+      ],
+      "existing_test_coverage": [
+        "tests/test_runtime_speech.py"
+      ],
+      "file_path": "src/jarvis_v2/native_executor.py",
+      "inputs": [
+        "item"
+      ],
+      "kind": "method",
+      "known_defects": [],
+      "line_range": [
+        82,
+        92
+      ],
+      "maintenance_status": "active",
+      "module": "jarvis_v2.native_executor",
+      "outputs": [
+        "Mapping[str, Any]"
+      ],
+      "purpose": "undocumented",
+      "qualified_name": "jarvis_v2.native_executor.NativeControlPlaneExecutor.__call__",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [],
+      "side_effects": [],
+      "signature": "def __call__(self, item: QueueEnvelope) -> Mapping[str, Any]",
+      "symbol_name": "__call__"
+    },
+    {
+      "authentication_or_permission_requirements": [],
+      "called_functions": [
+        "imported.core.tasks.TaskStore.list",
+        "jarvis_v2.native_executor.NativeExecutorError",
+        "jarvis_v2.native_executor._module_manifest"
+      ],
+      "callers": [
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor.__call__"
+      ],
+      "dependencies": [
+        ".automation.queue_api",
+        ".backend.module_manifest",
+        ".health",
+        "__future__",
+        "collections.abc",
+        "hashlib",
+        "json",
+        "pathlib",
+        "typing"
+      ],
+      "exceptions_and_failure_behavior": [
+        "NativeExecutorError('module_target_mismatch')"
+      ],
+      "existing_test_coverage": [],
+      "file_path": "src/jarvis_v2/native_executor.py",
+      "inputs": [
+        "item"
+      ],
+      "kind": "method",
+      "known_defects": [],
+      "line_range": [
+        94,
+        106
+      ],
+      "maintenance_status": "active",
+      "module": "jarvis_v2.native_executor",
+      "outputs": [
+        "dict[str, Any]"
+      ],
+      "purpose": "undocumented",
+      "qualified_name": "jarvis_v2.native_executor.NativeControlPlaneExecutor._module_health",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [],
+      "side_effects": [],
+      "signature": "def _module_health(self, item: QueueEnvelope) -> dict[str, Any]",
+      "symbol_name": "_module_health"
+    },
+    {
+      "authentication_or_permission_requirements": [],
+      "called_functions": [
+        "jarvis_v2.health.collect_health",
+        "jarvis_v2.native_executor.NativeExecutorError"
+      ],
+      "callers": [
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor.__call__"
+      ],
+      "dependencies": [
+        ".automation.queue_api",
+        ".backend.module_manifest",
+        ".health",
+        "__future__",
+        "collections.abc",
+        "hashlib",
+        "json",
+        "pathlib",
+        "typing"
+      ],
+      "exceptions_and_failure_behavior": [
+        "HealthError",
+        "NativeExecutorError('native_health_unavailable')",
+        "NativeExecutorError('runtime_health_requires_core')"
+      ],
+      "existing_test_coverage": [],
+      "file_path": "src/jarvis_v2/native_executor.py",
+      "inputs": [
+        "item"
+      ],
+      "kind": "method",
+      "known_defects": [],
+      "line_range": [
+        108,
+        121
+      ],
+      "maintenance_status": "active",
+      "module": "jarvis_v2.native_executor",
+      "outputs": [
+        "dict[str, Any]"
+      ],
+      "purpose": "undocumented",
+      "qualified_name": "jarvis_v2.native_executor.NativeControlPlaneExecutor._runtime_health",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [],
+      "side_effects": [],
+      "signature": "def _runtime_health(self, item: QueueEnvelope) -> dict[str, Any]",
+      "symbol_name": "_runtime_health"
+    },
+    {
+      "authentication_or_permission_requirements": [
+        "filesystem",
+        "path"
+      ],
+      "called_functions": [
+        "build_final_audit.sha256",
+        "jarvis_v2.automation.queue_api.QueueEnvelope.loads",
+        "jarvis_v2.native_executor.NativeExecutorError"
+      ],
+      "callers": [
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor.__call__"
+      ],
+      "dependencies": [
+        ".automation.queue_api",
+        ".backend.module_manifest",
+        ".health",
+        "__future__",
+        "collections.abc",
+        "hashlib",
+        "json",
+        "pathlib",
+        "typing"
+      ],
+      "exceptions_and_failure_behavior": [
+        "(OSError, UnicodeError, ValueError)",
+        "NativeExecutorError('host_inventory_invalid')",
+        "NativeExecutorError('host_inventory_unavailable')",
+        "NativeExecutorError('host_inventory_unreadable')",
+        "NativeExecutorError('inventory_digest_requires_backend')"
+      ],
+      "existing_test_coverage": [],
+      "file_path": "src/jarvis_v2/native_executor.py",
+      "inputs": [
+        "item"
+      ],
+      "kind": "method",
+      "known_defects": [],
+      "line_range": [
+        123,
+        145
+      ],
+      "maintenance_status": "active",
+      "module": "jarvis_v2.native_executor",
+      "outputs": [
+        "dict[str, Any]"
+      ],
+      "purpose": "undocumented",
+      "qualified_name": "jarvis_v2.native_executor.NativeControlPlaneExecutor._inventory_digest",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [
+        "security or trust-boundary vocabulary"
+      ],
+      "side_effects": [],
+      "signature": "def _inventory_digest(self, item: QueueEnvelope) -> dict[str, Any]",
+      "symbol_name": "_inventory_digest"
     },
     {
       "authentication_or_permission_requirements": [],
@@ -132378,6 +132963,7 @@
         "migration/imported/sda/astra-one-v0.2.0/tests/test_linux_sda.py",
         "tests/test_ci_workflow.py",
         "tests/test_health.py",
+        "tests/test_native_executor.py",
         "tests/test_rel013_recovery_drills.py",
         "tests/test_research_github.py"
       ],
@@ -156628,6 +157214,7 @@
       ],
       "exceptions_and_failure_behavior": [],
       "existing_test_coverage": [
+        "tests/test_native_executor.py",
         "tests/test_system_inventory.py"
       ],
       "file_path": "src/jarvis_v2/system_inventory.py",
@@ -159588,6 +160175,7 @@
         "tests/test_mig_015_acceptance.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel013_recovery_drills.py",
@@ -161851,6 +162439,7 @@
         "tests/test_guardian_fault_injection.py",
         "tests/test_guardian_model.py",
         "tests/test_health.py",
+        "tests/test_native_executor.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel_cross_module_contracts.py",
         "tests/test_runtime_security.py",
@@ -170229,6 +170818,7 @@
         "tests/test_mig_015_acceptance.py",
         "tests/test_monitor.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_runtime_service.py"
       ],
@@ -191651,6 +192241,303 @@
       "symbol_name": "test_native_user_unit_points_only_to_the_native_controller"
     },
     {
+      "authentication_or_permission_requirements": [
+        "filesystem",
+        "guardian",
+        "path",
+        "subprocess"
+      ],
+      "called_functions": [],
+      "callers": [],
+      "dependencies": [
+        "jarvis_v2.automation.queue_api",
+        "jarvis_v2.native_executor",
+        "json",
+        "os",
+        "pathlib",
+        "subprocess",
+        "tempfile",
+        "unittest"
+      ],
+      "exceptions_and_failure_behavior": [],
+      "existing_test_coverage": [
+        "tests/test_native_executor.py"
+      ],
+      "file_path": "tests/test_native_executor.py",
+      "inputs": [
+        "unittest.TestCase"
+      ],
+      "kind": "class",
+      "known_defects": [],
+      "line_range": [
+        16,
+        92
+      ],
+      "maintenance_status": "test",
+      "module": "test_native_executor",
+      "outputs": [
+        "class instance"
+      ],
+      "purpose": "undocumented",
+      "qualified_name": "test_native_executor.NativeExecutorTests",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [
+        "command or process execution",
+        "database or query access",
+        "filesystem access",
+        "security or trust-boundary vocabulary"
+      ],
+      "side_effects": [
+        "filesystem",
+        "database",
+        "subprocess",
+        "process"
+      ],
+      "signature": "class NativeExecutorTests(unittest.TestCase)",
+      "symbol_name": "NativeExecutorTests"
+    },
+    {
+      "authentication_or_permission_requirements": [
+        "path"
+      ],
+      "called_functions": [
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor"
+      ],
+      "callers": [
+        "test_native_executor.NativeExecutorTests.test_module_health_covers_all_ten_active_modules",
+        "test_native_executor.NativeExecutorTests.test_unknown_operation_fails_closed",
+        "test_native_executor.NativeExecutorTests.test_inventory_digest_returns_metadata_only",
+        "test_native_executor.NativeExecutorTests.test_native_cli_uses_built_in_executor_for_read_only_task"
+      ],
+      "dependencies": [
+        "jarvis_v2.automation.queue_api",
+        "jarvis_v2.native_executor",
+        "json",
+        "os",
+        "pathlib",
+        "subprocess",
+        "tempfile",
+        "unittest"
+      ],
+      "exceptions_and_failure_behavior": [],
+      "existing_test_coverage": [
+        "tests/test_native_executor.py"
+      ],
+      "file_path": "tests/test_native_executor.py",
+      "inputs": [],
+      "kind": "method",
+      "known_defects": [],
+      "line_range": [
+        17,
+        22
+      ],
+      "maintenance_status": "test",
+      "module": "test_native_executor",
+      "outputs": [
+        "return statements: 1"
+      ],
+      "purpose": "undocumented",
+      "qualified_name": "test_native_executor.NativeExecutorTests._executor",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [
+        "filesystem access",
+        "security or trust-boundary vocabulary"
+      ],
+      "side_effects": [
+        "filesystem"
+      ],
+      "signature": "def _executor(self)",
+      "symbol_name": "_executor"
+    },
+    {
+      "authentication_or_permission_requirements": [
+        "guardian"
+      ],
+      "called_functions": [
+        "jarvis_v2.automation.queue_api.QueueEnvelope",
+        "test_native_executor.NativeExecutorTests._executor"
+      ],
+      "callers": [],
+      "dependencies": [
+        "jarvis_v2.automation.queue_api",
+        "jarvis_v2.native_executor",
+        "json",
+        "os",
+        "pathlib",
+        "subprocess",
+        "tempfile",
+        "unittest"
+      ],
+      "exceptions_and_failure_behavior": [],
+      "existing_test_coverage": [
+        "tests/test_native_executor.py"
+      ],
+      "file_path": "tests/test_native_executor.py",
+      "inputs": [],
+      "kind": "method",
+      "known_defects": [],
+      "line_range": [
+        24,
+        41
+      ],
+      "maintenance_status": "test",
+      "module": "test_native_executor",
+      "outputs": [],
+      "purpose": "undocumented",
+      "qualified_name": "test_native_executor.NativeExecutorTests.test_module_health_covers_all_ten_active_modules",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [
+        "security or trust-boundary vocabulary"
+      ],
+      "side_effects": [],
+      "signature": "def test_module_health_covers_all_ten_active_modules(self)",
+      "symbol_name": "test_module_health_covers_all_ten_active_modules"
+    },
+    {
+      "authentication_or_permission_requirements": [],
+      "called_functions": [
+        "jarvis_v2.automation.queue_api.QueueEnvelope",
+        "test_native_executor.NativeExecutorTests._executor"
+      ],
+      "callers": [],
+      "dependencies": [
+        "jarvis_v2.automation.queue_api",
+        "jarvis_v2.native_executor",
+        "json",
+        "os",
+        "pathlib",
+        "subprocess",
+        "tempfile",
+        "unittest"
+      ],
+      "exceptions_and_failure_behavior": [],
+      "existing_test_coverage": [
+        "tests/test_native_executor.py"
+      ],
+      "file_path": "tests/test_native_executor.py",
+      "inputs": [],
+      "kind": "method",
+      "known_defects": [],
+      "line_range": [
+        43,
+        46
+      ],
+      "maintenance_status": "test",
+      "module": "test_native_executor",
+      "outputs": [],
+      "purpose": "undocumented",
+      "qualified_name": "test_native_executor.NativeExecutorTests.test_unknown_operation_fails_closed",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [],
+      "side_effects": [],
+      "signature": "def test_unknown_operation_fails_closed(self)",
+      "symbol_name": "test_unknown_operation_fails_closed"
+    },
+    {
+      "authentication_or_permission_requirements": [
+        "filesystem"
+      ],
+      "called_functions": [
+        "jarvis_v2.automation.queue_api.QueueEnvelope",
+        "jarvis_v2.automation.queue_api.QueueEnvelope.dumps",
+        "test_native_executor.NativeExecutorTests._executor"
+      ],
+      "callers": [],
+      "dependencies": [
+        "jarvis_v2.automation.queue_api",
+        "jarvis_v2.native_executor",
+        "json",
+        "os",
+        "pathlib",
+        "subprocess",
+        "tempfile",
+        "unittest"
+      ],
+      "exceptions_and_failure_behavior": [],
+      "existing_test_coverage": [
+        "tests/test_native_executor.py"
+      ],
+      "file_path": "tests/test_native_executor.py",
+      "inputs": [],
+      "kind": "method",
+      "known_defects": [],
+      "line_range": [
+        48,
+        60
+      ],
+      "maintenance_status": "test",
+      "module": "test_native_executor",
+      "outputs": [],
+      "purpose": "undocumented",
+      "qualified_name": "test_native_executor.NativeExecutorTests.test_inventory_digest_returns_metadata_only",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [
+        "filesystem access",
+        "security or trust-boundary vocabulary"
+      ],
+      "side_effects": [
+        "filesystem"
+      ],
+      "signature": "def test_inventory_digest_returns_metadata_only(self)",
+      "symbol_name": "test_inventory_digest_returns_metadata_only"
+    },
+    {
+      "authentication_or_permission_requirements": [
+        "guardian",
+        "path",
+        "subprocess"
+      ],
+      "called_functions": [
+        "jarvis_v2.automation.queue_api.CoordinatorQueue.enqueue",
+        "jarvis_v2.automation.queue_api.CoordinatorQueue.open",
+        "jarvis_v2.automation.queue_api.QueueEnvelope.loads",
+        "test_native_executor.NativeExecutorTests._executor"
+      ],
+      "callers": [],
+      "dependencies": [
+        "jarvis_v2.automation.queue_api",
+        "jarvis_v2.native_executor",
+        "json",
+        "os",
+        "pathlib",
+        "subprocess",
+        "tempfile",
+        "unittest"
+      ],
+      "exceptions_and_failure_behavior": [],
+      "existing_test_coverage": [
+        "tests/test_native_executor.py"
+      ],
+      "file_path": "tests/test_native_executor.py",
+      "inputs": [],
+      "kind": "method",
+      "known_defects": [],
+      "line_range": [
+        62,
+        92
+      ],
+      "maintenance_status": "test",
+      "module": "test_native_executor",
+      "outputs": [],
+      "purpose": "undocumented",
+      "qualified_name": "test_native_executor.NativeExecutorTests.test_native_cli_uses_built_in_executor_for_read_only_task",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [
+        "command or process execution",
+        "database or query access",
+        "filesystem access",
+        "security or trust-boundary vocabulary"
+      ],
+      "side_effects": [
+        "filesystem",
+        "database",
+        "subprocess",
+        "process"
+      ],
+      "signature": "def test_native_cli_uses_built_in_executor_for_read_only_task(self)",
+      "symbol_name": "test_native_cli_uses_built_in_executor_for_read_only_task"
+    },
+    {
       "authentication_or_permission_requirements": [],
       "called_functions": [],
       "callers": [],
@@ -199984,6 +200871,7 @@
         "tests/test_migration_guardrails.py",
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
+        "tests/test_native_executor.py",
         "tests/test_rel013_recovery_drills.py",
         "tests/test_rel017_installation.py",
         "tests/test_runtime_chat.py",
@@ -200158,6 +201046,7 @@
         "tests/test_migration_guardrails.py",
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
+        "tests/test_native_executor.py",
         "tests/test_rel013_recovery_drills.py",
         "tests/test_rel017_installation.py",
         "tests/test_runtime_chat.py",
@@ -200340,6 +201229,7 @@
         "tests/test_migration_guardrails.py",
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
+        "tests/test_native_executor.py",
         "tests/test_rel013_recovery_drills.py",
         "tests/test_rel017_installation.py",
         "tests/test_runtime_chat.py",
@@ -200525,6 +201415,7 @@
         "tests/test_migration_guardrails.py",
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
+        "tests/test_native_executor.py",
         "tests/test_rel013_recovery_drills.py",
         "tests/test_rel017_installation.py",
         "tests/test_runtime_chat.py",
@@ -202243,6 +203134,7 @@
         "tests/test_migration_guardrails.py",
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
+        "tests/test_native_executor.py",
         "tests/test_rel013_recovery_drills.py",
         "tests/test_rel017_installation.py",
         "tests/test_runtime_chat.py",
@@ -202408,6 +203300,7 @@
         "tests/test_migration_guardrails.py",
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
+        "tests/test_native_executor.py",
         "tests/test_rel013_recovery_drills.py",
         "tests/test_rel017_installation.py",
         "tests/test_runtime_chat.py",
@@ -202572,6 +203465,7 @@
         "tests/test_migration_guardrails.py",
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
+        "tests/test_native_executor.py",
         "tests/test_rel013_recovery_drills.py",
         "tests/test_rel017_installation.py",
         "tests/test_runtime_chat.py",
@@ -202691,6 +203585,7 @@
         "tests/test_migration_guardrails.py",
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
+        "tests/test_native_executor.py",
         "tests/test_rel013_recovery_drills.py",
         "tests/test_rel017_installation.py",
         "tests/test_runtime_chat.py",
@@ -204351,6 +205246,7 @@
         "tests/test_migration_guardrails.py",
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
+        "tests/test_native_executor.py",
         "tests/test_rel013_recovery_drills.py",
         "tests/test_rel017_installation.py",
         "tests/test_runtime_chat.py",
@@ -204918,6 +205814,7 @@
         "tests/test_migration_guardrails.py",
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
+        "tests/test_native_executor.py",
         "tests/test_rel013_recovery_drills.py",
         "tests/test_rel017_installation.py",
         "tests/test_runtime_chat.py",
@@ -210820,6 +211717,7 @@
         "tests/test_importer.py",
         "tests/test_mig_016_identity.py",
         "tests/test_migration_guardrails.py",
+        "tests/test_native_executor.py",
         "tests/test_rel013_recovery_drills.py",
         "tests/test_rel017_installation.py",
         "tests/test_runtime_reminders.py",
@@ -211285,6 +212183,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
@@ -211537,6 +212436,7 @@
         "jarvis_v2.guardian.rollback._digest",
         "jarvis_v2.native_controller.NativeController.run_once",
         "jarvis_v2.native_controller._receipt",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._inventory_digest",
         "jarvis_v2.research.analysis.MediaAnalysisService._save",
         "jarvis_v2.research.comparison.SourceComparator.compare",
         "jarvis_v2.research.handbook.sha256_text",
@@ -213462,6 +214362,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
@@ -213750,6 +214651,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
@@ -214512,6 +215414,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
@@ -215026,6 +215929,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
@@ -215589,6 +216493,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",
@@ -216191,6 +217096,7 @@
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_packaging_policy.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel004_cross_device.py",

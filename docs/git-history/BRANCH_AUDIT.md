@@ -1,12 +1,12 @@
 # ARCHON branch audit
 
-Source commit under audit: eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767
-Local audit/evidence overlay at index time: 239e10154e1c81b4ff463cdd796e04f0dbc68407
+Source commit under audit: 04eabec5cdbee2b2261272850867289fe0532091
+Local audit/evidence overlay at index time: 04eabec5cdbee2b2261272850867289fe0532091
 
 Local branches: 1
 Remote-tracking branches: 427
 Tags: 0
-Refs whose tips are ancestors of target: 117
+Refs whose tips are ancestors of target: 118
 
 No branch or object was deleted. The target has no configured upstream, and remote publication of the target SHA is unverified.
 
@@ -16,8 +16,8 @@ GitHub direct verification (2026-11-19): main is 5227b91d2725bf4be4336a5ad26189f
 
 | Ref | SHA | Subject | Relation to target |
 | --- | --- | --- | --- |
-| refs/heads/feature/astra-linux-integration-c799784769 | 239e10154e1c81b4ff463cdd796e04f0dbc68407 | docs(migration): bind final audit evidence [MIG-003] | local audit overlay |
-| source commit under audit | eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767 | feat(migration): establish native ARCHON runtime [MIG-003] | source |
+| refs/heads/feature/astra-linux-integration-c799784769 | 04eabec5cdbee2b2261272850867289fe0532091 | feat(runtime): add bounded native control-plane executor | local audit overlay |
+| source commit under audit | 04eabec5cdbee2b2261272850867289fe0532091 | feat(runtime): add bounded native control-plane executor | source |
 | refs/remotes/origin/main | 5227b91d2725bf4be4336a5ad26189fdf1034704 | chore(repo): establish ARCHON foundation and Astra One [MIG-001] | ancestor |
 | refs/remotes/origin/develop | 75582dbf48057e3d5b0e7cf4acfdba2386acfcff | fix(sda): complete integration tree synchronization | ancestor |
 | refs/remotes/origin/feature/astra-linux-integration-c799784769 | 75582dbf48057e3d5b0e7cf4acfdba2386acfcff | fix(sda): complete integration tree synchronization | ancestor |
@@ -25,5 +25,5 @@ GitHub direct verification (2026-11-19): main is 5227b91d2725bf4be4336a5ad26189f
 ## Preservation notes
 
 - The conflicted owner-approval-signatures worktree and all unique candidate refs remain preserved.
-- The source clone contains 427 remote-tracking refs and 735 reachable commits. The local migration commit is not present on the verified GitHub refs.
+- The source clone contains 427 remote-tracking refs and 751 reachable commits. The local audit target is not present on the verified GitHub refs.
 - No force-push, reset, reflog deletion, garbage collection, or history rewrite was performed.

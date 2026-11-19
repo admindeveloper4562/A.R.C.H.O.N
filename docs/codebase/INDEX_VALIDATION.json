@@ -2,20 +2,20 @@
   "available": true,
   "database": "/home/r34p3r/.local/state/archon/code_index.sqlite3",
   "excluded_sensitive": 1,
-  "indexed": 549,
+  "indexed": 551,
   "skipped": 0,
   "skipped_oversize": [
     {
       "path": "docs/codebase/CALL_GRAPH.md",
-      "size_bytes": 555358
+      "size_bytes": 554596
     },
     {
       "path": "docs/codebase/FUNCTION_CATALOG.md",
-      "size_bytes": 759114
+      "size_bytes": 762108
     },
     {
       "path": "docs/git-history/COMMIT_INDEX.json",
-      "size_bytes": 682396
+      "size_bytes": 700716
     }
   ],
   "validation_result_counts": {

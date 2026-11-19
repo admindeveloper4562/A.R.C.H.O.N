@@ -2,7 +2,7 @@
 
 | Area | Evidence | Result | Remaining gap |
 | --- | --- | --- | --- |
-| Core queue, dispatch, sessions, controls | 20 core test files in the 579-test suite, including native controller fencing, marker admission, and native health | PASS | No sustained load benchmark |
+| Core queue, dispatch, sessions, controls | 20 core test files in the 584-test suite, including native controller fencing, marker admission, bounded executor completion, and native health | PASS | No sustained load benchmark |
 | Backend storage, migration, event bus, routing, secrets | Backend test files and fresh SQLite restore | PASS | No external provider calls |
 | Runtime, security, browser, chat, speech, service | Runtime test files and native import sweep | PASS | No real desktop/browser/device run |
 | Guardian, fencing, rollback, restart | Guardian tests and fault-injection fixtures | PASS locally | Trusted out-of-process cutover not proven |

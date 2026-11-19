@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "source_sha": "239e10154e1c81b4ff463cdd796e04f0dbc68407",
-  "implementation_sha": "eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767",
-  "source_state": "tested local tree at 239e101; implementation is eef1e3c8; not published to GitHub",
+  "source_sha": "04eabec5cdbee2b2261272850867289fe0532091",
+  "implementation_sha": "04eabec5cdbee2b2261272850867289fe0532091",
+  "source_state": "tested canonical local tree at 04eabec; not published to GitHub",
   "runner": "python3 -m unittest discover -s tests -p 'test_*.py' -q",
   "pytest_available": false,
   "full_suite": {
-    "tests": 579,
-    "passed": 579,
+    "tests": 584,
+    "passed": 584,
     "failed": 0,
     "errors": 0,
-    "duration_seconds": 27.720,
+    "duration_seconds": 27.717,
     "exit_code": 0,
-    "evidence_log": "docs/final-audit/evidence/unittest-postcommit.log"
+    "evidence_log": "docs/final-audit/evidence/unittest-current-native-executor.log"
   },
   "native_import_sweep": {"modules": 106, "errors": 0, "exit_code": 0},
   "native_controller_checks": {
@@ -20,9 +20,11 @@
     "process_lock_fencing": "pass",
     "control_marker_admission": "pass",
     "executor_success_and_failure_receipts": "pass",
+    "bounded_control_plane_executor": "pass",
     "terminate_and_restart": "pass",
     "systemd_analyze_verify": "pass",
-    "service_installed": false
+    "service_installed": false,
+    "domain_effect_handlers": "not_configured"
   },
   "native_health": {
     "status": "healthy",

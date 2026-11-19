@@ -3,20 +3,20 @@
 ## Project
 
 - Canonical source: /home/r34p3r/dev/A.R.C.H.O.N
-- Source SHA: 239e10154e1c81b4ff463cdd796e04f0dbc68407
-- Implementation SHA: eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767
-- Follow-up native monitor boundary fix: 2070829; current catalog refresh: 76b7b29; focused monitor checks pass.
+- Source SHA: 04eabec5cdbee2b2261272850867289fe0532091
+- Implementation SHA: 04eabec5cdbee2b2261272850867289fe0532091
+- Follow-up native monitor boundary fix: 2070829; bounded native executor: 04eabec; current catalog refresh remains pending after this source change.
 - Git origin: https://github.com/admindeveloper4562/A.R.C.H.O.N.git; target SHA is not published to GitHub; direct refs observed: main=5227b91d2725bf4be4336a5ad26189fdf1034704, develop=75582dbf48057e3d5b0e7cf4acfdba2386acfcff
-- Git state: tested tree 239e101; implementation commit eef1e3c8; final documentation refresh is local-only and not published to GitHub
+- Git state: tested tree 04eabec; local-only and not published to GitHub
 - Version in package metadata: 0.0.3
-- Full regression: 579 passed
+- Full regression: 584 passed
 - Native import sweep: 106 passed
 - Fresh runtime DBs: integrity and restore checks passed
-- Search index: FTS5 available, 549 files indexed from 550 cataloged files, four representative queries returned results including deployment files
+- Search index: FTS5 available, 551 files indexed from 552 cataloged files (347 source files; 3,907 symbols), four representative queries returned results including deployment files
 
 ## Runtime
 
-The native state root is /home/r34p3r/.local/state/archon. It contains empty runtime and ATLAS queue databases, private host inventory metadata, the code index, empty logs/cache directories, and private controller lock/control directories. It does not contain the historical 247-task ledger or personal/financial data. Native health reports the runtime healthy with zero queue tasks and historical ledger loading false. The native controller passed fresh one-shot, fencing, marker, receipt, terminate/restart, and systemd verification checks; its default domain executor is unconfigured and its unit is not installed.
+The native state root is /home/r34p3r/.local/state/archon. It contains empty runtime and ATLAS queue databases, private host inventory metadata, the code index, empty logs/cache directories, and private controller lock/control directories. It does not contain the historical 247-task ledger or personal/financial data. Native health reports the runtime healthy with zero queue tasks and historical ledger loading false. The native controller passed fresh one-shot, fencing, marker, receipt, bounded control-plane task, terminate/restart, and systemd verification checks; its unit is not installed and domain-effect handlers remain unconfigured.
 
 The historical Astra boundary remains active and requires controlled retirement: archon-astra.timer is enabled and active; the latest transient archon-astra.service run exited 0 and is now inactive, but its journal recorded the legacy monitor rejecting incompatible `--json` plus `--watch` arguments before the legacy batch completed; and the read-only legacy monitor process remains running as PID 20774 at the final observation.
 

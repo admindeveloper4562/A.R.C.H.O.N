@@ -2,11 +2,11 @@
 
 ## Executed evidence
 
-- Evidence was run against tested local tree 239e10154e1c81b4ff463cdd796e04f0dbc68407; implementation commit eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767 is not published to GitHub.
-- Full standard-library discovery: 579 tests, 579 passed, 0 failed, 27.720 seconds.
-- Final post-commit suite output is retained at docs/final-audit/evidence/unittest-postcommit.log.
+- Evidence was run against tested canonical local tree 04eabec5cdbee2b2261272850867289fe0532091; it is not published to GitHub.
+- Full standard-library discovery: 584 tests, 584 passed, 0 failed, 27.717 seconds.
+- Current suite receipt is retained at docs/final-audit/evidence/unittest-current-native-executor.log; the earlier 579-test receipt remains historical.
 - Native package import sweep: 106 jarvis_v2 modules, 0 import errors.
-- Native controller checks: fresh one-shot, process-lock fencing, control-marker admission, executor success/failure receipts, terminate/restart, and systemd unit verification all passed; the unit is not installed and the default executor is intentionally unconfigured.
+- Native controller checks: fresh one-shot, process-lock fencing, control-marker admission, executor success/failure receipts, bounded read-only control-plane execution, terminate/restart, and systemd unit verification all passed; the unit is not installed and domain-effect handlers remain intentionally unconfigured.
 - Native health check: fresh runtime and ATLAS databases reported healthy read-only state; historical ledger loading was explicitly false.
 - Host inventory capability check: Ollama model listing and NVIDIA acceleration probe were captured; unavailable accelerator tools were recorded without failure.
 - Local dependency_scan, secret_scan, and security_scan: all passed.

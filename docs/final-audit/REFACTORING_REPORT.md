@@ -1,6 +1,6 @@
 # Refactoring and wrapper report
 
-The audit was intentionally conservative. The generated catalog found 3,891 symbols across 345 code files: 901 functions, 2,425 methods, and 565 classes. Static analysis identified 227 single-call/pass-through patterns, but that pattern is not proof of an unnecessary wrapper.
+The audit was intentionally conservative. The generated catalog found 3,907 symbols across 347 source files: 903 functions, 2,436 methods, and 568 classes. Static analysis identified 227 single-call/pass-through patterns, but that pattern is not proof of an unnecessary wrapper.
 
 ## Actions completed
 
@@ -9,7 +9,7 @@ The audit was intentionally conservative. The generated catalog found 3,891 symb
 - Changed native health reporting to inspect archon.service and archon.timer.
 - Made the read-only monitor prefer the native ARCHON state path while retaining explicit Astra compatibility for historical databases.
 - Added the bounded system-inventory API and four focused regression tests, including hardware/software/runtime-section and disk-capacity comparison.
-- Added the minimal native controller with process fencing, durable control-marker admission, digest-only receipts, and six focused regression tests; the domain executor remains explicitly unconfigured.
+- Added the bounded native control-plane executor with process fencing, durable control-marker admission, digest-only receipts, allowlisted read-only operations, and ten focused regression tests; domain-effect handlers remain explicitly unconfigured.
 - Excluded only generated audit evidence and Serena cache directories from the bounded secret scanner; source, configuration, workflows, and deployment files remain scanned.
 
 ## Wrapper disposition

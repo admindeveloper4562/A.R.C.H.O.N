@@ -2,7 +2,7 @@
 
 Measured local results:
 
-- Full 579-test unittest run: 27.720 seconds (post-commit run).
+- Full 584-test unittest run: 27.717 seconds at source `04eabec5cdbee2b2261272850867289fe0532091`.
 - Native import sweep: 106 modules, completed in under one second.
 - FTS5 index: 549 files indexed from 550 cataloged files; representative search queries returned 1 to 5 results.
 - Bounded host inventory: 10,000 metadata entries collected in approximately three seconds.

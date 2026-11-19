@@ -1,0 +1,6 @@
+ARCHON current-source regression receipt
+Command: PYTHONPATH=src python3 -m unittest discover -s tests -p 'test_*.py' -q
+Source SHA: 04eabec5cdbee2b2261272850867289fe0532091
+Exit code: 0
+Result: Ran 584 tests in 27.717s; OK; 584 passed, 0 failed, 0 errors.
+Expected fixture output: the monitor CLI rejection of simultaneous --json and --watch was emitted by a subprocess fixture; the enclosing test suite passed.

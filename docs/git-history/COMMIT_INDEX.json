@@ -23087,10 +23087,652 @@
         "MIG-003"
       ],
       "tests_added_or_changed": true
+    },
+    {
+      "author": "Astra One",
+      "author_date": "2026-11-19T22:18:56+07:00",
+      "author_email": "astra-one@local.invalid",
+      "body": "",
+      "breaking_change_signal": false,
+      "changed_files": [
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/INDEX_VALIDATION.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/FINAL_VERDICT.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/FINAL_VERDICT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/INTEGRATION_RESULTS.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/SYSTEM_STATUS.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/TEST_AUDIT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/TEST_RESULTS.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/git-history/BRANCH_AUDIT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/git-history/COMMIT_INDEX.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/git-history/COMPLETE_COMMIT_HISTORY.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/git-history/FEATURE_TIMELINE.md",
+          "status": "M"
+        },
+        {
+          "path": "tools/build_final_audit.py",
+          "status": "M"
+        }
+      ],
+      "commit_date": "2026-11-19T22:18:56+07:00",
+      "dependency_related": true,
+      "parents": [
+        "eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767"
+      ],
+      "security_related": false,
+      "sha": "239e10154e1c81b4ff463cdd796e04f0dbc68407",
+      "subject": "docs(migration): bind final audit evidence [MIG-003]",
+      "task_ids": [
+        "MIG-003"
+      ],
+      "tests_added_or_changed": false
+    },
+    {
+      "author": "Astra One",
+      "author_date": "2026-11-19T22:36:07+07:00",
+      "author_email": "astra-one@local.invalid",
+      "body": "",
+      "breaking_change_signal": false,
+      "changed_files": [
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/INDEX_VALIDATION.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/ASTRA_DEPENDENCY_AUDIT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/FINAL_VERDICT.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/FINAL_VERDICT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/INDEPENDENT_QC.json",
+          "status": "A"
+        },
+        {
+          "path": "docs/final-audit/INDEPENDENT_QC.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/final-audit/INTEGRATION_RESULTS.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/PERFORMANCE_REPORT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/REMAINING_LIMITATIONS.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/SECURITY_STATUS.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/SYSTEM_STATUS.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/TEST_AUDIT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/TEST_RESULTS.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/git-history/BRANCH_AUDIT.md",
+          "status": "M"
+        }
+      ],
+      "commit_date": "2026-11-19T22:36:07+07:00",
+      "dependency_related": true,
+      "parents": [
+        "239e10154e1c81b4ff463cdd796e04f0dbc68407"
+      ],
+      "security_related": false,
+      "sha": "821e2ba9bf974446e1e538af856292f3c57251c7",
+      "subject": "docs(migration): record final QC boundaries [MIG-003]",
+      "task_ids": [
+        "MIG-003"
+      ],
+      "tests_added_or_changed": false
+    },
+    {
+      "author": "Astra One",
+      "author_date": "2026-11-19T22:36:45+07:00",
+      "author_email": "astra-one@local.invalid",
+      "body": "",
+      "breaking_change_signal": false,
+      "changed_files": [
+        {
+          "path": "docs/final-audit/FINAL_VERDICT.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/REMAINING_LIMITATIONS.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/SECURITY_STATUS.md",
+          "status": "M"
+        }
+      ],
+      "commit_date": "2026-11-19T22:36:45+07:00",
+      "dependency_related": false,
+      "parents": [
+        "821e2ba9bf974446e1e538af856292f3c57251c7"
+      ],
+      "security_related": true,
+      "sha": "15e5dde9c3b9d95e6631757d0b95710a98991b80",
+      "subject": "docs(security): record unavailable diff scan [MIG-003]",
+      "task_ids": [
+        "MIG-003"
+      ],
+      "tests_added_or_changed": false
+    },
+    {
+      "author": "Astra One",
+      "author_date": "2026-11-19T22:40:32+07:00",
+      "author_email": "astra-one@local.invalid",
+      "body": "",
+      "breaking_change_signal": false,
+      "changed_files": [
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/ASTRA_DEPENDENCY_AUDIT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/FINAL_VERDICT.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/FINAL_VERDICT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/INDEPENDENT_QC.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/INDEPENDENT_QC.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/REMAINING_LIMITATIONS.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/SECURITY_STATUS.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/SYSTEM_STATUS.md",
+          "status": "M"
+        }
+      ],
+      "commit_date": "2026-11-19T22:40:32+07:00",
+      "dependency_related": true,
+      "parents": [
+        "15e5dde9c3b9d95e6631757d0b95710a98991b80"
+      ],
+      "security_related": false,
+      "sha": "705d7fe6f5a30ba2d5af4b0b2c457cc8e3cdc42a",
+      "subject": "docs(migration): finalize runtime boundary evidence [MIG-003]",
+      "task_ids": [
+        "MIG-003"
+      ],
+      "tests_added_or_changed": false
+    },
+    {
+      "author": "Astra One",
+      "author_date": "2026-11-19T22:43:17+07:00",
+      "author_email": "astra-one@local.invalid",
+      "body": "",
+      "breaking_change_signal": false,
+      "changed_files": [
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/INDEX_VALIDATION.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/CLEANUP_MANIFEST.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/CLEANUP_MANIFEST.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/DISK_CLEANUP_REPORT.md",
+          "status": "M"
+        }
+      ],
+      "commit_date": "2026-11-19T22:43:17+07:00",
+      "dependency_related": true,
+      "parents": [
+        "705d7fe6f5a30ba2d5af4b0b2c457cc8e3cdc42a"
+      ],
+      "security_related": false,
+      "sha": "0c0b5c07278f8f209b19a5e446d7ddcdb1757e3b",
+      "subject": "docs(migration): refresh final disk evidence [MIG-003]",
+      "task_ids": [
+        "MIG-003"
+      ],
+      "tests_added_or_changed": false
+    },
+    {
+      "author": "Astra One",
+      "author_date": "2026-11-19T22:51:16+07:00",
+      "author_email": "astra-one@local.invalid",
+      "body": "",
+      "breaking_change_signal": false,
+      "changed_files": [
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.md",
+          "status": "M"
+        }
+      ],
+      "commit_date": "2026-11-19T22:51:16+07:00",
+      "dependency_related": true,
+      "parents": [
+        "0c0b5c07278f8f209b19a5e446d7ddcdb1757e3b"
+      ],
+      "security_related": false,
+      "sha": "c6827a0354c14b1007be7b377917bd9bff43f567",
+      "subject": "docs(audit): refresh function index provenance",
+      "task_ids": [],
+      "tests_added_or_changed": false
+    },
+    {
+      "author": "Astra One",
+      "author_date": "2026-11-19T22:53:59+07:00",
+      "author_email": "astra-one@local.invalid",
+      "body": "",
+      "breaking_change_signal": false,
+      "changed_files": [
+        {
+          "path": "docs/final-audit/POSTCOMMIT_CHECKPOINT.md",
+          "status": "A"
+        }
+      ],
+      "commit_date": "2026-11-19T22:53:59+07:00",
+      "dependency_related": false,
+      "parents": [
+        "c6827a0354c14b1007be7b377917bd9bff43f567"
+      ],
+      "security_related": false,
+      "sha": "e8702b504ebdbbc90c76d4c413f0d46f924290a9",
+      "subject": "docs(audit): record postcommit checkpoint",
+      "task_ids": [],
+      "tests_added_or_changed": false
+    },
+    {
+      "author": "Astra One",
+      "author_date": "2026-11-19T22:58:37+07:00",
+      "author_email": "astra-one@local.invalid",
+      "body": "",
+      "breaking_change_signal": false,
+      "changed_files": [
+        {
+          "path": "docs/operations/ATLAS_TERMINAL_MONITOR.md",
+          "status": "M"
+        },
+        {
+          "path": "src/jarvis_v2/monitor.py",
+          "status": "M"
+        },
+        {
+          "path": "tests/test_monitor.py",
+          "status": "M"
+        }
+      ],
+      "commit_date": "2026-11-19T22:58:37+07:00",
+      "dependency_related": true,
+      "parents": [
+        "e8702b504ebdbbc90c76d4c413f0d46f924290a9"
+      ],
+      "security_related": false,
+      "sha": "2070829dd68c65e81334f7a12c9edd381b2fda5b",
+      "subject": "fix(monitor): prefer native atlas state by default",
+      "task_ids": [],
+      "tests_added_or_changed": true
+    },
+    {
+      "author": "Astra One",
+      "author_date": "2026-11-19T22:59:15+07:00",
+      "author_email": "astra-one@local.invalid",
+      "body": "",
+      "breaking_change_signal": false,
+      "changed_files": [
+        {
+          "path": "tools/atlas_monitor.py",
+          "status": "M"
+        }
+      ],
+      "commit_date": "2026-11-19T22:59:15+07:00",
+      "dependency_related": true,
+      "parents": [
+        "2070829dd68c65e81334f7a12c9edd381b2fda5b"
+      ],
+      "security_related": false,
+      "sha": "dc72be1f4baa6a71e613eeedcdf3c1cb44c441b7",
+      "subject": "docs(monitor): make native source the operator default",
+      "task_ids": [],
+      "tests_added_or_changed": false
+    },
+    {
+      "author": "Astra One",
+      "author_date": "2026-11-19T23:00:53+07:00",
+      "author_email": "astra-one@local.invalid",
+      "body": "",
+      "breaking_change_signal": false,
+      "changed_files": [
+        {
+          "path": "docs/final-audit/ASTRA_DEPENDENCY_AUDIT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/INTEGRATION_RESULTS.md",
+          "status": "M"
+        }
+      ],
+      "commit_date": "2026-11-19T23:00:53+07:00",
+      "dependency_related": true,
+      "parents": [
+        "dc72be1f4baa6a71e613eeedcdf3c1cb44c441b7"
+      ],
+      "security_related": false,
+      "sha": "ea5b8c4bde776aa967bc46928e741de2d12a133c",
+      "subject": "docs(audit): record native monitor boundary fix",
+      "task_ids": [],
+      "tests_added_or_changed": false
+    },
+    {
+      "author": "Astra One",
+      "author_date": "2026-11-19T23:03:08+07:00",
+      "author_email": "astra-one@local.invalid",
+      "body": "",
+      "breaking_change_signal": false,
+      "changed_files": [
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/INDEX_VALIDATION.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/MODULE_DEPENDENCIES.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/SECURITY_SENSITIVE_FUNCTIONS.md",
+          "status": "M"
+        }
+      ],
+      "commit_date": "2026-11-19T23:03:08+07:00",
+      "dependency_related": true,
+      "parents": [
+        "ea5b8c4bde776aa967bc46928e741de2d12a133c"
+      ],
+      "security_related": false,
+      "sha": "76b7b29580d6384b949d71ba89001dd3ecde9623",
+      "subject": "docs(index): refresh native monitor symbols",
+      "task_ids": [],
+      "tests_added_or_changed": false
+    },
+    {
+      "author": "Astra One",
+      "author_date": "2026-11-19T23:04:00+07:00",
+      "author_email": "astra-one@local.invalid",
+      "body": "",
+      "breaking_change_signal": false,
+      "changed_files": [
+        {
+          "path": "docs/final-audit/FINAL_VERDICT.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/INTEGRATION_RESULTS.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/PERFORMANCE_REPORT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/SYSTEM_STATUS.md",
+          "status": "M"
+        }
+      ],
+      "commit_date": "2026-11-19T23:04:00+07:00",
+      "dependency_related": true,
+      "parents": [
+        "76b7b29580d6384b949d71ba89001dd3ecde9623"
+      ],
+      "security_related": false,
+      "sha": "062088b4115dec3f69a6760a03d291e6d57c7712",
+      "subject": "docs(audit): align index counts with current tree",
+      "task_ids": [],
+      "tests_added_or_changed": false
+    },
+    {
+      "author": "Astra One",
+      "author_date": "2026-11-19T23:06:50+07:00",
+      "author_email": "astra-one@local.invalid",
+      "body": "",
+      "breaking_change_signal": false,
+      "changed_files": [
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/INDEX_VALIDATION.json",
+          "status": "M"
+        }
+      ],
+      "commit_date": "2026-11-19T23:06:50+07:00",
+      "dependency_related": true,
+      "parents": [
+        "062088b4115dec3f69a6760a03d291e6d57c7712"
+      ],
+      "security_related": false,
+      "sha": "0b0d283dffad9ac478b0d823b43507772a4e5b74",
+      "subject": "docs(index): bind catalog to final audit tree",
+      "task_ids": [],
+      "tests_added_or_changed": false
+    },
+    {
+      "author": "Astra One",
+      "author_date": "2026-11-19T23:09:41+07:00",
+      "author_email": "astra-one@local.invalid",
+      "body": "",
+      "breaking_change_signal": false,
+      "changed_files": [
+        {
+          "path": "docs/final-audit/REFACTORING_REPORT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/REGRESSION_COVERAGE.md",
+          "status": "M"
+        },
+        {
+          "path": "src/jarvis_v2/system_inventory.py",
+          "status": "M"
+        },
+        {
+          "path": "tests/test_system_inventory.py",
+          "status": "M"
+        }
+      ],
+      "commit_date": "2026-11-19T23:09:41+07:00",
+      "dependency_related": true,
+      "parents": [
+        "0b0d283dffad9ac478b0d823b43507772a4e5b74"
+      ],
+      "security_related": false,
+      "sha": "13626a458bc542a5339d699a71f5c197d9a0d0a1",
+      "subject": "feat(inventory): compare host sections and capacity",
+      "task_ids": [],
+      "tests_added_or_changed": true
+    },
+    {
+      "author": "Astra One",
+      "author_date": "2026-11-19T23:11:35+07:00",
+      "author_email": "astra-one@local.invalid",
+      "body": "",
+      "breaking_change_signal": false,
+      "changed_files": [
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/SECURITY_SENSITIVE_FUNCTIONS.md",
+          "status": "M"
+        }
+      ],
+      "commit_date": "2026-11-19T23:11:35+07:00",
+      "dependency_related": true,
+      "parents": [
+        "13626a458bc542a5339d699a71f5c197d9a0d0a1"
+      ],
+      "security_related": false,
+      "sha": "f35bcdb308f4be4859109ceeda712d61bfa71045",
+      "subject": "docs(index): record inventory comparison API",
+      "task_ids": [],
+      "tests_added_or_changed": false
+    },
+    {
+      "author": "ARCHON Main Codex",
+      "author_date": "2026-11-19T23:23:33+07:00",
+      "author_email": "archon-main@local.invalid",
+      "body": "",
+      "breaking_change_signal": false,
+      "changed_files": [
+        {
+          "path": "README.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/operations/ARCHON_NATIVE_RUNTIME.md",
+          "status": "M"
+        },
+        {
+          "path": "src/jarvis_v2/native_controller.py",
+          "status": "M"
+        },
+        {
+          "path": "src/jarvis_v2/native_executor.py",
+          "status": "A"
+        },
+        {
+          "path": "tests/test_native_executor.py",
+          "status": "A"
+        }
+      ],
+      "commit_date": "2026-11-19T23:23:33+07:00",
+      "dependency_related": true,
+      "parents": [
+        "f35bcdb308f4be4859109ceeda712d61bfa71045"
+      ],
+      "security_related": true,
+      "sha": "04eabec5cdbee2b2261272850867289fe0532091",
+      "subject": "feat(runtime): add bounded native control-plane executor",
+      "task_ids": [],
+      "tests_added_or_changed": true
     }
   ],
-  "generated_at": "2026-11-19T15:17:33.109666+00:00",
-  "reachable_commit_count": 735,
+  "generated_at": "2026-11-19T16:25:55.878251+00:00",
+  "reachable_commit_count": 751,
   "schema_version": 1,
-  "source_sha": "eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767"
+  "source_sha": "04eabec5cdbee2b2261272850867289fe0532091"
 }

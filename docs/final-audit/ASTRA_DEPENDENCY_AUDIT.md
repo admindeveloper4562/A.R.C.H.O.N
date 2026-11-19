@@ -16,11 +16,11 @@ Observed against `/home/r34p3r/dev/A.R.C.H.O.N` on 2026-11-19. The native source
 ## Controlled native-without-Astra checks
 
 - Imported all 106 native `jarvis_v2` modules with only `PYTHONPATH=src`: 0 errors.
-- Ran the fresh-state native controller one-shot: idle with `executor_unconfigured`; it claimed no work.
+- Ran the fresh-state native controller one-shot: idle with `no_ready_work`; the built-in executor claimed no work because the queue was empty.
 - Verified process-lock fencing, STOP/PAUSE/PAUSED_QUOTA admission, digest-only success/failure receipts, and terminate/restart behavior on disposable state.
 - Verified the native systemd unit with `systemd-analyze verify`; it is not installed or enabled.
 
-These checks demonstrate that the native local slice does not require Astra to import or start. They do not demonstrate a complete native task executor, unattended SDA/AEGIS cutover, trusted watchdog activation, or rollback soak.
+These checks demonstrate that the native local slice does not require Astra to import or start. The built-in executor is limited to read-only control-plane operations; these checks do not demonstrate domain-effect execution, unattended SDA/AEGIS cutover, trusted watchdog activation, or rollback soak.
 
 ## Follow-up default-boundary correction
 

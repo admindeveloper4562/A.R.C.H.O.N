@@ -1,6 +1,6 @@
 # Complete ARCHON commit history
 
-Generated from eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767; 735 reachable commits across the current local and GitHub remote-tracking refs.
+Generated from 04eabec5cdbee2b2261272850867289fe0532091; 751 reachable commits across the current local and GitHub remote-tracking refs. The earlier table is preserved through the original native-runtime source commit; the post-source continuation is listed below and fully indexed in `COMMIT_INDEX.json`.
 
 | Date | SHA | Author | Task IDs | Changed files | Subject |
 | --- | --- | --- | --- | ---: | --- |
@@ -739,3 +739,24 @@ Generated from eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767; 735 reachable commits a
 | 2026-11-19T19:32:09+07:00 | 84934dd5363f | Astra One | REL-025 | 1 | docs(release): publish final acceptance checkpoint [REL-025] |
 | 2026-11-19T19:32:31+07:00 | a2df24261d5e | Astra One | REL-025 | 1 | feat(sda): integrate independently reviewed candidate [REL-025] |
 | 2026-11-19T22:10:08+07:00 | eef1e3c8d1bf | Astra One | MIG-003 | 48 | feat(migration): establish native ARCHON runtime [MIG-003] |
+
+## Post-source local continuation
+
+| Date | SHA | Author | Task IDs | Changed files | Subject |
+| --- | --- | --- | --- | ---: | --- |
+| 2026-11-19T22:18:56+07:00 | 239e10154e1c | Astra One | MIG-003 | 3 | docs(migration): bind final audit evidence [MIG-003] |
+| 2026-11-19T22:36:07+07:00 | 821e2ba9bf97 | Astra One | MIG-003 | 1 | docs(migration): record final QC boundaries [MIG-003] |
+| 2026-11-19T22:36:45+07:00 | 15e5dde9c3b9 | Astra One | MIG-003 | 1 | docs(security): record unavailable diff scan [MIG-003] |
+| 2026-11-19T22:40:32+07:00 | 705d7fe6f5a3 | Astra One | MIG-003 | 1 | docs(migration): finalize runtime boundary evidence [MIG-003] |
+| 2026-11-19T22:43:17+07:00 | 0c0b5c07278f | Astra One | MIG-003 | 1 | docs(migration): refresh final disk evidence [MIG-003] |
+| 2026-11-19T22:51:16+07:00 | c6827a0354c1 | Astra One | - | 2 | docs(audit): refresh function index provenance |
+| 2026-11-19T22:53:59+07:00 | e8702b504ebd | Astra One | - | 1 | docs(audit): record postcommit checkpoint |
+| 2026-11-19T22:58:37+07:00 | 2070829dd68c | Astra One | - | 2 | fix(monitor): prefer native atlas state by default |
+| 2026-11-19T22:59:15+07:00 | dc72be1f4baa | Astra One | - | 1 | docs(monitor): make native source the operator default |
+| 2026-11-19T23:00:53+07:00 | ea5b8c4bde77 | Astra One | - | 1 | docs(audit): record native monitor boundary fix |
+| 2026-11-19T23:03:08+07:00 | 76b7b29580d6 | Astra One | - | 1 | docs(index): refresh native monitor symbols |
+| 2026-11-19T23:04:00+07:00 | 062088b4115d | Astra One | - | 1 | docs(audit): align index counts with current tree |
+| 2026-11-19T23:06:50+07:00 | 0b0d283dffad | Astra One | - | 1 | docs(index): bind catalog to final audit tree |
+| 2026-11-19T23:09:41+07:00 | 13626a458bc5 | Astra One | - | 1 | feat(inventory): compare host sections and capacity |
+| 2026-11-19T23:11:35+07:00 | f35bcdb308f4 | Astra One | - | 1 | docs(index): record inventory comparison API |
+| 2026-11-19T23:23:33+07:00 | 04eabec5cdbe | ARCHON Main Codex | - | 5 | feat(runtime): add bounded native control-plane executor |
