@@ -4,9 +4,9 @@
   "source_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
   "implementation_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
   "canonical_head": "4149c1d75eee24880bfacd819342f9c21d05d51a",
-  "current_documentation_overlay_sha": "1c27e2277a7a9f88d9d0dbd9bdac6c7b8f2f80e5",
+  "current_documentation_overlay_sha": "0d6658b0aa2449c4071c0ca05ddda0aad3609bd2",
   "canonical_path": "/home/r34p3r/dev/A.R.C.H.O.N",
-  "source_state": "implementation candidate 4149c1d tested locally; 36 commits ahead of the observed remote feature ref. Current documentation overlay 1c27e22 is 37 ahead. Neither is published to GitHub.",
+  "source_state": "implementation candidate 4149c1d tested locally; 36 commits ahead of the observed remote feature ref. Latest documentation overlay 0d6658b is 38 ahead. Neither is published to GitHub.",
   "evidence": {
     "full_tests": {
       "passed": 590,
@@ -21,7 +21,7 @@
       "catalog_files": 553,
       "fts5_files": 552,
       "fts5": true,
-      "source_sha": "1c27e2277a7a9f88d9d0dbd9bdac6c7b8f2f80e5",
+      "source_sha": "0d6658b0aa2449c4071c0ca05ddda0aad3609bd2",
       "source_files": 347,
       "symbols": 3920,
       "functions": 904,
@@ -74,8 +74,8 @@
       "deleted_paths": 0,
       "actual_reclaimed_bytes": 0,
       "owner_approval": "required_before_archive_move_or_deletion",
-      "home_available_bytes": 849141760,
-      "root_available_bytes": 40568348672
+      "home_available_bytes": 825761792,
+      "root_available_bytes": 40580689920
     },
     "historical_ledger": {
       "parent_total": 247,
@@ -96,7 +96,7 @@
     "Codex Security diff scan could not launch because the tool rejected the worktree as lacking a resolvable HEAD; repository-local dependency, secret and security scans passed",
     "independent QC covered current HEAD with focused native and inventory checks; the full suite and qualification log remain main-session evidence",
     "high-impact cleanup and any Astra retirement require explicit owner approval and verified recovery archives",
-    "home filesystem remains critically full with 849,141,760 bytes available"
+    "home filesystem remains critically full with 825,761,792 bytes available"
   ],
   "next_safe_action": "Prepare—but do not execute—the exact owner-approved native service/cutover, Astra retirement, unmounted-storage, and cleanup archive operations; retain current recovery paths until approval and qualification."
 }

@@ -1,6 +1,6 @@
 # Integration results
 
-Source under test: `/home/r34p3r/dev/A.R.C.H.O.N` at implementation candidate `4149c1d75eee24880bfacd819342f9c21d05d51a`; current documentation overlay `1c27e2277a7a9f88d9d0dbd9bdac6c7b8f2f80e5` contains no production-code changes.
+Source under test: `/home/r34p3r/dev/A.R.C.H.O.N` at implementation candidate `4149c1d75eee24880bfacd819342f9c21d05d51a`; latest evidence overlay `0d6658b0aa2449c4071c0ca05ddda0aad3609bd2` contains no production-code changes.
 
 | Check | Command/evidence | Result |
 | --- | --- | --- |

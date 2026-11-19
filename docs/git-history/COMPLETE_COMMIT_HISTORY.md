@@ -1,6 +1,6 @@
 # Complete ARCHON commit history
 
-Generated for source candidate `4149c1d75eee24880bfacd819342f9c21d05d51a`; 756 reachable commits across the current local and GitHub remote-tracking refs. The earlier table is preserved through the original native-runtime source commit; the post-source continuation is listed below and fully indexed in `COMMIT_INDEX.json`.
+Generated for source candidate `4149c1d75eee24880bfacd819342f9c21d05d51a`; this snapshot indexes 758 reachable commits through documentation overlay `0d6658b0aa2449c4071c0ca05ddda0aad3609bd2`. The earlier table is preserved through the original native-runtime source commit; the post-source continuation is listed below and fully indexed in `COMMIT_INDEX.json`.
 
 | Date | SHA | Author | Task IDs | Changed files | Subject |
 | --- | --- | --- | --- | ---: | --- |
@@ -765,3 +765,5 @@ Generated for source candidate `4149c1d75eee24880bfacd819342f9c21d05d51a`; 756 r
 | 2026-11-19T23:41:43+07:00 | c4574ae1a80d | ARCHON Main Codex | - | 3 | docs(audit): refresh dry-run disk measurements |
 | 2026-11-19T23:46:21+07:00 | a286b6f1e51e | ARCHON Main Codex | - | 11 | docs(index): bind complete reachable history snapshot |
 | 2026-11-20T00:09:18+07:00 | 4149c1d75eee | ARCHON Main Codex | - | 7 | feat(native): qualify bounded probes and resumable inventory |
+| 2026-11-20T00:28:19+07:00 | 1c27e2277a7a | ARCHON Main Codex | - | 24 | docs(audit): reconcile final migration evidence |
+| 2026-11-20T00:43:08+07:00 | 0d6658b0aa24 | ARCHON Main Codex | - | 17 | docs(audit): bind independent QC and native gaps |

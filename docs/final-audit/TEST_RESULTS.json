@@ -3,9 +3,9 @@
   "source_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
   "implementation_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
   "canonical_head": "4149c1d75eee24880bfacd819342f9c21d05d51a",
-  "current_documentation_overlay_sha": "1c27e2277a7a9f88d9d0dbd9bdac6c7b8f2f80e5",
-  "source_state": "tested canonical local candidate; not published to GitHub",
-  "code_index_snapshot_sha": "1c27e2277a7a9f88d9d0dbd9bdac6c7b8f2f80e5",
+  "current_documentation_overlay_sha": "0d6658b0aa2449c4071c0ca05ddda0aad3609bd2",
+  "source_state": "tested canonical local candidate; latest evidence overlay is documentation-only and not published to GitHub",
+  "code_index_snapshot_sha": "0d6658b0aa2449c4071c0ca05ddda0aad3609bd2",
   "runner": "python3 -m unittest discover -s tests -p 'test_*.py' -q",
   "pytest_available": false,
   "independent_qc": {

@@ -24040,10 +24040,212 @@
       "subject": "feat(native): qualify bounded probes and resumable inventory",
       "task_ids": [],
       "tests_added_or_changed": true
+    },
+    {
+      "author": "ARCHON Main Codex",
+      "author_date": "2026-11-20T00:28:19+07:00",
+      "author_email": "archon-main@local.invalid",
+      "body": "",
+      "breaking_change_signal": false,
+      "changed_files": [
+        {
+          "path": "docs/codebase/CALL_GRAPH.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/INDEX_VALIDATION.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/MODULE_DEPENDENCIES.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/SECURITY_SENSITIVE_FUNCTIONS.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/CLEANUP_MANIFEST.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/CLEANUP_MANIFEST.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/DISK_CLEANUP_REPORT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/FINAL_VERDICT.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/FINAL_VERDICT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/INTEGRATION_RESULTS.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/MODULE_VERIFICATION.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/PERFORMANCE_REPORT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/POSTCOMMIT_CHECKPOINT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/REFACTORING_REPORT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/SECURITY_STATUS.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/SYSTEM_STATUS.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/TEST_AUDIT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/TEST_RESULTS.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/git-history/BRANCH_AUDIT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/git-history/COMMIT_INDEX.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/git-history/COMPLETE_COMMIT_HISTORY.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/git-history/FEATURE_TIMELINE.md",
+          "status": "M"
+        }
+      ],
+      "commit_date": "2026-11-20T00:28:19+07:00",
+      "dependency_related": false,
+      "parents": [
+        "4149c1d75eee24880bfacd819342f9c21d05d51a"
+      ],
+      "security_related": false,
+      "sha": "1c27e2277a7a9f88d9d0dbd9bdac6c7b8f2f80e5",
+      "subject": "docs(audit): reconcile final migration evidence",
+      "task_ids": [],
+      "tests_added_or_changed": true
+    },
+    {
+      "author": "ARCHON Main Codex",
+      "author_date": "2026-11-20T00:43:08+07:00",
+      "author_email": "archon-main@local.invalid",
+      "body": "",
+      "breaking_change_signal": false,
+      "changed_files": [
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/INDEX_VALIDATION.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/CLEANUP_MANIFEST.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/CLEANUP_MANIFEST.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/DISK_CLEANUP_REPORT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/FINAL_VERDICT.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/FINAL_VERDICT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/INDEPENDENT_QC.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/INDEPENDENT_QC.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/INTEGRATION_RESULTS.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/NATIVE_EXECUTION_GAPS.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/final-audit/PERFORMANCE_REPORT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/REMAINING_LIMITATIONS.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/SYSTEM_STATUS.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/TEST_AUDIT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/TEST_RESULTS.json",
+          "status": "M"
+        }
+      ],
+      "commit_date": "2026-11-20T00:43:08+07:00",
+      "dependency_related": false,
+      "parents": [
+        "1c27e2277a7a9f88d9d0dbd9bdac6c7b8f2f80e5"
+      ],
+      "security_related": false,
+      "sha": "0d6658b0aa2449c4071c0ca05ddda0aad3609bd2",
+      "subject": "docs(audit): bind independent QC and native gaps",
+      "task_ids": [],
+      "tests_added_or_changed": true
     }
   ],
-  "generated_at": "2026-11-19T17:24:35.212750+00:00",
-  "reachable_commit_count": 756,
+  "generated_at": "2026-11-19T17:44:07.246687+00:00",
+  "reachable_commit_count": 758,
   "schema_version": 1,
-  "source_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a"
+  "source_sha": "0d6658b0aa2449c4071c0ca05ddda0aad3609bd2"
 }

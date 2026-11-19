@@ -2449,7 +2449,7 @@
       "size_bytes": 2766
     }
   ],
-  "generated_at": "2026-11-19T17:41:11.927978+00:00",
+  "generated_at": "2026-11-19T17:48:52.922790+00:00",
   "parse_errors": [],
   "parser": {
     "javascript": "declaration regex",
@@ -7768,8 +7768,8 @@
     "unresolved_symbol_references": 6868
   },
   "schema_version": 1,
-  "source_sha": "1c27e2277a7a9f88d9d0dbd9bdac6c7b8f2f80e5",
-  "source_state": "catalog generated from checkout 1c27e2277a7a9f88d9d0dbd9bdac6c7b8f2f80e5; status snapshot had 17 entries before output generation",
+  "source_sha": "0d6658b0aa2449c4071c0ca05ddda0aad3609bd2",
+  "source_state": "catalog generated from checkout 0d6658b0aa2449c4071c0ca05ddda0aad3609bd2; status snapshot had 15 entries before output generation",
   "symbols": [
     {
       "authentication_or_permission_requirements": [
