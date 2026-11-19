@@ -11,7 +11,7 @@ Source under test: /home/r34p3r/dev/A.R.C.H.O.N at tested local tree 239e10154e1
 | Fresh storage | StorageManager migration into runtime.sqlite3 | PASS |
 | Fresh queue | TaskQueue schema into atlas.sqlite3 | PASS |
 | Fresh restore | SQLite backup API plus integrity/foreign-key checks | PASS |
-| FTS5 index | 548 files indexed from 549 cataloged files, including systemd and Windows deployment files; four representative queries returned results | PASS |
+| FTS5 index | 549 files indexed from 550 cataloged files, including systemd and Windows deployment files; four representative queries returned results | PASS |
 | Astra unavailable native import | PYTHONPATH=src without bootstrap path | PASS for native imports |
 | Native controller | Fresh one-shot, lock fencing, control-marker admission, executor success/failure receipts, terminate/restart, and systemd unit verification | PASS; unit not installed and executor unconfigured |
 | Native health | `jarvis_v2.cli health` against fresh runtime/ATLAS state; historical ledger explicitly not loaded | PASS |

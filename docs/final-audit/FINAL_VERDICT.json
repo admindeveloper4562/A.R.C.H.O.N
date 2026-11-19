@@ -10,7 +10,7 @@
     "native_imports": {"modules": 106, "errors": 0},
     "local_security_checks": "pass",
     "fresh_databases": "pass",
-    "code_index": {"catalog_files": 549, "fts5_files": 548, "fts5": true},
+    "code_index": {"catalog_files": 550, "fts5_files": 549, "fts5": true},
     "native_controller": {"one_shot": "pass", "lock_fencing": "pass", "control_markers": "pass", "restart_after_termination": "pass", "service_unit_verify": "pass", "service_installed": false},
     "native_health": {"status": "healthy", "mode": "native_runtime", "historical_ledger_loaded": false, "queue_tasks": 0},
     "inventory": {"entries": 10000, "truncated": true, "permission_denied": 17, "skipped_mounts": 28, "ollama_models": ["qwen3:4b", "qwen2.5-coder:7b", "qwen2.5-coder:3b"], "nvidia_acceleration": "NVIDIA GeForce GTX 980, 4096 MiB, driver 535.309.01"},

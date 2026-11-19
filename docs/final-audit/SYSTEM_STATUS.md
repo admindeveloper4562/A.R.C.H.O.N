@@ -5,13 +5,14 @@
 - Canonical source: /home/r34p3r/dev/A.R.C.H.O.N
 - Source SHA: 239e10154e1c81b4ff463cdd796e04f0dbc68407
 - Implementation SHA: eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767
+- Follow-up native monitor boundary fix: 2070829; current catalog refresh: 76b7b29; focused monitor checks pass.
 - Git origin: https://github.com/admindeveloper4562/A.R.C.H.O.N.git; target SHA is not published to GitHub; direct refs observed: main=5227b91d2725bf4be4336a5ad26189fdf1034704, develop=75582dbf48057e3d5b0e7cf4acfdba2386acfcff
 - Git state: tested tree 239e101; implementation commit eef1e3c8; final documentation refresh is local-only and not published to GitHub
 - Version in package metadata: 0.0.3
 - Full regression: 579 passed
 - Native import sweep: 106 passed
 - Fresh runtime DBs: integrity and restore checks passed
-- Search index: FTS5 available, 548 files indexed from 549 cataloged files, four representative queries returned results including deployment files
+- Search index: FTS5 available, 549 files indexed from 550 cataloged files, four representative queries returned results including deployment files
 
 ## Runtime
 
