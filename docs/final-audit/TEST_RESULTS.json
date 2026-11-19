@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "source_sha": "a2df24261d5ea19e9260f7f6c270b26ea9abdb03",
-  "source_state": "base integration SHA plus uncommitted audit implementation and evidence changes",
+  "source_sha": "eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767",
+  "source_state": "local migration commit; evidence refresh is not published to GitHub",
   "runner": "python3 -m unittest discover -s tests -p 'test_*.py' -q",
   "pytest_available": false,
   "full_suite": {

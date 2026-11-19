@@ -1,6 +1,6 @@
 # ARCHON Function Catalog
 
-Generated `2026-11-19T15:05:27.866091+00:00` from base commit `a2df24261d5ea19e9260f7f6c270b26ea9abdb03`; audited working tree state: `uncommitted working tree with 22 status entries`.
+Generated `2026-11-19T15:15:09.769041+00:00` from base commit `eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767`; audited working tree state: `catalog generated from checkout eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767; status snapshot had 10 entries before output generation`.
 
 Static inventory; callers, unresolved references, test links, and dead-code candidates are heuristic and must not be treated as acceptance receipts.
 

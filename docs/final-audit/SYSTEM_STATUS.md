@@ -3,9 +3,9 @@
 ## Project
 
 - Canonical source: /home/r34p3r/dev/A.R.C.H.O.N
-- Source SHA: a2df24261d5ea19e9260f7f6c270b26ea9abdb03
+- Source SHA: eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767
 - Git origin: https://github.com/admindeveloper4562/A.R.C.H.O.N.git; target SHA is not published to GitHub; direct refs observed: main=5227b91d2725bf4be4336a5ad26189fdf1034704, develop=75582dbf48057e3d5b0e7cf4acfdba2386acfcff
-- Working tree: base checkout was clean before audit changes; current implementation and audit artifacts are uncommitted (22 status entries)
+- Git state: local migration commit is present; the evidence refresh is being consolidated locally and is not published to GitHub
 - Version in package metadata: 0.0.3
 - Full regression: 579 passed
 - Native import sweep: 106 passed

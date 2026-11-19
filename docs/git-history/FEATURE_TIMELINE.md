@@ -6,7 +6,7 @@ Chronological commit groups derived from task IDs and commit subjects. The commi
 
 | Month | Commits |
 | --- | ---: |
-| 2026-11 | 734 |
+| 2026-11 | 735 |
 
 ## Task-linked contributions
 
@@ -118,7 +118,7 @@ Chronological commit groups derived from task IDs and commit subjects. The commi
 | GUARD-301 | 1 | 389ec5ad4c9e | 389ec5ad4c9e | feat(sda): integrate independently reviewed candidate [GUARD-301] |
 | MIG-001 | 3 | 5227b91d2725 | b99ae33f2c88 | feat(sda): integrate independently reviewed candidate [MIG-001] |
 | MIG-002 | 3 | 7f709ddbb6c7 | cf9e52841761 | feat(sda): integrate independently reviewed candidate [MIG-002] |
-| MIG-003 | 4 | 210d9ebbe97b | 784a2a0df18e | feat(sda): integrate independently reviewed candidate [MIG-003] |
+| MIG-003 | 5 | 210d9ebbe97b | eef1e3c8d1bf | feat(migration): establish native ARCHON runtime [MIG-003] |
 | MIG-004 | 1 | bc3e9b4bb165 | bc3e9b4bb165 | feat(sda): integrate independently reviewed candidate [MIG-004] |
 | MIG-005 | 1 | 024181b8aaf8 | 024181b8aaf8 | feat(sda): integrate independently reviewed candidate [MIG-005] |
 | MIG-006 | 1 | 5fa4eb63cf4a | 5fa4eb63cf4a | feat(sda): integrate independently reviewed candidate [MIG-006] |

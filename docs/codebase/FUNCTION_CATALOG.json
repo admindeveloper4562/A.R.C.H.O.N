@@ -2372,11 +2372,11 @@
       "size_bytes": 301
     },
     {
-      "content_sha256": "f65e20dc498436796eac69a7202b165be04f261c98f29c173244a0aabcbfdccc",
-      "git_blob_sha": "b2bb7e174c49b3d4e386be80485e02f1f620bb05",
+      "content_sha256": "ded4db86a18aaab8d831fbd69036c396e08c92857bb6460ff8a854ca35608367",
+      "git_blob_sha": "849aeaa615e72a288b4756dc1c48a868093b344c",
       "language": "python",
       "path": "tools/build_final_audit.py",
-      "size_bytes": 28679
+      "size_bytes": 28733
     },
     {
       "content_sha256": "c86e61a6cca00bae2b1348f8e21a42e29d733ea397399499c2d2249a96d94655",
@@ -2435,7 +2435,7 @@
       "size_bytes": 2766
     }
   ],
-  "generated_at": "2026-11-19T15:05:27.866091+00:00",
+  "generated_at": "2026-11-19T15:15:09.769041+00:00",
   "parse_errors": [],
   "parser": {
     "javascript": "declaration regex",
@@ -7754,8 +7754,8 @@
     "unresolved_symbol_references": 6800
   },
   "schema_version": 1,
-  "source_sha": "a2df24261d5ea19e9260f7f6c270b26ea9abdb03",
-  "source_state": "uncommitted working tree with 22 status entries",
+  "source_sha": "eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767",
+  "source_state": "catalog generated from checkout eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767; status snapshot had 10 entries before output generation",
   "symbols": [
     {
       "authentication_or_permission_requirements": [

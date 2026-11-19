@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "verdict": "CONDITIONAL",
-  "source_sha": "a2df24261d5ea19e9260f7f6c270b26ea9abdb03",
+  "source_sha": "eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767",
   "canonical_path": "/home/r34p3r/dev/A.R.C.H.O.N",
-  "source_state": "base integration SHA plus uncommitted audit implementation and evidence changes",
+  "source_state": "local migration commit; evidence refresh is not published to GitHub",
   "evidence": {
     "full_tests": {"passed": 579, "failed": 0, "duration_seconds": 27.243},
     "native_imports": {"modules": 106, "errors": 0},
@@ -28,7 +28,7 @@
     "legacy Astra timer remains enabled",
     "the canonical SHA is not published on GitHub",
     "external Linux-release evidence remains incomplete for Windows, iOS, Blender, live providers, finance, and hosted CI",
-    "no independent-QC receipt binds the complete final uncommitted working tree",
+    "a fresh independent-QC receipt for the final evidence refresh is still pending",
     "high-impact cleanup requires explicit owner approval"
   ],
   "next_safe_action": "Review the cleanup manifest and native cutover evidence; do not delete paths or disable the legacy timer until the owner authorizes the exact transition."

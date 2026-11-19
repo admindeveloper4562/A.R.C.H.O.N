@@ -22874,10 +22874,223 @@
         "REL-025"
       ],
       "tests_added_or_changed": false
+    },
+    {
+      "author": "Astra One",
+      "author_date": "2026-11-19T22:10:08+07:00",
+      "author_email": "astra-one@local.invalid",
+      "body": "",
+      "breaking_change_signal": false,
+      "changed_files": [
+        {
+          "path": ".gitignore",
+          "status": "M"
+        },
+        {
+          "path": "README.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/CALL_GRAPH.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.json",
+          "status": "A"
+        },
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/codebase/INDEX_VALIDATION.json",
+          "status": "A"
+        },
+        {
+          "path": "docs/codebase/MODULE_DEPENDENCIES.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/codebase/SECURITY_SENSITIVE_FUNCTIONS.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/codebase/UNUSED_SYMBOLS.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/final-audit/ASTRA_DEPENDENCY_AUDIT.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/final-audit/BASELINE.json",
+          "status": "A"
+        },
+        {
+          "path": "docs/final-audit/BASELINE.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/final-audit/CLEANUP_MANIFEST.json",
+          "status": "A"
+        },
+        {
+          "path": "docs/final-audit/CLEANUP_MANIFEST.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/final-audit/DISK_CLEANUP_REPORT.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/final-audit/FINAL_VERDICT.json",
+          "status": "A"
+        },
+        {
+          "path": "docs/final-audit/FINAL_VERDICT.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/final-audit/INTEGRATION_RESULTS.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/final-audit/MODULE_VERIFICATION.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/final-audit/PERFORMANCE_REPORT.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/final-audit/REFACTORING_REPORT.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/final-audit/REGRESSION_COVERAGE.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/final-audit/REMAINING_LIMITATIONS.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/final-audit/SECURITY_STATUS.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/final-audit/SYSTEM_STATUS.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/final-audit/TEST_AUDIT.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/final-audit/TEST_RESULTS.json",
+          "status": "A"
+        },
+        {
+          "path": "docs/git-history/BRANCH_AUDIT.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/git-history/COMMIT_INDEX.json",
+          "status": "A"
+        },
+        {
+          "path": "docs/git-history/COMPLETE_COMMIT_HISTORY.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/git-history/FEATURE_TIMELINE.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/operations/ARCHON_NATIVE_RUNTIME.md",
+          "status": "A"
+        },
+        {
+          "path": "docs/operations/INSTALLATION_RUNBOOK.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/operations/LINUX_ASTRA_SERVICE.md",
+          "status": "M"
+        },
+        {
+          "path": "infra/systemd/archon.service",
+          "status": "A"
+        },
+        {
+          "path": "pyproject.toml",
+          "status": "M"
+        },
+        {
+          "path": "src/jarvis_v2/__init__.py",
+          "status": "M"
+        },
+        {
+          "path": "src/jarvis_v2/automation/queue_api.py",
+          "status": "M"
+        },
+        {
+          "path": "src/jarvis_v2/cli.py",
+          "status": "M"
+        },
+        {
+          "path": "src/jarvis_v2/health.py",
+          "status": "M"
+        },
+        {
+          "path": "src/jarvis_v2/monitor.py",
+          "status": "M"
+        },
+        {
+          "path": "src/jarvis_v2/native_controller.py",
+          "status": "A"
+        },
+        {
+          "path": "src/jarvis_v2/system_inventory.py",
+          "status": "A"
+        },
+        {
+          "path": "tests/test_health.py",
+          "status": "M"
+        },
+        {
+          "path": "tests/test_native_controller.py",
+          "status": "A"
+        },
+        {
+          "path": "tests/test_system_inventory.py",
+          "status": "A"
+        },
+        {
+          "path": "tools/build_final_audit.py",
+          "status": "A"
+        },
+        {
+          "path": "tools/ci_checks.py",
+          "status": "M"
+        }
+      ],
+      "commit_date": "2026-11-19T22:10:08+07:00",
+      "dependency_related": true,
+      "parents": [
+        "a2df24261d5ea19e9260f7f6c270b26ea9abdb03"
+      ],
+      "security_related": true,
+      "sha": "eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767",
+      "subject": "feat(migration): establish native ARCHON runtime [MIG-003]",
+      "task_ids": [
+        "MIG-003"
+      ],
+      "tests_added_or_changed": true
     }
   ],
-  "generated_at": "2026-11-19T13:51:58.748886+00:00",
-  "reachable_commit_count": 734,
+  "generated_at": "2026-11-19T15:17:33.109666+00:00",
+  "reachable_commit_count": 735,
   "schema_version": 1,
-  "source_sha": "a2df24261d5ea19e9260f7f6c270b26ea9abdb03"
+  "source_sha": "eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767"
 }

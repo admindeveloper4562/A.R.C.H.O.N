@@ -1,6 +1,6 @@
 # Complete ARCHON commit history
 
-Generated from a2df24261d5ea19e9260f7f6c270b26ea9abdb03; 734 reachable commits across the current local and GitHub remote-tracking refs.
+Generated from eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767; 735 reachable commits across the current local and GitHub remote-tracking refs.
 
 | Date | SHA | Author | Task IDs | Changed files | Subject |
 | --- | --- | --- | --- | ---: | --- |
@@ -738,3 +738,4 @@ Generated from a2df24261d5ea19e9260f7f6c270b26ea9abdb03; 734 reachable commits a
 | 2026-11-19T19:30:00+07:00 | dd61427d1ead | Astra One | REL-024 | 1 | feat(sda): integrate independently reviewed candidate [REL-024] |
 | 2026-11-19T19:32:09+07:00 | 84934dd5363f | Astra One | REL-025 | 1 | docs(release): publish final acceptance checkpoint [REL-025] |
 | 2026-11-19T19:32:31+07:00 | a2df24261d5e | Astra One | REL-025 | 1 | feat(sda): integrate independently reviewed candidate [REL-025] |
+| 2026-11-19T22:10:08+07:00 | eef1e3c8d1bf | Astra One | MIG-003 | 48 | feat(migration): establish native ARCHON runtime [MIG-003] |

@@ -2,7 +2,7 @@
 
 ## Executed evidence
 
-- Evidence was run against the base integration SHA a2df24261d5ea19e9260f7f6c270b26ea9abdb03 plus the uncommitted audit changes in the canonical working tree.
+- Evidence was run against local migration commit eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767; the resulting source is not published to GitHub.
 - Full standard-library discovery: 579 tests, 579 passed, 0 failed, 27.243 seconds.
 - Final suite output is retained at docs/final-audit/evidence/unittest-final.log.
 - Native package import sweep: 106 jarvis_v2 modules, 0 import errors.

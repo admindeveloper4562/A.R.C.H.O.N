@@ -674,7 +674,7 @@ def main(argv: list[str] | None = None) -> int:
         "schema_version": 1,
         "generated_at": generated_at,
         "source_sha": source_sha,
-        "source_state": f"uncommitted working tree with {status_entries} status entries",
+        "source_state": f"catalog generated from checkout {source_sha}; status snapshot had {status_entries} entries before output generation",
         "parser": {
             "python": "stdlib ast",
             "javascript": "declaration regex",
