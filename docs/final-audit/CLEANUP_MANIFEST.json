@@ -2,12 +2,12 @@
   "schema_version": 1,
   "mode": "dry_run",
   "owner_approval": "required_before_any_deletion",
-  "observed_at": "2026-11-19T13:19:59+00:00",
+  "observed_at": "2026-11-19T16:40:45Z",
   "targets": [
     {
       "path": "/home/r34p3r/Projects/ARCHON",
       "classification": "development_checkout",
-      "size": "320M",
+      "size": "329389244 bytes (about 314 MiB)",
       "owner": "r34p3r",
       "last_modified": "not re-read for destructive action",
       "runtime_references": "current development checkout; 14 untracked session/Serena files",
@@ -18,7 +18,7 @@
     {
       "path": "/home/r34p3r/Projects/ARCHON-astra-source",
       "classification": "historical_Astra_source_clone",
-      "size": "49M",
+      "size": "21375768 bytes (about 20.4 MiB)",
       "owner": "r34p3r",
       "runtime_references": "recorded in historical Astra settings and service documentation",
       "recovery": "integration/development Git bundles and remote history",
@@ -28,7 +28,7 @@
     {
       "path": "/home/r34p3r/Projects/ARCHON-astra-source-clean-20261116",
       "classification": "clean_release_candidate_clone",
-      "size": "6.1M",
+      "size": "4815808 bytes (about 4.6 MiB)",
       "owner": "r34p3r",
       "runtime_references": "historical REL-004 release evidence",
       "recovery": "Git history and migration checkpoint",
@@ -38,7 +38,7 @@
     {
       "path": "/home/r34p3r/.local/state/archon-astra/worktrees",
       "classification": "candidate_and_recovery_worktrees",
-      "size": "1.7G",
+      "size": "1254942481 bytes (about 1.17 GiB)",
       "owner": "r34p3r",
       "runtime_references": "Git worktree metadata, candidate branches, and one conflicted owner-approval worktree",
       "recovery": "Git bundles do not replace uncommitted worktree contents",
@@ -48,7 +48,7 @@
     {
       "path": "/home/r34p3r/.local/state/archon-astra/backups",
       "classification": "historical_SQLite_and_watchdog_backups",
-      "size": "2.2G",
+      "size": "2279029117 bytes (about 2.12 GiB)",
       "owner": "r34p3r",
       "runtime_references": "recovery and rollback evidence",
       "recovery": "the directory itself is the recovery copy",
@@ -58,7 +58,7 @@
     {
       "path": "/home/r34p3r/.local/state/archon-final-audit/checkpoints/20261119T125838Z",
       "classification": "new_migration_checkpoint",
-      "size": "757M",
+      "size": "792685749 bytes (about 756 MiB)",
       "owner": "r34p3r",
       "runtime_references": "final audit recovery",
       "recovery": "self-contained Git bundles and SQLite backups",
@@ -68,7 +68,7 @@
     {
       "path": "archon-python:3.12-git-20261114 and archon-python:3.12-git-20261114-sshkeygen",
       "classification": "ARCHON-specific_container_images",
-      "size": "approximately 636MB combined",
+      "size": "docker reports 318MB per image; approximately 636MB combined",
       "owner": "Docker user storage",
       "runtime_references": "historical Docker QC evidence",
       "recovery": "rebuild recipes/evidence not independently verified here",
@@ -76,7 +76,7 @@
       "proposed_action": "owner review required; no image removal performed"
     }
   ],
-  "expected_reclaim_if_all_approved": "approximately 4.9G before filesystem/block accounting",
+  "expected_reclaim_if_all_approved": "approximately 5318238167 bytes before filesystem/block accounting; Docker image sizes are approximate and every target requires a final live-path recheck",
   "actual_reclaimed_bytes": 0,
   "deleted_paths": []
 }
