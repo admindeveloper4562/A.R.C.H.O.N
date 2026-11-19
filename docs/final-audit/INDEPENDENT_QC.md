@@ -10,7 +10,9 @@ Observed 2026-11-19 against local HEAD `239e10154e1c81b4ff463cdd796e04f0dbc68407
 | Historical ledger envelope | PASS | `ARCHON-JARVIS-V2`: 247 parents = 240 completed + 7 archived; five completed rows are outside the envelope |
 | Diff hygiene | PASS | `git diff --check` passed |
 | Git publication | PARTIAL | Local commits are ahead of verified GitHub refs and remain unpublished |
-| Astra boundary | FAIL for release gate | Legacy monitor remains; direct follow-up observed enabled/active timer and service failure 143 from incompatible `--json` plus `--watch` arguments |
+| Astra boundary | FAIL for release gate | Legacy monitor remains; the QC follow-up observed an enabled/active timer and one service failure 143 from incompatible `--json` plus `--watch` arguments |
 | Native release completeness | PARTIAL | Domain executor, unattended SDA/AEGIS operation, trusted watchdog activation, and rollback soak remain unproven |
 
 The QC intentionally skipped the full suite and long scans. Main-session evidence for the latest post-commit full suite is 579/579 tests in 27.720 seconds; this is not an independent QC execution of that suite. The QC is evidence and review, not an approval, merge receipt, or release authorization.
+
+Subsequent direct observation at 22:37:39 +07:00 found the timer still enabled/active and the latest transient service run exited 0, although the same journal argument error was emitted before its legacy 568-test run completed. No service state was changed.

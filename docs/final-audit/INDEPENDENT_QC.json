@@ -23,7 +23,7 @@
     "cleanup"
   ],
   "blockers": [
-    "legacy Astra boundary remains active and latest service attempt failed with status 143",
+    "legacy Astra boundary remains active and the QC follow-up observed a service failure 143; later direct observation saw exit 0 with the same monitor argument error",
     "native domain executor and unattended SDA/AEGIS watchdog soak are unproven",
     "local source is not published to verified GitHub refs",
     "owner-approved cleanup remains pending"

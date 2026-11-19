@@ -26,7 +26,7 @@
   },
   "blocking_conditions": [
     "native unattended SDA/AEGIS cutover and trusted watchdog soak are not proven",
-    "legacy Astra timer remains enabled; the latest service attempt failed with status 143 after the legacy --json/--watch monitor argument conflict",
+    "legacy Astra timer remains enabled; the latest transient service run exited 0 but its journal recorded the legacy --json/--watch monitor argument conflict",
     "the canonical SHA is not published on GitHub",
     "external Linux-release evidence remains incomplete for Windows, iOS, Blender, live providers, finance, and hosted CI",
     "Codex Security diff scan could not launch because the tool rejected the worktree as lacking a resolvable HEAD; local security scans passed",

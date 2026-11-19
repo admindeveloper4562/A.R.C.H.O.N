@@ -17,7 +17,7 @@
 
 The native state root is /home/r34p3r/.local/state/archon. It contains empty runtime and ATLAS queue databases, private host inventory metadata, the code index, empty logs/cache directories, and private controller lock/control directories. It does not contain the historical 247-task ledger or personal/financial data. Native health reports the runtime healthy with zero queue tasks and historical ledger loading false. The native controller passed fresh one-shot, fencing, marker, receipt, terminate/restart, and systemd verification checks; its default domain executor is unconfigured and its unit is not installed.
 
-The historical Astra boundary remains active and requires controlled retirement: archon-astra.timer is enabled and active; archon-astra.service most recently failed with exit status 143 after its legacy monitor rejected incompatible `--json` plus `--watch` arguments; and the read-only legacy monitor process remains running as PID 20774 at the final observation.
+The historical Astra boundary remains active and requires controlled retirement: archon-astra.timer is enabled and active; the latest transient archon-astra.service run exited 0 and is now inactive, but its journal recorded the legacy monitor rejecting incompatible `--json` plus `--watch` arguments before the legacy batch completed; and the read-only legacy monitor process remains running as PID 20774 at the final observation.
 
 ## Inventory
 
