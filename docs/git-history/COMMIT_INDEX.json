@@ -23836,10 +23836,104 @@
       "subject": "docs(audit): refresh current evidence and provenance index",
       "task_ids": [],
       "tests_added_or_changed": false
+    },
+    {
+      "author": "ARCHON Main Codex",
+      "author_date": "2026-11-19T23:38:43+07:00",
+      "author_email": "archon-main@local.invalid",
+      "body": "",
+      "breaking_change_signal": false,
+      "changed_files": [
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/INDEX_VALIDATION.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/FINAL_VERDICT.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/FINAL_VERDICT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/SYSTEM_STATUS.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/TEST_RESULTS.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/git-history/BRANCH_AUDIT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/git-history/COMMIT_INDEX.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/git-history/COMPLETE_COMMIT_HISTORY.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/git-history/FEATURE_TIMELINE.md",
+          "status": "M"
+        }
+      ],
+      "commit_date": "2026-11-19T23:38:43+07:00",
+      "dependency_related": true,
+      "parents": [
+        "0d0fa778efa2b3ff6df0a59cb0f025351ab3084f"
+      ],
+      "security_related": false,
+      "sha": "120abfc501ef6d7dc347d6746dc8ec0749405d7a",
+      "subject": "docs(index): bind final audit to canonical overlay",
+      "task_ids": [],
+      "tests_added_or_changed": false
+    },
+    {
+      "author": "ARCHON Main Codex",
+      "author_date": "2026-11-19T23:41:43+07:00",
+      "author_email": "archon-main@local.invalid",
+      "body": "",
+      "breaking_change_signal": false,
+      "changed_files": [
+        {
+          "path": "docs/final-audit/CLEANUP_MANIFEST.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/CLEANUP_MANIFEST.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/DISK_CLEANUP_REPORT.md",
+          "status": "M"
+        }
+      ],
+      "commit_date": "2026-11-19T23:41:43+07:00",
+      "dependency_related": false,
+      "parents": [
+        "120abfc501ef6d7dc347d6746dc8ec0749405d7a"
+      ],
+      "security_related": false,
+      "sha": "c4574ae1a80da69aa2b6d0536e41cffa87bd610d",
+      "subject": "docs(audit): refresh dry-run disk measurements",
+      "task_ids": [],
+      "tests_added_or_changed": false
     }
   ],
-  "generated_at": "2026-11-19T16:34:52.416070+00:00",
-  "reachable_commit_count": 752,
+  "generated_at": "2026-11-19T16:44:17.241646+00:00",
+  "reachable_commit_count": 754,
   "schema_version": 1,
-  "source_sha": "0d0fa778efa2b3ff6df0a59cb0f025351ab3084f"
+  "source_sha": "c4574ae1a80da69aa2b6d0536e41cffa87bd610d"
 }

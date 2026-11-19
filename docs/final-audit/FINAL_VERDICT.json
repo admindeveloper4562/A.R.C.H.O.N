@@ -3,7 +3,7 @@
   "verdict": "CONDITIONAL",
   "source_sha": "04eabec5cdbee2b2261272850867289fe0532091",
   "implementation_sha": "04eabec5cdbee2b2261272850867289fe0532091",
-  "canonical_head": "0d0fa778efa2b3ff6df0a59cb0f025351ab3084f",
+  "canonical_head": "c4574ae1a80da69aa2b6d0536e41cffa87bd610d",
   "canonical_path": "/home/r34p3r/dev/A.R.C.H.O.N",
   "source_state": "tested canonical local tree at 04eabec; not published to GitHub",
   "evidence": {
@@ -11,7 +11,7 @@
     "native_imports": {"modules": 106, "errors": 0},
     "local_security_checks": "pass",
     "fresh_databases": "pass",
-    "code_index": {"catalog_files": 552, "fts5_files": 551, "fts5": true, "source_sha": "0d0fa778efa2b3ff6df0a59cb0f025351ab3084f", "source_files": 347, "symbols": 3907, "functions": 903, "methods": 2436, "classes": 568},
+    "code_index": {"catalog_files": 552, "fts5_files": 551, "fts5": true, "source_sha": "c4574ae1a80da69aa2b6d0536e41cffa87bd610d", "source_files": 347, "symbols": 3907, "functions": 903, "methods": 2436, "classes": 568},
     "native_controller": {"one_shot": "pass", "lock_fencing": "pass", "control_markers": "pass", "restart_after_termination": "pass", "service_unit_verify": "pass", "service_installed": false, "bounded_control_plane_executor": "pass", "domain_effect_handlers": "not_configured"},
     "native_health": {"status": "healthy", "mode": "native_runtime", "historical_ledger_loaded": false, "queue_tasks": 0},
     "inventory": {"entries": 10000, "truncated": true, "permission_denied": 17, "skipped_mounts": 28, "ollama_models": ["qwen3:4b", "qwen2.5-coder:7b", "qwen2.5-coder:3b"], "nvidia_acceleration": "NVIDIA GeForce GTX 980, 4096 MiB, driver 535.309.01"},

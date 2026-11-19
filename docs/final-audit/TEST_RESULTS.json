@@ -2,7 +2,7 @@
   "schema_version": 1,
   "source_sha": "04eabec5cdbee2b2261272850867289fe0532091",
   "implementation_sha": "04eabec5cdbee2b2261272850867289fe0532091",
-  "canonical_head": "0d0fa778efa2b3ff6df0a59cb0f025351ab3084f",
+  "canonical_head": "c4574ae1a80da69aa2b6d0536e41cffa87bd610d",
   "source_state": "tested canonical local tree at 04eabec; not published to GitHub",
   "runner": "python3 -m unittest discover -s tests -p 'test_*.py' -q",
   "pytest_available": false,
