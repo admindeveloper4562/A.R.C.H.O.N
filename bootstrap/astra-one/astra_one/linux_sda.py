@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 45834)
-Total output lines: 3249
-
 """Astra One Linux SDA: five bounded Codex workers, independent QC and serial integration.
 
 Only intended for dedicated Linux development checkouts, not production hosts.
@@ -1531,7 +1528,358 @@ class State:
             "residual_risks", "verification",
         }
         if not isinstance(artifact, dict) or set(artifact) != required:
-            raise ValueError("plan amendment field…5834 tokens truncated…    tid = item["task_id"]
+            raise ValueError("plan amendment fields are incomplete or unexpected")
+        supported_parent_ids = {"MIG-002", "MIG-010", "REL-003", "REL-016"} | LINUX_PLATFORM_AMENDMENT_PARENT_IDS
+        if (artifact["format"] != "archon-task-plan-amendment-v1"
+                or artifact["parent_id"] not in supported_parent_ids):
+            raise ValueError("unsupported plan amendment")
+        if type(artifact["version"]) is not int or artifact["version"] < 2:
+            raise ValueError("plan amendment version is invalid")
+        if not SHA256.fullmatch(artifact["original_plan_sha256"]):
+            raise ValueError("original plan SHA-256 is invalid")
+        computed_new = _amendment_payload_sha(artifact)
+        if artifact["amended_plan_sha256"] != computed_new:
+            raise ValueError("amended plan SHA-256 does not match payload")
+        plan_path = self._plan_file()
+        if file_sha256(plan_path) != artifact["original_plan_sha256"]:
+            raise ValueError("original plan SHA-256 does not match the authoritative checkout")
+        with self.db() as db:
+            task = db.execute(
+                "SELECT payload_sha,spec FROM tasks WHERE id=?", (artifact["parent_id"],)
+            ).fetchone()
+            if not task:
+                raise ValueError(f"{artifact['parent_id']} is not imported")
+            graph = self._plan_graph_bindings(db)
+        if artifact["original_task_payload_sha256"] != task["payload_sha"]:
+            raise ValueError("task payload binding does not match the ledger")
+        if artifact["original_acceptance"] != json.loads(task["spec"]).get("acceptance"):
+            raise ValueError("original task acceptance was not preserved")
+        amended = artifact["amended_acceptance"]
+        if (not isinstance(amended, list) or not amended or
+                any(not isinstance(item, str) or not item.strip() or len(item) > 500 for item in amended)):
+            raise ValueError("amended acceptance is invalid")
+        owner = artifact["owner_authorization"]
+        if (not isinstance(owner, dict) or owner.get("authorized") is not True or
+                not isinstance(owner.get("reference"), str) or not owner["reference"] or
+                not isinstance(owner.get("scope"), str) or not owner["scope"]):
+            raise ValueError("owner authorization is incomplete")
+        matrix = artifact["acceptance_matrix"]
+        matrix_keys = {"original_requirement", "github_free_support", "alternative",
+                       "security_properties", "residual_risks", "owner_acknowledgment", "verification"}
+        if (not isinstance(matrix, list) or not matrix or len(matrix) > 16 or
+                any(not isinstance(item, dict) or set(item) != matrix_keys or
+                    any(not isinstance(item[key], str) or not item[key].strip() for key in matrix_keys)
+                    for item in matrix)):
+            raise ValueError("acceptance matrix is invalid")
+        if (not isinstance(artifact["residual_risks"], list) or not artifact["residual_risks"] or
+                any(not isinstance(item, str) or not item.strip() for item in artifact["residual_risks"])):
+            raise ValueError("residual risks are missing")
+        if artifact["graph"] != graph:
+            raise ValueError("plan amendment graph binding does not match the ledger")
+        verification = artifact["verification"]
+        if not isinstance(verification, dict):
+            raise ValueError("plan amendment verification is incomplete")
+        if artifact["parent_id"] == "MIG-002":
+            if verification.get("remote_protection_status") != 403:
+                raise ValueError("GitHub Free limitation evidence is incomplete")
+        elif artifact["parent_id"] == "REL-016":
+            if (verification.get("ci_scope") != "local_matrix"
+                    or verification.get("manifest_repaired") is not True
+                    or verification.get("remote_status") != "DEFERRED_QUOTA"
+                    or verification.get("native_ios") != "deferred_unclaimed"):
+                raise ValueError("REL-016 local CI scope amendment binding is incomplete")
+        elif artifact["parent_id"] == "REL-017":
+            if (verification.get("deployment_scope") != "repository_manifests"
+                    or verification.get("artifact_allowlist") != "service_timer_powershell"
+                    or verification.get("ios") != "deferred_unclaimed"
+                    or verification.get("tws") != "out_of_scope"):
+                raise ValueError("REL-017 deployment artifact scope amendment binding is incomplete")
+        elif (verification.get("architecture_reference") != "MIG-005"
+              or verification.get("qualification") != "required_before_completion"):
+            if artifact["parent_id"] not in LINUX_PLATFORM_AMENDMENT_PARENT_IDS:
+                raise ValueError("single-builder qualification binding is incomplete")
+            if (verification.get("platform") != "linux"
+                    or verification.get("deferred_platform") != "windows"
+                    or verification.get("completion_policy") != "linux_scope_only"):
+                raise ValueError("Linux platform amendment binding is incomplete")
+        return {
+            "artifact": artifact,
+            "artifact_path": str(path),
+            "artifact_sha256": file_sha256(path),
+            "original_plan_sha256": artifact["original_plan_sha256"],
+            "amended_plan_sha256": computed_new,
+            "original_payload_sha256": artifact["original_task_payload_sha256"],
+            "amended_acceptance_sha256": hashlib.sha256(_canonical_json(amended)).hexdigest(),
+            "graph": graph,
+            "owner_authorization": json.dumps(owner, sort_keys=True, separators=(",", ":")),
+        }
+
+    def validate_plan_amendment(self, path: Path) -> dict:
+        """Preview a plan amendment without changing SQLite state."""
+        result = self._validate_plan_amendment(path)
+        return {"preview": True, "status": "validated", **{key: result[key] for key in (
+            "artifact_path", "artifact_sha256", "original_plan_sha256", "amended_plan_sha256",
+            "original_payload_sha256", "amended_acceptance_sha256", "graph")}}
+
+    def record_plan_amendment(self, path: Path) -> dict:
+        """Record a verified amendment through the Master, preserving the old plan."""
+        candidate = path.expanduser().resolve()
+        if candidate.is_symlink() or not candidate.is_file() or candidate.stat().st_size > 64_000:
+            raise ValueError("plan amendment must be a bounded regular file")
+        try:
+            identity = json.loads(candidate.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+            raise ValueError("plan amendment is not valid JSON") from exc
+        if (not isinstance(identity, dict) or not isinstance(identity.get("parent_id"), str)
+                or type(identity.get("version")) is not int):
+            raise ValueError("plan amendment identity is invalid")
+        artifact_sha = file_sha256(candidate)
+        existing = None
+        with self.db() as db:
+            if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='task_plan_amendments'").fetchone():
+                existing = db.execute(
+                    "SELECT amendment_id,version,artifact_sha256,amended_plan_sha256,status "
+                    "FROM task_plan_amendments WHERE parent_id=? AND version=?",
+                    (identity.get("parent_id"), identity.get("version")),
+                ).fetchone()
+        if existing:
+            if (existing["artifact_sha256"], existing["amended_plan_sha256"]) != (
+                    artifact_sha, identity.get("amended_plan_sha256")):
+                raise ValueError("plan amendment version already exists with different content")
+            return {"status": existing["status"], "idempotent": True,
+                    "amendment_id": existing["amendment_id"],
+                    "amended_plan_sha256": existing["amended_plan_sha256"]}
+        result = self._validate_plan_amendment(candidate)
+        backup = self.export_checkpoint()
+        self.ensure_full_plan_schema()
+        artifact = result["artifact"]
+        timestamp = now()
+        amended_payload_sha256 = ""
+        blocker_resolved = False
+        with self.master_lock():
+            with self.db() as db:
+                db.execute("BEGIN IMMEDIATE")
+                db.execute(
+                    "INSERT INTO task_plan_amendments(amendment_id,parent_id,version,original_plan_sha256,"
+                    "amended_plan_sha256,original_payload_sha256,amended_acceptance_sha256,artifact_path,"
+                    "artifact_sha256,owner_authorization,status,source_sha,integration_sha,created_at) "
+                    "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (artifact["amendment_id"], artifact["parent_id"], artifact["version"],
+                     result["original_plan_sha256"], result["amended_plan_sha256"],
+                     result["original_payload_sha256"], result["amended_acceptance_sha256"],
+                     result["artifact_path"], result["artifact_sha256"], result["owner_authorization"],
+                     "active", self.get("source_sha"), self.get("integration_sha"), timestamp),
+                )
+                if artifact["parent_id"] in {"MIG-010", "REL-003", "REL-016"} | LINUX_PLATFORM_AMENDMENT_PARENT_IDS:
+                    task = db.execute(
+                        "SELECT * FROM tasks WHERE id=?", (artifact["parent_id"],)
+                    ).fetchone()
+                    if not task:
+                        db.execute("ROLLBACK")
+                        raise ValueError(f"{artifact['parent_id']} is not imported")
+                    if artifact["parent_id"] == "MIG-010" and (
+                            task["status"] != "blocked"
+                            or task["last_error"] != "five_worker_acceptance_conflicts_single_builder_contract"):
+                        db.execute("ROLLBACK")
+                        raise ValueError("MIG-010 is not at the expected obsolete-worker blocker")
+                    if artifact["parent_id"] == "REL-003" and task["status"] not in {"pending", "queued"}:
+                        db.execute("ROLLBACK")
+                        raise ValueError("REL-003 is not pending or queued")
+                    if artifact["parent_id"] == "REL-016":
+                        if task["status"] not in {"blocked", "pending"}:
+                            db.execute("ROLLBACK")
+                            raise ValueError("REL-016 packaging amendment requires a blocked or pending task")
+                        dependencies = json.loads(task["spec"]).get("depends_on", [])
+                        if any(
+                                (dependency_row := db.execute(
+                                    "SELECT status FROM tasks WHERE id=?", (dependency,)
+                                ).fetchone()) is None
+                                or dependency_row["status"] != "completed"
+                                for dependency in dependencies
+                        ):
+                            db.execute("ROLLBACK")
+                            raise ValueError("REL-016 packaging amendment dependencies are incomplete")
+                    if artifact["parent_id"] in LINUX_PLATFORM_AMENDMENT_PARENT_IDS:
+                        if task["status"] not in {"blocked", "pending"}:
+                            db.execute("ROLLBACK")
+                            raise ValueError("Linux platform amendment requires a blocked or pending task")
+                        dependencies = json.loads(task["spec"]).get("depends_on", [])
+                        if any(
+                            (dependency_row := db.execute(
+                                "SELECT status FROM tasks WHERE id=?", (dependency,)
+                            ).fetchone()) is None
+                            or dependency_row["status"] != "completed"
+                            for dependency in dependencies
+                        ):
+                            db.execute("ROLLBACK")
+                            raise ValueError("Linux platform amendment dependencies are incomplete")
+                    spec = json.loads(task["spec"])
+                    amended_spec = dict(spec)
+                    amended_spec["acceptance"] = artifact["amended_acceptance"]
+                    if artifact["parent_id"] == "REL-016":
+                        scope_roots = list(amended_spec.get("suggested_scope_roots", []))
+                        if "bootstrap/astra-one/" not in scope_roots:
+                            scope_roots.append("bootstrap/astra-one/")
+                        amended_spec["suggested_scope_roots"] = scope_roots
+                        amended_spec["scope_status"] = "in_scope_with_packaging_repair"
+                        updated = db.execute(
+                            "UPDATE supervisor_cases SET state='resolved_external',category='plan_amendment',"
+                            "failure_code='rel016_packaging_scope_amended',updated_at=? "
+                            "WHERE parent_id='REL-016' AND state='external_blocker'",
+                            (timestamp,),
+                        ).rowcount
+                        if updated != 1:
+                            db.execute("ROLLBACK")
+                            raise ValueError("REL-016 external blocker case is missing")
+                    if artifact["parent_id"] == "REL-017":
+                        scope_roots = list(amended_spec.get("suggested_scope_roots", []))
+                        if "bootstrap/astra-one/" not in scope_roots:
+                            scope_roots.append("bootstrap/astra-one/")
+                        amended_spec["suggested_scope_roots"] = scope_roots
+                        amended_spec["scope_status"] = "in_scope_with_deployment_packaging"
+                    amended_payload_sha256 = payload_sha(amended_spec)
+                    if artifact["parent_id"] == "MIG-010":
+                        updated = db.execute(
+                            "UPDATE supervisor_cases SET state='resolved_external',category='plan_amendment',"
+                            "failure_code='single_builder_contract_amended',updated_at=? "
+                            "WHERE parent_id='MIG-010' AND state='external_blocker' "
+                            "AND failure_code='five_worker_acceptance_conflicts_single_builder_contract'",
+                            (timestamp,),
+                        ).rowcount
+                        if updated != 1:
+                            db.execute("ROLLBACK")
+                            raise ValueError("MIG-010 obsolete-worker blocker case is missing")
+                    db.execute(
+                        "UPDATE tasks SET spec=?,payload_sha=?,status='pending',available_at=0,"
+                        "last_run='',last_error='',updated_at=? WHERE id=?",
+                        (json.dumps(amended_spec, ensure_ascii=False, sort_keys=True),
+                         amended_payload_sha256, timestamp, artifact["parent_id"]),
+                    )
+                    for queue in ("pending_queue", "rebuild_queue", "review_queue", "merge_queue"):
+                        db.execute(f"DELETE FROM {queue} WHERE parent_id=?", (artifact["parent_id"],))
+                    db.execute(
+                        "INSERT INTO pending_queue(parent_id,project_id,enqueue_seq,available_at,created_at) "
+                        "VALUES(?,?,?,0,?)",
+                        (artifact["parent_id"], task["project_id"], task["enqueue_seq"], timestamp),
+                    )
+                    blocker_resolved = True
+                db.execute("COMMIT")
+        return {"status": "active", "idempotent": False, "amendment_id": artifact["amendment_id"],
+                "amended_plan_sha256": result["amended_plan_sha256"], "artifact_sha256": result["artifact_sha256"],
+                "amended_payload_sha256": amended_payload_sha256,
+                "blocker_resolved": blocker_resolved, "backup": backup}
+
+    def _validate_tws_scope_amendment(self, path: Path) -> dict:
+        """Validate the owner-authorized TWS de-scope without changing state."""
+        path = path.expanduser().resolve()
+        if path.is_symlink() or not path.is_file() or path.stat().st_size > 64_000:
+            raise ValueError("scope amendment must be a bounded regular file")
+        try:
+            artifact = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+            raise ValueError("scope amendment is not valid JSON") from exc
+        required = {
+            "format", "amendment_id", "project_id", "version", "original_plan_sha256",
+            "amended_plan_sha256", "original_project_payload_sha256", "deferred_task_ids",
+            "dependency_updates", "acceptance_updates", "owner_authorization",
+            "residual_risks", "verification",
+        }
+        if not isinstance(artifact, dict) or set(artifact) != required:
+            raise ValueError("scope amendment fields are incomplete or unexpected")
+        if (artifact["format"] != TWS_SCOPE_AMENDMENT_FORMAT
+                or artifact["project_id"] != PROJECT_ID
+                or not isinstance(artifact["amendment_id"], str)
+                or not re.fullmatch(r"[A-Z0-9][A-Z0-9_.:-]{2,100}", artifact["amendment_id"])
+                or type(artifact["version"]) is not int or artifact["version"] < 1):
+            raise ValueError("scope amendment identity is invalid")
+        for key in ("original_plan_sha256", "amended_plan_sha256", "original_project_payload_sha256"):
+            if not SHA256.fullmatch(str(artifact[key])):
+                raise ValueError(f"scope amendment {key} is invalid")
+        if artifact["amended_plan_sha256"] != _amendment_payload_sha(artifact):
+            raise ValueError("scope amendment digest does not match its contents")
+        plan_path = self._plan_file()
+        if file_sha256(plan_path) != artifact["original_plan_sha256"]:
+            raise ValueError("scope amendment original plan SHA-256 does not match the authoritative checkout")
+
+        deferred = artifact["deferred_task_ids"]
+        if (not isinstance(deferred, list) or len(deferred) != len(TWS_SCOPE_DEFERRED_PARENT_IDS | {"REL-009"})
+                or len(set(deferred)) != len(deferred)
+                or set(deferred) != TWS_SCOPE_DEFERRED_PARENT_IDS | {"REL-009"}):
+            raise ValueError("scope amendment deferred task set is not the approved TWS scope")
+
+        dependency_updates = artifact["dependency_updates"]
+        if not isinstance(dependency_updates, list) or {
+            item.get("task_id") for item in dependency_updates if isinstance(item, dict)
+        } != {"REL-009", "REL-015", "REL-018"} or len(dependency_updates) != 3:
+            raise ValueError("scope amendment dependency updates are incomplete")
+        acceptance_updates = artifact["acceptance_updates"]
+        if not isinstance(acceptance_updates, list) or {
+            item.get("task_id") for item in acceptance_updates if isinstance(item, dict)
+        } != TWS_SCOPE_REL_PARENT_IDS or len(acceptance_updates) != len(TWS_SCOPE_REL_PARENT_IDS):
+            raise ValueError("scope amendment REL acceptance updates are incomplete")
+
+        owner = artifact["owner_authorization"]
+        if (not isinstance(owner, dict) or owner.get("authorized") is not True
+                or not isinstance(owner.get("reference"), str) or not owner["reference"].strip()
+                or not isinstance(owner.get("scope"), str) or not owner["scope"].strip()):
+            raise ValueError("scope amendment owner authorization is incomplete")
+        risks = artifact["residual_risks"]
+        if (not isinstance(risks, list) or not risks
+                or any(not isinstance(item, str) or not item.strip() for item in risks)):
+            raise ValueError("scope amendment residual risks are missing")
+        verification = artifact["verification"]
+        if (not isinstance(verification, dict)
+                or verification.get("no_tws_implementation_claim") is not True
+                or verification.get("no_ios_device_evidence_claim") is not True
+                or verification.get("main_unchanged") is not True):
+            raise ValueError("scope amendment verification boundary is incomplete")
+
+        with self.db() as db:
+            project = db.execute("SELECT payload_sha FROM projects WHERE id=?", (PROJECT_ID,)).fetchone()
+            if not project:
+                raise ValueError("full-build project is not imported")
+            if project["payload_sha"] != artifact["original_project_payload_sha256"]:
+                raise ValueError("scope amendment project payload binding is stale")
+            rows = {
+                row["id"]: row for row in db.execute(
+                    "SELECT id,status,spec,payload_sha FROM tasks WHERE project_id=?", (PROJECT_ID,)
+                )
+            }
+            if set(deferred) - rows.keys() or TWS_SCOPE_REL_PARENT_IDS - rows.keys():
+                raise ValueError("scope amendment task is not imported")
+
+            for tid in deferred:
+                row = rows[tid]
+                spec = json.loads(row["spec"])
+                already = spec.get("scope_amendment_id") == artifact["amendment_id"]
+                if row["status"] != "blocked" and not (row["status"] == "archived" and already):
+                    raise ValueError(f"scope amendment task {tid} is not blocked")
+
+            changed_specs = {tid: json.loads(rows[tid]["spec"]) for tid in TWS_SCOPE_REL_PARENT_IDS}
+            for item in dependency_updates:
+                if (not isinstance(item, dict)
+                        or set(item) != {"task_id", "original_dependencies", "amended_dependencies"}
+                        or not isinstance(item["original_dependencies"], list)
+                        or not isinstance(item["amended_dependencies"], list)):
+                    raise ValueError("scope amendment dependency update is invalid")
+                tid = item["task_id"]
+                current = changed_specs[tid].get("depends_on", [])
+                if current not in (item["original_dependencies"], item["amended_dependencies"]):
+                    raise ValueError(f"scope amendment dependency binding mismatch for {tid}")
+                if any(dep in TWS_SCOPE_DEFERRED_PARENT_IDS | {"REL-009"} for dep in item["amended_dependencies"]):
+                    raise ValueError(f"scope amendment leaves a TWS dependency on {tid}")
+
+            for item in acceptance_updates:
+                if (not isinstance(item, dict)
+                        or set(item) != {"task_id", "original_title", "amended_title",
+                                          "original_acceptance", "amended_acceptance"}
+                        or not isinstance(item["original_title"], str)
+                        or not isinstance(item["amended_title"], str)
+                        or not isinstance(item["original_acceptance"], list)
+                        or not isinstance(item["amended_acceptance"], list)
+                        or not item["amended_acceptance"]):
+                    raise ValueError("scope amendment acceptance update is invalid")
+                tid = item["task_id"]
                 spec = changed_specs[tid]
                 if ((spec.get("title"), spec.get("acceptance")) not in (
                         (item["original_title"], item["original_acceptance"]),
