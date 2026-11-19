@@ -1,6 +1,6 @@
 # ARCHON Function Catalog
 
-Generated `2026-11-19T16:05:13.229370+00:00` from base commit `062088b4115dec3f69a6760a03d291e6d57c7712`; audited working tree state: `catalog generated from checkout 062088b4115dec3f69a6760a03d291e6d57c7712; status snapshot had 0 entries before output generation`.
+Generated `2026-11-19T16:09:50.244958+00:00` from base commit `13626a458bc542a5339d699a71f5c197d9a0d0a1`; audited working tree state: `catalog generated from checkout 13626a458bc542a5339d699a71f5c197d9a0d0a1; status snapshot had 0 entries before output generation`.
 
 Static inventory; callers, unresolved references, test links, and dead-code candidates are heuristic and must not be treated as acceptance receipts.
 
@@ -14,7 +14,7 @@ Static inventory; callers, unresolved references, test links, and dead-code cand
 | Methods | 2425 |
 | Classes | 565 |
 | Parser errors | 0 |
-| Unresolved symbols | 6803 |
+| Unresolved symbols | 6804 |
 | Untested functions/methods | 993 |
 | Suspected dead paths | 1734 |
 
@@ -1614,7 +1614,7 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `jarvis_v2.core.budget.ResourceBudgetError` | class | `src/jarvis_v2/core/budget.py:10-11` | class ResourceBudgetError(ValueError) | 1 | active |
 | `jarvis_v2.core.budget.ResourceBudget` | class | `src/jarvis_v2/core/budget.py:14-120` | class ResourceBudget() | 2 | active |
 | `jarvis_v2.core.budget.ResourceBudget.__init__` | method | `src/jarvis_v2/core/budget.py:17-42` | def __init__(self, capacity: int, *, device_limits: Mapping[str, int] \| None=None, slots: Iterable[str] \| None=None) -> None | 5 | active |
-| `jarvis_v2.core.budget.ResourceBudget.capacity` | method | `src/jarvis_v2/core/budget.py:45-46` | def capacity(self) -> int | 1 | active |
+| `jarvis_v2.core.budget.ResourceBudget.capacity` | method | `src/jarvis_v2/core/budget.py:45-46` | def capacity(self) -> int | 2 | active |
 | `jarvis_v2.core.budget.ResourceBudget.slots` | method | `src/jarvis_v2/core/budget.py:49-50` | def slots(self) -> tuple[str, ...] | 4 | active |
 | `jarvis_v2.core.budget.ResourceBudget.available_slots` | method | `src/jarvis_v2/core/budget.py:53-54` | def available_slots(self) -> tuple[str, ...] | 2 | active |
 | `jarvis_v2.core.budget.ResourceBudget.guardian_pending` | method | `src/jarvis_v2/core/budget.py:57-58` | def guardian_pending(self) -> bool | 1 | active |
@@ -2711,8 +2711,8 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `jarvis_v2.system_inventory._runtime_capabilities` | function | `src/jarvis_v2/system_inventory.py:186-204` | def _runtime_capabilities(runner: CommandRunner) -> dict[str, Any] | 0 | active |
 | `jarvis_v2.system_inventory.collect_inventory` | function | `src/jarvis_v2/system_inventory.py:207-238` | def collect_inventory(*, root: Path=Path('/'), max_entries: int=10000, runner: CommandRunner=_command) -> dict[str, Any] | 1 | active |
 | `jarvis_v2.system_inventory.inventory_digest` | function | `src/jarvis_v2/system_inventory.py:241-246` | def inventory_digest(inventory: Mapping[str, Any]) -> str | 1 | active |
-| `jarvis_v2.system_inventory.compare_inventories` | function | `src/jarvis_v2/system_inventory.py:249-271` | def compare_inventories(previous: Mapping[str, Any], current: Mapping[str, Any]) -> dict[str, Any] | 1 | active |
-| `jarvis_v2.system_inventory.write_inventory` | function | `src/jarvis_v2/system_inventory.py:274-280` | def write_inventory(path: Path, inventory: Mapping[str, Any]) -> None | 0 | active |
+| `jarvis_v2.system_inventory.compare_inventories` | function | `src/jarvis_v2/system_inventory.py:249-283` | def compare_inventories(previous: Mapping[str, Any], current: Mapping[str, Any]) -> dict[str, Any] | 1 | active |
+| `jarvis_v2.system_inventory.write_inventory` | function | `src/jarvis_v2/system_inventory.py:286-292` | def write_inventory(path: Path, inventory: Mapping[str, Any]) -> None | 0 | active |
 | `jarvis_v2.tws.__init__.TWSStoreError` | class | `src/jarvis_v2/tws/__init__.py:27-28` | class TWSStoreError(ValueError) | 7 | active |
 | `jarvis_v2.tws.__init__._identifier` | function | `src/jarvis_v2/tws/__init__.py:31-34` | def _identifier(value: object, label: str) -> str | 0 | active |
 | `jarvis_v2.tws.__init__._text` | function | `src/jarvis_v2/tws/__init__.py:37-45` | def _text(value: object, label: str) -> str | 2 | active |
@@ -3723,11 +3723,11 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `test_sda_shadow_handoff.ShadowHandoffTests.test_missing_prerequisites_have_stable_keys` | method | `tests/test_sda_shadow_handoff.py:7-12` | def test_missing_prerequisites_have_stable_keys(self) | 1 | test |
 | `test_sda_shadow_handoff.ShadowHandoffTests.test_owner_approval_is_required_for_readiness` | method | `tests/test_sda_shadow_handoff.py:14-22` | def test_owner_approval_is_required_for_readiness(self) | 1 | test |
 | `test_sda_shadow_handoff.ShadowHandoffTests.test_shadow_mode_cannot_claim_or_promote` | method | `tests/test_sda_shadow_handoff.py:24-30` | def test_shadow_mode_cannot_claim_or_promote(self) | 1 | test |
-| `test_system_inventory.SystemInventoryTests` | class | `tests/test_system_inventory.py:9-51` | class SystemInventoryTests(unittest.TestCase) | 1 | test |
+| `test_system_inventory.SystemInventoryTests` | class | `tests/test_system_inventory.py:9-64` | class SystemInventoryTests(unittest.TestCase) | 1 | test |
 | `test_system_inventory.SystemInventoryTests.test_scan_is_metadata_only_bounded_and_does_not_follow_symlinks` | method | `tests/test_system_inventory.py:10-21` | def test_scan_is_metadata_only_bounded_and_does_not_follow_symlinks(self) | 1 | test |
-| `test_system_inventory.SystemInventoryTests.test_digest_and_comparison_ignore_collection_time` | method | `tests/test_system_inventory.py:23-29` | def test_digest_and_comparison_ignore_collection_time(self) | 1 | test |
-| `test_system_inventory.SystemInventoryTests.test_inventory_reports_model_and_acceleration_capability_slots` | method | `tests/test_system_inventory.py:31-40` | def test_inventory_reports_model_and_acceleration_capability_slots(self) | 1 | test |
-| `test_system_inventory.SystemInventoryTests.test_inventory_cli_writes_private_output_and_returns_summary` | method | `tests/test_system_inventory.py:42-51` | def test_inventory_cli_writes_private_output_and_returns_summary(self) | 1 | test |
+| `test_system_inventory.SystemInventoryTests.test_digest_and_comparison_ignore_collection_time` | method | `tests/test_system_inventory.py:23-42` | def test_digest_and_comparison_ignore_collection_time(self) | 1 | test |
+| `test_system_inventory.SystemInventoryTests.test_inventory_reports_model_and_acceleration_capability_slots` | method | `tests/test_system_inventory.py:44-53` | def test_inventory_reports_model_and_acceleration_capability_slots(self) | 1 | test |
+| `test_system_inventory.SystemInventoryTests.test_inventory_cli_writes_private_output_and_returns_summary` | method | `tests/test_system_inventory.py:55-64` | def test_inventory_cli_writes_private_output_and_returns_summary(self) | 1 | test |
 | `test_tws_aurelia_model.TWSAureliaModelTests` | class | `tests/test_tws_aurelia_model.py:12-41` | class TWSAureliaModelTests(unittest.TestCase) | 1 | test |
 | `test_tws_aurelia_model.TWSAureliaModelTests.test_generation_and_validation_are_deterministic` | method | `tests/test_tws_aurelia_model.py:13-25` | def test_generation_and_validation_are_deterministic(self) | 1 | test |
 | `test_tws_aurelia_model.TWSAureliaModelTests.test_validator_rejects_deformation_and_clip_corruption` | method | `tests/test_tws_aurelia_model.py:27-35` | def test_validator_rejects_deformation_and_clip_corruption(self) | 1 | test |

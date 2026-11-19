@@ -1387,7 +1387,7 @@
 | `jarvis_v2.system_inventory._software` | `src/jarvis_v2/system_inventory.py:173` | security or trust-boundary vocabulary |
 | `jarvis_v2.system_inventory.collect_inventory` | `src/jarvis_v2/system_inventory.py:207` | filesystem access; security or trust-boundary vocabulary |
 | `jarvis_v2.system_inventory.compare_inventories` | `src/jarvis_v2/system_inventory.py:249` | security or trust-boundary vocabulary |
-| `jarvis_v2.system_inventory.write_inventory` | `src/jarvis_v2/system_inventory.py:274` | filesystem access; security or trust-boundary vocabulary |
+| `jarvis_v2.system_inventory.write_inventory` | `src/jarvis_v2/system_inventory.py:286` | filesystem access; security or trust-boundary vocabulary |
 | `jarvis_v2.tws.__init__.QuestStore` | `src/jarvis_v2/tws/__init__.py:287` | database or query access; security or trust-boundary vocabulary |
 | `jarvis_v2.tws.__init__.QuestStore.__init__` | `src/jarvis_v2/tws/__init__.py:290` | security or trust-boundary vocabulary |
 | `jarvis_v2.tws.__init__.QuestStore.schema_version` | `src/jarvis_v2/tws/__init__.py:305` | database or query access |
@@ -1970,8 +1970,8 @@
 | `test_system_inventory.SystemInventoryTests` | `tests/test_system_inventory.py:9` | filesystem access; security or trust-boundary vocabulary |
 | `test_system_inventory.SystemInventoryTests.test_scan_is_metadata_only_bounded_and_does_not_follow_symlinks` | `tests/test_system_inventory.py:10` | filesystem access; security or trust-boundary vocabulary |
 | `test_system_inventory.SystemInventoryTests.test_digest_and_comparison_ignore_collection_time` | `tests/test_system_inventory.py:23` | security or trust-boundary vocabulary |
-| `test_system_inventory.SystemInventoryTests.test_inventory_reports_model_and_acceleration_capability_slots` | `tests/test_system_inventory.py:31` | filesystem access; security or trust-boundary vocabulary |
-| `test_system_inventory.SystemInventoryTests.test_inventory_cli_writes_private_output_and_returns_summary` | `tests/test_system_inventory.py:42` | filesystem access; security or trust-boundary vocabulary |
+| `test_system_inventory.SystemInventoryTests.test_inventory_reports_model_and_acceleration_capability_slots` | `tests/test_system_inventory.py:44` | filesystem access; security or trust-boundary vocabulary |
+| `test_system_inventory.SystemInventoryTests.test_inventory_cli_writes_private_output_and_returns_summary` | `tests/test_system_inventory.py:55` | filesystem access; security or trust-boundary vocabulary |
 | `test_tws_cultivation.TWSCultivationTests` | `tests/test_tws_cultivation.py:8` | database or query access; filesystem access; security or trust-boundary vocabulary |
 | `test_tws_cultivation.TWSCultivationTests.test_progression_requires_independent_proof_acceptance` | `tests/test_tws_cultivation.py:30` | database or query access; filesystem access; security or trust-boundary vocabulary |
 | `test_tws_cultivation.TWSCultivationTests.test_achievement_and_adaptation_are_idempotent_and_fair` | `tests/test_tws_cultivation.py:42` | database or query access; filesystem access; security or trust-boundary vocabulary |

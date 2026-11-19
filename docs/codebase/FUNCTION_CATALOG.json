@@ -15,7 +15,7 @@
     "parser_errors": 0,
     "source_files": 345,
     "suspected_dead_code_paths": 1734,
-    "unresolved_symbols": 6803,
+    "unresolved_symbols": 6804,
     "untested_functions": 993
   },
   "files": [
@@ -1273,11 +1273,11 @@
       "size_bytes": 1772
     },
     {
-      "content_sha256": "1c00a3901a84b40bb97790fa9b643f3d3dc70e9f148a66ff3395d477d3281258",
-      "git_blob_sha": "920300293c5e2395a4330d3e5bb69a56e46acbf3",
+      "content_sha256": "c1e3e259dc00db45e8fe3dc635375b7a6c59f701eba84a83be91619aebe33810",
+      "git_blob_sha": "bbb82a715522cd74a24bb45b93173e221e1c1434",
       "language": "python",
       "path": "src/jarvis_v2/system_inventory.py",
-      "size_bytes": 9351
+      "size_bytes": 9888
     },
     {
       "content_sha256": "55e2f93a9b5491613df2fda185097c1f7f1618355c9940072e18efe0f791a2b6",
@@ -2183,11 +2183,11 @@
       "size_bytes": 1266
     },
     {
-      "content_sha256": "fd3812ec9b1ae9868e71f2784b0e821cb7c0340de1fc718a66f75860463e3655",
-      "git_blob_sha": "a7723fbeda555e95bbdedb2264277ce48babecdb",
+      "content_sha256": "be1fcb1ba40104dbad7e5f645c20f33164985d883e12a2cfee2d6fbb2e83966a",
+      "git_blob_sha": "8877943d04d46708900676697fdd4e92283fb697",
       "language": "python",
       "path": "tests/test_system_inventory.py",
-      "size_bytes": 2643
+      "size_bytes": 3010
     },
     {
       "content_sha256": "3c4556fe294aa1e07e044464ccc6b18d2eceb4cbe791d2a17166211e6da35a13",
@@ -2435,7 +2435,7 @@
       "size_bytes": 2766
     }
   ],
-  "generated_at": "2026-11-19T16:05:13.229370+00:00",
+  "generated_at": "2026-11-19T16:09:50.244958+00:00",
   "parse_errors": [],
   "parser": {
     "javascript": "declaration regex",
@@ -7751,11 +7751,11 @@
         "symbol": "any"
       }
     ],
-    "unresolved_symbol_references": 6803
+    "unresolved_symbol_references": 6804
   },
   "schema_version": 1,
-  "source_sha": "062088b4115dec3f69a6760a03d291e6d57c7712",
-  "source_state": "catalog generated from checkout 062088b4115dec3f69a6760a03d291e6d57c7712; status snapshot had 0 entries before output generation",
+  "source_sha": "13626a458bc542a5339d699a71f5c197d9a0d0a1",
+  "source_state": "catalog generated from checkout 13626a458bc542a5339d699a71f5c197d9a0d0a1; status snapshot had 0 entries before output generation",
   "symbols": [
     {
       "authentication_or_permission_requirements": [
@@ -99170,7 +99170,8 @@
       ],
       "exceptions_and_failure_behavior": [],
       "existing_test_coverage": [
-        "tests/test_cloudflare_rate_limit.mjs"
+        "tests/test_cloudflare_rate_limit.mjs",
+        "tests/test_system_inventory.py"
       ],
       "file_path": "src/jarvis_v2/core/budget.py",
       "inputs": [],
@@ -156687,7 +156688,7 @@
       "known_defects": [],
       "line_range": [
         249,
-        271
+        283
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.system_inventory",
@@ -156737,8 +156738,8 @@
       "kind": "function",
       "known_defects": [],
       "line_range": [
-        274,
-        280
+        286,
+        292
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.system_inventory",
@@ -205468,7 +205469,7 @@
       "known_defects": [],
       "line_range": [
         9,
-        51
+        64
       ],
       "maintenance_status": "test",
       "module": "test_system_inventory",
@@ -205558,7 +205559,7 @@
       "known_defects": [],
       "line_range": [
         23,
-        29
+        42
       ],
       "maintenance_status": "test",
       "module": "test_system_inventory",
@@ -205597,8 +205598,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        31,
-        40
+        44,
+        53
       ],
       "maintenance_status": "test",
       "module": "test_system_inventory",
@@ -205638,8 +205639,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        42,
-        51
+        55,
+        64
       ],
       "maintenance_status": "test",
       "module": "test_system_inventory",
