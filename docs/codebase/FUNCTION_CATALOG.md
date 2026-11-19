@@ -1,6 +1,6 @@
 # ARCHON Function Catalog
 
-Generated `2026-11-19T15:15:09.769041+00:00` from base commit `eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767`; audited working tree state: `catalog generated from checkout eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767; status snapshot had 10 entries before output generation`.
+Generated `2026-11-19T15:34:04.711275+00:00` from base commit `239e10154e1c81b4ff463cdd796e04f0dbc68407`; audited working tree state: `catalog generated from checkout 239e10154e1c81b4ff463cdd796e04f0dbc68407; status snapshot had 16 entries before output generation`.
 
 Static inventory; callers, unresolved references, test links, and dead-code candidates are heuristic and must not be treated as acceptance receipts.
 
@@ -9,7 +9,7 @@ Static inventory; callers, unresolved references, test links, and dead-code cand
 | Metric | Value |
 | --- | --- |
 | Source files | 345 |
-| Indexed files | 547 |
+| Indexed files | 549 |
 | Functions | 901 |
 | Methods | 2424 |
 | Classes | 565 |

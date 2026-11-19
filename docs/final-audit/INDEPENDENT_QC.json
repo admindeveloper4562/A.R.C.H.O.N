@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "verifier": "independent read-only QC subagent Mill",
+  "target_head": "239e10154e1c81b4ff463cdd796e04f0dbc68407",
+  "implementation_sha": "eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767",
+  "working_tree_at_qc": "report-only refresh edits were pending; implementation code was committed",
+  "status": "CONDITIONAL",
+  "mutations": false,
+  "checks": {
+    "audit_json": "pass",
+    "native_one_shot": "pass",
+    "native_health": "pass",
+    "ledger_envelope": "pass",
+    "diff_check": "pass",
+    "remote_publication": "partial",
+    "astra_boundary": "fail_release_gate",
+    "native_release_completeness": "partial"
+  },
+  "skipped": [
+    "full unittest suite",
+    "long scans",
+    "service cutover",
+    "cleanup"
+  ],
+  "blockers": [
+    "legacy Astra boundary remains active and latest service attempt failed with status 143",
+    "native domain executor and unattended SDA/AEGIS watchdog soak are unproven",
+    "local source is not published to verified GitHub refs",
+    "owner-approved cleanup remains pending"
+  ]
+}

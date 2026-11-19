@@ -1,7 +1,8 @@
 {
   "schema_version": 1,
-  "source_sha": "eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767",
-  "source_state": "local migration commit; evidence refresh is not published to GitHub",
+  "source_sha": "239e10154e1c81b4ff463cdd796e04f0dbc68407",
+  "implementation_sha": "eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767",
+  "source_state": "tested local tree at 239e101; implementation is eef1e3c8; not published to GitHub",
   "runner": "python3 -m unittest discover -s tests -p 'test_*.py' -q",
   "pytest_available": false,
   "full_suite": {
@@ -9,9 +10,9 @@
     "passed": 579,
     "failed": 0,
     "errors": 0,
-    "duration_seconds": 27.243,
+    "duration_seconds": 27.720,
     "exit_code": 0,
-    "evidence_log": "docs/final-audit/evidence/unittest-final.log"
+    "evidence_log": "docs/final-audit/evidence/unittest-postcommit.log"
   },
   "native_import_sweep": {"modules": 106, "errors": 0, "exit_code": 0},
   "native_controller_checks": {

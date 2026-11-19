@@ -3,20 +3,21 @@
 ## Project
 
 - Canonical source: /home/r34p3r/dev/A.R.C.H.O.N
-- Source SHA: eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767
+- Source SHA: 239e10154e1c81b4ff463cdd796e04f0dbc68407
+- Implementation SHA: eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767
 - Git origin: https://github.com/admindeveloper4562/A.R.C.H.O.N.git; target SHA is not published to GitHub; direct refs observed: main=5227b91d2725bf4be4336a5ad26189fdf1034704, develop=75582dbf48057e3d5b0e7cf4acfdba2386acfcff
-- Git state: local migration commit is present; the evidence refresh is being consolidated locally and is not published to GitHub
+- Git state: tested tree 239e101; implementation commit eef1e3c8; final documentation refresh is local-only and not published to GitHub
 - Version in package metadata: 0.0.3
 - Full regression: 579 passed
 - Native import sweep: 106 passed
 - Fresh runtime DBs: integrity and restore checks passed
-- Search index: FTS5 available, 546 files indexed from 547 cataloged files, four representative queries returned results including deployment files
+- Search index: FTS5 available, 548 files indexed from 549 cataloged files, four representative queries returned results including deployment files
 
 ## Runtime
 
 The native state root is /home/r34p3r/.local/state/archon. It contains empty runtime and ATLAS queue databases, private host inventory metadata, the code index, empty logs/cache directories, and private controller lock/control directories. It does not contain the historical 247-task ledger or personal/financial data. Native health reports the runtime healthy with zero queue tasks and historical ledger loading false. The native controller passed fresh one-shot, fencing, marker, receipt, terminate/restart, and systemd verification checks; its default domain executor is unconfigured and its unit is not installed.
 
-The historical Astra state remains active enough to require controlled retirement: archon-astra.timer is enabled and active, while archon-astra.service is inactive and a read-only legacy monitor process is running.
+The historical Astra boundary remains active and requires controlled retirement: archon-astra.timer is enabled and active; archon-astra.service most recently failed with exit status 143 after its legacy monitor rejected incompatible `--json` plus `--watch` arguments; and the read-only legacy monitor process remains running as PID 20774 at the final observation.
 
 ## Inventory
 

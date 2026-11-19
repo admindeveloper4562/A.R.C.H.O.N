@@ -11,7 +11,7 @@
 
 ## Open security/release concerns
 
-- The legacy Astra timer remains enabled and is an external controller boundary.
+- The legacy Astra timer remains enabled and is an external controller boundary; its latest service attempt failed with status 143 on the legacy `--json`/`--watch` argument conflict.
 - The host filesystem is critically full, increasing write-failure and recovery risk.
 - Root inventory metadata includes names of sensitive system paths by design, but no contents were read; access remains private.
 - Trusted out-of-process watchdog activation, native recovery cutover, and rollback soak were not executed.

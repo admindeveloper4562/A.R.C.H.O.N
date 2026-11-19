@@ -1,15 +1,16 @@
 {
   "schema_version": 1,
   "verdict": "CONDITIONAL",
-  "source_sha": "eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767",
+  "source_sha": "239e10154e1c81b4ff463cdd796e04f0dbc68407",
+  "implementation_sha": "eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767",
   "canonical_path": "/home/r34p3r/dev/A.R.C.H.O.N",
-  "source_state": "local migration commit; evidence refresh is not published to GitHub",
+  "source_state": "tested local tree at 239e101; implementation is eef1e3c8; not published to GitHub",
   "evidence": {
-    "full_tests": {"passed": 579, "failed": 0, "duration_seconds": 27.243},
+    "full_tests": {"passed": 579, "failed": 0, "duration_seconds": 27.720},
     "native_imports": {"modules": 106, "errors": 0},
     "local_security_checks": "pass",
     "fresh_databases": "pass",
-    "code_index": {"catalog_files": 547, "fts5_files": 546, "fts5": true},
+    "code_index": {"catalog_files": 549, "fts5_files": 548, "fts5": true},
     "native_controller": {"one_shot": "pass", "lock_fencing": "pass", "control_markers": "pass", "restart_after_termination": "pass", "service_unit_verify": "pass", "service_installed": false},
     "native_health": {"status": "healthy", "mode": "native_runtime", "historical_ledger_loaded": false, "queue_tasks": 0},
     "inventory": {"entries": 10000, "truncated": true, "permission_denied": 17, "skipped_mounts": 28, "ollama_models": ["qwen3:4b", "qwen2.5-coder:7b", "qwen2.5-coder:3b"], "nvidia_acceleration": "NVIDIA GeForce GTX 980, 4096 MiB, driver 535.309.01"},
@@ -25,10 +26,10 @@
   },
   "blocking_conditions": [
     "native unattended SDA/AEGIS cutover and trusted watchdog soak are not proven",
-    "legacy Astra timer remains enabled",
+    "legacy Astra timer remains enabled; the latest service attempt failed with status 143 after the legacy --json/--watch monitor argument conflict",
     "the canonical SHA is not published on GitHub",
     "external Linux-release evidence remains incomplete for Windows, iOS, Blender, live providers, finance, and hosted CI",
-    "a fresh independent-QC receipt for the final evidence refresh is still pending",
+    "independent QC covered the committed tree before this documentation-only refresh; the refresh itself is not separately re-QC'd",
     "high-impact cleanup requires explicit owner approval"
   ],
   "next_safe_action": "Review the cleanup manifest and native cutover evidence; do not delete paths or disable the legacy timer until the owner authorizes the exact transition."

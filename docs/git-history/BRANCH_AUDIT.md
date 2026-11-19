@@ -1,6 +1,7 @@
 # ARCHON branch audit
 
-Target HEAD: eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767
+Source commit under audit: eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767
+Local audit/evidence overlay at index time: 239e10154e1c81b4ff463cdd796e04f0dbc68407
 
 Local branches: 1
 Remote-tracking branches: 427
@@ -15,7 +16,8 @@ GitHub direct verification (2026-11-19): main is 5227b91d2725bf4be4336a5ad26189f
 
 | Ref | SHA | Subject | Relation to target |
 | --- | --- | --- | --- |
-| refs/heads/feature/astra-linux-integration-c799784769 | eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767 | feat(migration): establish native ARCHON runtime [MIG-003] | target |
+| refs/heads/feature/astra-linux-integration-c799784769 | 239e10154e1c81b4ff463cdd796e04f0dbc68407 | docs(migration): bind final audit evidence [MIG-003] | local audit overlay |
+| source commit under audit | eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767 | feat(migration): establish native ARCHON runtime [MIG-003] | source |
 | refs/remotes/origin/main | 5227b91d2725bf4be4336a5ad26189fdf1034704 | chore(repo): establish ARCHON foundation and Astra One [MIG-001] | ancestor |
 | refs/remotes/origin/develop | 75582dbf48057e3d5b0e7cf4acfdba2386acfcff | fix(sda): complete integration tree synchronization | ancestor |
 | refs/remotes/origin/feature/astra-linux-integration-c799784769 | 75582dbf48057e3d5b0e7cf4acfdba2386acfcff | fix(sda): complete integration tree synchronization | ancestor |
