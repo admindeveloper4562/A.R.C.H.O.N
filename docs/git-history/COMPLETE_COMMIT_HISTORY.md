@@ -1,6 +1,6 @@
 # Complete ARCHON commit history
 
-Generated from 04eabec5cdbee2b2261272850867289fe0532091; 751 reachable commits across the current local and GitHub remote-tracking refs. The earlier table is preserved through the original native-runtime source commit; the post-source continuation is listed below and fully indexed in `COMMIT_INDEX.json`.
+Generated from 0d0fa778efa2b3ff6df0a59cb0f025351ab3084f; 752 reachable commits across the current local and GitHub remote-tracking refs. The earlier table is preserved through the original native-runtime source commit; the post-source continuation is listed below and fully indexed in `COMMIT_INDEX.json`.
 
 | Date | SHA | Author | Task IDs | Changed files | Subject |
 | --- | --- | --- | --- | ---: | --- |
@@ -760,3 +760,4 @@ Generated from 04eabec5cdbee2b2261272850867289fe0532091; 751 reachable commits a
 | 2026-11-19T23:09:41+07:00 | 13626a458bc5 | Astra One | - | 1 | feat(inventory): compare host sections and capacity |
 | 2026-11-19T23:11:35+07:00 | f35bcdb308f4 | Astra One | - | 1 | docs(index): record inventory comparison API |
 | 2026-11-19T23:23:33+07:00 | 04eabec5cdbe | ARCHON Main Codex | - | 5 | feat(runtime): add bounded native control-plane executor |
+| 2026-11-19T23:32:18+07:00 | 0d0fa778efa2 | ARCHON Main Codex | - | 22 | docs(audit): refresh current evidence and provenance index |

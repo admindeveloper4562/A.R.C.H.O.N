@@ -23729,10 +23729,117 @@
       "subject": "feat(runtime): add bounded native control-plane executor",
       "task_ids": [],
       "tests_added_or_changed": true
+    },
+    {
+      "author": "ARCHON Main Codex",
+      "author_date": "2026-11-19T23:32:18+07:00",
+      "author_email": "archon-main@local.invalid",
+      "body": "",
+      "breaking_change_signal": false,
+      "changed_files": [
+        {
+          "path": "docs/codebase/CALL_GRAPH.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/INDEX_VALIDATION.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/MODULE_DEPENDENCIES.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/SECURITY_SENSITIVE_FUNCTIONS.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/ASTRA_DEPENDENCY_AUDIT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/FINAL_VERDICT.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/FINAL_VERDICT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/INTEGRATION_RESULTS.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/MODULE_VERIFICATION.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/PERFORMANCE_REPORT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/REFACTORING_REPORT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/REGRESSION_COVERAGE.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/SYSTEM_STATUS.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/TEST_AUDIT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/TEST_RESULTS.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/evidence/unittest-current-native-executor.log",
+          "status": "A"
+        },
+        {
+          "path": "docs/git-history/BRANCH_AUDIT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/git-history/COMMIT_INDEX.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/git-history/COMPLETE_COMMIT_HISTORY.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/git-history/FEATURE_TIMELINE.md",
+          "status": "M"
+        }
+      ],
+      "commit_date": "2026-11-19T23:32:18+07:00",
+      "dependency_related": true,
+      "parents": [
+        "04eabec5cdbee2b2261272850867289fe0532091"
+      ],
+      "security_related": false,
+      "sha": "0d0fa778efa2b3ff6df0a59cb0f025351ab3084f",
+      "subject": "docs(audit): refresh current evidence and provenance index",
+      "task_ids": [],
+      "tests_added_or_changed": false
     }
   ],
-  "generated_at": "2026-11-19T16:25:55.878251+00:00",
-  "reachable_commit_count": 751,
+  "generated_at": "2026-11-19T16:34:52.416070+00:00",
+  "reachable_commit_count": 752,
   "schema_version": 1,
-  "source_sha": "04eabec5cdbee2b2261272850867289fe0532091"
+  "source_sha": "0d0fa778efa2b3ff6df0a59cb0f025351ab3084f"
 }

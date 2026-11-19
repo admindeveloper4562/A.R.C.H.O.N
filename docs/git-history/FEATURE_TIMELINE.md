@@ -1,12 +1,12 @@
 # ARCHON feature timeline
 
-Chronological commit groups derived from task IDs and commit subjects. The commit index is the authoritative detail; it currently covers 751 reachable commits through `04eabec5cdbee2b2261272850867289fe0532091`.
+Chronological commit groups derived from task IDs and commit subjects. The commit index is the authoritative detail; it currently covers 752 reachable commits through `0d0fa778efa2b3ff6df0a59cb0f025351ab3084f`.
 
 ## Monthly activity
 
 | Month | Commits |
 | --- | ---: |
-| 2026-11 | 751 |
+| 2026-11 | 752 |
 
 ## Task-linked contributions
 

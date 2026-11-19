@@ -5,7 +5,8 @@
 - Canonical source: /home/r34p3r/dev/A.R.C.H.O.N
 - Source SHA: 04eabec5cdbee2b2261272850867289fe0532091
 - Implementation SHA: 04eabec5cdbee2b2261272850867289fe0532091
-- Follow-up native monitor boundary fix: 2070829; bounded native executor: 04eabec; current catalog refresh remains pending after this source change.
+- Canonical checkout HEAD: 0d0fa778efa2b3ff6df0a59cb0f025351ab3084f (documentation-only overlay after the tested source)
+- Follow-up native monitor boundary fix: 2070829; bounded native executor: 04eabec; final catalog refresh is bound to canonical overlay 0d0fa77.
 - Git origin: https://github.com/admindeveloper4562/A.R.C.H.O.N.git; target SHA is not published to GitHub; direct refs observed: main=5227b91d2725bf4be4336a5ad26189fdf1034704, develop=75582dbf48057e3d5b0e7cf4acfdba2386acfcff
 - Git state: tested tree 04eabec; local-only and not published to GitHub
 - Version in package metadata: 0.0.3
