@@ -9,7 +9,7 @@ The canonical source checkout is /home/r34p3r/dev/A.R.C.H.O.N. Native runtime st
 - logs, cache, run: empty ARCHON-owned directories
 
 The native package can import and run its local contracts with only the repository src directory on PYTHONPATH. The health CLI defaults to this state root, and the read-only ATLAS monitor prefers its database before historical Astra paths.
-The native deterministic controller is available as `python3 -m jarvis_v2.native_controller --once` or `archon-native-controller --watch`. It owns a process-level lock under `~/.local/state/archon/run/`, honors STOP/PAUSE/PAUSED_QUOTA markers and durable queue controls, and never claims work unless an explicit domain executor is configured. This prevents an empty or partially migrated installation from silently consuming tasks.
+The native deterministic controller is available as `PYTHONPATH=src python3 -m jarvis_v2.native_controller --once` or `archon-native-controller --watch`. It owns a process-level lock under `~/.local/state/archon/run/`, honors STOP/PAUSE/PAUSED_QUOTA markers and durable queue controls, and uses a built-in read-only control-plane executor for `module_health`, `runtime_health`, and `inventory_digest`. Domain-effect operations remain unsupported and fail closed until separately reviewed handlers are supplied.
 
 The historical ~/.local/state/archon-astra state is not copied into native runtime. Its timer and monitor remain separate until a verified native SDA/AEGIS cutover, watchdog soak, rollback test, and explicit owner-approved retirement transition are complete.
 

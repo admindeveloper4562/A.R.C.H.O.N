@@ -17,6 +17,7 @@ import time
 from typing import Any
 
 from .automation.queue_api import CoordinatorQueue, QueueApiError, QueueEnvelope
+from .native_executor import NativeControlPlaneExecutor
 
 
 CONTROL_MARKERS = ("STOP", "PAUSE", "PAUSED_QUOTA")
@@ -223,6 +224,7 @@ def _default_state() -> Path:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="archon-native-controller")
     parser.add_argument("--state", type=Path, default=_default_state())
+    parser.add_argument("--repository", type=Path, default=Path.cwd())
     parser.add_argument("--queue", type=Path)
     parser.add_argument("--control-dir", type=Path)
     parser.add_argument("--owner-id", default="archon-native")
@@ -234,11 +236,16 @@ def main(argv: list[str] | None = None) -> int:
     if args.once and args.watch:
         parser.error("--once and --watch are mutually exclusive")
     try:
+        executor = NativeControlPlaneExecutor(
+            repository=args.repository,
+            state_dir=args.state,
+        )
         with NativeController(
             args.state,
             queue_path=args.queue,
             control_dir=args.control_dir,
             owner_id=args.owner_id,
+            executor=executor,
             lease_seconds=args.lease_seconds,
             poll_seconds=args.poll_seconds,
         ) as controller:
