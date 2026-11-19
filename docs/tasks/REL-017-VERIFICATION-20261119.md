@@ -1,6 +1,6 @@
 # REL-017 Verification — installation contract and operator runbooks
 
-Status: `LOCAL_EVIDENCE_RECORDED / CANDIDATE_PENDING_QC`
+Status: `LINUX_SCOPE_EVIDENCE_RECORDED / WINDOWS_NEEDS_VERIFY / CANDIDATE_PENDING_QC`
 
 This report is bound to the Main Codex builder receipt for REL-017. It records
 the repository installation contract and local evidence only; it does not claim
@@ -12,12 +12,13 @@ installation, or TWS installation.
 | Field | Observed value |
 | --- | --- |
 | Task | `REL-017` |
-| Integration base SHA | `a5e152c1019b6868718dd7014c66760c01b1776d` |
-| Builder branch | `feature/astra-rel-017-a2-287d8858` |
-| Builder run | `287d8858-0c25-403a-9640-ddc274d367b7` |
+| Integration base SHA | `af32eee4664645a40f511781c23bb9d8a8e54ea4` |
+| Builder branch | `feature/astra-rel-017-a2-99a6ac59` |
+| Builder run | `99a6ac59-5be1-4ebc-abd1-6a6c7229fcad` |
 | Candidate SHA | Exact REL-017 commit SHA is recorded in the bounded builder-submit receipt |
 | Scope | `bootstrap/astra-one/`, `infra/`, `docs/operations/`, task amendment and task-specific `tests/` |
 | Remote execution | Disabled; Cloudflare is metadata-monitor only |
+| Windows host validation | `NEEDS_VERIFY` after the transfer ZIP and host review |
 | Native iOS | `deferred_unclaimed` |
 | TWS | `out_of_scope` by owner-requested amendment |
 
@@ -40,6 +41,9 @@ installation, or TWS installation.
 - The owner-authorized `REL-017-DEPLOYMENT-ARTIFACT-SCOPE-20261119` amendment
   binds the repository installation contract to the controller path allowlist;
   `.service`, `.timer` and `.ps1` are the only newly allowlisted suffixes.
+- The owner-authorized `REL-017-LINUX-FIRST-20261119` amendment keeps the
+  existing implementation and documentation while deferring Windows host
+  validation as `NEEDS_VERIFY`; it does not claim Windows execution.
 - `bootstrap/astra-one/astra_one/linux_sda.py` validates the amendment and
   records the bounded deployment-packaging scope without enabling remote work.
 
@@ -47,11 +51,10 @@ installation, or TWS installation.
 
 | Check | Result |
 | --- | --- |
-| `PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src python3 -m unittest discover -s tests -p 'test_*.py' -q` | exit 0; 568 tests; `OK` |
-| Same root suite in Python 3.11 Docker | exit 0; 568 tests; network `none`, read-only source, dropped capabilities |
+| Existing source-bound root suite evidence | exit 0; 568 tests; `OK` retained from the already-tested implementation |
 | `python3 infra/verify_installation.py --json` | exit 0; all five platform entries validated |
 | REL-017 focused tests | exit 0; 7 tests; `OK` |
-| PowerShell AST parse of `infra/windows/install.ps1` | exit 0; parse OK |
+| PowerShell AST parse of `infra/windows/install.ps1` | `NEEDS_VERIFY`; PowerShell is unavailable on this Linux host |
 | `git diff --check` | exit 0 |
 
 The expected `unittest` diagnostic about `--json` being single-snapshot only
@@ -63,20 +66,20 @@ appears in the existing root suite and does not change its zero exit status.
 | --- | --- | --- |
 | `REL-017.S01` | PASS | Existing contracts, source, tests and migration boundaries were inspected at the pinned base SHA. |
 | `REL-017.S02` | PASS | The installation manifest maps each supported platform to bounded artifacts and a runbook. |
-| `REL-017.S03` | PASS | Linux units, Windows/WSL check/registration script, Cloudflare boundary documentation and verifier are implemented. |
-| `REL-017.S04` | PASS | The verifier rejects path escapes, symlinks, incomplete platform declarations and unsafe execution policy; the controller allowlist covers the three checked-in deployment manifest types. |
-| `REL-017.S05` | PASS | Seven focused tests plus the full root suite pass; no sensitive values or remote command channel are introduced. |
+| `REL-017.S03` | PASS | Linux units, bounded Windows/WSL artifacts, Cloudflare boundary documentation and verifier are implemented. |
+| `REL-017.S04` | PASS | The verifier rejects path escapes, symlinks, incomplete platform declarations and unsafe execution policy; Windows host execution remains unclaimed. |
+| `REL-017.S05` | PASS | Seven focused tests and retained source-bound suite evidence pass; Windows host validation remains NEEDS_VERIFY. |
 | `REL-017.S06` | PASS | Candidate is committed on the isolated branch and the exact SHA/files are supplied in the bounded Astra builder receipt. |
 
 ## External boundaries
 
 No `wrangler login`, remote D1 command, Cloudflare deploy, iOS/Xcode command,
-Windows hardware benchmark, Ollama performance claim, Git push, or database
-mutation was performed for this candidate. Those actions remain owner- or
-device-dependent external gates. The optional Windows startup task is designed
-to run local deterministic QC/Merger only; it is not proof of automatic task
-pull from Cloudflare.
+Windows host command, Ollama performance claim, Git push, or database mutation
+was performed for this candidate. Windows transfer/host validation remains
+`NEEDS_VERIFY`; iOS/Xcode and TWS remain deferred. The optional Windows startup
+task is designed to run local deterministic QC/Merger only; it is not proof of
+automatic task pull from Cloudflare.
 
 Required handoff line:
 
-`REL-017 | start SHA a5e152c1019b6868718dd7014c66760c01b1776d | branch feature/astra-rel-017-a2-287d8858 | candidate SHA is recorded in the bounded builder-submit receipt | changed files bootstrap/astra-one/MANIFEST.json bootstrap/astra-one/astra_one/linux_runtime.py bootstrap/astra-one/astra_one/linux_sda.py docs/operations/INSTALLATION_RUNBOOK.md docs/tasks/REL-017-VERIFICATION-20261119.md docs/tasks/amendments/REL-017-DEPLOYMENT-ARTIFACT-SCOPE-20261119.json infra/cloudflare/README.md infra/installation_manifest.json infra/systemd/archon-astra.service infra/systemd/archon-astra.timer infra/verify_installation.py infra/windows/README.md infra/windows/install.ps1 tests/test_rel017_installation.py | checks full Python 3.12/3.11 suites, focused installation tests, manifest verifier, PowerShell parse, verifier, git diff --check | evidence this report and Astra builder receipt | state LOCAL_EVIDENCE_RECORDED/CANDIDATE_PENDING_QC | blockers native iOS/Xcode and TWS remain explicitly deferred; live Cloudflare deployment remains owner-operated and monitor-only`
+`REL-017 | start SHA af32eee4664645a40f511781c23bb9d8a8e54ea4 | branch feature/astra-rel-017-a2-99a6ac59 | candidate SHA is recorded in the bounded builder-submit receipt | changed files docs/tasks/REL-017-VERIFICATION-20261119.md | checks focused installation tests, manifest verifier, retained source-bound suite evidence, git diff --check | evidence this report and Astra builder receipt | state LINUX_SCOPE_EVIDENCE_RECORDED/WINDOWS_NEEDS_VERIFY/CANDIDATE_PENDING_QC | Windows transfer/host validation remains NEEDS_VERIFY; iOS/TWS remain deferred; live Cloudflare deployment remains owner-operated and monitor-only`
