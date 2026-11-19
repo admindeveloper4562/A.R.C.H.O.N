@@ -39,8 +39,9 @@ UNTRUSTED_GITHUB_CONTEXT = re.compile(
     r"\$\{\{\s*github\.(?:event(?:\.|_name\b)|head_ref\b|base_ref\b|ref_name\b)"
 )
 EXCLUDED_WORKSPACE_DIRS = frozenset({
-    ".git", ".venv", "venv", "node_modules", "__pycache__", ".pytest_cache", ".ruff_cache",
-    ".mypy_cache", ".test-output", "build", "dist", "ci-artifacts",
+    ".git", ".serena", ".venv", "venv", "node_modules", "__pycache__", ".pytest_cache",
+    ".ruff_cache", ".mypy_cache", ".test-output", "build", "dist", "ci-artifacts",
+    "codebase", "final-audit",
 })
 
 

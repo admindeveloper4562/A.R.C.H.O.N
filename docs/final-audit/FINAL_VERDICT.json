@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "verdict": "CONDITIONAL",
+  "source_sha": "a2df24261d5ea19e9260f7f6c270b26ea9abdb03",
+  "canonical_path": "/home/r34p3r/dev/A.R.C.H.O.N",
+  "source_state": "base integration SHA plus uncommitted audit implementation and evidence changes",
+  "evidence": {
+    "full_tests": {"passed": 579, "failed": 0, "duration_seconds": 27.243},
+    "native_imports": {"modules": 106, "errors": 0},
+    "local_security_checks": "pass",
+    "fresh_databases": "pass",
+    "code_index": {"catalog_files": 547, "fts5_files": 546, "fts5": true},
+    "native_controller": {"one_shot": "pass", "lock_fencing": "pass", "control_markers": "pass", "restart_after_termination": "pass", "service_unit_verify": "pass", "service_installed": false},
+    "native_health": {"status": "healthy", "mode": "native_runtime", "historical_ledger_loaded": false, "queue_tasks": 0},
+    "inventory": {"entries": 10000, "truncated": true, "permission_denied": 17, "skipped_mounts": 28, "ollama_models": ["qwen3:4b", "qwen2.5-coder:7b", "qwen2.5-coder:3b"], "nvidia_acceleration": "NVIDIA GeForce GTX 980, 4096 MiB, driver 535.309.01"},
+    "cleanup": {"deleted_paths": 0, "owner_approval": "pending"},
+    "historical_ledger": {
+      "parent_total": 247,
+      "completed": 240,
+      "archived_or_deferred": 7,
+      "outside_envelope_completed": 5,
+      "subtask_total": 1359,
+      "verified_subtask_receipts": 1281
+    }
+  },
+  "blocking_conditions": [
+    "native unattended SDA/AEGIS cutover and trusted watchdog soak are not proven",
+    "legacy Astra timer remains enabled",
+    "the canonical SHA is not published on GitHub",
+    "external Linux-release evidence remains incomplete for Windows, iOS, Blender, live providers, finance, and hosted CI",
+    "no independent-QC receipt binds the complete final uncommitted working tree",
+    "high-impact cleanup requires explicit owner approval"
+  ],
+  "next_safe_action": "Review the cleanup manifest and native cutover evidence; do not delete paths or disable the legacy timer until the owner authorizes the exact transition."
+}

@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "source_sha": "a2df24261d5ea19e9260f7f6c270b26ea9abdb03",
+  "source_state": "base integration SHA plus uncommitted audit implementation and evidence changes",
+  "runner": "python3 -m unittest discover -s tests -p 'test_*.py' -q",
+  "pytest_available": false,
+  "full_suite": {
+    "tests": 579,
+    "passed": 579,
+    "failed": 0,
+    "errors": 0,
+    "duration_seconds": 27.243,
+    "exit_code": 0,
+    "evidence_log": "docs/final-audit/evidence/unittest-final.log"
+  },
+  "native_import_sweep": {"modules": 106, "errors": 0, "exit_code": 0},
+  "native_controller_checks": {
+    "one_shot_fresh_state": "pass",
+    "process_lock_fencing": "pass",
+    "control_marker_admission": "pass",
+    "executor_success_and_failure_receipts": "pass",
+    "terminate_and_restart": "pass",
+    "systemd_analyze_verify": "pass",
+    "service_installed": false
+  },
+  "native_health": {
+    "status": "healthy",
+    "mode": "native_runtime",
+    "historical_ledger_loaded": false,
+    "queue_tasks": 0
+  },
+  "inventory_capabilities": {
+    "ollama_models": ["qwen3:4b", "qwen2.5-coder:7b", "qwen2.5-coder:3b"],
+    "nvidia_acceleration": "NVIDIA GeForce GTX 980, 4096 MiB, driver 535.309.01",
+    "filesystem_scan": "bounded_metadata_only"
+  },
+  "local_ci_checks": {
+    "dependency_scan": 0,
+    "secret_scan": 0,
+    "security_scan": 0
+  },
+  "fresh_database_checks": {
+    "runtime.sqlite3": {"migration": "pass", "integrity": "ok", "foreign_key_violations": 0, "backup_restore": "pass"},
+    "atlas.sqlite3": {"migration": "pass", "integrity": "ok", "foreign_key_violations": 0, "backup_restore": "pass"}
+  },
+  "not_run": [
+    "pytest",
+    "hosted CI",
+    "real financial transactions",
+    "real messages or external actions",
+    "Windows device/Ollama performance",
+    "iOS/macOS validation",
+    "Blender execution",
+    "live external provider validation"
+  ]
+}

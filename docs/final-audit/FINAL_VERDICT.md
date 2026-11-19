@@ -1,0 +1,7 @@
+# Final ARCHON verdict: CONDITIONAL
+
+The approved Linux source scope is operational for the verified local contract: the canonical checkout exists at /home/r34p3r/dev/A.R.C.H.O.N on base integration SHA a2df24261d5ea19e9260f7f6c270b26ea9abdb03 with uncommitted audit implementation/evidence changes; all 579 regression tests pass; 106 native modules import; local dependency, secret, and security checks pass; fresh runtime databases migrate, persist, and restore; native health reports the fresh runtime without loading the historical ledger; the native controller passes disposable one-shot, fencing, control-marker and restart checks; and the FTS5 code index and private bounded host inventory are available.
+
+This is not a PASS because the final release boundary is not complete. The native controller is a safe queue coordinator but has no configured domain executor, the native unattended SDA/AEGIS controller and trusted watchdog cutover have not been independently proven, the legacy Astra timer remains enabled, the canonical SHA is not published on GitHub, external/device acceptance is incomplete, no separate independent-QC receipt binds the complete final working tree, and high-impact cleanup is awaiting exact owner approval. The seven archived/deferred parents remain deferred and are not folded into the 240 completed count; five unassigned completed rows remain outside the 247-parent envelope.
+
+No destructive cleanup, service disablement, remote publication, financial action, message send, deployment, or history rewrite was performed.

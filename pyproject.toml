@@ -12,6 +12,7 @@ dependencies = []
 [project.scripts]
 jarvis-v2 = "jarvis_v2.cli:main"
 atlas-monitor = "jarvis_v2.monitor:main"
+archon-native-controller = "jarvis_v2.native_controller:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

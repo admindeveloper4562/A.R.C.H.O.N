@@ -21,6 +21,7 @@ from typing import Any
 
 from .monitor_supervision import collect as collect_supervision, render_lines as render_supervision, safe_failure_code
 
+ARCHON_DEFAULT = Path.home() / '.local' / 'state' / 'archon' / 'sda.sqlite3'
 ASTRA_DEFAULT = Path.home() / '.local' / 'state' / 'archon-astra' / 'sda.sqlite3'
 ASTRA_LEGACY = Path.home() / '.local' / 'state' / 'astra-one-linux' / 'sda.sqlite3'
 ATLAS_DEFAULT = Path.home() / '.local' / 'state' / 'archon' / 'atlas.sqlite3'
@@ -312,13 +313,15 @@ def _choose_db(source: str, given: Path | None) -> Path:
     if given is not None:
         return given
     if source == 'astra':
-        return ASTRA_DEFAULT if ASTRA_DEFAULT.exists() else ASTRA_LEGACY
+        for candidate in (ARCHON_DEFAULT, ASTRA_DEFAULT, ASTRA_LEGACY):
+            if candidate.exists():
+                return candidate
+        return ARCHON_DEFAULT
     if source == 'atlas':
         return ATLAS_DEFAULT
-    if ASTRA_DEFAULT.exists():
-        return ASTRA_DEFAULT
-    if ASTRA_LEGACY.exists():
-        return ASTRA_LEGACY
+    for candidate in (ARCHON_DEFAULT, ASTRA_DEFAULT, ASTRA_LEGACY):
+        if candidate.exists():
+            return candidate
     return ATLAS_DEFAULT
 
 

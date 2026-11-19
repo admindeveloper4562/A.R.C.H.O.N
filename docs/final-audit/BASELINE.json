@@ -1,0 +1,156 @@
+{
+  "schema_version": 1,
+  "observed_at": "2026-11-19T13:19:59+00:00",
+  "canonical_target": {
+    "path": "/home/r34p3r/dev/A.R.C.H.O.N",
+    "commit": "a2df24261d5ea19e9260f7f6c270b26ea9abdb03",
+    "branch": "feature/astra-linux-integration-c799784769",
+    "status": "clean",
+    "tree_sha256": "5073dc4315e1a016c6026d6c18b7feb5ed96633968f36778708c8a23641eb635",
+    "tracked_files": 538,
+    "size": "22M",
+    "remote_publication": "not verified; local target is ahead of the remote integration/develop ref"
+  },
+  "repositories": [
+    {
+      "path": "/home/r34p3r/Projects/ARCHON",
+      "head": "46cd0e3883cba73354f372daa9f3d57993c260c9",
+      "branch": "fix/sda/cloudflare-external-evidence",
+      "status_entries": 14,
+      "status_detail": "14 untracked session/Serena files; no tracked modifications",
+      "upstream": "none",
+      "stashes": 0,
+      "reachable_commits": 317,
+      "unreachable_fsck_entries": 46,
+      "size": "320M"
+    },
+    {
+      "path": "/home/r34p3r/Projects/ARCHON-astra-source",
+      "head": "43c8db7de8a5f0277a7db23379019d05f2edd2c6",
+      "branch": "develop",
+      "status_entries": 1,
+      "status_detail": "one untracked Codex session file; historical clone was 313 commits behind its remote",
+      "size": "49M"
+    },
+    {
+      "path": "/home/r34p3r/Projects/ARCHON-astra-source-clean-20261116",
+      "head": "6fc168796641dc24eceb07bd306fd65b0f54cb9b",
+      "branch": "feat/rel/REL-004-linux-first",
+      "status_entries": 0,
+      "size": "6.1M"
+    },
+    {
+      "path": "/home/r34p3r/.local/state/archon-astra/integration-reconciled-20261114",
+      "head": "a2df24261d5ea19e9260f7f6c270b26ea9abdb03",
+      "branch": "feature/astra-linux-integration-c799784769",
+      "status_entries": 0,
+      "size": "9.2M",
+      "role": "authoritative local integration source used to construct the canonical target"
+    }
+  ],
+  "remote_refs": {
+    "origin/main": "5227b91d2725bf4be4336a5ad26189fdf1034704",
+    "origin/develop": "75582dbf48057e3d5b0e7cf4acfdba2386acfcff",
+    "origin/feature/astra-linux-integration-c799784769": "75582dbf48057e3d5b0e7cf4acfdba2386acfcff",
+    "origin/feat/atlas/ATLAS-401-supervisor-recovery-monitor": "1e3cb09ca5902edd62c66bd73cbea40c6a1dc8b3",
+    "local_target_vs_remote": "remote integration/develop is an ancestor of local a2df; remote publication of a2df is not verified"
+  },
+  "worktrees": [
+    {"path": "/home/r34p3r/Projects/ARCHON", "head": "46cd0e3883cba73354f372daa9f3d57993c260c9", "status_entries": 14},
+    {"path": "/home/r34p3r/.local/state/archon-astra/worktrees/admit-approved-owner", "head": "c02bec7ec8b13cf203c9e3676ac6393cb6cc220a", "status_entries": 0},
+    {"path": "/home/r34p3r/.local/state/archon-astra/worktrees/atlas-401-v3-upgrade", "head": "c4a70060a6339b6817a01263c6ee4b569aa00a1b", "status_entries": 0},
+    {"path": "/home/r34p3r/.local/state/archon-astra/worktrees/base-008-owner-approval-g1", "head": "36e918ecd172dbd36b52a86047a27cdf8bbf25a1", "status_entries": 0},
+    {"path": "/home/r34p3r/.local/state/archon-astra/worktrees/external-resolution", "head": "0d8254adfddc13317991d209acf869a03cb30d71", "status_entries": 0},
+    {"path": "/home/r34p3r/.local/state/archon-astra/worktrees/fin001-owner-gate-v3", "head": "3f18595c78b76e6b786a0ce7acb6541b46f9321e", "status_entries": 0},
+    {"path": "/home/r34p3r/.local/state/archon-astra/worktrees/owner-approval-signatures", "head": "9f1ab6f1201c0a98adadc7e2e766bc90b162aa16", "status_entries": 278, "status_detail": "staged changes plus unresolved merge conflicts; preserve untouched"},
+    {"path": "/home/r34p3r/.local/state/archon-astra/worktrees/owner-gate-claim", "head": "a11974e38ba40fb10d14bcdc85772145302befca", "status_entries": 0},
+    {"path": "/home/r34p3r/.local/state/archon-astra/worktrees/rel-005-control", "head": "42a662cb7c5d60f3397aede5d9651fe2f7f69962", "status_entries": 0},
+    {"path": "/home/r34p3r/.local/state/archon-astra/worktrees/sda-001-provenance-recovery-g2", "head": "a82c09336868f8abf424da370a3e62debc802373", "status_entries": 0},
+    {"path": "/home/r34p3r/Projects/ARCHON-sda009-import-worktree", "head": "99494bfbc22cc20ca0f14092d6ae6c0405970bba", "status_entries": 0}
+  ],
+  "ledger": {
+    "database": "/home/r34p3r/.local/state/archon-astra/sda.sqlite3",
+    "integrity": "ok",
+    "foreign_key_violations": 0,
+    "parent_total": 247,
+    "parent_status": {"completed": 240, "archived": 7},
+    "outside_envelope_status": {"completed": 5, "note": "five completed rows have no ARCHON-JARVIS-V2 project_id and are excluded from the 247-parent envelope"},
+    "subtask_total": 1359,
+    "subtask_status": {"completed": 1319, "archived": 40},
+    "subtask_receipts": 1281,
+    "owner_subtask_receipts": 3,
+    "owner_approval_receipts": 10,
+    "pending_queue": 0,
+    "review_queue": 0,
+    "merge_queue": 0,
+    "supervisor_lanes": {"idle": 3},
+    "supervisor_cases": {"resolved": 71, "resolved_external": 1},
+    "source_sha": "75582dbf48057e3d5b0e7cf4acfdba2386acfcff",
+    "integration_sha": "a2df24261d5ea19e9260f7f6c270b26ea9abdb03",
+    "integration_path": "/home/r34p3r/.local/state/archon-astra/integration-reconciled-20261114"
+  },
+  "runtime": {
+    "processes": [
+      {
+        "pid": 20774,
+        "command": "python3 /home/r34p3r/Projects/ARCHON/tools/atlas_monitor.py --source astra --db /home/r34p3r/.local/state/archon-astra/sda.sqlite3 --watch --interval 0.5",
+        "classification": "read-only monitor; legacy state path"
+      }
+    ],
+    "systemd": {
+      "archon-astra.timer": {"enabled": true, "active": true},
+      "archon-astra.service": {"active": false},
+      "native_archon_units": "not installed/verified"
+    },
+    "control_markers": "no STOP, PAUSE, or PAUSED_QUOTA marker was observed in the checked state paths"
+  },
+  "storage": {
+    "home_filesystem": {"size": "110G", "used": "103G", "available": "975M", "use_percent": "100%"},
+    "archon_astra_state": "4.6G",
+    "migration_checkpoint": {
+      "path": "/home/r34p3r/.local/state/archon-final-audit/checkpoints/20261119T125838Z",
+      "size": "751M",
+      "files": 145,
+      "purpose": "Git bundles plus verified SQLite recovery copies; retained"
+    },
+    "fresh_archon_state": "7.6M"
+  },
+  "dependencies": {
+    "python": "3.12 host interpreter",
+    "project_requires": ">=3.11",
+    "declared_python_dependencies": [],
+    "pytest": "not installed; unittest discovery used",
+    "container_images_observed": [
+      "archon-python:3.12-git-20261114 (318MB)",
+      "archon-python:3.12-git-20261114-sshkeygen (318MB)",
+      "python:3.12-slim (180MB)",
+      "hello-world:latest",
+      "other images not audited for cleanup"
+    ]
+  },
+  "hardware_snapshot": {
+    "os": "Ubuntu Linux host",
+    "kernel": "7.0.0-43-generic",
+    "architecture": "x86_64",
+    "cpu": "Intel Core i7-7800X, 12 logical CPUs",
+    "memory": "15GiB RAM, 14GiB swap",
+    "root_filesystem": "ext4 /dev/sdb3",
+    "home_filesystem": "ext4 /dev/sda1 mounted at /home and /mnt/home-ssd"
+  },
+  "risks": [
+    "The canonical target is local-only at a2df; remote integration/develop remains 75582db.",
+    "Legacy Astra timer is active and a legacy ATLAS monitor process is still running.",
+    "One preserved owner-approval worktree has unresolved merge conflicts and must not be removed.",
+    "The home filesystem is critically full; cleanup must remain manifest-driven and owner-approved.",
+    "The native runtime has not yet demonstrated a complete unattended SDA/Guardian cutover.",
+    "pytest and hosted CI evidence are unavailable in this host snapshot."
+  ],
+  "checkpoint": {
+    "path": "/home/r34p3r/.local/state/archon-final-audit/checkpoints/20261119T125838Z",
+    "git_bundles_verified": true,
+    "sqlite_backups": [
+      {"path": "sqlite/sda.sqlite3", "integrity": "ok", "foreign_key_violations": 0, "sha256": "6a37810719d1e93a9ecca14cc6aebd2e992f721be17ab5dc722ea1d39e947fc0"},
+      {"path": "sqlite/qualification-20261114/sda.sqlite3", "integrity": "ok", "foreign_key_violations": 0, "sha256": "414509869ed3893a0df60abb321dde98a01b9deab6728d42c005064fdbac2b2f"}
+    ]
+  }
+}
