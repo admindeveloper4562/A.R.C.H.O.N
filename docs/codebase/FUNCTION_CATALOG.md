@@ -1,6 +1,6 @@
 # ARCHON Function Catalog
 
-Generated `2026-11-19T15:49:16.504162+00:00` from base commit `0c0b5c07278f8f209b19a5e446d7ddcdb1757e3b`; audited working tree state: `catalog generated from checkout 0c0b5c07278f8f209b19a5e446d7ddcdb1757e3b; status snapshot had 0 entries before output generation`.
+Generated `2026-11-19T16:01:32.399088+00:00` from base commit `ea5b8c4bde776aa967bc46928e741de2d12a133c`; audited working tree state: `catalog generated from checkout ea5b8c4bde776aa967bc46928e741de2d12a133c; status snapshot had 0 entries before output generation`.
 
 Static inventory; callers, unresolved references, test links, and dead-code candidates are heuristic and must not be treated as acceptance receipts.
 
@@ -9,14 +9,14 @@ Static inventory; callers, unresolved references, test links, and dead-code cand
 | Metric | Value |
 | --- | --- |
 | Source files | 345 |
-| Indexed files | 549 |
+| Indexed files | 550 |
 | Functions | 901 |
-| Methods | 2424 |
+| Methods | 2425 |
 | Classes | 565 |
 | Parser errors | 0 |
-| Unresolved symbols | 6800 |
-| Untested functions/methods | 994 |
-| Suspected dead paths | 1733 |
+| Unresolved symbols | 6803 |
+| Untested functions/methods | 993 |
+| Suspected dead paths | 1734 |
 
 Supported parsing is AST-based for Python and declaration-pattern based for JavaScript, TypeScript, shell, Swift, and SQL. Unsupported constructs are explicitly counted as gaps.
 
@@ -1069,7 +1069,7 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `imported.tws.aurelia3d.build_portable.tapered` | function | `migration/imported/tws/aurelia3d/build_portable.py:193-209` | def tapered(cx, cz, profiles, segments=22) | 0 | legacy-imported |
 | `imported.tws.aurelia3d.build_portable.feather` | function | `migration/imported/tws/aurelia3d/build_portable.py:212-226` | def feather(start, end, width) | 0 | legacy-imported |
 | `imported.tws.aurelia3d.build_portable.facial_mesh` | function | `migration/imported/tws/aurelia3d/build_portable.py:229-270` | def facial_mesh() | 0 | legacy-imported |
-| `imported.tws.aurelia3d.build_portable.facial_mesh.patch` | function | `migration/imported/tws/aurelia3d/build_portable.py:231-236` | def patch(name, x, y, z, w, h) | 7 | legacy-imported |
+| `imported.tws.aurelia3d.build_portable.facial_mesh.patch` | function | `migration/imported/tws/aurelia3d/build_portable.py:231-236` | def patch(name, x, y, z, w, h) | 8 | legacy-imported |
 | `imported.tws.aurelia3d.build_portable.build` | function | `migration/imported/tws/aurelia3d/build_portable.py:273-422` | def build(path: Path, *, wings: int=12) | 1 | legacy-imported |
 | `imported.tws.aurelia3d.build_portable.build.bone` | function | `migration/imported/tws/aurelia3d/build_portable.py:280-280` | def bone(name, loc, parent=None) | 1 | legacy-imported |
 | `imported.tws.aurelia3d.build_portable.build.add` | function | `migration/imported/tws/aurelia3d/build_portable.py:319-325` | def add(name, geom, mat, bone, *, morphs=None, meta=None, skin_fn=None) | 28 | legacy-imported |
@@ -2168,7 +2168,7 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `jarvis_v2.monitor._line` | function | `src/jarvis_v2/monitor.py:228-229` | def _line(label: str, value: Any) -> str | 0 | active |
 | `jarvis_v2.monitor._task_line` | function | `src/jarvis_v2/monitor.py:232-240` | def _task_line(t: dict, *, active: bool=False) -> str | 0 | active |
 | `jarvis_v2.monitor.render` | function | `src/jarvis_v2/monitor.py:243-309` | def render(data: dict, *, ansi: bool=False, title: str='ATLAS Monitor') -> str | 3 | active |
-| `jarvis_v2.monitor._choose_db` | function | `src/jarvis_v2/monitor.py:312-325` | def _choose_db(source: str, given: Path \| None) -> Path | 0 | active |
+| `jarvis_v2.monitor._choose_db` | function | `src/jarvis_v2/monitor.py:312-325` | def _choose_db(source: str, given: Path \| None) -> Path | 1 | active |
 | `jarvis_v2.monitor.main` | function | `src/jarvis_v2/monitor.py:328-365` | def main(argv: list[str] \| None=None) -> int | 155 | active |
 | `jarvis_v2.monitor_supervision._safe` | function | `src/jarvis_v2/monitor_supervision.py:44-46` | def _safe(value: Any, size: int=64) -> str | 1 | active |
 | `jarvis_v2.monitor_supervision._cols` | function | `src/jarvis_v2/monitor_supervision.py:49-60` | def _cols(db: sqlite3.Connection, name: str) -> set[str] | 0 | active |
@@ -3407,19 +3407,20 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `test_migration_guardrails.MigrationGuardrailTests.test_mismatched_commit_fails_before_writing` | method | `tests/test_migration_guardrails.py:58-62` | def test_mismatched_commit_fails_before_writing(self) | 1 | test |
 | `test_migration_guardrails.MigrationGuardrailTests.test_case_only_collisions_fail_before_writing` | method | `tests/test_migration_guardrails.py:64-69` | def test_case_only_collisions_fail_before_writing(self) | 1 | test |
 | `test_migration_guardrails.MigrationGuardrailTests.test_case_only_collisions_between_entries_fail_closed` | method | `tests/test_migration_guardrails.py:71-80` | def test_case_only_collisions_between_entries_fail_closed(self) | 1 | test |
-| `test_monitor.MonitorTests` | class | `tests/test_monitor.py:36-196` | class MonitorTests(unittest.TestCase) | 1 | test |
-| `test_monitor.MonitorTests._astra` | method | `tests/test_monitor.py:37-61` | def _astra(self, db_path) | 1 | test |
-| `test_monitor.MonitorTests.test_missing_database_never_created` | method | `tests/test_monitor.py:63-68` | def test_missing_database_never_created(self) | 1 | test |
-| `test_monitor.MonitorTests.test_astra_status_worker_slot_progress_and_controls` | method | `tests/test_monitor.py:70-93` | def test_astra_status_worker_slot_progress_and_controls(self) | 1 | test |
-| `test_monitor.MonitorTests.test_old_run_events_do_not_fabricate_current_worker_slot` | method | `tests/test_monitor.py:95-108` | def test_old_run_events_do_not_fabricate_current_worker_slot(self) | 1 | test |
-| `test_monitor.MonitorTests.test_astra_runtime_version_comes_from_read_only_settings` | method | `tests/test_monitor.py:110-118` | def test_astra_runtime_version_comes_from_read_only_settings(self) | 1 | test |
-| `test_monitor.MonitorTests.test_no_raw_spec_in_json_and_no_objectives` | method | `tests/test_monitor.py:120-131` | def test_no_raw_spec_in_json_and_no_objectives(self) | 1 | test |
-| `test_monitor.MonitorTests.test_wal_updates_seen_without_writes` | method | `tests/test_monitor.py:133-145` | def test_wal_updates_seen_without_writes(self) | 1 | test |
-| `test_monitor.MonitorTests.test_native_atlas_queue_and_auto_detection` | method | `tests/test_monitor.py:147-165` | def test_native_atlas_queue_and_auto_detection(self) | 1 | test |
-| `test_monitor.MonitorTests.test_unrecognized_db_refused` | method | `tests/test_monitor.py:167-172` | def test_unrecognized_db_refused(self) | 1 | test |
-| `test_monitor.MonitorTests.test_cli_one_snapshot_prints_json_and_is_not_runner` | method | `tests/test_monitor.py:174-185` | def test_cli_one_snapshot_prints_json_and_is_not_runner(self) | 1 | test |
-| `test_monitor.MonitorTests.test_terminal_escape_sanitized` | method | `tests/test_monitor.py:187-192` | def test_terminal_escape_sanitized(self) | 1 | test |
-| `test_monitor.MonitorTests.test_cli_rejects_simultaneous_watch_and_json` | method | `tests/test_monitor.py:194-196` | def test_cli_rejects_simultaneous_watch_and_json(self) | 1 | test |
+| `test_monitor.MonitorTests` | class | `tests/test_monitor.py:37-214` | class MonitorTests(unittest.TestCase) | 1 | test |
+| `test_monitor.MonitorTests._astra` | method | `tests/test_monitor.py:38-62` | def _astra(self, db_path) | 1 | test |
+| `test_monitor.MonitorTests.test_missing_database_never_created` | method | `tests/test_monitor.py:64-69` | def test_missing_database_never_created(self) | 1 | test |
+| `test_monitor.MonitorTests.test_astra_status_worker_slot_progress_and_controls` | method | `tests/test_monitor.py:71-94` | def test_astra_status_worker_slot_progress_and_controls(self) | 1 | test |
+| `test_monitor.MonitorTests.test_old_run_events_do_not_fabricate_current_worker_slot` | method | `tests/test_monitor.py:96-109` | def test_old_run_events_do_not_fabricate_current_worker_slot(self) | 1 | test |
+| `test_monitor.MonitorTests.test_astra_runtime_version_comes_from_read_only_settings` | method | `tests/test_monitor.py:111-119` | def test_astra_runtime_version_comes_from_read_only_settings(self) | 1 | test |
+| `test_monitor.MonitorTests.test_no_raw_spec_in_json_and_no_objectives` | method | `tests/test_monitor.py:121-132` | def test_no_raw_spec_in_json_and_no_objectives(self) | 1 | test |
+| `test_monitor.MonitorTests.test_wal_updates_seen_without_writes` | method | `tests/test_monitor.py:134-146` | def test_wal_updates_seen_without_writes(self) | 1 | test |
+| `test_monitor.MonitorTests.test_native_atlas_queue_and_auto_detection` | method | `tests/test_monitor.py:148-166` | def test_native_atlas_queue_and_auto_detection(self) | 1 | test |
+| `test_monitor.MonitorTests.test_unrecognized_db_refused` | method | `tests/test_monitor.py:168-173` | def test_unrecognized_db_refused(self) | 1 | test |
+| `test_monitor.MonitorTests.test_cli_one_snapshot_prints_json_and_is_not_runner` | method | `tests/test_monitor.py:175-186` | def test_cli_one_snapshot_prints_json_and_is_not_runner(self) | 1 | test |
+| `test_monitor.MonitorTests.test_terminal_escape_sanitized` | method | `tests/test_monitor.py:188-193` | def test_terminal_escape_sanitized(self) | 1 | test |
+| `test_monitor.MonitorTests.test_cli_rejects_simultaneous_watch_and_json` | method | `tests/test_monitor.py:195-197` | def test_cli_rejects_simultaneous_watch_and_json(self) | 1 | test |
+| `test_monitor.MonitorTests.test_auto_prefers_native_atlas_and_explicit_astra_stays_legacy` | method | `tests/test_monitor.py:199-214` | def test_auto_prefers_native_atlas_and_explicit_astra_stays_legacy(self) | 1 | test |
 | `test_monitor_supervision.SupervisorTelemetryTests` | class | `tests/test_monitor_supervision.py:28-170` | class SupervisorTelemetryTests(unittest.TestCase) | 1 | test |
 | `test_monitor_supervision.SupervisorTelemetryTests._fixture` | method | `tests/test_monitor_supervision.py:29-106` | def _fixture(self, path, *, extended) | 1 | test |
 | `test_monitor_supervision.SupervisorTelemetryTests.test_legacy_astra_db_gracefully_reports_missing_lanes` | method | `tests/test_monitor_supervision.py:108-122` | def test_legacy_astra_db_gracefully_reports_missing_lanes(self) | 1 | test |

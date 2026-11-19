@@ -2,7 +2,7 @@
   "coverage": {
     "classes": 565,
     "functions": 901,
-    "indexed_files": 549,
+    "indexed_files": 550,
     "language_files": {
       "javascript": 9,
       "python": 319,
@@ -11,12 +11,12 @@
       "swift": 1,
       "typescript": 3
     },
-    "methods": 2424,
+    "methods": 2425,
     "parser_errors": 0,
     "source_files": 345,
-    "suspected_dead_code_paths": 1733,
-    "unresolved_symbols": 6800,
-    "untested_functions": 994
+    "suspected_dead_code_paths": 1734,
+    "unresolved_symbols": 6803,
+    "untested_functions": 993
   },
   "files": [
     {
@@ -1077,11 +1077,11 @@
       "size_bytes": 10352
     },
     {
-      "content_sha256": "a1e67fe548efc6d9dab09ed306ca6f8b524467f138e7ff1b171f1ad61b0737c4",
-      "git_blob_sha": "c500b21083d8979394b9446b6ca932107592aa40",
+      "content_sha256": "aaf09fd8065254a0df531c8904135a17d19f221be32f9b4b5a576fc9f8259f9a",
+      "git_blob_sha": "00996613b2c6791496abba7a128bd9708bbe5265",
       "language": "python",
       "path": "src/jarvis_v2/monitor.py",
-      "size_bytes": 18703
+      "size_bytes": 18701
     },
     {
       "content_sha256": "da8b272af5ddbed268a06c6053d257badad3bf6f2cbed01e3cf6c002a65179a7",
@@ -1924,11 +1924,11 @@
       "size_bytes": 3682
     },
     {
-      "content_sha256": "37b21fb00f71bd3f5cb57a20579949879615e5d878eec53650947d1a961a05c2",
-      "git_blob_sha": "ecc0f38a5f8a33664423166386da5f0184c9c4d5",
+      "content_sha256": "39a57e09e5ae7b799639af2ce4522d6bcb7090321e1c393c1199693c64383756",
+      "git_blob_sha": "764f4bc32a6d6a4245a74e49918f9a29625f6921",
       "language": "python",
       "path": "tests/test_monitor.py",
-      "size_bytes": 10881
+      "size_bytes": 11838
     },
     {
       "content_sha256": "b46aa30db730ab5f425bfedfc0682121c55a87ba833f762380c993628ded4faa",
@@ -2358,11 +2358,11 @@
       "size_bytes": 23785
     },
     {
-      "content_sha256": "a6303478af49652e4316b610e50abbc58a372ad77adf39105d756701e5f04063",
-      "git_blob_sha": "eed6a1bea9e4f728abfba58bd21161bbf8e187b1",
+      "content_sha256": "57b56b57a9e2c8aee436eaec0d834a78c84af5ffb65c29cb84dbf1da60e2f00b",
+      "git_blob_sha": "8080a4cfb2463ecf00cfaccd9fcc7baf48382a40",
       "language": "python",
       "path": "tools/atlas_monitor.py",
-      "size_bytes": 404
+      "size_bytes": 502
     },
     {
       "content_sha256": "a30d94bc50b3505ac18710654de52789cc3a825cbeb0d6a4a540a21b7f79bbad",
@@ -2435,7 +2435,7 @@
       "size_bytes": 2766
     }
   ],
-  "generated_at": "2026-11-19T15:49:16.504162+00:00",
+  "generated_at": "2026-11-19T16:01:32.399088+00:00",
   "parse_errors": [],
   "parser": {
     "javascript": "declaration regex",
@@ -6948,7 +6948,7 @@
         "qualified_name": "imported.tws.engine.initialize"
       }
     ],
-    "suspected_dead_code_paths": 1733,
+    "suspected_dead_code_paths": 1734,
     "unresolved_examples": [
       {
         "caller": "test_scaffold.IOSScaffoldTests.test_ios_app_boundary_is_tracked",
@@ -7751,11 +7751,11 @@
         "symbol": "any"
       }
     ],
-    "unresolved_symbol_references": 6800
+    "unresolved_symbol_references": 6803
   },
   "schema_version": 1,
-  "source_sha": "0c0b5c07278f8f209b19a5e446d7ddcdb1757e3b",
-  "source_state": "catalog generated from checkout 0c0b5c07278f8f209b19a5e446d7ddcdb1757e3b; status snapshot had 0 entries before output generation",
+  "source_sha": "ea5b8c4bde776aa967bc46928e741de2d12a133c",
+  "source_state": "catalog generated from checkout ea5b8c4bde776aa967bc46928e741de2d12a133c; status snapshot had 0 entries before output generation",
   "symbols": [
     {
       "authentication_or_permission_requirements": [
@@ -70331,7 +70331,8 @@
         "test_linux_sda.LinuxSDATests.test_stop_marker_prevents_master_claims",
         "test_linux_sda.LinuxSDATests.test_supervise_prompt_binds_task_acceptance_and_repository_citations",
         "test_linux_sda.LinuxSDATests.test_worker_failure_can_recover_on_bounded_repair",
-        "test_health.HealthTests.test_health_reads_without_creating_or_mutating_database"
+        "test_health.HealthTests.test_health_reads_without_creating_or_mutating_database",
+        "test_monitor.MonitorTests.test_auto_prefers_native_atlas_and_explicit_astra_stays_legacy"
       ],
       "dependencies": [
         "__future__",
@@ -70349,6 +70350,7 @@
         "bootstrap/astra-one/tests/test_supervisor_v3.py",
         "migration/imported/sda/astra-one-v0.2.0/tests/test_linux_sda.py",
         "tests/test_health.py",
+        "tests/test_monitor.py",
         "tests/test_packaging_policy.py",
         "tests/test_sda_003_profiles.py"
       ],
@@ -128383,7 +128385,8 @@
       ],
       "called_functions": [],
       "callers": [
-        "jarvis_v2.monitor.main"
+        "jarvis_v2.monitor.main",
+        "test_monitor.MonitorTests.test_auto_prefers_native_atlas_and_explicit_astra_stays_legacy"
       ],
       "dependencies": [
         ".monitor_supervision",
@@ -128401,7 +128404,9 @@
         "typing"
       ],
       "exceptions_and_failure_behavior": [],
-      "existing_test_coverage": [],
+      "existing_test_coverage": [
+        "tests/test_monitor.py"
+      ],
       "file_path": "src/jarvis_v2/monitor.py",
       "inputs": [
         "source",
@@ -190368,7 +190373,8 @@
         "subprocess",
         "sys",
         "tempfile",
-        "unittest"
+        "unittest",
+        "unittest.mock"
       ],
       "exceptions_and_failure_behavior": [],
       "existing_test_coverage": [
@@ -190381,8 +190387,8 @@
       "kind": "class",
       "known_defects": [],
       "line_range": [
-        36,
-        196
+        37,
+        214
       ],
       "maintenance_status": "test",
       "module": "test_monitor",
@@ -190431,7 +190437,8 @@
         "subprocess",
         "sys",
         "tempfile",
-        "unittest"
+        "unittest",
+        "unittest.mock"
       ],
       "exceptions_and_failure_behavior": [],
       "existing_test_coverage": [
@@ -190444,8 +190451,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        37,
-        61
+        38,
+        62
       ],
       "maintenance_status": "test",
       "module": "test_monitor",
@@ -190482,7 +190489,8 @@
         "subprocess",
         "sys",
         "tempfile",
-        "unittest"
+        "unittest",
+        "unittest.mock"
       ],
       "exceptions_and_failure_behavior": [],
       "existing_test_coverage": [
@@ -190493,8 +190501,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        63,
-        68
+        64,
+        69
       ],
       "maintenance_status": "test",
       "module": "test_monitor",
@@ -190534,7 +190542,8 @@
         "subprocess",
         "sys",
         "tempfile",
-        "unittest"
+        "unittest",
+        "unittest.mock"
       ],
       "exceptions_and_failure_behavior": [],
       "existing_test_coverage": [
@@ -190545,8 +190554,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        70,
-        93
+        71,
+        94
       ],
       "maintenance_status": "test",
       "module": "test_monitor",
@@ -190585,7 +190594,8 @@
         "subprocess",
         "sys",
         "tempfile",
-        "unittest"
+        "unittest",
+        "unittest.mock"
       ],
       "exceptions_and_failure_behavior": [],
       "existing_test_coverage": [
@@ -190596,8 +190606,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        95,
-        108
+        96,
+        109
       ],
       "maintenance_status": "test",
       "module": "test_monitor",
@@ -190636,7 +190646,8 @@
         "subprocess",
         "sys",
         "tempfile",
-        "unittest"
+        "unittest",
+        "unittest.mock"
       ],
       "exceptions_and_failure_behavior": [],
       "existing_test_coverage": [
@@ -190647,8 +190658,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        110,
-        118
+        111,
+        119
       ],
       "maintenance_status": "test",
       "module": "test_monitor",
@@ -190689,7 +190700,8 @@
         "subprocess",
         "sys",
         "tempfile",
-        "unittest"
+        "unittest",
+        "unittest.mock"
       ],
       "exceptions_and_failure_behavior": [],
       "existing_test_coverage": [
@@ -190700,8 +190712,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        120,
-        131
+        121,
+        132
       ],
       "maintenance_status": "test",
       "module": "test_monitor",
@@ -190740,7 +190752,8 @@
         "subprocess",
         "sys",
         "tempfile",
-        "unittest"
+        "unittest",
+        "unittest.mock"
       ],
       "exceptions_and_failure_behavior": [],
       "existing_test_coverage": [
@@ -190751,8 +190764,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        133,
-        145
+        134,
+        146
       ],
       "maintenance_status": "test",
       "module": "test_monitor",
@@ -190793,7 +190806,8 @@
         "subprocess",
         "sys",
         "tempfile",
-        "unittest"
+        "unittest",
+        "unittest.mock"
       ],
       "exceptions_and_failure_behavior": [],
       "existing_test_coverage": [
@@ -190804,8 +190818,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        147,
-        165
+        148,
+        166
       ],
       "maintenance_status": "test",
       "module": "test_monitor",
@@ -190842,7 +190856,8 @@
         "subprocess",
         "sys",
         "tempfile",
-        "unittest"
+        "unittest",
+        "unittest.mock"
       ],
       "exceptions_and_failure_behavior": [],
       "existing_test_coverage": [
@@ -190853,8 +190868,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        167,
-        172
+        168,
+        173
       ],
       "maintenance_status": "test",
       "module": "test_monitor",
@@ -190896,7 +190911,8 @@
         "subprocess",
         "sys",
         "tempfile",
-        "unittest"
+        "unittest",
+        "unittest.mock"
       ],
       "exceptions_and_failure_behavior": [],
       "existing_test_coverage": [
@@ -190907,8 +190923,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        174,
-        185
+        175,
+        186
       ],
       "maintenance_status": "test",
       "module": "test_monitor",
@@ -190947,7 +190963,8 @@
         "subprocess",
         "sys",
         "tempfile",
-        "unittest"
+        "unittest",
+        "unittest.mock"
       ],
       "exceptions_and_failure_behavior": [],
       "existing_test_coverage": [
@@ -190958,8 +190975,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        187,
-        192
+        188,
+        193
       ],
       "maintenance_status": "test",
       "module": "test_monitor",
@@ -190989,7 +191006,8 @@
         "subprocess",
         "sys",
         "tempfile",
-        "unittest"
+        "unittest",
+        "unittest.mock"
       ],
       "exceptions_and_failure_behavior": [],
       "existing_test_coverage": [
@@ -191000,8 +191018,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        194,
-        196
+        195,
+        197
       ],
       "maintenance_status": "test",
       "module": "test_monitor",
@@ -191013,6 +191031,59 @@
       "side_effects": [],
       "signature": "def test_cli_rejects_simultaneous_watch_and_json(self)",
       "symbol_name": "test_cli_rejects_simultaneous_watch_and_json"
+    },
+    {
+      "authentication_or_permission_requirements": [
+        "path"
+      ],
+      "called_functions": [
+        "imported.tws.aurelia3d.build_portable.facial_mesh.patch",
+        "jarvis_v2.monitor._choose_db"
+      ],
+      "callers": [],
+      "dependencies": [
+        "contextlib",
+        "io",
+        "jarvis_v2.core.queue",
+        "jarvis_v2.monitor",
+        "json",
+        "pathlib",
+        "sqlite3",
+        "subprocess",
+        "sys",
+        "tempfile",
+        "unittest",
+        "unittest.mock"
+      ],
+      "exceptions_and_failure_behavior": [],
+      "existing_test_coverage": [
+        "tests/test_monitor.py"
+      ],
+      "file_path": "tests/test_monitor.py",
+      "inputs": [],
+      "kind": "method",
+      "known_defects": [],
+      "line_range": [
+        199,
+        214
+      ],
+      "maintenance_status": "test",
+      "module": "test_monitor",
+      "outputs": [],
+      "purpose": "undocumented",
+      "qualified_name": "test_monitor.MonitorTests.test_auto_prefers_native_atlas_and_explicit_astra_stays_legacy",
+      "refactoring_recommendation": "review callers, public contract, and security role before simplification",
+      "security_implications": [
+        "database or query access",
+        "filesystem access",
+        "security or trust-boundary vocabulary"
+      ],
+      "side_effects": [
+        "filesystem",
+        "database"
+      ],
+      "signature": "def test_auto_prefers_native_atlas_and_explicit_astra_stays_legacy(self)",
+      "symbol_name": "test_auto_prefers_native_atlas_and_explicit_astra_stays_legacy"
     },
     {
       "authentication_or_permission_requirements": [

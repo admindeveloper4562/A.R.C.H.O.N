@@ -1796,18 +1796,19 @@
 | `test_migration_guardrails.MigrationGuardrailTests.setUp` | `tests/test_migration_guardrails.py:11` | command or process execution; filesystem access; security or trust-boundary vocabulary |
 | `test_migration_guardrails.MigrationGuardrailTests.setUp.git` | `tests/test_migration_guardrails.py:18` | command or process execution; security or trust-boundary vocabulary |
 | `test_migration_guardrails.MigrationGuardrailTests.test_case_only_collisions_fail_before_writing` | `tests/test_migration_guardrails.py:64` | filesystem access |
-| `test_monitor.MonitorTests` | `tests/test_monitor.py:36` | command or process execution; database or query access; filesystem access; security or trust-boundary vocabulary |
-| `test_monitor.MonitorTests._astra` | `tests/test_monitor.py:37` | database or query access; security or trust-boundary vocabulary |
-| `test_monitor.MonitorTests.test_missing_database_never_created` | `tests/test_monitor.py:63` | filesystem access; security or trust-boundary vocabulary |
-| `test_monitor.MonitorTests.test_astra_status_worker_slot_progress_and_controls` | `tests/test_monitor.py:70` | database or query access; filesystem access; security or trust-boundary vocabulary |
-| `test_monitor.MonitorTests.test_old_run_events_do_not_fabricate_current_worker_slot` | `tests/test_monitor.py:95` | database or query access; filesystem access; security or trust-boundary vocabulary |
-| `test_monitor.MonitorTests.test_astra_runtime_version_comes_from_read_only_settings` | `tests/test_monitor.py:110` | database or query access; filesystem access; security or trust-boundary vocabulary |
-| `test_monitor.MonitorTests.test_no_raw_spec_in_json_and_no_objectives` | `tests/test_monitor.py:120` | database or query access; filesystem access; security or trust-boundary vocabulary |
-| `test_monitor.MonitorTests.test_wal_updates_seen_without_writes` | `tests/test_monitor.py:133` | database or query access; filesystem access; security or trust-boundary vocabulary |
-| `test_monitor.MonitorTests.test_native_atlas_queue_and_auto_detection` | `tests/test_monitor.py:147` | database or query access; filesystem access; security or trust-boundary vocabulary |
-| `test_monitor.MonitorTests.test_unrecognized_db_refused` | `tests/test_monitor.py:167` | database or query access; filesystem access; security or trust-boundary vocabulary |
-| `test_monitor.MonitorTests.test_cli_one_snapshot_prints_json_and_is_not_runner` | `tests/test_monitor.py:174` | command or process execution; database or query access; filesystem access; security or trust-boundary vocabulary |
-| `test_monitor.MonitorTests.test_terminal_escape_sanitized` | `tests/test_monitor.py:187` | security or trust-boundary vocabulary |
+| `test_monitor.MonitorTests` | `tests/test_monitor.py:37` | command or process execution; database or query access; filesystem access; security or trust-boundary vocabulary |
+| `test_monitor.MonitorTests._astra` | `tests/test_monitor.py:38` | database or query access; security or trust-boundary vocabulary |
+| `test_monitor.MonitorTests.test_missing_database_never_created` | `tests/test_monitor.py:64` | filesystem access; security or trust-boundary vocabulary |
+| `test_monitor.MonitorTests.test_astra_status_worker_slot_progress_and_controls` | `tests/test_monitor.py:71` | database or query access; filesystem access; security or trust-boundary vocabulary |
+| `test_monitor.MonitorTests.test_old_run_events_do_not_fabricate_current_worker_slot` | `tests/test_monitor.py:96` | database or query access; filesystem access; security or trust-boundary vocabulary |
+| `test_monitor.MonitorTests.test_astra_runtime_version_comes_from_read_only_settings` | `tests/test_monitor.py:111` | database or query access; filesystem access; security or trust-boundary vocabulary |
+| `test_monitor.MonitorTests.test_no_raw_spec_in_json_and_no_objectives` | `tests/test_monitor.py:121` | database or query access; filesystem access; security or trust-boundary vocabulary |
+| `test_monitor.MonitorTests.test_wal_updates_seen_without_writes` | `tests/test_monitor.py:134` | database or query access; filesystem access; security or trust-boundary vocabulary |
+| `test_monitor.MonitorTests.test_native_atlas_queue_and_auto_detection` | `tests/test_monitor.py:148` | database or query access; filesystem access; security or trust-boundary vocabulary |
+| `test_monitor.MonitorTests.test_unrecognized_db_refused` | `tests/test_monitor.py:168` | database or query access; filesystem access; security or trust-boundary vocabulary |
+| `test_monitor.MonitorTests.test_cli_one_snapshot_prints_json_and_is_not_runner` | `tests/test_monitor.py:175` | command or process execution; database or query access; filesystem access; security or trust-boundary vocabulary |
+| `test_monitor.MonitorTests.test_terminal_escape_sanitized` | `tests/test_monitor.py:188` | security or trust-boundary vocabulary |
+| `test_monitor.MonitorTests.test_auto_prefers_native_atlas_and_explicit_astra_stays_legacy` | `tests/test_monitor.py:199` | database or query access; filesystem access; security or trust-boundary vocabulary |
 | `test_monitor_supervision.SupervisorTelemetryTests` | `tests/test_monitor_supervision.py:28` | database or query access; filesystem access; security or trust-boundary vocabulary |
 | `test_monitor_supervision.SupervisorTelemetryTests._fixture` | `tests/test_monitor_supervision.py:29` | database or query access; security or trust-boundary vocabulary |
 | `test_monitor_supervision.SupervisorTelemetryTests.test_legacy_astra_db_gracefully_reports_missing_lanes` | `tests/test_monitor_supervision.py:108` | database or query access; filesystem access; security or trust-boundary vocabulary |

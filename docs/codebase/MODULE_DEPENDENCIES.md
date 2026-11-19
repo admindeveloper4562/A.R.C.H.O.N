@@ -237,7 +237,7 @@
 | `test_mig_016_identity` | `hashlib`, `json`, `pathlib`, `sqlite3`, `subprocess`, `tempfile`, `tools.import_legacy`, `unittest` |
 | `test_migration_compatibility` | `json`, `migration.adapters.legacy_contracts`, `pathlib`, `shutil`, `tempfile`, `unittest` |
 | `test_migration_guardrails` | `json`, `pathlib`, `subprocess`, `tempfile`, `tools.import_legacy`, `unittest` |
-| `test_monitor` | `contextlib`, `io`, `jarvis_v2.core.queue`, `jarvis_v2.monitor`, `json`, `pathlib`, `sqlite3`, `subprocess`, `sys`, `tempfile`, `unittest` |
+| `test_monitor` | `contextlib`, `io`, `jarvis_v2.core.queue`, `jarvis_v2.monitor`, `json`, `pathlib`, `sqlite3`, `subprocess`, `sys`, `tempfile`, `unittest`, `unittest.mock` |
 | `test_monitor_supervision` | `jarvis_v2.monitor`, `json`, `pathlib`, `sqlite3`, `tempfile`, `unittest` |
 | `test_native_controller` | `jarvis_v2.native_controller`, `pathlib`, `tempfile`, `unittest` |
 | `test_owner_approval` | `astra_one.owner_approval`, `json`, `os`, `pathlib`, `subprocess`, `tempfile`, `unittest` |
