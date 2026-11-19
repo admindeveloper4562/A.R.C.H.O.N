@@ -1,31 +1,50 @@
 {
-  "schema_version": 1,
-  "verifier": "independent read-only QC subagent Mill",
-  "target_head": "239e10154e1c81b4ff463cdd796e04f0dbc68407",
-  "implementation_sha": "eef1e3c8d1bfd3ea6a3dc7e1b06ac2daa3e21767",
-  "working_tree_at_qc": "report-only refresh edits were pending; implementation code was committed",
+  "schema_version": 2,
+  "verifier": "independent read-only QC subagent Zeno",
+  "observed_at": "2026-11-20",
+  "target_head": "1c27e2277a7a9f88d9d0dbd9bdac6c7b8f2f80e5",
+  "implementation_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
+  "documentation_overlay": true,
+  "working_tree_at_qc": "clean",
   "status": "CONDITIONAL",
   "mutations": false,
   "checks": {
+    "git_provenance": "pass",
     "audit_json": "pass",
+    "diff_check": "pass",
+    "native_executor_focused": "8/8 pass",
+    "system_inventory_focused": "6/6 pass",
     "native_one_shot": "pass",
     "native_health": "pass",
     "ledger_envelope": "pass",
-    "diff_check": "pass",
+    "systemd_candidate": "pass",
     "remote_publication": "partial",
-    "astra_boundary": "fail_release_gate",
+    "astra_boundary": "partial",
     "native_release_completeness": "partial"
   },
+  "evidence": {
+    "source_ahead_of_remote": 36,
+    "overlay_ahead_of_remote": 37,
+    "behind_remote": 0,
+    "parent_envelope": "247 = 240 completed + 7 archived",
+    "children": 1359,
+    "receipt_rows": 1281,
+    "astra_timer": "enabled/active",
+    "astra_service": "inactive",
+    "astra_monitor_pid": 20774
+  },
   "skipped": [
-    "full unittest suite",
-    "long scans",
-    "service cutover",
-    "cleanup"
+    "full regression rerun",
+    "long inventory scans",
+    "service cutover and watchdog activation",
+    "Astra retirement",
+    "cleanup archive moves or deletion",
+    "remote publication"
   ],
   "blockers": [
-    "legacy Astra boundary remains active and the QC follow-up observed a service failure 143; later direct observation saw exit 0 with the same monitor argument error",
-    "native domain executor and unattended SDA/AEGIS watchdog soak are unproven",
-    "local source is not published to verified GitHub refs",
-    "owner-approved cleanup remains pending"
+    "legacy Astra timer and monitor remain active pending owner-approved cutover",
+    "native domain-effect handlers, unattended SDA/AEGIS ownership, trusted watchdog activation and rollback soak are not proven",
+    "local source and documentation overlay are not published to verified GitHub refs",
+    "high-impact cleanup remains owner-approval gated"
   ]
 }

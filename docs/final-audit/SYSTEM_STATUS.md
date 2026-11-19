@@ -4,11 +4,12 @@
 
 - Canonical source: `/home/r34p3r/dev/A.R.C.H.O.N`
 - Exact candidate/source/implementation SHA: `4149c1d75eee24880bfacd819342f9c21d05d51a`
-- Git state: source candidate is 36 commits ahead of `origin/feature/astra-linux-integration-c799784769` and 0 behind; no push performed
+- Git state: tested source candidate is 36 commits ahead of `origin/feature/astra-linux-integration-c799784769`; current documentation overlay `1c27e22` is 37 ahead; both are 0 behind and unpublished
 - Package version: `0.0.3`
 - Full regression: 590 passed, 0 failed, 27.762 seconds; log `/home/r34p3r/.local/state/archon/logs/unittest-4149c1d.log`
 - Native import sweep: 106 passed, 0 errors
-- Search index: FTS5 available, 551 files indexed from 552 cataloged files; 347 source files, 3,920 symbols, 904 functions, 2,448 methods, 568 classes, 0 parser errors
+- Search index: FTS5 available, 552 files indexed from 553 cataloged files; 347 source files, 3,920 symbols, 904 functions, 2,448 methods, 568 classes, 0 parser errors
+- Index provenance: rebuilt from documentation overlay snapshot `1c27e2277a7a9f88d9d0dbd9bdac6c7b8f2f80e5`; implementation source remains `4149c1d75eee24880bfacd819342f9c21d05d51a`
 - Historical ledger: SQLite integrity `ok`; 247 parents = 240 completed + 7 archived/deferred; 1,359 children; 1,281 receipt rows
 
 ## Native runtime and modules

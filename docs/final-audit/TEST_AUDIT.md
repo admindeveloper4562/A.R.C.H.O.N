@@ -26,4 +26,4 @@ Fixtures use temporary directories and disposable SQLite files. The full suite d
 - Tests with Astra, Windows, iOS, Blender, Cloudflare, or external providers validate contracts and fixtures; they do not prove those external environments on this Linux host.
 - Flakiness and order dependence were not statistically profiled across repeated runs.
 - Hosted CI acceptance remains unverified in this run.
-- Independent bounded QC for this exact candidate is still pending; the current full-suite and qualification logs are main-session evidence, not an independent approval.
+- Independent bounded QC against current HEAD `1c27e22` passed focused native executor 8/8 and inventory 6/6 checks; it did not rerun the full suite and is not an approval for cutover.

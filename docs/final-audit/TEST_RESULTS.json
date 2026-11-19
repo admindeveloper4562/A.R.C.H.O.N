@@ -3,9 +3,20 @@
   "source_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
   "implementation_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
   "canonical_head": "4149c1d75eee24880bfacd819342f9c21d05d51a",
+  "current_documentation_overlay_sha": "1c27e2277a7a9f88d9d0dbd9bdac6c7b8f2f80e5",
   "source_state": "tested canonical local candidate; not published to GitHub",
+  "code_index_snapshot_sha": "1c27e2277a7a9f88d9d0dbd9bdac6c7b8f2f80e5",
   "runner": "python3 -m unittest discover -s tests -p 'test_*.py' -q",
   "pytest_available": false,
+  "independent_qc": {
+    "status": "CONDITIONAL",
+    "target_head": "1c27e2277a7a9f88d9d0dbd9bdac6c7b8f2f80e5",
+    "implementation_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
+    "focused_native_executor": "8/8",
+    "focused_system_inventory": "6/6",
+    "full_suite_rerun": false,
+    "receipt": "docs/final-audit/INDEPENDENT_QC.json"
+  },
   "full_suite": {
     "tests": 590,
     "passed": 590,

@@ -8,4 +8,4 @@
 6. The filesystem inventory is bounded and does not claim complete root visibility; permission-denied paths, virtual filesystems, mount boundaries, and truncation are recorded.
 7. Cleanup is dry-run only. No old clone, worktree, backup, image, service, or database was removed.
 8. The code catalog reports 6,800 unresolved static references and 1,733 suspected unused paths. These are heuristic and require caller-aware review; they are not defects by themselves.
-9. Independent bounded QC covered the committed implementation/evidence tree but skipped the full suite and long scans; this final documentation-only refresh is not separately re-QC'd.
+9. Independent bounded QC covers current HEAD `1c27e22` and implementation ancestor `4149c1d` with focused native/inventory checks; it skipped the full suite, long scans, and all cutover/cleanup operations.
