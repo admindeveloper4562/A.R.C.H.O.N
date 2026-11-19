@@ -7,6 +7,7 @@ Source under test: /home/r34p3r/dev/A.R.C.H.O.N at tested local tree 239e10154e1
 | Native import sweep | PYTHONPATH=src; import all 106 jarvis_v2 modules | PASS |
 | Module and identity CLI | python3 -m jarvis_v2.cli modules/identities | PASS |
 | Native monitor | tools/atlas_monitor.py --source atlas against fresh atlas.sqlite3 | PASS; empty queue |
+| Default monitor boundary | tools/atlas_monitor.py --json with both native and historical state present | PASS; selects native ATLAS; Astra requires explicit `--source astra` |
 | Fresh storage | StorageManager migration into runtime.sqlite3 | PASS |
 | Fresh queue | TaskQueue schema into atlas.sqlite3 | PASS |
 | Fresh restore | SQLite backup API plus integrity/foreign-key checks | PASS |

@@ -22,6 +22,16 @@ Observed against `/home/r34p3r/dev/A.R.C.H.O.N` on 2026-11-19. The native source
 
 These checks demonstrate that the native local slice does not require Astra to import or start. They do not demonstrate a complete native task executor, unattended SDA/AEGIS cutover, trusted watchdog activation, or rollback soak.
 
+## Follow-up default-boundary correction
+
+Commit `2070829` corrected the monitor's database selection boundary after a
+live check found that `--source auto` selected the historical Astra database
+whenever both state roots existed. Auto mode now prefers native
+`~/.local/state/archon/atlas.sqlite3`; `--source astra` remains an explicit
+read-only historical mode. The monitor and supervision tests passed (`12/12`
+and `3/3`), and the installed-style launcher returned the native ATLAS engine
+for its default JSON snapshot.
+
 ## Current legacy-service observation
 
 At the final direct observation, `archon-astra.timer` was enabled and active, the latest `archon-astra.service` run had exited 0 and was inactive, and PID 20774 remained the read-only legacy monitor. The user journal records the legacy monitor rejecting simultaneous `--json` and `--watch` arguments before the legacy batch completed its own 568-test run. This is preserved as evidence; no service state was changed.
