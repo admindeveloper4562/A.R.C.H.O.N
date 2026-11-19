@@ -1229,9 +1229,12 @@
 | `jarvis_v2.native_controller.NativeController.run_forever` | `src/jarvis_v2/native_controller.py:201` | security or trust-boundary vocabulary |
 | `jarvis_v2.native_controller._default_state` | `src/jarvis_v2/native_controller.py:220` | filesystem access; security or trust-boundary vocabulary |
 | `jarvis_v2.native_controller.main` | `src/jarvis_v2/native_controller.py:224` | security or trust-boundary vocabulary |
-| `jarvis_v2.native_executor.NativeControlPlaneExecutor` | `src/jarvis_v2/native_executor.py:66` | command or process execution; filesystem access; security or trust-boundary vocabulary |
-| `jarvis_v2.native_executor.NativeControlPlaneExecutor.__init__` | `src/jarvis_v2/native_executor.py:73` | filesystem access; security or trust-boundary vocabulary |
-| `jarvis_v2.native_executor.NativeControlPlaneExecutor._inventory_digest` | `src/jarvis_v2/native_executor.py:123` | security or trust-boundary vocabulary |
+| `jarvis_v2.native_executor.NativeControlPlaneExecutor` | `src/jarvis_v2/native_executor.py:92` | command or process execution; database or query access; filesystem access; security or trust-boundary vocabulary |
+| `jarvis_v2.native_executor.NativeControlPlaneExecutor.__init__` | `src/jarvis_v2/native_executor.py:99` | filesystem access; security or trust-boundary vocabulary |
+| `jarvis_v2.native_executor.NativeControlPlaneExecutor._inventory_digest` | `src/jarvis_v2/native_executor.py:181` | security or trust-boundary vocabulary |
+| `jarvis_v2.native_executor.NativeControlPlaneExecutor._queue_status` | `src/jarvis_v2/native_executor.py:208` | database or query access; security or trust-boundary vocabulary |
+| `jarvis_v2.native_executor.NativeControlPlaneExecutor._database_inspect` | `src/jarvis_v2/native_executor.py:247` | security or trust-boundary vocabulary |
+| `jarvis_v2.native_executor.NativeControlPlaneExecutor._guardian_readiness` | `src/jarvis_v2/native_executor.py:286` | security or trust-boundary vocabulary |
 | `jarvis_v2.research.analysis.MediaAnalysisEvidence` | `src/jarvis_v2/research/analysis.py:43` | security or trust-boundary vocabulary |
 | `jarvis_v2.research.analysis.MediaAnalysisEvidence.__post_init__` | `src/jarvis_v2/research/analysis.py:56` | security or trust-boundary vocabulary |
 | `jarvis_v2.research.analysis.MediaAnalysisStore` | `src/jarvis_v2/research/analysis.py:104` | database or query access; security or trust-boundary vocabulary |
@@ -1386,11 +1389,12 @@
 | `jarvis_v2.system_inventory._command_summary` | `src/jarvis_v2/system_inventory.py:54` | security or trust-boundary vocabulary |
 | `jarvis_v2.system_inventory._optional_command_summary` | `src/jarvis_v2/system_inventory.py:64` | security or trust-boundary vocabulary |
 | `jarvis_v2.system_inventory._metadata` | `src/jarvis_v2/system_inventory.py:74` | security or trust-boundary vocabulary |
-| `jarvis_v2.system_inventory.scan_filesystem` | `src/jarvis_v2/system_inventory.py:87` | filesystem access; security or trust-boundary vocabulary |
-| `jarvis_v2.system_inventory._software` | `src/jarvis_v2/system_inventory.py:173` | security or trust-boundary vocabulary |
-| `jarvis_v2.system_inventory.collect_inventory` | `src/jarvis_v2/system_inventory.py:207` | filesystem access; security or trust-boundary vocabulary |
-| `jarvis_v2.system_inventory.compare_inventories` | `src/jarvis_v2/system_inventory.py:249` | security or trust-boundary vocabulary |
-| `jarvis_v2.system_inventory.write_inventory` | `src/jarvis_v2/system_inventory.py:286` | filesystem access; security or trust-boundary vocabulary |
+| `jarvis_v2.system_inventory._resume_frames` | `src/jarvis_v2/system_inventory.py:87` | filesystem access; security or trust-boundary vocabulary |
+| `jarvis_v2.system_inventory.scan_filesystem` | `src/jarvis_v2/system_inventory.py:128` | filesystem access; security or trust-boundary vocabulary |
+| `jarvis_v2.system_inventory._software` | `src/jarvis_v2/system_inventory.py:252` | security or trust-boundary vocabulary |
+| `jarvis_v2.system_inventory.collect_inventory` | `src/jarvis_v2/system_inventory.py:286` | filesystem access; security or trust-boundary vocabulary |
+| `jarvis_v2.system_inventory.compare_inventories` | `src/jarvis_v2/system_inventory.py:333` | security or trust-boundary vocabulary |
+| `jarvis_v2.system_inventory.write_inventory` | `src/jarvis_v2/system_inventory.py:370` | filesystem access; security or trust-boundary vocabulary |
 | `jarvis_v2.tws.__init__.QuestStore` | `src/jarvis_v2/tws/__init__.py:287` | database or query access; security or trust-boundary vocabulary |
 | `jarvis_v2.tws.__init__.QuestStore.__init__` | `src/jarvis_v2/tws/__init__.py:290` | security or trust-boundary vocabulary |
 | `jarvis_v2.tws.__init__.QuestStore.schema_version` | `src/jarvis_v2/tws/__init__.py:305` | database or query access |
@@ -1824,11 +1828,15 @@
 | `test_native_controller.NativeControllerTests.test_executor_completion_and_failure_are_digest_only_and_durable` | `tests/test_native_controller.py:39` | database or query access; filesystem access; security or trust-boundary vocabulary |
 | `test_native_controller.NativeControllerTests.test_executor_exception_is_recorded_as_failed_without_raw_error` | `tests/test_native_controller.py:61` | filesystem access; security or trust-boundary vocabulary |
 | `test_native_controller.NativeControllerTests.test_native_user_unit_points_only_to_the_native_controller` | `tests/test_native_controller.py:76` | filesystem access; security or trust-boundary vocabulary |
-| `test_native_executor.NativeExecutorTests` | `tests/test_native_executor.py:16` | command or process execution; database or query access; filesystem access; security or trust-boundary vocabulary |
-| `test_native_executor.NativeExecutorTests._executor` | `tests/test_native_executor.py:17` | filesystem access; security or trust-boundary vocabulary |
-| `test_native_executor.NativeExecutorTests.test_module_health_covers_all_ten_active_modules` | `tests/test_native_executor.py:24` | security or trust-boundary vocabulary |
-| `test_native_executor.NativeExecutorTests.test_inventory_digest_returns_metadata_only` | `tests/test_native_executor.py:48` | filesystem access; security or trust-boundary vocabulary |
-| `test_native_executor.NativeExecutorTests.test_native_cli_uses_built_in_executor_for_read_only_task` | `tests/test_native_executor.py:62` | command or process execution; database or query access; filesystem access; security or trust-boundary vocabulary |
+| `test_native_executor.NativeExecutorTests` | `tests/test_native_executor.py:17` | command or process execution; database or query access; filesystem access; security or trust-boundary vocabulary |
+| `test_native_executor.NativeExecutorTests._executor` | `tests/test_native_executor.py:18` | filesystem access; security or trust-boundary vocabulary |
+| `test_native_executor.NativeExecutorTests.test_module_health_covers_all_ten_active_modules` | `tests/test_native_executor.py:25` | security or trust-boundary vocabulary |
+| `test_native_executor.NativeExecutorTests.test_capability_matrix_rejects_side_effect_classes` | `tests/test_native_executor.py:49` | security or trust-boundary vocabulary |
+| `test_native_executor.NativeExecutorTests.test_queue_status_is_read_only_and_reports_durable_controls` | `tests/test_native_executor.py:58` | database or query access; filesystem access |
+| `test_native_executor.NativeExecutorTests.test_database_inspect_allows_only_named_native_databases` | `tests/test_native_executor.py:69` | database or query access |
+| `test_native_executor.NativeExecutorTests.test_sda_and_guardian_probes_remain_blocked_without_cutover_evidence` | `tests/test_native_executor.py:90` | security or trust-boundary vocabulary |
+| `test_native_executor.NativeExecutorTests.test_inventory_digest_returns_metadata_only` | `tests/test_native_executor.py:103` | filesystem access; security or trust-boundary vocabulary |
+| `test_native_executor.NativeExecutorTests.test_native_cli_uses_built_in_executor_for_read_only_task` | `tests/test_native_executor.py:117` | command or process execution; database or query access; filesystem access; security or trust-boundary vocabulary |
 | `test_packaging_policy.PackagingPolicyTests` | `tests/test_packaging_policy.py:33` | filesystem access; security or trust-boundary vocabulary |
 | `test_packaging_policy.PackagingPolicyTests.make_package` | `tests/test_packaging_policy.py:34` | filesystem access; security or trust-boundary vocabulary |
 | `test_packaging_policy.PackagingPolicyTests.write_manifest` | `tests/test_packaging_policy.py:39` | filesystem access; security or trust-boundary vocabulary |
@@ -1977,9 +1985,11 @@
 | `test_sda_003_profiles.SDA003ProfileTests.test_model_failure_reasons_propagate_without_fallback` | `tests/test_sda_003_profiles.py:132` | security or trust-boundary vocabulary |
 | `test_system_inventory.SystemInventoryTests` | `tests/test_system_inventory.py:9` | filesystem access; security or trust-boundary vocabulary |
 | `test_system_inventory.SystemInventoryTests.test_scan_is_metadata_only_bounded_and_does_not_follow_symlinks` | `tests/test_system_inventory.py:10` | filesystem access; security or trust-boundary vocabulary |
-| `test_system_inventory.SystemInventoryTests.test_digest_and_comparison_ignore_collection_time` | `tests/test_system_inventory.py:23` | security or trust-boundary vocabulary |
-| `test_system_inventory.SystemInventoryTests.test_inventory_reports_model_and_acceleration_capability_slots` | `tests/test_system_inventory.py:44` | filesystem access; security or trust-boundary vocabulary |
-| `test_system_inventory.SystemInventoryTests.test_inventory_cli_writes_private_output_and_returns_summary` | `tests/test_system_inventory.py:55` | filesystem access; security or trust-boundary vocabulary |
+| `test_system_inventory.SystemInventoryTests.test_scan_cursor_resumes_without_duplicates_or_root_restart` | `tests/test_system_inventory.py:23` | filesystem access; security or trust-boundary vocabulary |
+| `test_system_inventory.SystemInventoryTests.test_scan_cursor_cannot_change_root_or_cross_mount` | `tests/test_system_inventory.py:39` | filesystem access; security or trust-boundary vocabulary |
+| `test_system_inventory.SystemInventoryTests.test_digest_and_comparison_ignore_collection_time` | `tests/test_system_inventory.py:48` | security or trust-boundary vocabulary |
+| `test_system_inventory.SystemInventoryTests.test_inventory_reports_model_and_acceleration_capability_slots` | `tests/test_system_inventory.py:69` | filesystem access; security or trust-boundary vocabulary |
+| `test_system_inventory.SystemInventoryTests.test_inventory_cli_writes_private_output_and_returns_summary` | `tests/test_system_inventory.py:80` | filesystem access; security or trust-boundary vocabulary |
 | `test_tws_cultivation.TWSCultivationTests` | `tests/test_tws_cultivation.py:8` | database or query access; filesystem access; security or trust-boundary vocabulary |
 | `test_tws_cultivation.TWSCultivationTests.test_progression_requires_independent_proof_acceptance` | `tests/test_tws_cultivation.py:30` | database or query access; filesystem access; security or trust-boundary vocabulary |
 | `test_tws_cultivation.TWSCultivationTests.test_achievement_and_adaptation_are_idempotent_and_fair` | `tests/test_tws_cultivation.py:42` | database or query access; filesystem access; security or trust-boundary vocabulary |

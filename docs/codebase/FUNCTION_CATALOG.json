@@ -1,7 +1,7 @@
 {
   "coverage": {
     "classes": 568,
-    "functions": 903,
+    "functions": 904,
     "indexed_files": 552,
     "language_files": {
       "javascript": 9,
@@ -11,12 +11,12 @@
       "swift": 1,
       "typescript": 3
     },
-    "methods": 2436,
+    "methods": 2448,
     "parser_errors": 0,
     "source_files": 347,
-    "suspected_dead_code_paths": 1740,
-    "unresolved_symbols": 6827,
-    "untested_functions": 998
+    "suspected_dead_code_paths": 1747,
+    "unresolved_symbols": 6868,
+    "untested_functions": 1005
   },
   "files": [
     {
@@ -783,11 +783,11 @@
       "size_bytes": 15384
     },
     {
-      "content_sha256": "7ea17a7b497aab60df75663b019f2a72039f17624458c7b89d9b8b4223109f76",
-      "git_blob_sha": "966688cb849130dac0ad8c6f87f4809801afc764",
+      "content_sha256": "80d767469a2b789a8dabca8ca410efafbcf28c64188eb5ccd0a4ab1f417c1161",
+      "git_blob_sha": "a76fa0208115de06a2c620cec933fa75d7541474",
       "language": "python",
       "path": "src/jarvis_v2/cli.py",
-      "size_bytes": 2733
+      "size_bytes": 4141
     },
     {
       "content_sha256": "5af2f1e59f1286b8510acef9cd84f77a6073d864796ef865f5537aed525661db",
@@ -1098,11 +1098,11 @@
       "size_bytes": 10357
     },
     {
-      "content_sha256": "f52fafd4216c772bc8da8ec7998fb75daf14e68e265e54354457e3e70bfe4772",
-      "git_blob_sha": "ef1b0137463372218ca2357a3d5eb118dbc7f65b",
+      "content_sha256": "82e10c1a1e69f9cfbdc0817b9ec3ffc5c68ee390d826b72883cef5bf8e50916c",
+      "git_blob_sha": "13b7c34a45e653743d0d03f08360a707aebcd6f7",
       "language": "python",
       "path": "src/jarvis_v2/native_executor.py",
-      "size_bytes": 5517
+      "size_bytes": 12707
     },
     {
       "content_sha256": "226826d30a4055b98f82daf9c92428bbac8ee3cb66ba2b9bb8a45e14384600eb",
@@ -1280,11 +1280,11 @@
       "size_bytes": 1772
     },
     {
-      "content_sha256": "c1e3e259dc00db45e8fe3dc635375b7a6c59f701eba84a83be91619aebe33810",
-      "git_blob_sha": "bbb82a715522cd74a24bb45b93173e221e1c1434",
+      "content_sha256": "41f5d28faafea095c42e616373600008108fef6f8ef241926824845dbf9654da",
+      "git_blob_sha": "3713e22a67342bd2d04b7585cfecc27f597852d5",
       "language": "python",
       "path": "src/jarvis_v2/system_inventory.py",
-      "size_bytes": 9888
+      "size_bytes": 13348
     },
     {
       "content_sha256": "55e2f93a9b5491613df2fda185097c1f7f1618355c9940072e18efe0f791a2b6",
@@ -1952,11 +1952,11 @@
       "size_bytes": 4014
     },
     {
-      "content_sha256": "507946b5df4b709080b6fa08019fe87dfdc01e5aa59136bdbe8f432c35886d50",
-      "git_blob_sha": "5230212d897e51177402a30442e9773c30e487a9",
+      "content_sha256": "530aaeac6d1bbe256e1ea4ab03a53ecc72940885521a49c40ce727c6792b7642",
+      "git_blob_sha": "33d6de7cf4aa466a8a6f476864b87349e7602104",
       "language": "python",
       "path": "tests/test_native_executor.py",
-      "size_bytes": 3436
+      "size_bytes": 6044
     },
     {
       "content_sha256": "5a7a33b7a99b9e6873e5e412f111f0fbdfd53dfe8c5061a9d6bef1170724eccb",
@@ -2197,11 +2197,11 @@
       "size_bytes": 1266
     },
     {
-      "content_sha256": "be1fcb1ba40104dbad7e5f645c20f33164985d883e12a2cfee2d6fbb2e83966a",
-      "git_blob_sha": "8877943d04d46708900676697fdd4e92283fb697",
+      "content_sha256": "d6dcd57085e98f82f479f6f17ea309ab83773c1a257f19dc8ffb815c626cecd3",
+      "git_blob_sha": "52f1030d5419fcbd80175ebd019867a5b128fb8d",
       "language": "python",
       "path": "tests/test_system_inventory.py",
-      "size_bytes": 3010
+      "size_bytes": 4437
     },
     {
       "content_sha256": "3c4556fe294aa1e07e044464ccc6b18d2eceb4cbe791d2a17166211e6da35a13",
@@ -2449,7 +2449,7 @@
       "size_bytes": 2766
     }
   ],
-  "generated_at": "2026-11-19T16:44:22.643406+00:00",
+  "generated_at": "2026-11-19T17:21:47.213262+00:00",
   "parse_errors": [],
   "parser": {
     "javascript": "declaration regex",
@@ -6962,7 +6962,7 @@
         "qualified_name": "imported.tws.engine.initialize"
       }
     ],
-    "suspected_dead_code_paths": 1740,
+    "suspected_dead_code_paths": 1747,
     "unresolved_examples": [
       {
         "caller": "test_scaffold.IOSScaffoldTests.test_ios_app_boundary_is_tracked",
@@ -7765,11 +7765,11 @@
         "symbol": "any"
       }
     ],
-    "unresolved_symbol_references": 6827
+    "unresolved_symbol_references": 6868
   },
   "schema_version": 1,
-  "source_sha": "c4574ae1a80da69aa2b6d0536e41cffa87bd610d",
-  "source_state": "catalog generated from checkout c4574ae1a80da69aa2b6d0536e41cffa87bd610d; status snapshot had 8 entries before output generation",
+  "source_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
+  "source_state": "catalog generated from checkout 4149c1d75eee24880bfacd819342f9c21d05d51a; status snapshot had 19 entries before output generation",
   "symbols": [
     {
       "authentication_or_permission_requirements": [
@@ -8981,6 +8981,7 @@
         "tests/test_mig_015_acceptance.py",
         "tests/test_mig_016_identity.py",
         "tests/test_monitor.py",
+        "tests/test_native_executor.py",
         "tests/test_research_safety.py",
         "tests/test_runtime_browser.py",
         "tests/test_runtime_email.py",
@@ -17132,6 +17133,7 @@
         "tests/test_mig_015_acceptance.py",
         "tests/test_mig_016_identity.py",
         "tests/test_monitor.py",
+        "tests/test_native_executor.py",
         "tests/test_research_safety.py",
         "tests/test_runtime_browser.py",
         "tests/test_runtime_email.py",
@@ -49665,6 +49667,7 @@
         "tests/test_mig_016_identity.py",
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
+        "tests/test_native_executor.py",
         "tests/test_runtime_email.py"
       ],
       "file_path": "migration/imported/backend/storage.py",
@@ -49956,6 +49959,7 @@
         "tests/test_backend_cloudflare_jobs.py",
         "tests/test_backend_task_capability.py",
         "tests/test_git_policy.py",
+        "tests/test_native_executor.py",
         "tests/test_runtime_calendar.py",
         "tests/test_wic_verification.py"
       ],
@@ -50229,7 +50233,10 @@
         "jarvis_v2.guardian.release.inspect_canary",
         "jarvis_v2.native_controller.NativeController.snapshot",
         "jarvis_v2.native_controller.NativeController.run_once",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._native_capabilities",
         "jarvis_v2.native_executor.NativeControlPlaneExecutor._module_health",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._sda_handoff_status",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._guardian_readiness",
         "jarvis_v2.research.comparison.ResearchFinding.as_dict",
         "jarvis_v2.research.media_rag.Topic.as_dict",
         "jarvis_v2.research.media_rag.VideoSummary.as_dict",
@@ -56449,6 +56456,7 @@
         "tests/test_mig_015_acceptance.py",
         "tests/test_mig_016_identity.py",
         "tests/test_monitor.py",
+        "tests/test_native_executor.py",
         "tests/test_research_safety.py",
         "tests/test_runtime_browser.py",
         "tests/test_runtime_email.py",
@@ -59676,6 +59684,7 @@
         "tests/test_mig_015_acceptance.py",
         "tests/test_mig_016_identity.py",
         "tests/test_monitor.py",
+        "tests/test_native_executor.py",
         "tests/test_research_safety.py",
         "tests/test_runtime_browser.py",
         "tests/test_runtime_email.py",
@@ -68861,6 +68870,7 @@
         "tests/test_mig_016_identity.py",
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
+        "tests/test_native_executor.py",
         "tests/test_runtime_email.py"
       ],
       "file_path": "migration/imported/sda/workhorse_context.py",
@@ -70966,6 +70976,7 @@
         "tests/test_mig_016_identity.py",
         "tests/test_monitor.py",
         "tests/test_monitor_supervision.py",
+        "tests/test_native_executor.py",
         "tests/test_runtime_email.py"
       ],
       "file_path": "migration/imported/tws/engine.py",
@@ -73491,6 +73502,10 @@
         "test_automation_queue_api.CoordinatorQueueTests.test_versioned_envelope_round_trip_and_unknown_fields_are_rejected",
         "test_native_executor.NativeExecutorTests.test_module_health_covers_all_ten_active_modules",
         "test_native_executor.NativeExecutorTests.test_unknown_operation_fails_closed",
+        "test_native_executor.NativeExecutorTests.test_capability_matrix_rejects_side_effect_classes",
+        "test_native_executor.NativeExecutorTests.test_queue_status_is_read_only_and_reports_durable_controls",
+        "test_native_executor.NativeExecutorTests.test_database_inspect_allows_only_named_native_databases",
+        "test_native_executor.NativeExecutorTests.test_sda_and_guardian_probes_remain_blocked_without_cutover_evidence",
         "test_native_executor.NativeExecutorTests.test_inventory_digest_returns_metadata_only"
       ],
       "dependencies": [
@@ -74012,6 +74027,7 @@
         "jarvis_v2.backend.handoff.HandoffStore._snapshot",
         "jarvis_v2.backend.protocol_adapters._arguments",
         "jarvis_v2.backend.retrieval.DocumentStore._snapshot",
+        "jarvis_v2.cli.main",
         "jarvis_v2.core.dependency.DependencyOrchestrator.dependent_ids",
         "jarvis_v2.core.dispatch.DispatchStore._snapshot",
         "jarvis_v2.core.intent.OwnerIntentRouter._snapshot",
@@ -74370,6 +74386,7 @@
         "test_automation_queue_api.CoordinatorQueueTests.test_existing_task_queue_reopens_without_migration_or_data_loss",
         "test_automation_queue_api.CoordinatorQueueTests.test_lease_completion_and_duplicate_enqueue_preserve_state",
         "test_automation_queue_api.CoordinatorQueueTests.test_reopen_requeues_expired_lease_and_duplicate_receipt_is_idempotent",
+        "test_native_executor.NativeExecutorTests.test_queue_status_is_read_only_and_reports_durable_controls",
         "test_native_executor.NativeExecutorTests.test_native_cli_uses_built_in_executor_for_read_only_task",
         "astra_watchdog.activate",
         "astra_watchdog.rollback",
@@ -74443,6 +74460,7 @@
         "test_native_controller.NativeControllerTests.test_controls_stop_admission_before_a_task_is_claimed",
         "test_native_controller.NativeControllerTests.test_executor_completion_and_failure_are_digest_only_and_durable",
         "test_native_controller.NativeControllerTests.test_executor_exception_is_recorded_as_failed_without_raw_error",
+        "test_native_executor.NativeExecutorTests.test_queue_status_is_read_only_and_reports_durable_controls",
         "test_native_executor.NativeExecutorTests.test_native_cli_uses_built_in_executor_for_read_only_task"
       ],
       "dependencies": [
@@ -78064,6 +78082,7 @@
       "called_functions": [],
       "callers": [
         "jarvis_v2.automation.recovery_drill.RecoveryDrill.__init__",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._database_inspect",
         "test_backend_acceptance.BackendAcceptanceTests.test_backup_restore_preserves_owned_backend_state",
         "test_backend_backup.BackendBackupTests.test_backup_and_restore_preserve_schema_data_and_wal_state",
         "test_backend_backup.BackendBackupTests.test_destination_is_never_overwritten_and_source_is_not_mutated",
@@ -78363,6 +78382,7 @@
         "tests/test_backend_cloudflare_jobs.py",
         "tests/test_backend_task_capability.py",
         "tests/test_git_policy.py",
+        "tests/test_native_executor.py",
         "tests/test_runtime_calendar.py",
         "tests/test_wic_verification.py"
       ],
@@ -78906,6 +78926,7 @@
         "tests/test_backend_cloudflare_jobs.py",
         "tests/test_backend_task_capability.py",
         "tests/test_git_policy.py",
+        "tests/test_native_executor.py",
         "tests/test_runtime_calendar.py",
         "tests/test_wic_verification.py"
       ],
@@ -83151,6 +83172,7 @@
         "tests/test_finance_paper.py",
         "tests/test_git_policy.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel_cross_module_contracts.py",
         "tests/test_runtime_email.py",
@@ -84315,6 +84337,7 @@
         "tests/test_finance_paper.py",
         "tests/test_git_policy.py",
         "tests/test_native_controller.py",
+        "tests/test_native_executor.py",
         "tests/test_rel003_core_sda_delegation.py",
         "tests/test_rel_cross_module_contracts.py",
         "tests/test_runtime_email.py",
@@ -85620,6 +85643,7 @@
         "tests/test_foundation.py",
         "tests/test_guardian_cutover.py",
         "tests/test_guardian_fencing.py",
+        "tests/test_native_executor.py",
         "tests/test_rel004_cross_device.py",
         "tests/test_runtime_browser.py",
         "tests/test_runtime_browser_tools.py",
@@ -91666,6 +91690,7 @@
         "tests/test_foundation.py",
         "tests/test_guardian_cutover.py",
         "tests/test_guardian_fencing.py",
+        "tests/test_native_executor.py",
         "tests/test_rel004_cross_device.py",
         "tests/test_runtime_browser.py",
         "tests/test_runtime_browser_tools.py",
@@ -97379,6 +97404,7 @@
         "tests/test_backend_cloudflare_jobs.py",
         "tests/test_backend_task_capability.py",
         "tests/test_git_policy.py",
+        "tests/test_native_executor.py",
         "tests/test_runtime_calendar.py",
         "tests/test_wic_verification.py"
       ],
@@ -98864,7 +98890,9 @@
         "build_final_audit.read_text",
         "imported.automation.windows.jarvis_queue_worker.parse_args",
         "jarvis_v2.automation.queue_api.QueueEnvelope.dumps",
+        "jarvis_v2.automation.queue_api.QueueEnvelope.loads",
         "jarvis_v2.health.collect_health",
+        "jarvis_v2.system_inventory.InventoryError",
         "jarvis_v2.system_inventory.collect_inventory",
         "jarvis_v2.system_inventory.write_inventory"
       ],
@@ -98880,8 +98908,11 @@
         "pathlib"
       ],
       "exceptions_and_failure_behavior": [
+        "(OSError, UnicodeError, ValueError)",
         "HealthError",
-        "InventoryError"
+        "InventoryError",
+        "InventoryError('resume cursor is unreadable')",
+        "InventoryError('resume cursor must be a JSON object')"
       ],
       "existing_test_coverage": [
         "apps/ios/tests/test_scaffold.py",
@@ -99049,7 +99080,7 @@
       "known_defects": [],
       "line_range": [
         13,
-        53
+        81
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.cli",
@@ -100193,7 +100224,8 @@
       "existing_test_coverage": [
         "tests/test_core_controls.py",
         "tests/test_guardian_isolation.py",
-        "tests/test_rel_fault_isolation.py"
+        "tests/test_rel_fault_isolation.py",
+        "tests/test_system_inventory.py"
       ],
       "file_path": "src/jarvis_v2/core/control.py",
       "inputs": [],
@@ -101014,6 +101046,7 @@
         "tests/test_backend_cloudflare_jobs.py",
         "tests/test_backend_task_capability.py",
         "tests/test_git_policy.py",
+        "tests/test_native_executor.py",
         "tests/test_runtime_calendar.py",
         "tests/test_wic_verification.py"
       ],
@@ -105456,7 +105489,8 @@
       "existing_test_coverage": [
         "tests/test_core_controls.py",
         "tests/test_guardian_isolation.py",
-        "tests/test_rel_fault_isolation.py"
+        "tests/test_rel_fault_isolation.py",
+        "tests/test_system_inventory.py"
       ],
       "file_path": "src/jarvis_v2/core/queue.py",
       "inputs": [],
@@ -107031,6 +107065,7 @@
         "jarvis_v2.runtime.email._recipients",
         "jarvis_v2.runtime.file_actions.FileActionService._normalize_roots",
         "jarvis_v2.runtime.security.RuntimeSecurity.__init__",
+        "jarvis_v2.system_inventory._resume_frames",
         "jarvis_v2.system_inventory.scan_filesystem",
         "jarvis_v2.system_inventory.scan_filesystem",
         "jarvis_v2.system_inventory.scan_filesystem",
@@ -119951,6 +119986,7 @@
         "tests/test_foundation.py",
         "tests/test_guardian_cutover.py",
         "tests/test_guardian_fencing.py",
+        "tests/test_native_executor.py",
         "tests/test_rel004_cross_device.py",
         "tests/test_runtime_browser.py",
         "tests/test_runtime_browser_tools.py",
@@ -123420,7 +123456,8 @@
       "existing_test_coverage": [
         "tests/test_core_controls.py",
         "tests/test_guardian_isolation.py",
-        "tests/test_rel_fault_isolation.py"
+        "tests/test_rel_fault_isolation.py",
+        "tests/test_system_inventory.py"
       ],
       "file_path": "src/jarvis_v2/guardian/isolation.py",
       "inputs": [
@@ -130299,20 +130336,29 @@
       "callers": [
         "jarvis_v2.native_executor._operation",
         "jarvis_v2.native_executor._module_manifest",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor.__init__",
         "jarvis_v2.native_executor.NativeControlPlaneExecutor.__call__",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._native_capabilities",
         "jarvis_v2.native_executor.NativeControlPlaneExecutor._module_health",
         "jarvis_v2.native_executor.NativeControlPlaneExecutor._runtime_health",
-        "jarvis_v2.native_executor.NativeControlPlaneExecutor._inventory_digest"
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._inventory_digest",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._queue_status",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._database_inspect",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._sda_handoff_status",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._guardian_readiness"
       ],
       "dependencies": [
         ".automation.queue_api",
+        ".backend.backup",
         ".backend.module_manifest",
         ".health",
+        ".sda.handoff",
         "__future__",
         "collections.abc",
         "hashlib",
         "json",
         "pathlib",
+        "sqlite3",
         "typing"
       ],
       "exceptions_and_failure_behavior": [],
@@ -130326,8 +130372,8 @@
       "kind": "class",
       "known_defects": [],
       "line_range": [
-        34,
-        35
+        60,
+        61
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_executor",
@@ -130352,13 +130398,16 @@
       ],
       "dependencies": [
         ".automation.queue_api",
+        ".backend.backup",
         ".backend.module_manifest",
         ".health",
+        ".sda.handoff",
         "__future__",
         "collections.abc",
         "hashlib",
         "json",
         "pathlib",
+        "sqlite3",
         "typing"
       ],
       "exceptions_and_failure_behavior": [
@@ -130372,8 +130421,8 @@
       "kind": "function",
       "known_defects": [],
       "line_range": [
-        38,
-        46
+        64,
+        72
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_executor",
@@ -130400,13 +130449,16 @@
       ],
       "dependencies": [
         ".automation.queue_api",
+        ".backend.backup",
         ".backend.module_manifest",
         ".health",
+        ".sda.handoff",
         "__future__",
         "collections.abc",
         "hashlib",
         "json",
         "pathlib",
+        "sqlite3",
         "typing"
       ],
       "exceptions_and_failure_behavior": [
@@ -130420,8 +130472,8 @@
       "kind": "function",
       "known_defects": [],
       "line_range": [
-        49,
-        63
+        75,
+        89
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_executor",
@@ -130439,7 +130491,10 @@
     {
       "authentication_or_permission_requirements": [
         "filesystem",
+        "guardian",
         "path",
+        "pause",
+        "stop",
         "subprocess"
       ],
       "called_functions": [],
@@ -130449,13 +130504,16 @@
       ],
       "dependencies": [
         ".automation.queue_api",
+        ".backend.backup",
         ".backend.module_manifest",
         ".health",
+        ".sda.handoff",
         "__future__",
         "collections.abc",
         "hashlib",
         "json",
         "pathlib",
+        "sqlite3",
         "typing"
       ],
       "exceptions_and_failure_behavior": [],
@@ -130467,8 +130525,8 @@
       "kind": "class",
       "known_defects": [],
       "line_range": [
-        66,
-        145
+        92,
+        303
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_executor",
@@ -130480,11 +130538,13 @@
       "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
       "security_implications": [
         "command or process execution",
+        "database or query access",
         "filesystem access",
         "security or trust-boundary vocabulary"
       ],
       "side_effects": [
         "filesystem",
+        "database",
         "subprocess"
       ],
       "signature": "class NativeControlPlaneExecutor()",
@@ -130494,20 +130554,28 @@
       "authentication_or_permission_requirements": [
         "path"
       ],
-      "called_functions": [],
+      "called_functions": [
+        "jarvis_v2.native_executor.NativeExecutorError"
+      ],
       "callers": [],
       "dependencies": [
         ".automation.queue_api",
+        ".backend.backup",
         ".backend.module_manifest",
         ".health",
+        ".sda.handoff",
         "__future__",
         "collections.abc",
         "hashlib",
         "json",
         "pathlib",
+        "sqlite3",
         "typing"
       ],
-      "exceptions_and_failure_behavior": [],
+      "exceptions_and_failure_behavior": [
+        "NativeExecutorError('native_state_directory_permissions')",
+        "NativeExecutorError('native_state_directory_unavailable')"
+      ],
       "existing_test_coverage": [
         "bootstrap/astra-one/tests/test_supervisor_v3.py",
         "tests/test_runtime_browser_tools.py",
@@ -130523,8 +130591,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        73,
-        75
+        99,
+        105
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_executor",
@@ -130550,13 +130618,16 @@
       "callers": [],
       "dependencies": [
         ".automation.queue_api",
+        ".backend.backup",
         ".backend.module_manifest",
         ".health",
+        ".sda.handoff",
         "__future__",
         "collections.abc",
         "hashlib",
         "json",
         "pathlib",
+        "sqlite3",
         "typing"
       ],
       "exceptions_and_failure_behavior": [],
@@ -130564,6 +130635,7 @@
         "tests/test_automation_devices.py",
         "tests/test_backend_acceptance.py",
         "tests/test_backend_windows_agent.py",
+        "tests/test_native_executor.py",
         "tests/test_rel004_cross_device.py"
       ],
       "file_path": "src/jarvis_v2/native_executor.py",
@@ -130571,8 +130643,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        78,
-        80
+        108,
+        110
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_executor",
@@ -130589,23 +130661,72 @@
     },
     {
       "authentication_or_permission_requirements": [],
+      "called_functions": [],
+      "callers": [],
+      "dependencies": [
+        ".automation.queue_api",
+        ".backend.backup",
+        ".backend.module_manifest",
+        ".health",
+        ".sda.handoff",
+        "__future__",
+        "collections.abc",
+        "hashlib",
+        "json",
+        "pathlib",
+        "sqlite3",
+        "typing"
+      ],
+      "exceptions_and_failure_behavior": [],
+      "existing_test_coverage": [],
+      "file_path": "src/jarvis_v2/native_executor.py",
+      "inputs": [],
+      "kind": "method",
+      "known_defects": [],
+      "line_range": [
+        113,
+        115
+      ],
+      "maintenance_status": "active",
+      "module": "jarvis_v2.native_executor",
+      "outputs": [
+        "Mapping[str, str]"
+      ],
+      "purpose": "Return side-effect classes deliberately unavailable to this executor.",
+      "qualified_name": "jarvis_v2.native_executor.NativeControlPlaneExecutor.rejected_capabilities",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [],
+      "side_effects": [],
+      "signature": "def rejected_capabilities() -> Mapping[str, str]",
+      "symbol_name": "rejected_capabilities"
+    },
+    {
+      "authentication_or_permission_requirements": [],
       "called_functions": [
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._database_inspect",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._guardian_readiness",
         "jarvis_v2.native_executor.NativeControlPlaneExecutor._inventory_digest",
         "jarvis_v2.native_executor.NativeControlPlaneExecutor._module_health",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._native_capabilities",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._queue_status",
         "jarvis_v2.native_executor.NativeControlPlaneExecutor._runtime_health",
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._sda_handoff_status",
         "jarvis_v2.native_executor.NativeExecutorError",
         "jarvis_v2.native_executor._operation"
       ],
       "callers": [],
       "dependencies": [
         ".automation.queue_api",
+        ".backend.backup",
         ".backend.module_manifest",
         ".health",
+        ".sda.handoff",
         "__future__",
         "collections.abc",
         "hashlib",
         "json",
         "pathlib",
+        "sqlite3",
         "typing"
       ],
       "exceptions_and_failure_behavior": [
@@ -130622,8 +130743,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        82,
-        92
+        117,
+        137
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_executor",
@@ -130642,6 +130763,56 @@
       "authentication_or_permission_requirements": [],
       "called_functions": [
         "imported.core.tasks.TaskStore.list",
+        "jarvis_v2.native_executor.NativeExecutorError"
+      ],
+      "callers": [
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor.__call__"
+      ],
+      "dependencies": [
+        ".automation.queue_api",
+        ".backend.backup",
+        ".backend.module_manifest",
+        ".health",
+        ".sda.handoff",
+        "__future__",
+        "collections.abc",
+        "hashlib",
+        "json",
+        "pathlib",
+        "sqlite3",
+        "typing"
+      ],
+      "exceptions_and_failure_behavior": [
+        "NativeExecutorError('native_capabilities_requires_core')"
+      ],
+      "existing_test_coverage": [],
+      "file_path": "src/jarvis_v2/native_executor.py",
+      "inputs": [
+        "item"
+      ],
+      "kind": "method",
+      "known_defects": [],
+      "line_range": [
+        139,
+        150
+      ],
+      "maintenance_status": "active",
+      "module": "jarvis_v2.native_executor",
+      "outputs": [
+        "dict[str, Any]"
+      ],
+      "purpose": "undocumented",
+      "qualified_name": "jarvis_v2.native_executor.NativeControlPlaneExecutor._native_capabilities",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [],
+      "side_effects": [],
+      "signature": "def _native_capabilities(self, item: QueueEnvelope) -> dict[str, Any]",
+      "symbol_name": "_native_capabilities"
+    },
+    {
+      "authentication_or_permission_requirements": [],
+      "called_functions": [
+        "imported.core.tasks.TaskStore.list",
         "jarvis_v2.native_executor.NativeExecutorError",
         "jarvis_v2.native_executor._module_manifest"
       ],
@@ -130650,13 +130821,16 @@
       ],
       "dependencies": [
         ".automation.queue_api",
+        ".backend.backup",
         ".backend.module_manifest",
         ".health",
+        ".sda.handoff",
         "__future__",
         "collections.abc",
         "hashlib",
         "json",
         "pathlib",
+        "sqlite3",
         "typing"
       ],
       "exceptions_and_failure_behavior": [
@@ -130670,8 +130844,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        94,
-        106
+        152,
+        164
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_executor",
@@ -130697,13 +130871,16 @@
       ],
       "dependencies": [
         ".automation.queue_api",
+        ".backend.backup",
         ".backend.module_manifest",
         ".health",
+        ".sda.handoff",
         "__future__",
         "collections.abc",
         "hashlib",
         "json",
         "pathlib",
+        "sqlite3",
         "typing"
       ],
       "exceptions_and_failure_behavior": [
@@ -130719,8 +130896,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        108,
-        121
+        166,
+        179
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_executor",
@@ -130750,13 +130927,16 @@
       ],
       "dependencies": [
         ".automation.queue_api",
+        ".backend.backup",
         ".backend.module_manifest",
         ".health",
+        ".sda.handoff",
         "__future__",
         "collections.abc",
         "hashlib",
         "json",
         "pathlib",
+        "sqlite3",
         "typing"
       ],
       "exceptions_and_failure_behavior": [
@@ -130774,8 +130954,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        123,
-        145
+        181,
+        206
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.native_executor",
@@ -130791,6 +130971,235 @@
       "side_effects": [],
       "signature": "def _inventory_digest(self, item: QueueEnvelope) -> dict[str, Any]",
       "symbol_name": "_inventory_digest"
+    },
+    {
+      "authentication_or_permission_requirements": [
+        "path"
+      ],
+      "called_functions": [
+        "jarvis_v2.native_executor.NativeExecutorError"
+      ],
+      "callers": [
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor.__call__"
+      ],
+      "dependencies": [
+        ".automation.queue_api",
+        ".backend.backup",
+        ".backend.module_manifest",
+        ".health",
+        ".sda.handoff",
+        "__future__",
+        "collections.abc",
+        "hashlib",
+        "json",
+        "pathlib",
+        "sqlite3",
+        "typing"
+      ],
+      "exceptions_and_failure_behavior": [
+        "(OSError, sqlite3.Error)",
+        "NativeExecutorError('native_queue_control_missing')",
+        "NativeExecutorError('native_queue_foreign_key_failed')",
+        "NativeExecutorError('native_queue_integrity_failed')",
+        "NativeExecutorError('native_queue_unavailable')",
+        "NativeExecutorError('native_queue_unreadable')",
+        "NativeExecutorError('queue_status_requires_core')"
+      ],
+      "existing_test_coverage": [],
+      "file_path": "src/jarvis_v2/native_executor.py",
+      "inputs": [
+        "item"
+      ],
+      "kind": "method",
+      "known_defects": [],
+      "line_range": [
+        208,
+        245
+      ],
+      "maintenance_status": "active",
+      "module": "jarvis_v2.native_executor",
+      "outputs": [
+        "dict[str, Any]"
+      ],
+      "purpose": "undocumented",
+      "qualified_name": "jarvis_v2.native_executor.NativeControlPlaneExecutor._queue_status",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [
+        "database or query access",
+        "security or trust-boundary vocabulary"
+      ],
+      "side_effects": [
+        "database"
+      ],
+      "signature": "def _queue_status(self, item: QueueEnvelope) -> dict[str, Any]",
+      "symbol_name": "_queue_status"
+    },
+    {
+      "authentication_or_permission_requirements": [
+        "path"
+      ],
+      "called_functions": [
+        "jarvis_v2.backend.backup.BackupManager",
+        "jarvis_v2.native_executor.NativeExecutorError"
+      ],
+      "callers": [
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor.__call__"
+      ],
+      "dependencies": [
+        ".automation.queue_api",
+        ".backend.backup",
+        ".backend.module_manifest",
+        ".health",
+        ".sda.handoff",
+        "__future__",
+        "collections.abc",
+        "hashlib",
+        "json",
+        "pathlib",
+        "sqlite3",
+        "typing"
+      ],
+      "exceptions_and_failure_behavior": [
+        "(BackupError, OSError)",
+        "NativeExecutorError('database_inspect_requires_backend')",
+        "NativeExecutorError('database_inspection_failed')",
+        "NativeExecutorError('database_name_not_allowed')",
+        "NativeExecutorError('database_symlink_disallowed')"
+      ],
+      "existing_test_coverage": [],
+      "file_path": "src/jarvis_v2/native_executor.py",
+      "inputs": [
+        "item"
+      ],
+      "kind": "method",
+      "known_defects": [],
+      "line_range": [
+        247,
+        270
+      ],
+      "maintenance_status": "active",
+      "module": "jarvis_v2.native_executor",
+      "outputs": [
+        "dict[str, Any]"
+      ],
+      "purpose": "undocumented",
+      "qualified_name": "jarvis_v2.native_executor.NativeControlPlaneExecutor._database_inspect",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [
+        "security or trust-boundary vocabulary"
+      ],
+      "side_effects": [],
+      "signature": "def _database_inspect(self, item: QueueEnvelope) -> dict[str, Any]",
+      "symbol_name": "_database_inspect"
+    },
+    {
+      "authentication_or_permission_requirements": [],
+      "called_functions": [
+        "imported.core.tasks.TaskStore.list",
+        "jarvis_v2.native_executor.NativeExecutorError",
+        "jarvis_v2.sda.handoff.HandoffEvidence"
+      ],
+      "callers": [
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor.__call__"
+      ],
+      "dependencies": [
+        ".automation.queue_api",
+        ".backend.backup",
+        ".backend.module_manifest",
+        ".health",
+        ".sda.handoff",
+        "__future__",
+        "collections.abc",
+        "hashlib",
+        "json",
+        "pathlib",
+        "sqlite3",
+        "typing"
+      ],
+      "exceptions_and_failure_behavior": [
+        "NativeExecutorError('sda_handoff_status_requires_sda')"
+      ],
+      "existing_test_coverage": [],
+      "file_path": "src/jarvis_v2/native_executor.py",
+      "inputs": [
+        "item"
+      ],
+      "kind": "method",
+      "known_defects": [],
+      "line_range": [
+        272,
+        284
+      ],
+      "maintenance_status": "active",
+      "module": "jarvis_v2.native_executor",
+      "outputs": [
+        "dict[str, Any]"
+      ],
+      "purpose": "undocumented",
+      "qualified_name": "jarvis_v2.native_executor.NativeControlPlaneExecutor._sda_handoff_status",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [],
+      "side_effects": [],
+      "signature": "def _sda_handoff_status(self, item: QueueEnvelope) -> dict[str, Any]",
+      "symbol_name": "_sda_handoff_status"
+    },
+    {
+      "authentication_or_permission_requirements": [
+        "guardian",
+        "pause",
+        "stop"
+      ],
+      "called_functions": [
+        "imported.core.tasks.TaskStore.list",
+        "jarvis_v2.native_executor.NativeExecutorError"
+      ],
+      "callers": [
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor.__call__"
+      ],
+      "dependencies": [
+        ".automation.queue_api",
+        ".backend.backup",
+        ".backend.module_manifest",
+        ".health",
+        ".sda.handoff",
+        "__future__",
+        "collections.abc",
+        "hashlib",
+        "json",
+        "pathlib",
+        "sqlite3",
+        "typing"
+      ],
+      "exceptions_and_failure_behavior": [
+        "NativeExecutorError('guardian_readiness_requires_guardian')"
+      ],
+      "existing_test_coverage": [],
+      "file_path": "src/jarvis_v2/native_executor.py",
+      "inputs": [
+        "item"
+      ],
+      "kind": "method",
+      "known_defects": [],
+      "line_range": [
+        286,
+        303
+      ],
+      "maintenance_status": "active",
+      "module": "jarvis_v2.native_executor",
+      "outputs": [
+        "dict[str, Any]"
+      ],
+      "purpose": "undocumented",
+      "qualified_name": "jarvis_v2.native_executor.NativeControlPlaneExecutor._guardian_readiness",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [
+        "security or trust-boundary vocabulary"
+      ],
+      "side_effects": [
+        "subprocess"
+      ],
+      "signature": "def _guardian_readiness(self, item: QueueEnvelope) -> dict[str, Any]",
+      "symbol_name": "_guardian_readiness"
     },
     {
       "authentication_or_permission_requirements": [],
@@ -156586,6 +156995,7 @@
       "authentication_or_permission_requirements": [],
       "called_functions": [],
       "callers": [
+        "jarvis_v2.native_executor.NativeControlPlaneExecutor._sda_handoff_status",
         "test_foundation.FoundationTests.test_handoff_requires_every_gate",
         "test_sda_shadow_handoff.ShadowHandoffTests.test_missing_prerequisites_have_stable_keys",
         "test_sda_shadow_handoff.ShadowHandoffTests.test_owner_approval_is_required_for_readiness",
@@ -156671,6 +157081,8 @@
       "authentication_or_permission_requirements": [],
       "called_functions": [],
       "callers": [
+        "jarvis_v2.cli.main",
+        "jarvis_v2.system_inventory._resume_frames",
         "jarvis_v2.system_inventory.scan_filesystem"
       ],
       "dependencies": [
@@ -156687,7 +157099,9 @@
         "typing"
       ],
       "exceptions_and_failure_behavior": [],
-      "existing_test_coverage": [],
+      "existing_test_coverage": [
+        "tests/test_system_inventory.py"
+      ],
       "file_path": "src/jarvis_v2/system_inventory.py",
       "inputs": [
         "RuntimeError"
@@ -156922,12 +157336,84 @@
       ],
       "called_functions": [
         "jarvis_v2.core.session.TaskSessionStore.append",
+        "jarvis_v2.system_inventory.InventoryError"
+      ],
+      "callers": [
+        "jarvis_v2.system_inventory.scan_filesystem"
+      ],
+      "dependencies": [
+        "__future__",
+        "collections.abc",
+        "datetime",
+        "hashlib",
+        "json",
+        "os",
+        "pathlib",
+        "shutil",
+        "stat",
+        "subprocess",
+        "typing"
+      ],
+      "exceptions_and_failure_behavior": [
+        "InventoryError('filesystem resume cursor crosses a filesystem boundary')",
+        "InventoryError('filesystem resume cursor does not match the root')",
+        "InventoryError('filesystem resume cursor escapes the root')",
+        "InventoryError('filesystem resume cursor frame is malformed')",
+        "InventoryError('filesystem resume cursor is malformed')",
+        "InventoryError('filesystem resume cursor is outside the supported range')",
+        "InventoryError('filesystem resume cursor path is invalid')",
+        "InventoryError('filesystem resume cursor path is unavailable')",
+        "InventoryError('filesystem resume cursor position is invalid')",
+        "OSError"
+      ],
+      "existing_test_coverage": [],
+      "file_path": "src/jarvis_v2/system_inventory.py",
+      "inputs": [
+        "root",
+        "root_device",
+        "value"
+      ],
+      "kind": "function",
+      "known_defects": [],
+      "line_range": [
+        87,
+        125
+      ],
+      "maintenance_status": "active",
+      "module": "jarvis_v2.system_inventory",
+      "outputs": [
+        "tuple[list[dict[str, str | None]], int]"
+      ],
+      "purpose": "undocumented",
+      "qualified_name": "jarvis_v2.system_inventory._resume_frames",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [
+        "filesystem access",
+        "security or trust-boundary vocabulary"
+      ],
+      "side_effects": [
+        "filesystem"
+      ],
+      "signature": "def _resume_frames(root: Path, root_device: int, value: Mapping[str, Any] | None) -> tuple[list[dict[str, str | None]], int]",
+      "symbol_name": "_resume_frames"
+    },
+    {
+      "authentication_or_permission_requirements": [
+        "filesystem",
+        "path",
+        "token"
+      ],
+      "called_functions": [
+        "jarvis_v2.core.session.TaskSessionStore.append",
         "jarvis_v2.system_inventory.InventoryError",
-        "jarvis_v2.system_inventory._metadata"
+        "jarvis_v2.system_inventory._metadata",
+        "jarvis_v2.system_inventory._resume_frames"
       ],
       "callers": [
         "jarvis_v2.system_inventory.collect_inventory",
-        "test_system_inventory.SystemInventoryTests.test_scan_is_metadata_only_bounded_and_does_not_follow_symlinks"
+        "test_system_inventory.SystemInventoryTests.test_scan_is_metadata_only_bounded_and_does_not_follow_symlinks",
+        "test_system_inventory.SystemInventoryTests.test_scan_cursor_resumes_without_duplicates_or_root_restart",
+        "test_system_inventory.SystemInventoryTests.test_scan_cursor_cannot_change_root_or_cross_mount"
       ],
       "dependencies": [
         "__future__",
@@ -156954,20 +157440,21 @@
       "file_path": "src/jarvis_v2/system_inventory.py",
       "inputs": [
         "root",
-        "max_entries"
+        "max_entries",
+        "resume_cursor"
       ],
       "kind": "function",
       "known_defects": [],
       "line_range": [
-        87,
-        159
+        128,
+        238
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.system_inventory",
       "outputs": [
         "dict[str, Any]"
       ],
-      "purpose": "Collect metadata without reading file contents or crossing mounts.",
+      "purpose": "Collect bounded metadata pages without reading contents or crossing mounts.\n\n``coverage.resume_cursor`` is a private metadata-only continuation token.\nIt can be passed back to this function to continue a truncated scan without\nrestarting the directory traversal.",
       "qualified_name": "jarvis_v2.system_inventory.scan_filesystem",
       "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
       "security_implications": [
@@ -156977,7 +157464,7 @@
       "side_effects": [
         "filesystem"
       ],
-      "signature": "def scan_filesystem(root: Path=Path('/'), *, max_entries: int=10000) -> dict[str, Any]",
+      "signature": "def scan_filesystem(root: Path=Path('/'), *, max_entries: int=10000, resume_cursor: Mapping[str, Any] | None=None) -> dict[str, Any]",
       "symbol_name": "scan_filesystem"
     },
     {
@@ -157010,8 +157497,8 @@
       "kind": "function",
       "known_defects": [],
       "line_range": [
-        162,
-        170
+        241,
+        249
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.system_inventory",
@@ -157058,8 +157545,8 @@
       "kind": "function",
       "known_defects": [],
       "line_range": [
-        173,
-        183
+        252,
+        262
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.system_inventory",
@@ -157106,8 +157593,8 @@
       "kind": "function",
       "known_defects": [],
       "line_range": [
-        186,
-        204
+        265,
+        283
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.system_inventory",
@@ -157161,13 +157648,14 @@
       "inputs": [
         "root",
         "max_entries",
+        "resume_cursor",
         "runner"
       ],
       "kind": "function",
       "known_defects": [],
       "line_range": [
-        207,
-        238
+        286,
+        322
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.system_inventory",
@@ -157184,7 +157672,7 @@
       "side_effects": [
         "process"
       ],
-      "signature": "def collect_inventory(*, root: Path=Path('/'), max_entries: int=10000, runner: CommandRunner=_command) -> dict[str, Any]",
+      "signature": "def collect_inventory(*, root: Path=Path('/'), max_entries: int=10000, resume_cursor: Mapping[str, Any] | None=None, runner: CommandRunner=_command) -> dict[str, Any]",
       "symbol_name": "collect_inventory"
     },
     {
@@ -157224,8 +157712,8 @@
       "kind": "function",
       "known_defects": [],
       "line_range": [
-        241,
-        246
+        325,
+        330
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.system_inventory",
@@ -157274,8 +157762,8 @@
       "kind": "function",
       "known_defects": [],
       "line_range": [
-        249,
-        283
+        333,
+        367
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.system_inventory",
@@ -157325,8 +157813,8 @@
       "kind": "function",
       "known_defects": [],
       "line_range": [
-        286,
-        292
+        370,
+        376
       ],
       "maintenance_status": "active",
       "module": "jarvis_v2.system_inventory",
@@ -163803,6 +164291,7 @@
         "tests/test_backend_cloudflare_jobs.py",
         "tests/test_backend_task_capability.py",
         "tests/test_git_policy.py",
+        "tests/test_native_executor.py",
         "tests/test_runtime_calendar.py",
         "tests/test_wic_verification.py"
       ],
@@ -192242,8 +192731,10 @@
     },
     {
       "authentication_or_permission_requirements": [
+        "approval",
         "filesystem",
         "guardian",
+        "owner",
         "path",
         "subprocess"
       ],
@@ -192255,6 +192746,7 @@
         "json",
         "os",
         "pathlib",
+        "sqlite3",
         "subprocess",
         "tempfile",
         "unittest"
@@ -192270,8 +192762,8 @@
       "kind": "class",
       "known_defects": [],
       "line_range": [
-        16,
-        92
+        17,
+        147
       ],
       "maintenance_status": "test",
       "module": "test_native_executor",
@@ -192306,6 +192798,10 @@
       "callers": [
         "test_native_executor.NativeExecutorTests.test_module_health_covers_all_ten_active_modules",
         "test_native_executor.NativeExecutorTests.test_unknown_operation_fails_closed",
+        "test_native_executor.NativeExecutorTests.test_capability_matrix_rejects_side_effect_classes",
+        "test_native_executor.NativeExecutorTests.test_queue_status_is_read_only_and_reports_durable_controls",
+        "test_native_executor.NativeExecutorTests.test_database_inspect_allows_only_named_native_databases",
+        "test_native_executor.NativeExecutorTests.test_sda_and_guardian_probes_remain_blocked_without_cutover_evidence",
         "test_native_executor.NativeExecutorTests.test_inventory_digest_returns_metadata_only",
         "test_native_executor.NativeExecutorTests.test_native_cli_uses_built_in_executor_for_read_only_task"
       ],
@@ -192315,6 +192811,7 @@
         "json",
         "os",
         "pathlib",
+        "sqlite3",
         "subprocess",
         "tempfile",
         "unittest"
@@ -192328,8 +192825,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        17,
-        22
+        18,
+        23
       ],
       "maintenance_status": "test",
       "module": "test_native_executor",
@@ -192364,6 +192861,7 @@
         "json",
         "os",
         "pathlib",
+        "sqlite3",
         "subprocess",
         "tempfile",
         "unittest"
@@ -192377,8 +192875,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        24,
-        41
+        25,
+        42
       ],
       "maintenance_status": "test",
       "module": "test_native_executor",
@@ -192406,6 +192904,7 @@
         "json",
         "os",
         "pathlib",
+        "sqlite3",
         "subprocess",
         "tempfile",
         "unittest"
@@ -192419,8 +192918,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        43,
-        46
+        44,
+        47
       ],
       "maintenance_status": "test",
       "module": "test_native_executor",
@@ -192432,6 +192931,191 @@
       "side_effects": [],
       "signature": "def test_unknown_operation_fails_closed(self)",
       "symbol_name": "test_unknown_operation_fails_closed"
+    },
+    {
+      "authentication_or_permission_requirements": [
+        "approval",
+        "owner"
+      ],
+      "called_functions": [
+        "jarvis_v2.automation.queue_api.QueueEnvelope",
+        "test_native_executor.NativeExecutorTests._executor"
+      ],
+      "callers": [],
+      "dependencies": [
+        "jarvis_v2.automation.queue_api",
+        "jarvis_v2.native_executor",
+        "json",
+        "os",
+        "pathlib",
+        "sqlite3",
+        "subprocess",
+        "tempfile",
+        "unittest"
+      ],
+      "exceptions_and_failure_behavior": [],
+      "existing_test_coverage": [
+        "tests/test_native_executor.py"
+      ],
+      "file_path": "tests/test_native_executor.py",
+      "inputs": [],
+      "kind": "method",
+      "known_defects": [],
+      "line_range": [
+        49,
+        56
+      ],
+      "maintenance_status": "test",
+      "module": "test_native_executor",
+      "outputs": [],
+      "purpose": "undocumented",
+      "qualified_name": "test_native_executor.NativeExecutorTests.test_capability_matrix_rejects_side_effect_classes",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [
+        "security or trust-boundary vocabulary"
+      ],
+      "side_effects": [],
+      "signature": "def test_capability_matrix_rejects_side_effect_classes(self)",
+      "symbol_name": "test_capability_matrix_rejects_side_effect_classes"
+    },
+    {
+      "authentication_or_permission_requirements": [],
+      "called_functions": [
+        "jarvis_v2.automation.queue_api.CoordinatorQueue.enqueue",
+        "jarvis_v2.automation.queue_api.CoordinatorQueue.open",
+        "jarvis_v2.automation.queue_api.QueueEnvelope",
+        "test_native_executor.NativeExecutorTests._executor"
+      ],
+      "callers": [],
+      "dependencies": [
+        "jarvis_v2.automation.queue_api",
+        "jarvis_v2.native_executor",
+        "json",
+        "os",
+        "pathlib",
+        "sqlite3",
+        "subprocess",
+        "tempfile",
+        "unittest"
+      ],
+      "exceptions_and_failure_behavior": [],
+      "existing_test_coverage": [
+        "tests/test_native_executor.py"
+      ],
+      "file_path": "tests/test_native_executor.py",
+      "inputs": [],
+      "kind": "method",
+      "known_defects": [],
+      "line_range": [
+        58,
+        67
+      ],
+      "maintenance_status": "test",
+      "module": "test_native_executor",
+      "outputs": [],
+      "purpose": "undocumented",
+      "qualified_name": "test_native_executor.NativeExecutorTests.test_queue_status_is_read_only_and_reports_durable_controls",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [
+        "database or query access",
+        "filesystem access"
+      ],
+      "side_effects": [
+        "filesystem",
+        "database"
+      ],
+      "signature": "def test_queue_status_is_read_only_and_reports_durable_controls(self)",
+      "symbol_name": "test_queue_status_is_read_only_and_reports_durable_controls"
+    },
+    {
+      "authentication_or_permission_requirements": [],
+      "called_functions": [
+        "jarvis_v2.automation.queue_api.QueueEnvelope",
+        "test_native_executor.NativeExecutorTests._executor"
+      ],
+      "callers": [],
+      "dependencies": [
+        "jarvis_v2.automation.queue_api",
+        "jarvis_v2.native_executor",
+        "json",
+        "os",
+        "pathlib",
+        "sqlite3",
+        "subprocess",
+        "tempfile",
+        "unittest"
+      ],
+      "exceptions_and_failure_behavior": [],
+      "existing_test_coverage": [
+        "tests/test_native_executor.py"
+      ],
+      "file_path": "tests/test_native_executor.py",
+      "inputs": [],
+      "kind": "method",
+      "known_defects": [],
+      "line_range": [
+        69,
+        88
+      ],
+      "maintenance_status": "test",
+      "module": "test_native_executor",
+      "outputs": [],
+      "purpose": "undocumented",
+      "qualified_name": "test_native_executor.NativeExecutorTests.test_database_inspect_allows_only_named_native_databases",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [
+        "database or query access"
+      ],
+      "side_effects": [
+        "database"
+      ],
+      "signature": "def test_database_inspect_allows_only_named_native_databases(self)",
+      "symbol_name": "test_database_inspect_allows_only_named_native_databases"
+    },
+    {
+      "authentication_or_permission_requirements": [
+        "guardian"
+      ],
+      "called_functions": [
+        "jarvis_v2.automation.queue_api.QueueEnvelope",
+        "test_native_executor.NativeExecutorTests._executor"
+      ],
+      "callers": [],
+      "dependencies": [
+        "jarvis_v2.automation.queue_api",
+        "jarvis_v2.native_executor",
+        "json",
+        "os",
+        "pathlib",
+        "sqlite3",
+        "subprocess",
+        "tempfile",
+        "unittest"
+      ],
+      "exceptions_and_failure_behavior": [],
+      "existing_test_coverage": [
+        "tests/test_native_executor.py"
+      ],
+      "file_path": "tests/test_native_executor.py",
+      "inputs": [],
+      "kind": "method",
+      "known_defects": [],
+      "line_range": [
+        90,
+        101
+      ],
+      "maintenance_status": "test",
+      "module": "test_native_executor",
+      "outputs": [],
+      "purpose": "undocumented",
+      "qualified_name": "test_native_executor.NativeExecutorTests.test_sda_and_guardian_probes_remain_blocked_without_cutover_evidence",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [
+        "security or trust-boundary vocabulary"
+      ],
+      "side_effects": [],
+      "signature": "def test_sda_and_guardian_probes_remain_blocked_without_cutover_evidence(self)",
+      "symbol_name": "test_sda_and_guardian_probes_remain_blocked_without_cutover_evidence"
     },
     {
       "authentication_or_permission_requirements": [
@@ -192449,6 +193133,7 @@
         "json",
         "os",
         "pathlib",
+        "sqlite3",
         "subprocess",
         "tempfile",
         "unittest"
@@ -192462,8 +193147,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        48,
-        60
+        103,
+        115
       ],
       "maintenance_status": "test",
       "module": "test_native_executor",
@@ -192500,6 +193185,7 @@
         "json",
         "os",
         "pathlib",
+        "sqlite3",
         "subprocess",
         "tempfile",
         "unittest"
@@ -192513,8 +193199,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        62,
-        92
+        117,
+        147
       ],
       "maintenance_status": "test",
       "module": "test_native_executor",
@@ -206366,7 +207052,7 @@
       "known_defects": [],
       "line_range": [
         9,
-        64
+        89
       ],
       "maintenance_status": "test",
       "module": "test_system_inventory",
@@ -206431,6 +207117,92 @@
     },
     {
       "authentication_or_permission_requirements": [
+        "path"
+      ],
+      "called_functions": [
+        "jarvis_v2.system_inventory.scan_filesystem"
+      ],
+      "callers": [],
+      "dependencies": [
+        "jarvis_v2.cli",
+        "jarvis_v2.system_inventory",
+        "pathlib",
+        "tempfile",
+        "unittest"
+      ],
+      "exceptions_and_failure_behavior": [],
+      "existing_test_coverage": [
+        "tests/test_system_inventory.py"
+      ],
+      "file_path": "tests/test_system_inventory.py",
+      "inputs": [],
+      "kind": "method",
+      "known_defects": [],
+      "line_range": [
+        23,
+        37
+      ],
+      "maintenance_status": "test",
+      "module": "test_system_inventory",
+      "outputs": [],
+      "purpose": "undocumented",
+      "qualified_name": "test_system_inventory.SystemInventoryTests.test_scan_cursor_resumes_without_duplicates_or_root_restart",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [
+        "filesystem access",
+        "security or trust-boundary vocabulary"
+      ],
+      "side_effects": [
+        "filesystem"
+      ],
+      "signature": "def test_scan_cursor_resumes_without_duplicates_or_root_restart(self)",
+      "symbol_name": "test_scan_cursor_resumes_without_duplicates_or_root_restart"
+    },
+    {
+      "authentication_or_permission_requirements": [
+        "path"
+      ],
+      "called_functions": [
+        "jarvis_v2.system_inventory.scan_filesystem"
+      ],
+      "callers": [],
+      "dependencies": [
+        "jarvis_v2.cli",
+        "jarvis_v2.system_inventory",
+        "pathlib",
+        "tempfile",
+        "unittest"
+      ],
+      "exceptions_and_failure_behavior": [],
+      "existing_test_coverage": [
+        "tests/test_system_inventory.py"
+      ],
+      "file_path": "tests/test_system_inventory.py",
+      "inputs": [],
+      "kind": "method",
+      "known_defects": [],
+      "line_range": [
+        39,
+        46
+      ],
+      "maintenance_status": "test",
+      "module": "test_system_inventory",
+      "outputs": [],
+      "purpose": "undocumented",
+      "qualified_name": "test_system_inventory.SystemInventoryTests.test_scan_cursor_cannot_change_root_or_cross_mount",
+      "refactoring_recommendation": "retain; no evidence-backed removal candidate from static analysis alone",
+      "security_implications": [
+        "filesystem access",
+        "security or trust-boundary vocabulary"
+      ],
+      "side_effects": [
+        "filesystem"
+      ],
+      "signature": "def test_scan_cursor_cannot_change_root_or_cross_mount(self)",
+      "symbol_name": "test_scan_cursor_cannot_change_root_or_cross_mount"
+    },
+    {
+      "authentication_or_permission_requirements": [
         "filesystem",
         "path"
       ],
@@ -206455,8 +207227,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        23,
-        42
+        48,
+        67
       ],
       "maintenance_status": "test",
       "module": "test_system_inventory",
@@ -206495,8 +207267,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        44,
-        53
+        69,
+        78
       ],
       "maintenance_status": "test",
       "module": "test_system_inventory",
@@ -206536,8 +207308,8 @@
       "kind": "method",
       "known_defects": [],
       "line_range": [
-        55,
-        64
+        80,
+        89
       ],
       "maintenance_status": "test",
       "module": "test_system_inventory",

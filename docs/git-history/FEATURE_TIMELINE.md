@@ -1,12 +1,19 @@
 # ARCHON feature timeline
 
-Chronological commit groups derived from task IDs and commit subjects. The commit index is the authoritative detail; it currently covers 754 reachable commits through `c4574ae1a80da69aa2b6d0536e41cffa87bd610d`.
+Chronological commit groups derived from task IDs and commit subjects. The commit index is the authoritative detail; it currently covers 756 reachable commits through source candidate `4149c1d75eee24880bfacd819342f9c21d05d51a`.
 
 ## Monthly activity
 
 | Month | Commits |
 | --- | ---: |
-| 2026-11 | 754 |
+| 2026-11 | 756 |
+
+## Final-audit continuation
+
+| Date | SHA | Contribution |
+| --- | --- | --- |
+| 2026-11-19 23:46 +07:00 | `a286b6f1e51e` | Bound the complete reachable-history snapshot and final-audit metadata to the indexed tree. |
+| 2026-11-20 00:09 +07:00 | `4149c1d75eee` | Added bounded native control-plane probes and resumable metadata-only filesystem inventory. |
 
 ## Task-linked contributions
 

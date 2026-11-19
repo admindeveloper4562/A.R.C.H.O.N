@@ -1,19 +1,19 @@
 {
-  "schema_version": 1,
-  "source_sha": "04eabec5cdbee2b2261272850867289fe0532091",
-  "implementation_sha": "04eabec5cdbee2b2261272850867289fe0532091",
-  "canonical_head": "c4574ae1a80da69aa2b6d0536e41cffa87bd610d",
-  "source_state": "tested canonical local tree at 04eabec; not published to GitHub",
+  "schema_version": 2,
+  "source_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
+  "implementation_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
+  "canonical_head": "4149c1d75eee24880bfacd819342f9c21d05d51a",
+  "source_state": "tested canonical local candidate; not published to GitHub",
   "runner": "python3 -m unittest discover -s tests -p 'test_*.py' -q",
   "pytest_available": false,
   "full_suite": {
-    "tests": 584,
-    "passed": 584,
+    "tests": 590,
+    "passed": 590,
     "failed": 0,
     "errors": 0,
-    "duration_seconds": 27.717,
+    "duration_seconds": 27.762,
     "exit_code": 0,
-    "evidence_log": "docs/final-audit/evidence/unittest-current-native-executor.log"
+    "evidence_log": "/home/r34p3r/.local/state/archon/logs/unittest-4149c1d.log"
   },
   "native_import_sweep": {"modules": 106, "errors": 0, "exit_code": 0},
   "native_controller_checks": {
@@ -22,21 +22,31 @@
     "control_marker_admission": "pass",
     "executor_success_and_failure_receipts": "pass",
     "bounded_control_plane_executor": "pass",
+    "read_only_probe_operations": 8,
+    "resumable_inventory_cursor": "pass",
     "terminate_and_restart": "pass",
     "systemd_analyze_verify": "pass",
     "service_installed": false,
-    "domain_effect_handlers": "not_configured"
+    "domain_effect_handlers": "not_configured",
+    "trusted_watchdog": "not_configured"
   },
   "native_health": {
     "status": "healthy",
     "mode": "native_runtime",
     "historical_ledger_loaded": false,
-    "queue_tasks": 0
+    "queue_tasks": 0,
+    "sqlite_integrity": "ok",
+    "foreign_key_violations": 0
   },
   "inventory_capabilities": {
     "ollama_models": ["qwen3:4b", "qwen2.5-coder:7b", "qwen2.5-coder:3b"],
     "nvidia_acceleration": "NVIDIA GeForce GTX 980, 4096 MiB, driver 535.309.01",
-    "filesystem_scan": "bounded_metadata_only"
+    "filesystem_scan": "bounded_metadata_only_with_private_resume_cursor",
+    "scanned_entries": 10000,
+    "pending_directory_frames": 1328,
+    "permission_denied": 17,
+    "skipped_mounts": 28,
+    "skipped_virtual_filesystems": 4
   },
   "local_ci_checks": {
     "dependency_scan": 0,
@@ -45,7 +55,8 @@
   },
   "fresh_database_checks": {
     "runtime.sqlite3": {"migration": "pass", "integrity": "ok", "foreign_key_violations": 0, "backup_restore": "pass"},
-    "atlas.sqlite3": {"migration": "pass", "integrity": "ok", "foreign_key_violations": 0, "backup_restore": "pass"}
+    "atlas.sqlite3": {"migration": "pass", "integrity": "ok", "foreign_key_violations": 0, "backup_restore": "pass"},
+    "code_index.sqlite3": {"integrity": "ok", "foreign_key_violations": 0}
   },
   "not_run": [
     "pytest",
@@ -55,6 +66,8 @@
     "Windows device/Ollama performance",
     "iOS/macOS validation",
     "Blender execution",
-    "live external provider validation"
+    "live external provider validation",
+    "trusted watchdog activation and rollback soak",
+    "native service installation or Astra retirement"
   ]
 }

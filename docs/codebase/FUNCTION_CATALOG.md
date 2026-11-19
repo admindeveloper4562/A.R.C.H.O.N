@@ -1,6 +1,6 @@
 # ARCHON Function Catalog
 
-Generated `2026-11-19T16:44:22.643406+00:00` from base commit `c4574ae1a80da69aa2b6d0536e41cffa87bd610d`; audited working tree state: `catalog generated from checkout c4574ae1a80da69aa2b6d0536e41cffa87bd610d; status snapshot had 8 entries before output generation`.
+Generated `2026-11-19T17:21:47.213262+00:00` from base commit `4149c1d75eee24880bfacd819342f9c21d05d51a`; audited working tree state: `catalog generated from checkout 4149c1d75eee24880bfacd819342f9c21d05d51a; status snapshot had 19 entries before output generation`.
 
 Static inventory; callers, unresolved references, test links, and dead-code candidates are heuristic and must not be treated as acceptance receipts.
 
@@ -10,13 +10,13 @@ Static inventory; callers, unresolved references, test links, and dead-code cand
 | --- | --- |
 | Source files | 347 |
 | Indexed files | 552 |
-| Functions | 903 |
-| Methods | 2436 |
+| Functions | 904 |
+| Methods | 2448 |
 | Classes | 568 |
 | Parser errors | 0 |
-| Unresolved symbols | 6827 |
-| Untested functions/methods | 998 |
-| Suspected dead paths | 1740 |
+| Unresolved symbols | 6868 |
+| Untested functions/methods | 1005 |
+| Suspected dead paths | 1747 |
 
 Supported parsing is AST-based for Python and declaration-pattern based for JavaScript, TypeScript, shell, Swift, and SQL. Unsupported constructs are explicitly counted as gaps.
 
@@ -44,7 +44,7 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `astra_one.core.validate_source` | function | `bootstrap/astra-one/astra_one/core.py:84-95` | def validate_source(root: Path) -> tuple[Path, str] | 2 | legacy-bootstrap |
 | `astra_one.core.Store` | class | `bootstrap/astra-one/astra_one/core.py:98-361` | class Store() | 2 | legacy-bootstrap |
 | `astra_one.core.Store.__init__` | method | `bootstrap/astra-one/astra_one/core.py:99-101` | def __init__(self, home: Path=DEFAULT_HOME) | 5 | legacy-bootstrap |
-| `astra_one.core.Store.db` | method | `bootstrap/astra-one/astra_one/core.py:104-114` | def db(self) | 27 | legacy-bootstrap |
+| `astra_one.core.Store.db` | method | `bootstrap/astra-one/astra_one/core.py:104-114` | def db(self) | 28 | legacy-bootstrap |
 | `astra_one.core.Store.init` | method | `bootstrap/astra-one/astra_one/core.py:116-130` | def init(self, source: Path) -> dict | 14 | legacy-bootstrap |
 | `astra_one.core.Store.config` | method | `bootstrap/astra-one/astra_one/core.py:132-135` | def config(self, key: str) -> str | 17 | legacy-bootstrap |
 | `astra_one.core.Store.set_config` | method | `bootstrap/astra-one/astra_one/core.py:137-139` | def set_config(self, key: str, value: str) -> None | 0 | legacy-bootstrap |
@@ -160,7 +160,7 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `astra_one.linux_sda._validate_builder_child_evidence` | function | `bootstrap/astra-one/astra_one/linux_sda.py:592-601` | def _validate_builder_child_evidence(child_ids: list[str], value: object) -> None | 0 | legacy-bootstrap |
 | `astra_one.linux_sda.State` | class | `bootstrap/astra-one/astra_one/linux_sda.py:603-3249` | class State() | 7 | legacy-bootstrap |
 | `astra_one.linux_sda.State.__init__` | method | `bootstrap/astra-one/astra_one/linux_sda.py:604-607` | def __init__(self, home: Path=DEFAULT_HOME) | 5 | legacy-bootstrap |
-| `astra_one.linux_sda.State.db` | method | `bootstrap/astra-one/astra_one/linux_sda.py:610-620` | def db(self) | 27 | legacy-bootstrap |
+| `astra_one.linux_sda.State.db` | method | `bootstrap/astra-one/astra_one/linux_sda.py:610-620` | def db(self) | 28 | legacy-bootstrap |
 | `astra_one.linux_sda.State.data_version` | method | `bootstrap/astra-one/astra_one/linux_sda.py:622-625` | def data_version(self) -> int | 1 | legacy-bootstrap |
 | `astra_one.linux_sda.State.wait_for_data_change` | method | `bootstrap/astra-one/astra_one/linux_sda.py:627-644` | def wait_for_data_change(self, observed: int, timeout: float=1.0) -> tuple[bool, int] | 1 | legacy-bootstrap |
 | `astra_one.linux_sda.State.master_lock` | method | `bootstrap/astra-one/astra_one/linux_sda.py:647-665` | def master_lock(self, blocking: bool=False, timeout: float=30.0) | 1 | legacy-bootstrap |
@@ -730,13 +730,13 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `imported.backend.router._NullAsyncLock.__aenter__` | method | `migration/imported/backend/router.py:93-94` | async def __aenter__(self) -> '_NullAsyncLock' | 0 | legacy-imported |
 | `imported.backend.router._NullAsyncLock.__aexit__` | method | `migration/imported/backend/router.py:96-97` | async def __aexit__(self, *_: object) -> None | 0 | legacy-imported |
 | `imported.backend.storage.prepare_path` | function | `migration/imported/backend/storage.py:12-17` | def prepare_path(path: Path) -> None | 0 | legacy-imported |
-| `imported.backend.storage.connect` | function | `migration/imported/backend/storage.py:21-38` | def connect(path: Path) -> Iterator[sqlite3.Connection] | 13 | legacy-imported |
+| `imported.backend.storage.connect` | function | `migration/imported/backend/storage.py:21-38` | def connect(path: Path) -> Iterator[sqlite3.Connection] | 14 | legacy-imported |
 | `imported.backend.storage.ensure_schema` | function | `migration/imported/backend/storage.py:41-139` | def ensure_schema(path: Path) -> None | 1 | legacy-imported |
 | `imported.core.tasks.Task` | class | `migration/imported/core/tasks.py:21-28` | class Task() | 2 | legacy-imported |
 | `imported.core.tasks.TaskStore` | class | `migration/imported/core/tasks.py:31-127` | class TaskStore() | 0 | legacy-imported |
 | `imported.core.tasks.TaskStore.__init__` | method | `migration/imported/core/tasks.py:32-34` | def __init__(self, path: Path) -> None | 5 | legacy-imported |
 | `imported.core.tasks.TaskStore._row` | method | `migration/imported/core/tasks.py:37-39` | def _row(row) -> Task | 0 | legacy-imported |
-| `imported.core.tasks.TaskStore.create` | method | `migration/imported/core/tasks.py:41-53` | def create(self, kind: str, payload: dict, idempotency_key: str) -> Task | 8 | legacy-imported |
+| `imported.core.tasks.TaskStore.create` | method | `migration/imported/core/tasks.py:41-53` | def create(self, kind: str, payload: dict, idempotency_key: str) -> Task | 9 | legacy-imported |
 | `imported.core.tasks.TaskStore._event` | method | `migration/imported/core/tasks.py:56-58` | def _event(db, task_id: str, state: str, detail: str) -> None | 0 | legacy-imported |
 | `imported.core.tasks.TaskStore.get` | method | `migration/imported/core/tasks.py:60-65` | def get(self, task_id: str) -> Task | 27 | legacy-imported |
 | `imported.core.tasks.TaskStore.transition` | method | `migration/imported/core/tasks.py:67-79` | def transition(self, task_id: str, state: str, *, result: dict \| None=None, error: str \| None=None) -> Task | 0 | legacy-imported |
@@ -838,7 +838,7 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `imported.sda.astra_one_v0.2.0.astra_one.core.validate_source` | function | `migration/imported/sda/astra-one-v0.2.0/astra_one/core.py:84-95` | def validate_source(root: Path) -> tuple[Path, str] | 2 | legacy-imported |
 | `imported.sda.astra_one_v0.2.0.astra_one.core.Store` | class | `migration/imported/sda/astra-one-v0.2.0/astra_one/core.py:98-361` | class Store() | 2 | legacy-imported |
 | `imported.sda.astra_one_v0.2.0.astra_one.core.Store.__init__` | method | `migration/imported/sda/astra-one-v0.2.0/astra_one/core.py:99-101` | def __init__(self, home: Path=DEFAULT_HOME) | 5 | legacy-imported |
-| `imported.sda.astra_one_v0.2.0.astra_one.core.Store.db` | method | `migration/imported/sda/astra-one-v0.2.0/astra_one/core.py:104-114` | def db(self) | 27 | legacy-imported |
+| `imported.sda.astra_one_v0.2.0.astra_one.core.Store.db` | method | `migration/imported/sda/astra-one-v0.2.0/astra_one/core.py:104-114` | def db(self) | 28 | legacy-imported |
 | `imported.sda.astra_one_v0.2.0.astra_one.core.Store.init` | method | `migration/imported/sda/astra-one-v0.2.0/astra_one/core.py:116-130` | def init(self, source: Path) -> dict | 14 | legacy-imported |
 | `imported.sda.astra_one_v0.2.0.astra_one.core.Store.config` | method | `migration/imported/sda/astra-one-v0.2.0/astra_one/core.py:132-135` | def config(self, key: str) -> str | 17 | legacy-imported |
 | `imported.sda.astra_one_v0.2.0.astra_one.core.Store.set_config` | method | `migration/imported/sda/astra-one-v0.2.0/astra_one/core.py:137-139` | def set_config(self, key: str, value: str) -> None | 0 | legacy-imported |
@@ -883,7 +883,7 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `imported.sda.astra_one_v0.2.0.astra_one.linux_sda.task_spec` | function | `migration/imported/sda/astra-one-v0.2.0/astra_one/linux_sda.py:91-109` | def task_spec(obj: object) -> dict | 2 | legacy-imported |
 | `imported.sda.astra_one_v0.2.0.astra_one.linux_sda.State` | class | `migration/imported/sda/astra-one-v0.2.0/astra_one/linux_sda.py:111-331` | class State() | 7 | legacy-imported |
 | `imported.sda.astra_one_v0.2.0.astra_one.linux_sda.State.__init__` | method | `migration/imported/sda/astra-one-v0.2.0/astra_one/linux_sda.py:112-115` | def __init__(self, home: Path=DEFAULT_HOME) | 5 | legacy-imported |
-| `imported.sda.astra_one_v0.2.0.astra_one.linux_sda.State.db` | method | `migration/imported/sda/astra-one-v0.2.0/astra_one/linux_sda.py:118-128` | def db(self) | 27 | legacy-imported |
+| `imported.sda.astra_one_v0.2.0.astra_one.linux_sda.State.db` | method | `migration/imported/sda/astra-one-v0.2.0/astra_one/linux_sda.py:118-128` | def db(self) | 28 | legacy-imported |
 | `imported.sda.astra_one_v0.2.0.astra_one.linux_sda.State.master_lock` | method | `migration/imported/sda/astra-one-v0.2.0/astra_one/linux_sda.py:131-143` | def master_lock(self, blocking: bool=False) | 1 | legacy-imported |
 | `imported.sda.astra_one_v0.2.0.astra_one.linux_sda.State.init` | method | `migration/imported/sda/astra-one-v0.2.0/astra_one/linux_sda.py:145-168` | def init(self, source: Path) -> dict | 14 | legacy-imported |
 | `imported.sda.astra_one_v0.2.0.astra_one.linux_sda.State.get` | method | `migration/imported/sda/astra-one-v0.2.0/astra_one/linux_sda.py:170-173` | def get(self, key: str) -> str | 27 | legacy-imported |
@@ -1044,7 +1044,7 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `imported.sda.workhorse_context.run_git` | function | `migration/imported/sda/workhorse_context.py:32-36` | def run_git(root: Path, *args: str) -> str | 0 | legacy-imported |
 | `imported.sda.workhorse_context.allowed` | function | `migration/imported/sda/workhorse_context.py:39-50` | def allowed(root: Path, rel: str) -> bool | 8 | legacy-imported |
 | `imported.sda.workhorse_context.code_chunks` | function | `migration/imported/sda/workhorse_context.py:53-74` | def code_chunks(rel: str, source: str) | 0 | legacy-imported |
-| `imported.sda.workhorse_context.connect` | function | `migration/imported/sda/workhorse_context.py:77-97` | def connect(state: Path) -> sqlite3.Connection | 13 | legacy-imported |
+| `imported.sda.workhorse_context.connect` | function | `migration/imported/sda/workhorse_context.py:77-97` | def connect(state: Path) -> sqlite3.Connection | 14 | legacy-imported |
 | `imported.sda.workhorse_context.update_index` | function | `migration/imported/sda/workhorse_context.py:100-130` | def update_index(db: sqlite3.Connection, root: Path) -> dict | 0 | legacy-imported |
 | `imported.sda.workhorse_context.purge` | function | `migration/imported/sda/workhorse_context.py:133-138` | def purge(db: sqlite3.Connection, scope: str, rel: str) | 0 | legacy-imported |
 | `imported.sda.workhorse_context.embed` | function | `migration/imported/sda/workhorse_context.py:141-154` | def embed(texts: list[str]) -> list[list[float]] | 0 | legacy-imported |
@@ -1077,7 +1077,7 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `imported.tws.aurelia3d.build_portable.build.gown_skin` | function | `migration/imported/tws/aurelia3d/build_portable.py:331-339` | def gown_skin(vertex) | 0 | legacy-imported |
 | `imported.tws.aurelia3d.build_portable.main` | function | `migration/imported/tws/aurelia3d/build_portable.py:425-432` | def main() | 156 | legacy-imported |
 | `imported.tws.engine.xp_to_next_level` | function | `migration/imported/tws/engine.py:11-14` | def xp_to_next_level(level: int) -> int | 0 | legacy-imported |
-| `imported.tws.engine.connect` | function | `migration/imported/tws/engine.py:16-47` | def connect(path: str \| Path) -> sqlite3.Connection | 13 | legacy-imported |
+| `imported.tws.engine.connect` | function | `migration/imported/tws/engine.py:16-47` | def connect(path: str \| Path) -> sqlite3.Connection | 14 | legacy-imported |
 | `imported.tws.engine.connect_readonly` | function | `migration/imported/tws/engine.py:49-58` | def connect_readonly(path: str \| Path) -> sqlite3.Connection | 0 | legacy-imported |
 | `imported.tws.engine.initialize` | function | `migration/imported/tws/engine.py:60-66` | def initialize(db: sqlite3.Connection) -> None | 0 | legacy-imported |
 | `imported.tws.engine.status` | function | `migration/imported/tws/engine.py:68-72` | def status(db: sqlite3.Connection) -> dict | 81 | legacy-imported |
@@ -1212,7 +1212,7 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `jarvis_v2.backend.backup.BackupManager.__init__` | method | `src/jarvis_v2/backend/backup.py:158-161` | def __init__(self, *, max_backup_bytes: int=MAX_BACKUP_BYTES) -> None | 5 | active |
 | `jarvis_v2.backend.backup.BackupManager.inspect` | method | `src/jarvis_v2/backend/backup.py:163-211` | def inspect(self, database: str \| Path) -> dict[str, Any] | 10 | active |
 | `jarvis_v2.backend.backup.BackupManager._copy_sqlite` | method | `src/jarvis_v2/backend/backup.py:213-229` | def _copy_sqlite(self, source: Path, destination: Path) -> None | 0 | active |
-| `jarvis_v2.backend.backup.BackupManager.create` | method | `src/jarvis_v2/backend/backup.py:231-283` | def create(self, source: str \| Path, destination: str \| Path, *, cipher: BackupCipher \| None=None) -> BackupReceipt | 8 | active |
+| `jarvis_v2.backend.backup.BackupManager.create` | method | `src/jarvis_v2/backend/backup.py:231-283` | def create(self, source: str \| Path, destination: str \| Path, *, cipher: BackupCipher \| None=None) -> BackupReceipt | 9 | active |
 | `jarvis_v2.backend.backup.BackupManager.restore` | method | `src/jarvis_v2/backend/backup.py:285-348` | def restore(self, backup: str \| Path, destination: str \| Path, *, cipher: BackupCipher \| None=None, expected_sha256: str \| None=None, expected_schema_version: int \| None=None) | 6 | active |
 | `jarvis_v2.backend.cloudflare_jobs.CloudflareJobAdapterError` | class | `src/jarvis_v2/backend/cloudflare_jobs.py:23-24` | class CloudflareJobAdapterError(ValueError) | 1 | active |
 | `jarvis_v2.backend.cloudflare_jobs._identifier` | function | `src/jarvis_v2/backend/cloudflare_jobs.py:27-30` | def _identifier(value: object, label: str, limit: int=128) -> str | 0 | active |
@@ -1222,7 +1222,7 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `jarvis_v2.backend.cloudflare_jobs.CloudflareJobAdapter` | class | `src/jarvis_v2/backend/cloudflare_jobs.py:93-200` | class CloudflareJobAdapter() | 1 | active |
 | `jarvis_v2.backend.cloudflare_jobs.CloudflareJobAdapter.__init__` | method | `src/jarvis_v2/backend/cloudflare_jobs.py:100-118` | def __init__(self, base_url: str, token_provider: TokenProvider, *, transport: Transport \| None=None, timeout_seconds: float=10.0) -> None | 5 | active |
 | `jarvis_v2.backend.cloudflare_jobs.CloudflareJobAdapter._urlopen` | method | `src/jarvis_v2/backend/cloudflare_jobs.py:121-123` | def _urlopen(request: Request, timeout: float) -> tuple[int, bytes] | 0 | active |
-| `jarvis_v2.backend.cloudflare_jobs.CloudflareJobAdapter.create` | method | `src/jarvis_v2/backend/cloudflare_jobs.py:125-138` | def create(self, job: LocalAgentJob) -> CloudflareJobRecord | 8 | active |
+| `jarvis_v2.backend.cloudflare_jobs.CloudflareJobAdapter.create` | method | `src/jarvis_v2/backend/cloudflare_jobs.py:125-138` | def create(self, job: LocalAgentJob) -> CloudflareJobRecord | 9 | active |
 | `jarvis_v2.backend.cloudflare_jobs.CloudflareJobAdapter.claim` | method | `src/jarvis_v2/backend/cloudflare_jobs.py:142-152` | def claim(self, job_id: str, device_id: str, lease_id: str, *, lease_seconds: int=60) -> CloudflareJobRecord | 21 | active |
 | `jarvis_v2.backend.cloudflare_jobs.CloudflareJobAdapter.complete` | method | `src/jarvis_v2/backend/cloudflare_jobs.py:154-164` | def complete(self, job_id: str, lease_id: str, *, ok: bool, result_sha256: str) -> CloudflareJobRecord | 9 | active |
 | `jarvis_v2.backend.cloudflare_jobs.CloudflareJobAdapter._call` | method | `src/jarvis_v2/backend/cloudflare_jobs.py:166-200` | def _call(self, path: str, payload: Mapping[str, object]) -> CloudflareJobRecord | 0 | active |
@@ -1301,7 +1301,7 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `jarvis_v2.backend.effects.EffectJournal.fail` | method | `src/jarvis_v2/backend/effects.py:155-156` | def fail(self, effect_id: str, result: Mapping[str, object] \| None=None) -> dict[str, Any] | 4 | active |
 | `jarvis_v2.backend.effects.EffectJournal.reconcile_pending` | method | `src/jarvis_v2/backend/effects.py:158-172` | def reconcile_pending(self) -> list[dict[str, Any]] | 1 | active |
 | `jarvis_v2.backend.effects.EffectJournal.get` | method | `src/jarvis_v2/backend/effects.py:174-181` | def get(self, effect_id: str) -> dict[str, Any] | 27 | active |
-| `jarvis_v2.backend.effects.EffectJournal.pending` | method | `src/jarvis_v2/backend/effects.py:183-190` | def pending(self, *, limit: int=100) -> list[dict[str, Any]] | 27 | active |
+| `jarvis_v2.backend.effects.EffectJournal.pending` | method | `src/jarvis_v2/backend/effects.py:183-190` | def pending(self, *, limit: int=100) -> list[dict[str, Any]] | 28 | active |
 | `jarvis_v2.backend.effects.EffectJournal._finish` | method | `src/jarvis_v2/backend/effects.py:192-233` | def _finish(self, effect_id: str, status: str, result: Mapping[str, object] \| None) -> dict[str, Any] | 0 | active |
 | `jarvis_v2.backend.effects.EffectJournal._check_identity` | method | `src/jarvis_v2/backend/effects.py:236-249` | def _check_identity(row: sqlite3.Row, task_id: str, operation: str, target: str, request_json: str) -> None | 0 | active |
 | `jarvis_v2.backend.effects.EffectJournal._snapshot` | method | `src/jarvis_v2/backend/effects.py:252-272` | def _snapshot(row: sqlite3.Row, *, execution_permitted: bool) -> dict[str, Any] | 0 | active |
@@ -1321,7 +1321,7 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `jarvis_v2.backend.event_bus.EventBus.__enter__` | method | `src/jarvis_v2/backend/event_bus.py:125-126` | def __enter__(self) -> 'EventBus' | 1 | active |
 | `jarvis_v2.backend.event_bus.EventBus.__exit__` | method | `src/jarvis_v2/backend/event_bus.py:128-129` | def __exit__(self, exc_type: object, exc: object, tb: object) -> None | 1 | active |
 | `jarvis_v2.backend.event_bus.EventBus.publish` | method | `src/jarvis_v2/backend/event_bus.py:131-211` | def publish(self, event_type: str, producer: str, aggregate_id: str, sequence: int, payload: Mapping[str, Any], *, correlation_id: str, causation_id: str \| None=None, privacy_scop | 6 | active |
-| `jarvis_v2.backend.event_bus.EventBus.pending` | method | `src/jarvis_v2/backend/event_bus.py:213-225` | def pending(self, consumer: str, *, limit: int=100) -> list[EventEnvelope] | 27 | active |
+| `jarvis_v2.backend.event_bus.EventBus.pending` | method | `src/jarvis_v2/backend/event_bus.py:213-225` | def pending(self, consumer: str, *, limit: int=100) -> list[EventEnvelope] | 28 | active |
 | `jarvis_v2.backend.event_bus.EventBus.deliver` | method | `src/jarvis_v2/backend/event_bus.py:227-310` | def deliver(self, consumer: str, event_id: str, effect: Callable[[EventEnvelope], Mapping[str, Any]]) -> DeliveryReceipt | 4 | active |
 | `jarvis_v2.backend.event_bus.EventBus._same_event` | method | `src/jarvis_v2/backend/event_bus.py:313-320` | def _same_event(left: EventEnvelope, right: EventEnvelope) -> bool | 0 | active |
 | `jarvis_v2.backend.event_bus.EventBus._event` | method | `src/jarvis_v2/backend/event_bus.py:323-336` | def _event(row: sqlite3.Row) -> EventEnvelope | 0 | active |
@@ -1347,7 +1347,7 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `jarvis_v2.backend.handoff.HandoffStore.__init__` | method | `src/jarvis_v2/backend/handoff.py:78-100` | def __init__(self, database: str \| Path \| sqlite3.Connection) | 5 | active |
 | `jarvis_v2.backend.handoff.HandoffStore.__enter__` | method | `src/jarvis_v2/backend/handoff.py:102-103` | def __enter__(self) -> 'HandoffStore' | 1 | active |
 | `jarvis_v2.backend.handoff.HandoffStore.__exit__` | method | `src/jarvis_v2/backend/handoff.py:105-106` | def __exit__(self, exc_type: object, exc: object, tb: object) -> None | 1 | active |
-| `jarvis_v2.backend.handoff.HandoffStore.handoff` | method | `src/jarvis_v2/backend/handoff.py:108-173` | def handoff(self, task_id: str, handoff_id: str, *, source_provider: str, target_provider: str, permission_scopes: Iterable[str], tool_effects: Iterable[Mapping[str, object]]=(), c | 12 | active |
+| `jarvis_v2.backend.handoff.HandoffStore.handoff` | method | `src/jarvis_v2/backend/handoff.py:108-173` | def handoff(self, task_id: str, handoff_id: str, *, source_provider: str, target_provider: str, permission_scopes: Iterable[str], tool_effects: Iterable[Mapping[str, object]]=(), c | 13 | active |
 | `jarvis_v2.backend.handoff.HandoffStore.get` | method | `src/jarvis_v2/backend/handoff.py:175-182` | def get(self, handoff_id: str) -> dict[str, Any] | 27 | active |
 | `jarvis_v2.backend.handoff.HandoffStore.list_for_task` | method | `src/jarvis_v2/backend/handoff.py:184-192` | def list_for_task(self, task_id: str, *, limit: int=100) -> list[dict[str, Any]] | 1 | active |
 | `jarvis_v2.backend.handoff.HandoffStore._snapshot` | method | `src/jarvis_v2/backend/handoff.py:195-213` | def _snapshot(row: sqlite3.Row) -> dict[str, Any] | 0 | active |
@@ -1469,7 +1469,7 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `jarvis_v2.backend.routing.StickyRouter.__init__` | method | `src/jarvis_v2/backend/routing.py:35-38` | def __init__(self, routes: Mapping[str, str] \| None=None) -> None | 5 | active |
 | `jarvis_v2.backend.routing.StickyRouter.provider_for` | method | `src/jarvis_v2/backend/routing.py:40-41` | def provider_for(self, affinity_key: str) -> str \| None | 0 | active |
 | `jarvis_v2.backend.routing.StickyRouter.bind` | method | `src/jarvis_v2/backend/routing.py:43-50` | def bind(self, affinity_key: str, provider_id: str, *, replace_existing: bool=False) -> str | 5 | active |
-| `jarvis_v2.backend.routing.StickyRouter.handoff` | method | `src/jarvis_v2/backend/routing.py:52-53` | def handoff(self, affinity_key: str, provider_id: str) -> str | 12 | active |
+| `jarvis_v2.backend.routing.StickyRouter.handoff` | method | `src/jarvis_v2/backend/routing.py:52-53` | def handoff(self, affinity_key: str, provider_id: str) -> str | 13 | active |
 | `jarvis_v2.backend.routing.StickyRouter.forget` | method | `src/jarvis_v2/backend/routing.py:55-56` | def forget(self, affinity_key: str) -> None | 0 | active |
 | `jarvis_v2.backend.routing.CircuitBreaker` | class | `src/jarvis_v2/backend/routing.py:59-130` | class CircuitBreaker() | 1 | active |
 | `jarvis_v2.backend.routing.CircuitBreaker.__init__` | method | `src/jarvis_v2/backend/routing.py:62-81` | def __init__(self, *, failure_threshold: int=3, reset_timeout: float=30.0, clock: Callable[[], float] \| None=None) -> None | 5 | active |
@@ -1580,7 +1580,7 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `jarvis_v2.backend.task_capability._paths` | function | `src/jarvis_v2/backend/task_capability.py:23-45` | def _paths(values: Iterable[str \| Path]) -> tuple[Path, ...] | 0 | active |
 | `jarvis_v2.backend.task_capability.TaskCapabilityManifest` | class | `src/jarvis_v2/backend/task_capability.py:49-103` | class TaskCapabilityManifest() | 1 | active |
 | `jarvis_v2.backend.task_capability.TaskCapabilityManifest.__post_init__` | method | `src/jarvis_v2/backend/task_capability.py:56-63` | def __post_init__(self) -> None | 0 | active |
-| `jarvis_v2.backend.task_capability.TaskCapabilityManifest.create` | method | `src/jarvis_v2/backend/task_capability.py:66-73` | def create(cls, operations: Iterable[str], allowed_paths: Iterable[str \| Path]) -> 'TaskCapabilityManifest' | 8 | active |
+| `jarvis_v2.backend.task_capability.TaskCapabilityManifest.create` | method | `src/jarvis_v2/backend/task_capability.py:66-73` | def create(cls, operations: Iterable[str], allowed_paths: Iterable[str \| Path]) -> 'TaskCapabilityManifest' | 9 | active |
 | `jarvis_v2.backend.task_capability.TaskCapabilityManifest.as_dict` | method | `src/jarvis_v2/backend/task_capability.py:75-80` | def as_dict(self) -> dict[str, object] | 18 | active |
 | `jarvis_v2.backend.task_capability.TaskCapabilityManifest.validate_path` | method | `src/jarvis_v2/backend/task_capability.py:82-98` | def validate_path(self, path: str \| Path) -> Path | 0 | active |
 | `jarvis_v2.backend.task_capability.TaskCapabilityManifest.validate_operation` | method | `src/jarvis_v2/backend/task_capability.py:100-103` | def validate_operation(self, operation: str) -> str | 0 | active |
@@ -1610,7 +1610,7 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `jarvis_v2.backend.windows_agent.WindowsAgentRegistry.node_snapshot` | method | `src/jarvis_v2/backend/windows_agent.py:331-345` | def node_snapshot(self, node_id: str) -> dict[str, object] | 1 | active |
 | `jarvis_v2.backend.windows_agent.WindowsAgentRegistry.job_snapshot` | method | `src/jarvis_v2/backend/windows_agent.py:347-358` | def job_snapshot(self, job_id: str) -> dict[str, object] | 1 | active |
 | `jarvis_v2.backend.windows_agent.WindowsAgentRegistry._active_leases` | method | `src/jarvis_v2/backend/windows_agent.py:360-361` | def _active_leases(self, node_id: str) -> int | 0 | active |
-| `jarvis_v2.cli.main` | function | `src/jarvis_v2/cli.py:13-53` | def main(argv=None) | 156 | active |
+| `jarvis_v2.cli.main` | function | `src/jarvis_v2/cli.py:13-81` | def main(argv=None) | 156 | active |
 | `jarvis_v2.core.budget.ResourceBudgetError` | class | `src/jarvis_v2/core/budget.py:10-11` | class ResourceBudgetError(ValueError) | 1 | active |
 | `jarvis_v2.core.budget.ResourceBudget` | class | `src/jarvis_v2/core/budget.py:14-120` | class ResourceBudget() | 2 | active |
 | `jarvis_v2.core.budget.ResourceBudget.__init__` | method | `src/jarvis_v2/core/budget.py:17-42` | def __init__(self, capacity: int, *, device_limits: Mapping[str, int] \| None=None, slots: Iterable[str] \| None=None) -> None | 5 | active |
@@ -1634,7 +1634,7 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `jarvis_v2.core.control.CoreControls.allows_dispatch` | method | `src/jarvis_v2/core/control.py:52-53` | def allows_dispatch(self) -> bool | 0 | active |
 | `jarvis_v2.core.control.CoreControls.stop` | method | `src/jarvis_v2/core/control.py:55-56` | def stop(self, *, reason: str='owner_stop') -> dict[str, str] | 4 | active |
 | `jarvis_v2.core.control.CoreControls.pause` | method | `src/jarvis_v2/core/control.py:58-59` | def pause(self, *, reason: str='owner_pause') -> dict[str, str] | 1 | active |
-| `jarvis_v2.core.control.CoreControls.resume` | method | `src/jarvis_v2/core/control.py:61-62` | def resume(self) -> dict[str, str] | 3 | active |
+| `jarvis_v2.core.control.CoreControls.resume` | method | `src/jarvis_v2/core/control.py:61-62` | def resume(self) -> dict[str, str] | 4 | active |
 | `jarvis_v2.core.control.CoreControls._set` | method | `src/jarvis_v2/core/control.py:64-74` | def _set(self, state: str, reason: str) -> dict[str, str] | 0 | active |
 | `jarvis_v2.core.control.CoreControls.close` | method | `src/jarvis_v2/core/control.py:76-78` | def close(self) -> None | 34 | active |
 | `jarvis_v2.core.dependency.DependencyError` | class | `src/jarvis_v2/core/dependency.py:9-10` | class DependencyError(ValueError) | 1 | active |
@@ -1650,7 +1650,7 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `jarvis_v2.core.dispatch._now` | function | `src/jarvis_v2/core/dispatch.py:55-56` | def _now() -> str | 0 | active |
 | `jarvis_v2.core.dispatch.DispatchStore` | class | `src/jarvis_v2/core/dispatch.py:59-255` | class DispatchStore() | 3 | active |
 | `jarvis_v2.core.dispatch.DispatchStore.__init__` | method | `src/jarvis_v2/core/dispatch.py:62-95` | def __init__(self, database: Path \| sqlite3.Connection) | 5 | active |
-| `jarvis_v2.core.dispatch.DispatchStore.create` | method | `src/jarvis_v2/core/dispatch.py:97-142` | def create(self, task_id: str, target_module: str, scope: str \| Sequence[str] \| Mapping[str, object], acceptance: str \| Sequence[str] \| Mapping[str, object], *, correlation_id: | 8 | active |
+| `jarvis_v2.core.dispatch.DispatchStore.create` | method | `src/jarvis_v2/core/dispatch.py:97-142` | def create(self, task_id: str, target_module: str, scope: str \| Sequence[str] \| Mapping[str, object], acceptance: str \| Sequence[str] \| Mapping[str, object], *, correlation_id: | 9 | active |
 | `jarvis_v2.core.dispatch.DispatchStore.claim` | method | `src/jarvis_v2/core/dispatch.py:144-167` | def claim(self, dispatch_id: str, executor_id: str, *, claim_id: str \| None=None) -> dict | 21 | active |
 | `jarvis_v2.core.dispatch.DispatchStore.acknowledge` | method | `src/jarvis_v2/core/dispatch.py:169-216` | def acknowledge(self, dispatch_id: str, executor_id: str, claim_id: str, *, status: str, result: Mapping[str, object]) -> dict | 4 | active |
 | `jarvis_v2.core.dispatch.DispatchStore.get` | method | `src/jarvis_v2/core/dispatch.py:218-223` | def get(self, dispatch_id: str) -> dict | 27 | active |
@@ -1728,7 +1728,7 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `jarvis_v2.core.queue.TaskQueue.control_status` | method | `src/jarvis_v2/core/queue.py:253-254` | def control_status(self) -> dict[str, str] | 1 | active |
 | `jarvis_v2.core.queue.TaskQueue.stop` | method | `src/jarvis_v2/core/queue.py:256-257` | def stop(self, *, reason: str='owner_stop') -> dict[str, str] | 4 | active |
 | `jarvis_v2.core.queue.TaskQueue.pause` | method | `src/jarvis_v2/core/queue.py:259-260` | def pause(self, *, reason: str='owner_pause') -> dict[str, str] | 1 | active |
-| `jarvis_v2.core.queue.TaskQueue.resume` | method | `src/jarvis_v2/core/queue.py:262-263` | def resume(self) -> dict[str, str] | 3 | active |
+| `jarvis_v2.core.queue.TaskQueue.resume` | method | `src/jarvis_v2/core/queue.py:262-263` | def resume(self) -> dict[str, str] | 4 | active |
 | `jarvis_v2.core.queue.TaskQueue.timeline` | method | `src/jarvis_v2/core/queue.py:265-266` | def timeline(self, task_id: str, *, limit: int=MAX_EVENT_BATCH) -> dict | 2 | active |
 | `jarvis_v2.core.queue.TaskQueue.progress` | method | `src/jarvis_v2/core/queue.py:268-269` | def progress(self, task_id: str) -> dict | 4 | active |
 | `jarvis_v2.core.queue.TaskQueue.close` | method | `src/jarvis_v2/core/queue.py:271-271` | def close(self) | 34 | active |
@@ -2006,7 +2006,7 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `jarvis_v2.guardian.fencing.WriterFence.__init__` | method | `src/jarvis_v2/guardian/fencing.py:41-45` | def __init__(self, *, clock: Callable[[], float] \| None=None) -> None | 5 | active |
 | `jarvis_v2.guardian.fencing.WriterFence.acquire` | method | `src/jarvis_v2/guardian/fencing.py:47-59` | def acquire(self, owner_id: str, *, ttl_seconds: int=60) -> WriterLease | 3 | active |
 | `jarvis_v2.guardian.fencing.WriterFence.renew` | method | `src/jarvis_v2/guardian/fencing.py:61-70` | def renew(self, lease: WriterLease, *, ttl_seconds: int=60) -> WriterLease | 2 | active |
-| `jarvis_v2.guardian.fencing.WriterFence.handoff` | method | `src/jarvis_v2/guardian/fencing.py:72-88` | def handoff(self, current: WriterLease, next_owner_id: str, *, ttl_seconds: int=60) -> WriterLease | 12 | active |
+| `jarvis_v2.guardian.fencing.WriterFence.handoff` | method | `src/jarvis_v2/guardian/fencing.py:72-88` | def handoff(self, current: WriterLease, next_owner_id: str, *, ttl_seconds: int=60) -> WriterLease | 13 | active |
 | `jarvis_v2.guardian.fencing.WriterFence.release` | method | `src/jarvis_v2/guardian/fencing.py:90-93` | def release(self, lease: WriterLease) -> None | 12 | active |
 | `jarvis_v2.guardian.fencing.WriterFence.assert_current` | method | `src/jarvis_v2/guardian/fencing.py:95-98` | def assert_current(self, lease: WriterLease) -> None | 3 | active |
 | `jarvis_v2.guardian.fencing.WriterFence.snapshot` | method | `src/jarvis_v2/guardian/fencing.py:100-109` | def snapshot(self) -> dict[str, Any] | 17 | active |
@@ -2074,7 +2074,7 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `jarvis_v2.guardian.isolation.IsolationController.drain` | method | `src/jarvis_v2/guardian/isolation.py:226-235` | def drain(self, component_id: str) -> IsolationSnapshot | 4 | active |
 | `jarvis_v2.guardian.isolation.IsolationController.quiesce` | method | `src/jarvis_v2/guardian/isolation.py:239-252` | def quiesce(self, component_id: str) -> IsolationSnapshot | 2 | active |
 | `jarvis_v2.guardian.isolation.IsolationController.isolate` | method | `src/jarvis_v2/guardian/isolation.py:254-270` | def isolate(self, component_id: str, *, reason: str) -> IsolationSnapshot | 2 | active |
-| `jarvis_v2.guardian.isolation.IsolationController.resume` | method | `src/jarvis_v2/guardian/isolation.py:272-287` | def resume(self, component_id: str) -> IsolationSnapshot | 3 | active |
+| `jarvis_v2.guardian.isolation.IsolationController.resume` | method | `src/jarvis_v2/guardian/isolation.py:272-287` | def resume(self, component_id: str) -> IsolationSnapshot | 4 | active |
 | `jarvis_v2.guardian.isolation.IsolationController._component` | method | `src/jarvis_v2/guardian/isolation.py:289-293` | def _component(self, component_id: str) -> _ComponentState | 0 | active |
 | `jarvis_v2.guardian.isolation.IsolationController._check_generation` | method | `src/jarvis_v2/guardian/isolation.py:296-298` | def _check_generation(state: _ComponentState, generation: int \| None) -> None | 0 | active |
 | `jarvis_v2.guardian.isolation._identifier` | function | `src/jarvis_v2/guardian/isolation.py:301-304` | def _identifier(value: str, label: str) -> str | 0 | active |
@@ -2196,16 +2196,22 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `jarvis_v2.native_controller.NativeController.__exit__` | method | `src/jarvis_v2/native_controller.py:216-217` | def __exit__(self, *_: object) -> None | 1 | active |
 | `jarvis_v2.native_controller._default_state` | function | `src/jarvis_v2/native_controller.py:220-221` | def _default_state() -> Path | 0 | active |
 | `jarvis_v2.native_controller.main` | function | `src/jarvis_v2/native_controller.py:224-260` | def main(argv: list[str] \| None=None) -> int | 156 | active |
-| `jarvis_v2.native_executor.NativeExecutorError` | class | `src/jarvis_v2/native_executor.py:34-35` | class NativeExecutorError(RuntimeError) | 1 | active |
-| `jarvis_v2.native_executor._operation` | function | `src/jarvis_v2/native_executor.py:38-46` | def _operation(value: Any) -> str | 0 | active |
-| `jarvis_v2.native_executor._module_manifest` | function | `src/jarvis_v2/native_executor.py:49-63` | def _module_manifest(module: str) -> ModuleManifest | 0 | active |
-| `jarvis_v2.native_executor.NativeControlPlaneExecutor` | class | `src/jarvis_v2/native_executor.py:66-145` | class NativeControlPlaneExecutor() | 1 | active |
-| `jarvis_v2.native_executor.NativeControlPlaneExecutor.__init__` | method | `src/jarvis_v2/native_executor.py:73-75` | def __init__(self, *, repository: str \| Path, state_dir: str \| Path) -> None | 5 | active |
-| `jarvis_v2.native_executor.NativeControlPlaneExecutor.capabilities` | method | `src/jarvis_v2/native_executor.py:78-80` | def capabilities() -> tuple[str, ...] | 4 | active |
-| `jarvis_v2.native_executor.NativeControlPlaneExecutor.__call__` | method | `src/jarvis_v2/native_executor.py:82-92` | def __call__(self, item: QueueEnvelope) -> Mapping[str, Any] | 1 | active |
-| `jarvis_v2.native_executor.NativeControlPlaneExecutor._module_health` | method | `src/jarvis_v2/native_executor.py:94-106` | def _module_health(self, item: QueueEnvelope) -> dict[str, Any] | 0 | active |
-| `jarvis_v2.native_executor.NativeControlPlaneExecutor._runtime_health` | method | `src/jarvis_v2/native_executor.py:108-121` | def _runtime_health(self, item: QueueEnvelope) -> dict[str, Any] | 0 | active |
-| `jarvis_v2.native_executor.NativeControlPlaneExecutor._inventory_digest` | method | `src/jarvis_v2/native_executor.py:123-145` | def _inventory_digest(self, item: QueueEnvelope) -> dict[str, Any] | 0 | active |
+| `jarvis_v2.native_executor.NativeExecutorError` | class | `src/jarvis_v2/native_executor.py:60-61` | class NativeExecutorError(RuntimeError) | 1 | active |
+| `jarvis_v2.native_executor._operation` | function | `src/jarvis_v2/native_executor.py:64-72` | def _operation(value: Any) -> str | 0 | active |
+| `jarvis_v2.native_executor._module_manifest` | function | `src/jarvis_v2/native_executor.py:75-89` | def _module_manifest(module: str) -> ModuleManifest | 0 | active |
+| `jarvis_v2.native_executor.NativeControlPlaneExecutor` | class | `src/jarvis_v2/native_executor.py:92-303` | class NativeControlPlaneExecutor() | 1 | active |
+| `jarvis_v2.native_executor.NativeControlPlaneExecutor.__init__` | method | `src/jarvis_v2/native_executor.py:99-105` | def __init__(self, *, repository: str \| Path, state_dir: str \| Path) -> None | 5 | active |
+| `jarvis_v2.native_executor.NativeControlPlaneExecutor.capabilities` | method | `src/jarvis_v2/native_executor.py:108-110` | def capabilities() -> tuple[str, ...] | 5 | active |
+| `jarvis_v2.native_executor.NativeControlPlaneExecutor.rejected_capabilities` | method | `src/jarvis_v2/native_executor.py:113-115` | def rejected_capabilities() -> Mapping[str, str] | 0 | active |
+| `jarvis_v2.native_executor.NativeControlPlaneExecutor.__call__` | method | `src/jarvis_v2/native_executor.py:117-137` | def __call__(self, item: QueueEnvelope) -> Mapping[str, Any] | 1 | active |
+| `jarvis_v2.native_executor.NativeControlPlaneExecutor._native_capabilities` | method | `src/jarvis_v2/native_executor.py:139-150` | def _native_capabilities(self, item: QueueEnvelope) -> dict[str, Any] | 0 | active |
+| `jarvis_v2.native_executor.NativeControlPlaneExecutor._module_health` | method | `src/jarvis_v2/native_executor.py:152-164` | def _module_health(self, item: QueueEnvelope) -> dict[str, Any] | 0 | active |
+| `jarvis_v2.native_executor.NativeControlPlaneExecutor._runtime_health` | method | `src/jarvis_v2/native_executor.py:166-179` | def _runtime_health(self, item: QueueEnvelope) -> dict[str, Any] | 0 | active |
+| `jarvis_v2.native_executor.NativeControlPlaneExecutor._inventory_digest` | method | `src/jarvis_v2/native_executor.py:181-206` | def _inventory_digest(self, item: QueueEnvelope) -> dict[str, Any] | 0 | active |
+| `jarvis_v2.native_executor.NativeControlPlaneExecutor._queue_status` | method | `src/jarvis_v2/native_executor.py:208-245` | def _queue_status(self, item: QueueEnvelope) -> dict[str, Any] | 0 | active |
+| `jarvis_v2.native_executor.NativeControlPlaneExecutor._database_inspect` | method | `src/jarvis_v2/native_executor.py:247-270` | def _database_inspect(self, item: QueueEnvelope) -> dict[str, Any] | 0 | active |
+| `jarvis_v2.native_executor.NativeControlPlaneExecutor._sda_handoff_status` | method | `src/jarvis_v2/native_executor.py:272-284` | def _sda_handoff_status(self, item: QueueEnvelope) -> dict[str, Any] | 0 | active |
+| `jarvis_v2.native_executor.NativeControlPlaneExecutor._guardian_readiness` | method | `src/jarvis_v2/native_executor.py:286-303` | def _guardian_readiness(self, item: QueueEnvelope) -> dict[str, Any] | 0 | active |
 | `jarvis_v2.research.analysis.MediaAnalysisError` | class | `src/jarvis_v2/research/analysis.py:20-21` | class MediaAnalysisError(ValueError) | 0 | active |
 | `jarvis_v2.research.analysis._text` | function | `src/jarvis_v2/research/analysis.py:24-32` | def _text(value: object, label: str, maximum: int, *, empty: bool=False) -> str | 2 | active |
 | `jarvis_v2.research.analysis._timestamp` | function | `src/jarvis_v2/research/analysis.py:35-39` | def _timestamp(clock: Callable[[], datetime]) -> str | 0 | active |
@@ -2710,19 +2716,20 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `jarvis_v2.runtime.speech.SpeechService._error` | method | `src/jarvis_v2/runtime/speech.py:148-149` | def _error(code: str, message: str) -> dict[str, Any] | 0 | active |
 | `jarvis_v2.sda.handoff.HandoffEvidence` | class | `src/jarvis_v2/sda/handoff.py:21-48` | class HandoffEvidence() | 2 | active |
 | `jarvis_v2.sda.handoff.HandoffEvidence.report` | method | `src/jarvis_v2/sda/handoff.py:31-48` | def report(self) -> dict | 14 | active |
-| `jarvis_v2.system_inventory.InventoryError` | class | `src/jarvis_v2/system_inventory.py:16-17` | class InventoryError(RuntimeError) | 0 | active |
+| `jarvis_v2.system_inventory.InventoryError` | class | `src/jarvis_v2/system_inventory.py:16-17` | class InventoryError(RuntimeError) | 1 | active |
 | `jarvis_v2.system_inventory._command` | function | `src/jarvis_v2/system_inventory.py:40-51` | def _command(args: list[str]) -> tuple[int, str, str] | 0 | active |
 | `jarvis_v2.system_inventory._command_summary` | function | `src/jarvis_v2/system_inventory.py:54-61` | def _command_summary(args: list[str], runner: CommandRunner) -> dict[str, Any] | 0 | active |
 | `jarvis_v2.system_inventory._optional_command_summary` | function | `src/jarvis_v2/system_inventory.py:64-71` | def _optional_command_summary(args: list[str], runner: CommandRunner) -> dict[str, Any] | 0 | active |
 | `jarvis_v2.system_inventory._metadata` | function | `src/jarvis_v2/system_inventory.py:74-84` | def _metadata(path: Path, info: os.stat_result, kind: str) -> dict[str, Any] | 0 | active |
-| `jarvis_v2.system_inventory.scan_filesystem` | function | `src/jarvis_v2/system_inventory.py:87-159` | def scan_filesystem(root: Path=Path('/'), *, max_entries: int=10000) -> dict[str, Any] | 1 | active |
-| `jarvis_v2.system_inventory._hardware` | function | `src/jarvis_v2/system_inventory.py:162-170` | def _hardware(runner: CommandRunner) -> dict[str, Any] | 0 | active |
-| `jarvis_v2.system_inventory._software` | function | `src/jarvis_v2/system_inventory.py:173-183` | def _software(runner: CommandRunner) -> dict[str, Any] | 0 | active |
-| `jarvis_v2.system_inventory._runtime_capabilities` | function | `src/jarvis_v2/system_inventory.py:186-204` | def _runtime_capabilities(runner: CommandRunner) -> dict[str, Any] | 0 | active |
-| `jarvis_v2.system_inventory.collect_inventory` | function | `src/jarvis_v2/system_inventory.py:207-238` | def collect_inventory(*, root: Path=Path('/'), max_entries: int=10000, runner: CommandRunner=_command) -> dict[str, Any] | 1 | active |
-| `jarvis_v2.system_inventory.inventory_digest` | function | `src/jarvis_v2/system_inventory.py:241-246` | def inventory_digest(inventory: Mapping[str, Any]) -> str | 2 | active |
-| `jarvis_v2.system_inventory.compare_inventories` | function | `src/jarvis_v2/system_inventory.py:249-283` | def compare_inventories(previous: Mapping[str, Any], current: Mapping[str, Any]) -> dict[str, Any] | 1 | active |
-| `jarvis_v2.system_inventory.write_inventory` | function | `src/jarvis_v2/system_inventory.py:286-292` | def write_inventory(path: Path, inventory: Mapping[str, Any]) -> None | 0 | active |
+| `jarvis_v2.system_inventory._resume_frames` | function | `src/jarvis_v2/system_inventory.py:87-125` | def _resume_frames(root: Path, root_device: int, value: Mapping[str, Any] \| None) -> tuple[list[dict[str, str \| None]], int] | 0 | active |
+| `jarvis_v2.system_inventory.scan_filesystem` | function | `src/jarvis_v2/system_inventory.py:128-238` | def scan_filesystem(root: Path=Path('/'), *, max_entries: int=10000, resume_cursor: Mapping[str, Any] \| None=None) -> dict[str, Any] | 1 | active |
+| `jarvis_v2.system_inventory._hardware` | function | `src/jarvis_v2/system_inventory.py:241-249` | def _hardware(runner: CommandRunner) -> dict[str, Any] | 0 | active |
+| `jarvis_v2.system_inventory._software` | function | `src/jarvis_v2/system_inventory.py:252-262` | def _software(runner: CommandRunner) -> dict[str, Any] | 0 | active |
+| `jarvis_v2.system_inventory._runtime_capabilities` | function | `src/jarvis_v2/system_inventory.py:265-283` | def _runtime_capabilities(runner: CommandRunner) -> dict[str, Any] | 0 | active |
+| `jarvis_v2.system_inventory.collect_inventory` | function | `src/jarvis_v2/system_inventory.py:286-322` | def collect_inventory(*, root: Path=Path('/'), max_entries: int=10000, resume_cursor: Mapping[str, Any] \| None=None, runner: CommandRunner=_command) -> dict[str, Any] | 1 | active |
+| `jarvis_v2.system_inventory.inventory_digest` | function | `src/jarvis_v2/system_inventory.py:325-330` | def inventory_digest(inventory: Mapping[str, Any]) -> str | 2 | active |
+| `jarvis_v2.system_inventory.compare_inventories` | function | `src/jarvis_v2/system_inventory.py:333-367` | def compare_inventories(previous: Mapping[str, Any], current: Mapping[str, Any]) -> dict[str, Any] | 1 | active |
+| `jarvis_v2.system_inventory.write_inventory` | function | `src/jarvis_v2/system_inventory.py:370-376` | def write_inventory(path: Path, inventory: Mapping[str, Any]) -> None | 0 | active |
 | `jarvis_v2.tws.__init__.TWSStoreError` | class | `src/jarvis_v2/tws/__init__.py:27-28` | class TWSStoreError(ValueError) | 7 | active |
 | `jarvis_v2.tws.__init__._identifier` | function | `src/jarvis_v2/tws/__init__.py:31-34` | def _identifier(value: object, label: str) -> str | 0 | active |
 | `jarvis_v2.tws.__init__._text` | function | `src/jarvis_v2/tws/__init__.py:37-45` | def _text(value: object, label: str) -> str | 2 | active |
@@ -2832,7 +2839,7 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `jarvis_v2.wic.__init__.ClaimLedger.__init__` | method | `src/jarvis_v2/wic/__init__.py:696-716` | def __init__(self, database: str \| Path \| sqlite3.Connection) | 5 | active |
 | `jarvis_v2.wic.__init__.ClaimLedger.__enter__` | method | `src/jarvis_v2/wic/__init__.py:718-719` | def __enter__(self) -> 'ClaimLedger' | 1 | active |
 | `jarvis_v2.wic.__init__.ClaimLedger.__exit__` | method | `src/jarvis_v2/wic/__init__.py:721-722` | def __exit__(self, exc_type: object, exc: object, tb: object) -> None | 1 | active |
-| `jarvis_v2.wic.__init__.ClaimLedger.create` | method | `src/jarvis_v2/wic/__init__.py:724-737` | def create(self, claim_id: str, cluster: StoryCluster, statement_digest: str, recorded_at: str, confidence: float \| None=None) -> ClaimRecord | 8 | active |
+| `jarvis_v2.wic.__init__.ClaimLedger.create` | method | `src/jarvis_v2/wic/__init__.py:724-737` | def create(self, claim_id: str, cluster: StoryCluster, statement_digest: str, recorded_at: str, confidence: float \| None=None) -> ClaimRecord | 9 | active |
 | `jarvis_v2.wic.__init__.ClaimLedger.corroborate` | method | `src/jarvis_v2/wic/__init__.py:739-756` | def corroborate(self, claim_id: str, cluster: StoryCluster, recorded_at: str, confidence: float \| None) -> ClaimRecord | 1 | active |
 | `jarvis_v2.wic.__init__.ClaimLedger.verify` | method | `src/jarvis_v2/wic/__init__.py:758-771` | def verify(self, claim_id: str, recorded_at: str) -> ClaimRecord | 4 | active |
 | `jarvis_v2.wic.__init__.ClaimLedger.retract` | method | `src/jarvis_v2/wic/__init__.py:773-784` | def retract(self, claim_id: str, reason: str, recorded_at: str) -> ClaimRecord | 1 | active |
@@ -3443,12 +3450,16 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `test_native_controller.NativeControllerTests.test_executor_completion_and_failure_are_digest_only_and_durable` | method | `tests/test_native_controller.py:39-59` | def test_executor_completion_and_failure_are_digest_only_and_durable(self) | 1 | test |
 | `test_native_controller.NativeControllerTests.test_executor_exception_is_recorded_as_failed_without_raw_error` | method | `tests/test_native_controller.py:61-74` | def test_executor_exception_is_recorded_as_failed_without_raw_error(self) | 1 | test |
 | `test_native_controller.NativeControllerTests.test_native_user_unit_points_only_to_the_native_controller` | method | `tests/test_native_controller.py:76-82` | def test_native_user_unit_points_only_to_the_native_controller(self) | 1 | test |
-| `test_native_executor.NativeExecutorTests` | class | `tests/test_native_executor.py:16-92` | class NativeExecutorTests(unittest.TestCase) | 1 | test |
-| `test_native_executor.NativeExecutorTests._executor` | method | `tests/test_native_executor.py:17-22` | def _executor(self) | 1 | test |
-| `test_native_executor.NativeExecutorTests.test_module_health_covers_all_ten_active_modules` | method | `tests/test_native_executor.py:24-41` | def test_module_health_covers_all_ten_active_modules(self) | 1 | test |
-| `test_native_executor.NativeExecutorTests.test_unknown_operation_fails_closed` | method | `tests/test_native_executor.py:43-46` | def test_unknown_operation_fails_closed(self) | 1 | test |
-| `test_native_executor.NativeExecutorTests.test_inventory_digest_returns_metadata_only` | method | `tests/test_native_executor.py:48-60` | def test_inventory_digest_returns_metadata_only(self) | 1 | test |
-| `test_native_executor.NativeExecutorTests.test_native_cli_uses_built_in_executor_for_read_only_task` | method | `tests/test_native_executor.py:62-92` | def test_native_cli_uses_built_in_executor_for_read_only_task(self) | 1 | test |
+| `test_native_executor.NativeExecutorTests` | class | `tests/test_native_executor.py:17-147` | class NativeExecutorTests(unittest.TestCase) | 1 | test |
+| `test_native_executor.NativeExecutorTests._executor` | method | `tests/test_native_executor.py:18-23` | def _executor(self) | 1 | test |
+| `test_native_executor.NativeExecutorTests.test_module_health_covers_all_ten_active_modules` | method | `tests/test_native_executor.py:25-42` | def test_module_health_covers_all_ten_active_modules(self) | 1 | test |
+| `test_native_executor.NativeExecutorTests.test_unknown_operation_fails_closed` | method | `tests/test_native_executor.py:44-47` | def test_unknown_operation_fails_closed(self) | 1 | test |
+| `test_native_executor.NativeExecutorTests.test_capability_matrix_rejects_side_effect_classes` | method | `tests/test_native_executor.py:49-56` | def test_capability_matrix_rejects_side_effect_classes(self) | 1 | test |
+| `test_native_executor.NativeExecutorTests.test_queue_status_is_read_only_and_reports_durable_controls` | method | `tests/test_native_executor.py:58-67` | def test_queue_status_is_read_only_and_reports_durable_controls(self) | 1 | test |
+| `test_native_executor.NativeExecutorTests.test_database_inspect_allows_only_named_native_databases` | method | `tests/test_native_executor.py:69-88` | def test_database_inspect_allows_only_named_native_databases(self) | 1 | test |
+| `test_native_executor.NativeExecutorTests.test_sda_and_guardian_probes_remain_blocked_without_cutover_evidence` | method | `tests/test_native_executor.py:90-101` | def test_sda_and_guardian_probes_remain_blocked_without_cutover_evidence(self) | 1 | test |
+| `test_native_executor.NativeExecutorTests.test_inventory_digest_returns_metadata_only` | method | `tests/test_native_executor.py:103-115` | def test_inventory_digest_returns_metadata_only(self) | 1 | test |
+| `test_native_executor.NativeExecutorTests.test_native_cli_uses_built_in_executor_for_read_only_task` | method | `tests/test_native_executor.py:117-147` | def test_native_cli_uses_built_in_executor_for_read_only_task(self) | 1 | test |
 | `test_packaging_policy.load_script` | function | `tests/test_packaging_policy.py:15-26` | def load_script(name: str) | 1 | test |
 | `test_packaging_policy.PackagingPolicyTests` | class | `tests/test_packaging_policy.py:33-147` | class PackagingPolicyTests(unittest.TestCase) | 1 | test |
 | `test_packaging_policy.PackagingPolicyTests.make_package` | method | `tests/test_packaging_policy.py:34-37` | def make_package(self) -> Path | 1 | test |
@@ -3739,11 +3750,13 @@ Supported parsing is AST-based for Python and declaration-pattern based for Java
 | `test_sda_shadow_handoff.ShadowHandoffTests.test_missing_prerequisites_have_stable_keys` | method | `tests/test_sda_shadow_handoff.py:7-12` | def test_missing_prerequisites_have_stable_keys(self) | 1 | test |
 | `test_sda_shadow_handoff.ShadowHandoffTests.test_owner_approval_is_required_for_readiness` | method | `tests/test_sda_shadow_handoff.py:14-22` | def test_owner_approval_is_required_for_readiness(self) | 1 | test |
 | `test_sda_shadow_handoff.ShadowHandoffTests.test_shadow_mode_cannot_claim_or_promote` | method | `tests/test_sda_shadow_handoff.py:24-30` | def test_shadow_mode_cannot_claim_or_promote(self) | 1 | test |
-| `test_system_inventory.SystemInventoryTests` | class | `tests/test_system_inventory.py:9-64` | class SystemInventoryTests(unittest.TestCase) | 1 | test |
+| `test_system_inventory.SystemInventoryTests` | class | `tests/test_system_inventory.py:9-89` | class SystemInventoryTests(unittest.TestCase) | 1 | test |
 | `test_system_inventory.SystemInventoryTests.test_scan_is_metadata_only_bounded_and_does_not_follow_symlinks` | method | `tests/test_system_inventory.py:10-21` | def test_scan_is_metadata_only_bounded_and_does_not_follow_symlinks(self) | 1 | test |
-| `test_system_inventory.SystemInventoryTests.test_digest_and_comparison_ignore_collection_time` | method | `tests/test_system_inventory.py:23-42` | def test_digest_and_comparison_ignore_collection_time(self) | 1 | test |
-| `test_system_inventory.SystemInventoryTests.test_inventory_reports_model_and_acceleration_capability_slots` | method | `tests/test_system_inventory.py:44-53` | def test_inventory_reports_model_and_acceleration_capability_slots(self) | 1 | test |
-| `test_system_inventory.SystemInventoryTests.test_inventory_cli_writes_private_output_and_returns_summary` | method | `tests/test_system_inventory.py:55-64` | def test_inventory_cli_writes_private_output_and_returns_summary(self) | 1 | test |
+| `test_system_inventory.SystemInventoryTests.test_scan_cursor_resumes_without_duplicates_or_root_restart` | method | `tests/test_system_inventory.py:23-37` | def test_scan_cursor_resumes_without_duplicates_or_root_restart(self) | 1 | test |
+| `test_system_inventory.SystemInventoryTests.test_scan_cursor_cannot_change_root_or_cross_mount` | method | `tests/test_system_inventory.py:39-46` | def test_scan_cursor_cannot_change_root_or_cross_mount(self) | 1 | test |
+| `test_system_inventory.SystemInventoryTests.test_digest_and_comparison_ignore_collection_time` | method | `tests/test_system_inventory.py:48-67` | def test_digest_and_comparison_ignore_collection_time(self) | 1 | test |
+| `test_system_inventory.SystemInventoryTests.test_inventory_reports_model_and_acceleration_capability_slots` | method | `tests/test_system_inventory.py:69-78` | def test_inventory_reports_model_and_acceleration_capability_slots(self) | 1 | test |
+| `test_system_inventory.SystemInventoryTests.test_inventory_cli_writes_private_output_and_returns_summary` | method | `tests/test_system_inventory.py:80-89` | def test_inventory_cli_writes_private_output_and_returns_summary(self) | 1 | test |
 | `test_tws_aurelia_model.TWSAureliaModelTests` | class | `tests/test_tws_aurelia_model.py:12-41` | class TWSAureliaModelTests(unittest.TestCase) | 1 | test |
 | `test_tws_aurelia_model.TWSAureliaModelTests.test_generation_and_validation_are_deterministic` | method | `tests/test_tws_aurelia_model.py:13-25` | def test_generation_and_validation_are_deterministic(self) | 1 | test |
 | `test_tws_aurelia_model.TWSAureliaModelTests.test_validator_rejects_deformation_and_clip_corruption` | method | `tests/test_tws_aurelia_model.py:27-35` | def test_validator_rejects_deformation_and_clip_corruption(self) | 1 | test |

@@ -1,38 +1,92 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "verdict": "CONDITIONAL",
-  "source_sha": "04eabec5cdbee2b2261272850867289fe0532091",
-  "implementation_sha": "04eabec5cdbee2b2261272850867289fe0532091",
-  "canonical_head": "c4574ae1a80da69aa2b6d0536e41cffa87bd610d",
+  "source_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
+  "implementation_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
+  "canonical_head": "4149c1d75eee24880bfacd819342f9c21d05d51a",
   "canonical_path": "/home/r34p3r/dev/A.R.C.H.O.N",
-  "source_state": "tested canonical local tree at 04eabec; not published to GitHub",
+  "source_state": "candidate tested locally at 4149c1d; 36 commits ahead of the observed remote feature ref and not published to GitHub",
   "evidence": {
-    "full_tests": {"passed": 584, "failed": 0, "duration_seconds": 27.717},
+    "full_tests": {
+      "passed": 590,
+      "failed": 0,
+      "duration_seconds": 27.762,
+      "log": "/home/r34p3r/.local/state/archon/logs/unittest-4149c1d.log"
+    },
     "native_imports": {"modules": 106, "errors": 0},
     "local_security_checks": "pass",
     "fresh_databases": "pass",
-    "code_index": {"catalog_files": 552, "fts5_files": 551, "fts5": true, "source_sha": "c4574ae1a80da69aa2b6d0536e41cffa87bd610d", "source_files": 347, "symbols": 3907, "functions": 903, "methods": 2436, "classes": 568},
-    "native_controller": {"one_shot": "pass", "lock_fencing": "pass", "control_markers": "pass", "restart_after_termination": "pass", "service_unit_verify": "pass", "service_installed": false, "bounded_control_plane_executor": "pass", "domain_effect_handlers": "not_configured"},
-    "native_health": {"status": "healthy", "mode": "native_runtime", "historical_ledger_loaded": false, "queue_tasks": 0},
-    "inventory": {"entries": 10000, "truncated": true, "permission_denied": 17, "skipped_mounts": 28, "ollama_models": ["qwen3:4b", "qwen2.5-coder:7b", "qwen2.5-coder:3b"], "nvidia_acceleration": "NVIDIA GeForce GTX 980, 4096 MiB, driver 535.309.01"},
-    "cleanup": {"deleted_paths": 0, "owner_approval": "pending"},
+    "code_index": {
+      "catalog_files": 552,
+      "fts5_files": 551,
+      "fts5": true,
+      "source_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
+      "source_files": 347,
+      "symbols": 3920,
+      "functions": 904,
+      "methods": 2448,
+      "classes": 568,
+      "parser_errors": 0
+    },
+    "native_controller": {
+      "one_shot": "pass",
+      "lock_fencing": "pass",
+      "control_markers": "pass",
+      "restart_after_termination": "pass",
+      "service_unit_verify": "pass",
+      "service_installed": false,
+      "bounded_control_plane_executor": "pass",
+      "read_only_probe_operations": 8,
+      "domain_effect_handlers": "not_configured",
+      "trusted_watchdog": "not_configured"
+    },
+    "native_health": {
+      "status": "healthy",
+      "mode": "native_runtime",
+      "historical_ledger_loaded": false,
+      "queue_tasks": 0,
+      "sqlite_integrity": "ok",
+      "foreign_key_violations": 0
+    },
+    "inventory": {
+      "entries": 10000,
+      "truncated": true,
+      "continuation_cursor": true,
+      "pending_frames": 1328,
+      "permission_denied": 17,
+      "skipped_mounts": 28,
+      "skipped_virtual_filesystems": 4,
+      "cursor_path": "/home/r34p3r/.local/state/archon/host_inventory_cursor.json",
+      "ollama_models": ["qwen3:4b", "qwen2.5-coder:7b", "qwen2.5-coder:3b"],
+      "nvidia_acceleration": "NVIDIA GeForce GTX 980, 4096 MiB, driver 535.309.01"
+    },
+    "cleanup": {
+      "deleted_paths": 0,
+      "actual_reclaimed_bytes": 0,
+      "owner_approval": "required_before_archive_move_or_deletion",
+      "home_available_bytes": 854982656,
+      "root_available_bytes": 40592805888
+    },
     "historical_ledger": {
       "parent_total": 247,
       "completed": 240,
       "archived_or_deferred": 7,
       "outside_envelope_completed": 5,
       "subtask_total": 1359,
-      "verified_subtask_receipts": 1281
+      "verified_subtask_receipts": 1281,
+      "integrity": "ok"
     }
   },
   "blocking_conditions": [
-    "native read-only control-plane execution is proven, but domain-effect handlers, unattended SDA/AEGIS cutover and trusted watchdog soak are not",
-    "legacy Astra timer remains enabled; the latest transient service run exited 0 but its journal recorded the legacy --json/--watch monitor argument conflict",
-    "the canonical SHA is not published on GitHub",
-    "external Linux-release evidence remains incomplete for Windows, iOS, Blender, live providers, finance, and hosted CI",
-    "Codex Security diff scan could not launch because the tool rejected the worktree as lacking a resolvable HEAD; local security scans passed",
-    "independent QC covered the pre-executor committed tree; the current executor/full-suite evidence is main-session evidence, not a separate independent approval",
-    "high-impact cleanup requires explicit owner approval"
+    "native read-only control-plane execution and queue/database probes are proven, but domain-effect handlers, signed owner-approval transport, unattended SDA/AEGIS execution, trusted watchdog soak and rollback application are not",
+    "legacy archon-astra.timer remains enabled and active; read-only monitor PID 20774 remains; no service or timer transition was performed",
+    "the canonical candidate SHA is not published on GitHub; local branch is ahead 36 of origin/feature/astra-linux-integration-c799784769",
+    "external Linux-release evidence remains incomplete for Windows, iOS, Blender, live providers, finance, communications and hosted CI",
+    "root filesystem inventory remains bounded and incomplete: 10,000 entries with 1,328 resumable pending directory frames and 17 permission-denied paths",
+    "Codex Security diff scan could not launch because the tool rejected the worktree as lacking a resolvable HEAD; repository-local dependency, secret and security scans passed",
+    "independent QC of this exact candidate SHA is still required; the full suite and qualification log are main-session evidence",
+    "high-impact cleanup and any Astra retirement require explicit owner approval and verified recovery archives",
+    "home filesystem remains critically full with 854,982,656 bytes available"
   ],
-  "next_safe_action": "Review the cleanup manifest and native cutover evidence; do not delete paths or disable the legacy timer until the owner authorizes the exact transition."
+  "next_safe_action": "Run independent read-only QC against 4149c1d, then prepare—but do not execute—the owner-approved native service/cutover and cleanup archive operations."
 }

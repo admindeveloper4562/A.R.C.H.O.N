@@ -23930,10 +23930,120 @@
       "subject": "docs(audit): refresh dry-run disk measurements",
       "task_ids": [],
       "tests_added_or_changed": false
+    },
+    {
+      "author": "ARCHON Main Codex",
+      "author_date": "2026-11-19T23:46:21+07:00",
+      "author_email": "archon-main@local.invalid",
+      "body": "docs(index): bind complete reachable history snapshot",
+      "breaking_change_signal": false,
+      "changed_files": [
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/FUNCTION_CATALOG.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/codebase/INDEX_VALIDATION.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/FINAL_VERDICT.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/FINAL_VERDICT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/SYSTEM_STATUS.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/final-audit/TEST_RESULTS.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/git-history/BRANCH_AUDIT.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/git-history/COMMIT_INDEX.json",
+          "status": "M"
+        },
+        {
+          "path": "docs/git-history/COMPLETE_COMMIT_HISTORY.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/git-history/FEATURE_TIMELINE.md",
+          "status": "M"
+        }
+      ],
+      "commit_date": "2026-11-19T23:46:21+07:00",
+      "dependency_related": false,
+      "parents": [
+        "c4574ae1a80da69aa2b6d0536e41cffa87bd610d"
+      ],
+      "security_related": false,
+      "sha": "a286b6f1e51e140f72168632d0d72b7d5a9f1d29",
+      "subject": "docs(index): bind complete reachable history snapshot",
+      "task_ids": [],
+      "tests_added_or_changed": false
+    },
+    {
+      "author": "ARCHON Main Codex",
+      "author_date": "2026-11-20T00:09:18+07:00",
+      "author_email": "archon-main@local.invalid",
+      "body": "feat(native): qualify bounded probes and resumable inventory",
+      "breaking_change_signal": false,
+      "changed_files": [
+        {
+          "path": "README.md",
+          "status": "M"
+        },
+        {
+          "path": "docs/operations/ARCHON_NATIVE_RUNTIME.md",
+          "status": "M"
+        },
+        {
+          "path": "src/jarvis_v2/cli.py",
+          "status": "M"
+        },
+        {
+          "path": "src/jarvis_v2/native_executor.py",
+          "status": "M"
+        },
+        {
+          "path": "src/jarvis_v2/system_inventory.py",
+          "status": "M"
+        },
+        {
+          "path": "tests/test_native_executor.py",
+          "status": "M"
+        },
+        {
+          "path": "tests/test_system_inventory.py",
+          "status": "M"
+        }
+      ],
+      "commit_date": "2026-11-20T00:09:18+07:00",
+      "dependency_related": false,
+      "parents": [
+        "a286b6f1e51e140f72168632d0d72b7d5a9f1d29"
+      ],
+      "security_related": false,
+      "sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
+      "subject": "feat(native): qualify bounded probes and resumable inventory",
+      "task_ids": [],
+      "tests_added_or_changed": true
     }
   ],
-  "generated_at": "2026-11-19T16:44:17.241646+00:00",
-  "reachable_commit_count": 754,
+  "generated_at": "2026-11-19T17:24:35.212750+00:00",
+  "reachable_commit_count": 756,
   "schema_version": 1,
-  "source_sha": "c4574ae1a80da69aa2b6d0536e41cffa87bd610d"
+  "source_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a"
 }

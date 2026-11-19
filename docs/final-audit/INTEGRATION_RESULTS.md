@@ -1,6 +1,6 @@
 # Integration results
 
-Source under test: /home/r34p3r/dev/A.R.C.H.O.N at tested local tree 04eabec5cdbee2b2261272850867289fe0532091.
+Source under test: `/home/r34p3r/dev/A.R.C.H.O.N` at exact candidate `4149c1d75eee24880bfacd819342f9c21d05d51a`.
 
 | Check | Command/evidence | Result |
 | --- | --- | --- |
@@ -13,10 +13,10 @@ Source under test: /home/r34p3r/dev/A.R.C.H.O.N at tested local tree 04eabec5cdb
 | Fresh restore | SQLite backup API plus integrity/foreign-key checks | PASS |
 | FTS5 index | 551 files indexed from 552 cataloged files, including systemd and Windows deployment files; four representative queries returned results | PASS |
 | Astra unavailable native import | PYTHONPATH=src without bootstrap path | PASS for native imports |
-| Native controller | Fresh one-shot, lock fencing, control-marker admission, executor success/failure receipts, bounded control-plane task completion, terminate/restart, and systemd unit verification | PASS for bounded read-only operations; unit not installed and domain-effect handlers not configured |
+| Native controller | Fresh one-shot, lock fencing, control-marker admission, executor success/failure receipts, eight bounded read-only probes, resumable inventory cursor, terminate/restart, and systemd unit verification | PASS for bounded read-only operations; unit not installed and domain-effect handlers not configured |
 | Native health | `jarvis_v2.cli health` against fresh runtime/ATLAS state; historical ledger explicitly not loaded | PASS |
-| Host capability inventory | Bounded root metadata scan plus Ollama model listing and NVIDIA acceleration probe | PASS; scan truncated by bound |
-| Full regression | 584 unittest cases at 04eabec | PASS |
+| Host capability inventory | Bounded root metadata scan plus Ollama model listing, NVIDIA acceleration probe, and private continuation cursor | PASS; 10,000 entries, 1,328 pending frames, scan truncated by bound |
+| Full regression | 590 unittest cases at 4149c1d | PASS; 27.762 seconds, exit 0 |
 | Security/dependency checks | local dependency, secret, and security scans | PASS |
 
 This is a controlled Linux integration result, not proof of complete release operation. The fresh native state intentionally has no task ledger, credentials, personal records, or external accounts.

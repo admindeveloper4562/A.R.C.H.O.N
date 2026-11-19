@@ -1,5 +1,7 @@
 # Final migration post-commit checkpoint
 
+> Historical receipt retained for provenance. It predates the current implementation candidate `4149c1d75eee24880bfacd819342f9c21d05d51a`; current evidence is recorded in the other final-audit documents and the exact-SHA QC receipt.
+
 Observed 2026-11-19 after the local function-catalog provenance refresh. This is a
 current-state receipt, not a replacement for the historical full-suite or
 independent-QC receipts.

@@ -1,6 +1,6 @@
 # Complete ARCHON commit history
 
-Generated from c4574ae1a80da69aa2b6d0536e41cffa87bd610d; 754 reachable commits across the current local and GitHub remote-tracking refs. The earlier table is preserved through the original native-runtime source commit; the post-source continuation is listed below and fully indexed in `COMMIT_INDEX.json`.
+Generated for source candidate `4149c1d75eee24880bfacd819342f9c21d05d51a`; 756 reachable commits across the current local and GitHub remote-tracking refs. The earlier table is preserved through the original native-runtime source commit; the post-source continuation is listed below and fully indexed in `COMMIT_INDEX.json`.
 
 | Date | SHA | Author | Task IDs | Changed files | Subject |
 | --- | --- | --- | --- | ---: | --- |
@@ -763,3 +763,5 @@ Generated from c4574ae1a80da69aa2b6d0536e41cffa87bd610d; 754 reachable commits a
 | 2026-11-19T23:32:18+07:00 | 0d0fa778efa2 | ARCHON Main Codex | - | 22 | docs(audit): refresh current evidence and provenance index |
 | 2026-11-19T23:38:43+07:00 | 120abfc501ef | ARCHON Main Codex | - | 11 | docs(index): bind final audit to canonical overlay |
 | 2026-11-19T23:41:43+07:00 | c4574ae1a80d | ARCHON Main Codex | - | 3 | docs(audit): refresh dry-run disk measurements |
+| 2026-11-19T23:46:21+07:00 | a286b6f1e51e | ARCHON Main Codex | - | 11 | docs(index): bind complete reachable history snapshot |
+| 2026-11-20T00:09:18+07:00 | 4149c1d75eee | ARCHON Main Codex | - | 7 | feat(native): qualify bounded probes and resumable inventory |
