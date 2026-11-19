@@ -58,7 +58,7 @@
     {
       "path": "/home/r34p3r/.local/state/archon-final-audit/checkpoints/20261119T125838Z",
       "classification": "new_migration_checkpoint",
-      "size": "752M",
+      "size": "757M",
       "owner": "r34p3r",
       "runtime_references": "final audit recovery",
       "recovery": "self-contained Git bundles and SQLite backups",
