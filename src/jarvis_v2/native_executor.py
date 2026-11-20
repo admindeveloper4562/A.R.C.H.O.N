@@ -48,6 +48,7 @@ SUPPORTED_OPERATIONS = (
     "sda_handoff_status",
     "guardian_readiness",
 )
+OWNER_KEYS_PATH = Path("/etc/archon/owner-keys.json")
 
 REJECTED_OPERATION_REASONS = {
     "task_submission": "signed local queue admission is separate from executor operations",
@@ -158,6 +159,16 @@ def _load_owner_keys(path: str | Path | None) -> dict[str, bytes]:
             raise NativeExecutorError("owner_key_store_invalid")
         keys[key_id] = public_key
     return keys
+
+
+def _load_configured_owner_keys() -> dict[str, bytes]:
+    try:
+        os.lstat(OWNER_KEYS_PATH)
+    except FileNotFoundError:
+        return {}
+    except OSError as exc:
+        raise NativeExecutorError("owner_key_store_invalid") from exc
+    return _load_owner_keys(OWNER_KEYS_PATH)
 
 
 def _verify_signed_approval(

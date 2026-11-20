@@ -234,12 +234,10 @@ class Smoke:
         self.override.write_text(
             "services:\n"
             "  archon:\n"
-            "    environment:\n"
-            "      ARCHON_OWNER_KEYS: /run/secrets/owner-keys.json\n"
             "    volumes:\n"
             "      - type: bind\n"
             f"        source: {json.dumps(str(self.key_store))}\n"
-            "        target: /run/secrets/owner-keys.json\n"
+            "        target: /etc/archon/owner-keys.json\n"
             "        read_only: true\n"
             "      - type: bind\n"
             f"        source: {json.dumps(str(self.cancel_approval_path))}\n"

@@ -9,7 +9,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from hashlib import sha256
 import json
-import os
 from pathlib import Path
 import sqlite3
 import time
@@ -66,39 +65,55 @@ def _admission_details(task_id: str, approval: Mapping[str, Any]) -> tuple[str, 
 
 
 def _trusted_owner_keys() -> dict[str, bytes]:
-    from ..native_executor import NativeExecutorError, _load_owner_keys
+    from ..native_executor import NativeExecutorError, _load_configured_owner_keys
 
-    path = os.environ.get("ARCHON_OWNER_KEYS")
-    if not path:
-        raise QueueApiError("owner key store is not configured")
     try:
-        keys = _load_owner_keys(path)
+        keys = _load_configured_owner_keys()
     except NativeExecutorError as exc:
         raise QueueApiError("owner key store is unavailable") from exc
     if not keys:
-        raise QueueApiError("owner key store is empty")
+        raise QueueApiError("owner key store is not configured")
     return keys
 
 
 def _verify_task_admission(
     task: Mapping[str, Any], approval: Mapping[str, Any], owner_keys: Mapping[str, bytes],
 ) -> None:
-    from ..native_executor import NativeExecutorError, _verify_signed_approval
-
     task_bytes = json.dumps(
         dict(task), sort_keys=True, separators=(",", ":"), ensure_ascii=True,
     ).encode("utf-8")
+    _verify_owner_approval(
+        approval,
+        owner_keys,
+        task_id=task["task_id"],
+        target=task["task_id"],
+        content_sha256=sha256(task_bytes).hexdigest(),
+        operation="task_submit",
+    )
+
+
+def _verify_owner_approval(
+    approval: Mapping[str, Any],
+    owner_keys: Mapping[str, bytes],
+    *,
+    task_id: str,
+    target: str,
+    content_sha256: str,
+    operation: str,
+) -> None:
+    from ..native_executor import NativeExecutorError, _verify_signed_approval
+
     try:
         _verify_signed_approval(
             approval,
             owner_keys,
-            task_id=task["task_id"],
-            target=task["task_id"],
-            content_sha256=sha256(task_bytes).hexdigest(),
-            operation="task_submit",
+            task_id=task_id,
+            target=target,
+            content_sha256=content_sha256,
+            operation=operation,
         )
     except NativeExecutorError as exc:
-        raise QueueApiError("task admission approval is invalid") from exc
+        raise QueueApiError(f"{operation} approval is invalid") from exc
 
 
 def _text(value: Any, name: str, limit: int) -> str:
@@ -372,11 +387,19 @@ class CoordinatorQueue:
 
 
     def cancel(self, task_id: str, *, approval: Mapping[str, Any]) -> dict[str, str]:
-        """Persist a preverified owner approval with the pending-task receipt."""
+        """Cancel a pending task after verifying its signed owner approval."""
         if not isinstance(task_id, str) or not task_id or len(task_id) > 120:
             raise QueueApiError("invalid task id")
         if not isinstance(approval, Mapping):
             raise QueueApiError("signed owner approval required")
+        _verify_owner_approval(
+            approval,
+            _trusted_owner_keys(),
+            task_id=task_id,
+            target=task_id,
+            content_sha256=sha256(task_id.encode("utf-8")).hexdigest(),
+            operation="task_cancel",
+        )
         try:
             approval_json = json.dumps(
                 dict(approval), sort_keys=True, separators=(",", ":"), ensure_ascii=True
@@ -385,9 +408,6 @@ class CoordinatorQueue:
             raise QueueApiError("signed owner approval is invalid") from exc
         if len(approval_json.encode("utf-8")) > 4096:
             raise QueueApiError("signed owner approval is too large")
-        approval_id = approval.get("approval_id")
-        if not isinstance(approval_id, str) or not approval_id or len(approval_id) > 64:
-            raise QueueApiError("signed owner approval is invalid")
         receipt = sha256(f"{task_id}:cancelled:{sha256(approval_json.encode()).hexdigest()}".encode()).hexdigest()
         with self._queue.db:
             row = self._queue.db.execute(

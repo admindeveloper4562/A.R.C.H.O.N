@@ -256,17 +256,17 @@ Path(sys.argv[3]).chmod(0o644)
         self.run("wheel-cli-admission-fixture", [str(runtime), "-c", approval_script,
                                                   str(task_file), str(owner_keys), str(approval_file)],
                  cwd=outside, env=cli_env)
-        submitted = self.run("wheel-cli-submit", [str(runtime.parent / "jarvis-v2"), "submit",
-                                                   "--state", str(state), "--task-file", str(task_file),
-                                                   "--approval-file", str(approval_file)], cwd=outside, env=cli_env)
-        submitted_data = json.loads(submitted.stdout)
-        if submitted_data.get("status") != "accepted" or len(submitted_data.get("receipt", "")) != 64:
-            raise RuntimeError("installed CLI did not produce an approval-bound admission receipt")
+        submitted = self.run("wheel-cli-rejects-caller-trust-store", [str(runtime.parent / "jarvis-v2"), "submit",
+                                                                        "--state", str(state), "--task-file", str(task_file),
+                                                                        "--approval-file", str(approval_file)],
+                             cwd=outside, env=cli_env, expected=2)
+        if submitted.stdout.strip():
+            raise RuntimeError("installed CLI accepted a caller-selected owner trust store")
         once = self.run("wheel-controller-once", [str(runtime.parent / "archon-native-controller"), "--once",
                                                   "--state", str(state), "--repository", str(outside)],
                         cwd=outside, env=cli_env)
-        if json.loads(once.stdout).get("state") != "completed":
-            raise RuntimeError("installed controller did not complete the read-only task")
+        if json.loads(once.stdout).get("state") != "idle":
+            raise RuntimeError("installed controller did not start cleanly without optional owner keys")
         uninstall_env = self.create_venv("uninstall-check")
         self.run("install-for-uninstall-check", [str(uninstall_env), "-m", "pip", "install", "--no-deps", str(wheel)])
         self.run("wheel-pip-uninstall", [str(uninstall_env), "-m", "pip", "uninstall", "-y", project["name"]])

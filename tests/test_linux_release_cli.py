@@ -17,13 +17,18 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from jarvis_v2.automation.queue_api import CoordinatorQueue
+from jarvis_v2 import native_executor
 from jarvis_v2.cli import main
 
 
 class LinuxReleaseCliTests(unittest.TestCase):
-    def _run_cli(self, arguments, *, env=None):
+    def _run_cli(self, arguments, *, owner_keys_path=None, env=None):
         output = io.StringIO()
-        with patch.dict(os.environ, env or {}), contextlib.redirect_stdout(output), contextlib.redirect_stderr(io.StringIO()):
+        trust_store = (
+            patch.object(native_executor, "OWNER_KEYS_PATH", owner_keys_path)
+            if owner_keys_path is not None else contextlib.nullcontext()
+        )
+        with trust_store, patch.dict(os.environ, env or {}), contextlib.redirect_stdout(output), contextlib.redirect_stderr(io.StringIO()):
             code = main(arguments)
         return code, json.loads(output.getvalue()) if output.getvalue().strip() else None
 
@@ -91,14 +96,22 @@ class LinuxReleaseCliTests(unittest.TestCase):
                 )).decode()},
             }))
             keys.chmod(0o600)
+            attacker_keys = root / "attacker-keys.json"
+            attacker_keys.write_text(json.dumps({
+                "schema": 1,
+                "keys": {"test-owner": base64.b64encode(untrusted.public_key().public_bytes(
+                    serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+                )).decode()},
+            }))
+            attacker_keys.chmod(0o600)
             admission_file = root / "admission-approval.json"
             submit_args = [
                 "submit", "--state", str(state), "--task-file", str(document),
                 "--approval-file", str(admission_file),
             ]
-            owner_env = {"ARCHON_OWNER_KEYS": str(keys)}
+            attacker_env = {"ARCHON_OWNER_KEYS": str(attacker_keys)}
             admission_file.write_text(json.dumps(self._admission_approval(untrusted, task)))
-            code, denied = self._run_cli(submit_args, env=owner_env)
+            code, denied = self._run_cli(submit_args, owner_keys_path=keys, env=attacker_env)
             self.assertEqual(code, 2)
             self.assertIsNone(denied)
             with CoordinatorQueue.open(state / "atlas.sqlite3") as queue:
@@ -111,14 +124,14 @@ class LinuxReleaseCliTests(unittest.TestCase):
 
             admission_file.write_text(json.dumps(self._admission_approval(trusted, task)))
             document.write_text(json.dumps({**task, "payload": {"operation": "queue_status"}}))
-            code, denied = self._run_cli(submit_args, env=owner_env)
+            code, denied = self._run_cli(submit_args, owner_keys_path=keys, env=attacker_env)
             self.assertEqual(code, 2)
             self.assertIsNone(denied)
             with CoordinatorQueue.open(state / "atlas.sqlite3") as queue:
                 self.assertEqual(queue.status(), [])
 
             document.write_text(json.dumps(task))
-            code, admitted = self._run_cli(submit_args, env=owner_env)
+            code, admitted = self._run_cli(submit_args, owner_keys_path=keys, env=attacker_env)
             self.assertEqual(code, 0)
             self.assertEqual(admitted["status"], "accepted")
             self.assertEqual(admitted["approval_id"], json.loads(admission_file.read_text())["approval_id"])
@@ -138,7 +151,7 @@ class LinuxReleaseCliTests(unittest.TestCase):
             code, denied = self._run_cli([
                 "cancel", "--state", str(state), "--task-id", "release-smoke",
                 "--approval-file", str(approval_file),
-            ], env=owner_env)
+            ], owner_keys_path=keys, env=attacker_env)
             self.assertEqual(code, 2)
             self.assertIsNone(denied)
             with CoordinatorQueue.open(state / "atlas.sqlite3") as queue:
@@ -147,7 +160,7 @@ class LinuxReleaseCliTests(unittest.TestCase):
             code, cancelled = self._run_cli([
                 "cancel", "--state", str(state), "--task-id", "release-smoke",
                 "--approval-file", str(approval_file),
-            ], env=owner_env)
+            ], owner_keys_path=keys, env=attacker_env)
             self.assertEqual(code, 0)
             self.assertEqual(cancelled["state"], "cancelled")
             with CoordinatorQueue.open(state / "atlas.sqlite3") as queue:

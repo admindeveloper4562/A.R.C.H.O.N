@@ -1,5 +1,4 @@
 import json
-import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -15,7 +14,8 @@ from jarvis_v2.automation.queue_api import (
     QueueSchemaError,
     detect_schema,
 )
-from tests.queue_admission import enqueue_approved, signed_admission
+from jarvis_v2 import native_executor
+from tests.queue_admission import enqueue_approved, signed_admission, signed_cancellation
 
 
 class CoordinatorQueueTests(unittest.TestCase):
@@ -103,7 +103,7 @@ class CoordinatorQueueTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             with CoordinatorQueue.open(Path(directory) / "queue.sqlite") as queue:
                 enqueue_approved(queue, task_id="AUTO-009", priority="P1", module="automation", payload={})
-                approval = {"approval_id": "owner-cancel", "signature": "signed-document"}
+                approval = signed_cancellation("AUTO-009")
                 cancelled = queue.cancel("AUTO-009", approval=approval)
                 self.assertEqual(cancelled["state"], "cancelled")
                 self.assertEqual(queue.cancel("AUTO-009", approval=approval), cancelled)
@@ -118,7 +118,21 @@ class CoordinatorQueueTests(unittest.TestCase):
                 enqueue_approved(queue, task_id="AUTO-010", priority="P1", module="automation", payload={})
                 queue.lease_next()
                 with self.assertRaisesRegex(ValueError, "only pending tasks"):
-                    queue.cancel("AUTO-010", approval=approval)
+                    queue.cancel("AUTO-010", approval=signed_cancellation("AUTO-010"))
+
+    def test_cancel_requires_trusted_signature_bound_to_the_task(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with CoordinatorQueue.open(Path(directory) / "queue.sqlite") as queue:
+                enqueue_approved(queue, task_id="AUTO-014", priority="P1", module="automation", payload={})
+                with self.assertRaisesRegex(QueueApiError, "task_cancel approval is invalid"):
+                    queue.cancel("AUTO-014", approval=signed_cancellation("AUTO-014", trusted_signer=False))
+                with self.assertRaisesRegex(QueueApiError, "task_cancel approval is invalid"):
+                    queue.cancel("AUTO-014", approval=signed_cancellation("another-task"))
+                self.assertEqual(queue.status()[0]["state"], "pending")
+                self.assertEqual(
+                    queue.cancel("AUTO-014", approval=signed_cancellation("AUTO-014"))["state"],
+                    "cancelled",
+                )
 
     def test_enqueue_requires_trusted_signature_bound_to_the_task(self):
         task = {"task_id": "AUTO-012", "priority": "P1", "module": "automation", "payload": {"n": 1}}
@@ -142,7 +156,7 @@ class CoordinatorQueueTests(unittest.TestCase):
                 queue._queue.add(
                     task_id="AUTO-013", priority="P1", module="automation", payload={},
                 )
-                with patch.dict(os.environ, {}, clear=True):
+                with patch.object(native_executor, "OWNER_KEYS_PATH", Path(directory) / "missing-keys.json"):
                     with self.assertRaisesRegex(QueueApiError, "owner key store is not configured"):
                         queue.lease_next()
                     self.assertEqual(queue.status()[0]["state"], "pending")

@@ -16,6 +16,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_DISABLE_PIP_VERSION_CHECK=1
 RUN groupadd --system --gid 10001 archon \
     && useradd --system --uid 10001 --gid archon --home-dir /home/archon \
        --create-home --shell /usr/sbin/nologin archon \
+    && install -d -m 0755 /etc/archon \
     && install -d -m 0700 -o archon -g archon /var/lib/archon /workspace
 WORKDIR /app
 COPY --from=builder /dist/*.whl /tmp/

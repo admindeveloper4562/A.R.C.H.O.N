@@ -18,7 +18,7 @@ import time
 from typing import Any
 
 from .automation.queue_api import CoordinatorQueue, QueueApiError, QueueEnvelope
-from .native_executor import NativeControlPlaneExecutor, NativeExecutorError, _load_owner_keys
+from .native_executor import NativeControlPlaneExecutor, NativeExecutorError, _load_configured_owner_keys
 
 
 CONTROL_MARKERS = ("STOP", "PAUSE", "PAUSED_QUOTA")
@@ -242,7 +242,7 @@ def main(argv: list[str] | None = None) -> int:
             repository=args.repository,
             state_dir=args.state,
             workspace_root=args.workspace,
-            owner_keys=_load_owner_keys(os.environ.get("ARCHON_OWNER_KEYS")),
+            owner_keys=_load_configured_owner_keys(),
         )
         with NativeController(
             args.state,

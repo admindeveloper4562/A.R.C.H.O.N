@@ -102,7 +102,7 @@ def _submit_task(
     approval_path: str | Path,
 ) -> dict[str, str]:
     from .automation.queue_api import CoordinatorQueue, QueueApiError, _admission_details
-    from .native_executor import NativeExecutorError, _load_owner_keys, _verify_signed_approval
+    from .native_executor import NativeExecutorError, _load_configured_owner_keys, _verify_signed_approval
     state = _state_directory(path)
     database = state / "atlas.sqlite3"
     if database.is_symlink() or not database.is_file():
@@ -131,7 +131,7 @@ def _submit_task(
     try:
         approval_id = _verify_signed_approval(
             approval,
-            _load_owner_keys(os.environ.get("ARCHON_OWNER_KEYS")),
+            _load_configured_owner_keys(),
             task_id=task["task_id"],
             target=task["task_id"],
             content_sha256=sha256(task_bytes).hexdigest(),
@@ -166,7 +166,7 @@ def _cancel_task(
     approval_path: str | Path,
 ) -> dict[str, str]:
     from .automation.queue_api import CoordinatorQueue, QueueApiError
-    from .native_executor import NativeExecutorError, _load_owner_keys, _verify_signed_approval
+    from .native_executor import NativeExecutorError, _load_configured_owner_keys, _verify_signed_approval
 
     state = _state_directory(path)
     database = state / "atlas.sqlite3"
@@ -182,7 +182,7 @@ def _cancel_task(
     try:
         _verify_signed_approval(
             approval,
-            _load_owner_keys(os.environ.get("ARCHON_OWNER_KEYS")),
+            _load_configured_owner_keys(),
             task_id=task_id,
             target=task_id,
             content_sha256=sha256(task_id.encode("utf-8")).hexdigest(),

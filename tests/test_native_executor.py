@@ -15,6 +15,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from jarvis_v2.automation.queue_api import QueueEnvelope
 from jarvis_v2.automation.queue_api import CoordinatorQueue
 from jarvis_v2.backend.effects import EffectJournal
+from jarvis_v2 import native_executor
 from jarvis_v2.native_executor import (
     NativeControlPlaneExecutor,
     NativeExecutorError,
@@ -236,7 +237,18 @@ class NativeExecutorTests(unittest.TestCase):
                 module="guardian",
                 payload={"operation": "module_health"},
             )
-        environment = dict(os.environ, PYTHONPATH="src")
+        test_config = root / "test-config"
+        test_config.mkdir()
+        (test_config / "sitecustomize.py").write_text(
+            "from pathlib import Path\n"
+            "from jarvis_v2 import native_executor\n"
+            f"native_executor.OWNER_KEYS_PATH = Path({str(native_executor.OWNER_KEYS_PATH)!r})\n",
+            encoding="utf-8",
+        )
+        environment = dict(
+            os.environ,
+            PYTHONPATH=f"{test_config}:{Path.cwd() / 'src'}",
+        )
         result = subprocess.run(
             [
                 "/usr/bin/python3",
