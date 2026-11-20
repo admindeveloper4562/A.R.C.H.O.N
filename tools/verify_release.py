@@ -259,7 +259,9 @@ Path(sys.argv[3]).chmod(0o644)
         submitted = self.run("wheel-cli-rejects-caller-trust-store", [str(runtime.parent / "jarvis-v2"), "submit",
                                                                         "--state", str(state), "--task-file", str(task_file),
                                                                         "--approval-file", str(approval_file)],
-                             cwd=outside, env=cli_env, expected=2)
+                             cwd=outside, env=cli_env, allow_failure=True)
+        if submitted.returncode != 2 or "owner_approval_invalid" not in submitted.stderr:
+            raise RuntimeError("installed CLI did not reject the caller-selected owner trust store")
         if submitted.stdout.strip():
             raise RuntimeError("installed CLI accepted a caller-selected owner trust store")
         once = self.run("wheel-controller-once", [str(runtime.parent / "archon-native-controller"), "--once",
