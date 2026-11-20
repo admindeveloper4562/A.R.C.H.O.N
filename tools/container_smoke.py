@@ -155,8 +155,7 @@ class Smoke:
         output = self.command(
             name,
             [*command, "--state", "/var/lib/archon", "--task-file", "-",
-             "--approval-file", "/run/secrets/admission-approval.json",
-             "--owner-keys", "/run/secrets/owner-keys.json"],
+             "--approval-file", "/run/secrets/admission-approval.json"],
             input_text=json.dumps(task),
             expected=expected,
         )

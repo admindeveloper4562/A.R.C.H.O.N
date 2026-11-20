@@ -238,6 +238,7 @@ class Verification:
         }), encoding="utf-8")
         owner_keys = self.work / "wheel-owner-keys.json"
         approval_file = self.work / "wheel-admission-approval.json"
+        cli_env["ARCHON_OWNER_KEYS"] = str(owner_keys)
         approval_script = r"""import base64,hashlib,json,sys,time
 from pathlib import Path
 from cryptography.hazmat.primitives import serialization
@@ -257,8 +258,7 @@ Path(sys.argv[3]).chmod(0o644)
                  cwd=outside, env=cli_env)
         submitted = self.run("wheel-cli-submit", [str(runtime.parent / "jarvis-v2"), "submit",
                                                    "--state", str(state), "--task-file", str(task_file),
-                                                   "--approval-file", str(approval_file),
-                                                   "--owner-keys", str(owner_keys)], cwd=outside, env=cli_env)
+                                                   "--approval-file", str(approval_file)], cwd=outside, env=cli_env)
         submitted_data = json.loads(submitted.stdout)
         if submitted_data.get("status") != "accepted" or len(submitted_data.get("receipt", "")) != 64:
             raise RuntimeError("installed CLI did not produce an approval-bound admission receipt")

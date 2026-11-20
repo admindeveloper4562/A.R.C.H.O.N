@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from hashlib import sha256
 import json
+import os
 from pathlib import Path
 import sqlite3
 import time
@@ -33,6 +34,71 @@ class QueueSchemaError(ValueError):
 
 class QueueApiError(ValueError):
     """Raised for invalid queue operations without changing queue state."""
+
+
+def _admission_details(task_id: str, approval: Mapping[str, Any]) -> tuple[str, str]:
+    if (
+        not isinstance(approval, Mapping)
+        or approval.get("task_id") != task_id
+        or approval.get("operation") != "task_submit"
+        or not isinstance(approval.get("approval_id"), str)
+        or not approval["approval_id"]
+        or len(approval["approval_id"]) > 64
+    ):
+        raise QueueApiError("task admission approval is invalid")
+    try:
+        approval_json = json.dumps(
+            dict(approval), sort_keys=True, separators=(",", ":"), ensure_ascii=True,
+        )
+    except (TypeError, ValueError) as exc:
+        raise QueueApiError("task admission approval is invalid") from exc
+    approval_bytes = approval_json.encode("utf-8")
+    if len(approval_bytes) > 4096:
+        raise QueueApiError("task admission approval is too large")
+    receipt = sha256(
+        f"{task_id}:admitted:{sha256(approval_bytes).hexdigest()}".encode("utf-8")
+    ).hexdigest()
+    detail = json.dumps(
+        {"approval": dict(approval), "receipt": receipt},
+        sort_keys=True, separators=(",", ":"), ensure_ascii=True,
+    )
+    return receipt, detail
+
+
+def _trusted_owner_keys() -> dict[str, bytes]:
+    from ..native_executor import NativeExecutorError, _load_owner_keys
+
+    path = os.environ.get("ARCHON_OWNER_KEYS")
+    if not path:
+        raise QueueApiError("owner key store is not configured")
+    try:
+        keys = _load_owner_keys(path)
+    except NativeExecutorError as exc:
+        raise QueueApiError("owner key store is unavailable") from exc
+    if not keys:
+        raise QueueApiError("owner key store is empty")
+    return keys
+
+
+def _verify_task_admission(
+    task: Mapping[str, Any], approval: Mapping[str, Any], owner_keys: Mapping[str, bytes],
+) -> None:
+    from ..native_executor import NativeExecutorError, _verify_signed_approval
+
+    task_bytes = json.dumps(
+        dict(task), sort_keys=True, separators=(",", ":"), ensure_ascii=True,
+    ).encode("utf-8")
+    try:
+        _verify_signed_approval(
+            approval,
+            owner_keys,
+            task_id=task["task_id"],
+            target=task["task_id"],
+            content_sha256=sha256(task_bytes).hexdigest(),
+            operation="task_submit",
+        )
+    except NativeExecutorError as exc:
+        raise QueueApiError("task admission approval is invalid") from exc
 
 
 def _text(value: Any, name: str, limit: int) -> str:
@@ -63,7 +129,6 @@ class QueueEnvelope:
     module: str
     payload: dict[str, Any]
     lease: str | None = None
-    admission_receipt: str | None = None
 
     def __post_init__(self) -> None:
         _text(self.task_id, "task_id", 120)
@@ -73,12 +138,6 @@ class QueueEnvelope:
         _payload(self.payload)
         if self.lease is not None:
             _text(self.lease, "lease", 128)
-        if self.admission_receipt is not None and (
-            not isinstance(self.admission_receipt, str)
-            or len(self.admission_receipt) != 64
-            or any(char not in "0123456789abcdef" for char in self.admission_receipt)
-        ):
-            raise QueueSchemaError("invalid admission receipt")
 
     def to_dict(self) -> dict[str, Any]:
         value: dict[str, Any] = {
@@ -174,36 +233,18 @@ class CoordinatorQueue:
         payload: Mapping[str, Any],
         approval: Mapping[str, Any] | None = None,
     ) -> QueueEnvelope:
-        receipt = None
-        event_detail = "queued"
-        if approval is not None:
-            if not isinstance(approval, Mapping) or (
-                approval.get("task_id") != task_id
-                or approval.get("operation") != "task_submit"
-                or not isinstance(approval.get("approval_id"), str)
-                or not approval["approval_id"]
-                or len(approval["approval_id"]) > 64
-            ):
-                raise QueueApiError("task admission approval is invalid")
-            try:
-                approval_json = json.dumps(
-                    dict(approval), sort_keys=True, separators=(",", ":"), ensure_ascii=True,
-                )
-            except (TypeError, ValueError) as exc:
-                raise QueueApiError("task admission approval is invalid") from exc
-            approval_bytes = approval_json.encode("utf-8")
-            if len(approval_bytes) > 4096:
-                raise QueueApiError("task admission approval is too large")
-            receipt = sha256(
-                f"{task_id}:admitted:{sha256(approval_bytes).hexdigest()}".encode("utf-8")
-            ).hexdigest()
-            event_detail = json.dumps(
-                {"approval": dict(approval), "receipt": receipt},
-                sort_keys=True, separators=(",", ":"), ensure_ascii=True,
-            )
-        envelope = QueueEnvelope(
-            task_id, priority, module, dict(payload), admission_receipt=receipt,
-        )
+        """Enqueue a task only after verifying its signed owner admission."""
+        envelope = QueueEnvelope(task_id, priority, module, dict(payload))
+        if approval is None:
+            raise QueueApiError("task admission approval is required")
+        task = {
+            "task_id": envelope.task_id,
+            "priority": envelope.priority,
+            "module": envelope.module,
+            "payload": envelope.payload,
+        }
+        _verify_task_admission(task, approval, _trusted_owner_keys())
+        _, event_detail = _admission_details(task_id, approval)
         if any(row["id"] == task_id for row in self._queue.status()):
             raise QueueApiError("task already exists")
         try:
@@ -263,9 +304,39 @@ class CoordinatorQueue:
     ) -> QueueEnvelope | None:
         lease_seconds = self._lease_seconds(lease_seconds)
         self._requeue_expired()
-        leased = self._queue.lease_next(guardian_waiting=guardian_waiting, allowed_modules=allowed_modules)
-        if leased is None:
+        if not self._queue.eligible(guardian_waiting=guardian_waiting, allowed_modules=allowed_modules):
             return None
+        owner_keys = _trusted_owner_keys()
+        while True:
+            leased = self._queue.lease_next(guardian_waiting=guardian_waiting, allowed_modules=allowed_modules)
+            if leased is None:
+                return None
+            task = {
+                "task_id": leased["id"],
+                "priority": leased["priority"],
+                "module": leased["module"],
+                "payload": leased["payload"],
+            }
+            try:
+                row = self._queue.db.execute(
+                    "SELECT detail FROM events WHERE task_id=? AND kind='pending' ORDER BY seq LIMIT 1",
+                    (leased["id"],),
+                ).fetchone()
+                if row is None:
+                    raise QueueApiError("task admission receipt is missing")
+                admission = json.loads(row["detail"])
+                if not isinstance(admission, dict) or set(admission) != {"approval", "receipt"}:
+                    raise QueueApiError("task admission receipt is invalid")
+                receipt, _ = _admission_details(leased["id"], admission["approval"])
+                if admission["receipt"] != receipt:
+                    raise QueueApiError("task admission receipt is invalid")
+                _verify_task_admission(task, admission["approval"], owner_keys)
+            except (QueueApiError, TypeError, ValueError):
+                self._queue.finish(
+                    leased["id"], leased["lease"], ok=False, receipt="task_admission_invalid",
+                )
+                continue
+            break
         with self._queue.db:
             self._queue.db.execute(
                 "update tasks set lease_expires_at=? where id=? and state='leased' and lease=?",

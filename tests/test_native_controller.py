@@ -1,11 +1,20 @@
+import contextlib
+import io
 import tempfile
 import unittest
 from pathlib import Path
 
-from jarvis_v2.native_controller import NativeController, NativeControllerError
+from jarvis_v2.native_controller import NativeController, NativeControllerError, main
+from tests.queue_admission import enqueue_approved
 
 
 class NativeControllerTests(unittest.TestCase):
+    def test_controller_cli_rejects_per_invocation_owner_key_override(self):
+        with contextlib.redirect_stderr(io.StringIO()):
+            with self.assertRaises(SystemExit) as rejected:
+                main(["--owner-keys", "caller-controlled.json"])
+        self.assertEqual(rejected.exception.code, 2)
+
     def test_empty_native_cycle_is_a_safe_idle_without_an_executor(self):
         with tempfile.TemporaryDirectory() as directory:
             with NativeController(Path(directory)) as controller:
@@ -28,7 +37,7 @@ class NativeControllerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             state = Path(directory)
             with NativeController(state) as controller:
-                controller.queue.enqueue(
+                enqueue_approved(controller.queue,
                     task_id="native-1", priority="P1", module="core", payload={}
                 )
                 (controller.control_dir / "PAUSE").touch()
@@ -40,10 +49,10 @@ class NativeControllerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             state = Path(directory)
             with NativeController(state) as controller:
-                controller.queue.enqueue(
+                enqueue_approved(controller.queue,
                     task_id="native-ok", priority="P1", module="core", payload={}
                 )
-                controller.queue.enqueue(
+                enqueue_approved(controller.queue,
                     task_id="native-fail", priority="P1", module="core", payload={}
                 )
             def execute(item):
@@ -62,7 +71,7 @@ class NativeControllerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             state = Path(directory)
             with NativeController(state) as controller:
-                controller.queue.enqueue(
+                enqueue_approved(controller.queue,
                     task_id="native-error", priority="P1", module="core", payload={}
                 )
             def fail(_item):

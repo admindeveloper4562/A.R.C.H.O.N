@@ -19,6 +19,7 @@ from jarvis_v2.native_executor import (
     NativeControlPlaneExecutor,
     NativeExecutorError,
 )
+from tests.queue_admission import enqueue_approved
 
 
 class NativeExecutorTests(unittest.TestCase):
@@ -169,7 +170,7 @@ class NativeExecutorTests(unittest.TestCase):
     def test_queue_status_is_read_only_and_reports_durable_controls(self):
         root, executor = self._executor()
         with CoordinatorQueue.open(executor.state_dir / "atlas.sqlite3") as queue:
-            queue.enqueue(task_id="queued", priority="P3", module="core", payload={})
+            enqueue_approved(queue, task_id="queued", priority="P3", module="core", payload={})
         result = executor(
             QueueEnvelope("queue", "P3", "core", {"operation": "queue_status"})
         )
@@ -229,7 +230,7 @@ class NativeExecutorTests(unittest.TestCase):
         root, executor = self._executor()
         del executor
         with CoordinatorQueue.open(root / "state" / "atlas.sqlite3") as queue:
-            queue.enqueue(
+            enqueue_approved(queue,
                 task_id="module-health",
                 priority="P3",
                 module="guardian",

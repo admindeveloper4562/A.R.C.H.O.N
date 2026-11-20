@@ -11,6 +11,7 @@ import tempfile
 import time
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
@@ -20,9 +21,9 @@ from jarvis_v2.cli import main
 
 
 class LinuxReleaseCliTests(unittest.TestCase):
-    def _run_cli(self, arguments):
+    def _run_cli(self, arguments, *, env=None):
         output = io.StringIO()
-        with contextlib.redirect_stdout(output), contextlib.redirect_stderr(io.StringIO()):
+        with patch.dict(os.environ, env or {}), contextlib.redirect_stdout(output), contextlib.redirect_stderr(io.StringIO()):
             code = main(arguments)
         return code, json.loads(output.getvalue()) if output.getvalue().strip() else None
 
@@ -93,25 +94,31 @@ class LinuxReleaseCliTests(unittest.TestCase):
             admission_file = root / "admission-approval.json"
             submit_args = [
                 "submit", "--state", str(state), "--task-file", str(document),
-                "--approval-file", str(admission_file), "--owner-keys", str(keys),
+                "--approval-file", str(admission_file),
             ]
+            owner_env = {"ARCHON_OWNER_KEYS": str(keys)}
             admission_file.write_text(json.dumps(self._admission_approval(untrusted, task)))
-            code, denied = self._run_cli(submit_args)
+            code, denied = self._run_cli(submit_args, env=owner_env)
             self.assertEqual(code, 2)
             self.assertIsNone(denied)
             with CoordinatorQueue.open(state / "atlas.sqlite3") as queue:
                 self.assertEqual(queue.status(), [])
 
+            with contextlib.redirect_stderr(io.StringIO()):
+                with self.assertRaises(SystemExit) as rejected_override:
+                    main([*submit_args, "--owner-keys", str(keys)])
+            self.assertEqual(rejected_override.exception.code, 2)
+
             admission_file.write_text(json.dumps(self._admission_approval(trusted, task)))
             document.write_text(json.dumps({**task, "payload": {"operation": "queue_status"}}))
-            code, denied = self._run_cli(submit_args)
+            code, denied = self._run_cli(submit_args, env=owner_env)
             self.assertEqual(code, 2)
             self.assertIsNone(denied)
             with CoordinatorQueue.open(state / "atlas.sqlite3") as queue:
                 self.assertEqual(queue.status(), [])
 
             document.write_text(json.dumps(task))
-            code, admitted = self._run_cli(submit_args)
+            code, admitted = self._run_cli(submit_args, env=owner_env)
             self.assertEqual(code, 0)
             self.assertEqual(admitted["status"], "accepted")
             self.assertEqual(admitted["approval_id"], json.loads(admission_file.read_text())["approval_id"])
@@ -130,8 +137,8 @@ class LinuxReleaseCliTests(unittest.TestCase):
             approval_file.write_text(json.dumps(self._cancel_approval(untrusted, "release-smoke")))
             code, denied = self._run_cli([
                 "cancel", "--state", str(state), "--task-id", "release-smoke",
-                "--approval-file", str(approval_file), "--owner-keys", str(keys),
-            ])
+                "--approval-file", str(approval_file),
+            ], env=owner_env)
             self.assertEqual(code, 2)
             self.assertIsNone(denied)
             with CoordinatorQueue.open(state / "atlas.sqlite3") as queue:
@@ -139,8 +146,8 @@ class LinuxReleaseCliTests(unittest.TestCase):
             approval_file.write_text(json.dumps(self._cancel_approval(trusted, "release-smoke")))
             code, cancelled = self._run_cli([
                 "cancel", "--state", str(state), "--task-id", "release-smoke",
-                "--approval-file", str(approval_file), "--owner-keys", str(keys),
-            ])
+                "--approval-file", str(approval_file),
+            ], env=owner_env)
             self.assertEqual(code, 0)
             self.assertEqual(cancelled["state"], "cancelled")
             with CoordinatorQueue.open(state / "atlas.sqlite3") as queue:

@@ -232,7 +232,6 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--lease-seconds", type=int, default=DEFAULT_LEASE_SECONDS)
     parser.add_argument("--poll-seconds", type=int, default=DEFAULT_POLL_SECONDS)
     parser.add_argument("--workspace", type=Path, default=os.environ.get("ARCHON_WORKSPACE"))
-    parser.add_argument("--owner-keys", type=Path, default=os.environ.get("ARCHON_OWNER_KEYS"))
     parser.add_argument("--once", action="store_true")
     parser.add_argument("--watch", action="store_true")
     args = parser.parse_args(argv)
@@ -243,7 +242,7 @@ def main(argv: list[str] | None = None) -> int:
             repository=args.repository,
             state_dir=args.state,
             workspace_root=args.workspace,
-            owner_keys=_load_owner_keys(args.owner_keys),
+            owner_keys=_load_owner_keys(os.environ.get("ARCHON_OWNER_KEYS")),
         )
         with NativeController(
             args.state,

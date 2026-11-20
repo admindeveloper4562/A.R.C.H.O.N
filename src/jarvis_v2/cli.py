@@ -100,9 +100,8 @@ def _submit_task(
     path: str | Path,
     task_path: str | Path,
     approval_path: str | Path,
-    owner_keys_path: str | Path | None,
 ) -> dict[str, str]:
-    from .automation.queue_api import CoordinatorQueue, QueueApiError
+    from .automation.queue_api import CoordinatorQueue, QueueApiError, _admission_details
     from .native_executor import NativeExecutorError, _load_owner_keys, _verify_signed_approval
     state = _state_directory(path)
     database = state / "atlas.sqlite3"
@@ -132,7 +131,7 @@ def _submit_task(
     try:
         approval_id = _verify_signed_approval(
             approval,
-            _load_owner_keys(owner_keys_path),
+            _load_owner_keys(os.environ.get("ARCHON_OWNER_KEYS")),
             task_id=task["task_id"],
             target=task["task_id"],
             content_sha256=sha256(task_bytes).hexdigest(),
@@ -140,6 +139,7 @@ def _submit_task(
         )
     except NativeExecutorError as exc:
         raise ValueError("task admission approval is not authorized") from exc
+    admission_receipt, _ = _admission_details(task["task_id"], approval)
     try:
         with CoordinatorQueue.open(database) as queue:
             envelope = queue.enqueue(
@@ -155,7 +155,7 @@ def _submit_task(
         "status": "accepted",
         "task_id": envelope.task_id,
         "approval_id": approval_id,
-        "receipt": envelope.admission_receipt or "",
+        "receipt": admission_receipt,
     }
 
 
@@ -164,7 +164,6 @@ def _cancel_task(
     path: str | Path,
     task_id: str,
     approval_path: str | Path,
-    owner_keys_path: str | Path | None,
 ) -> dict[str, str]:
     from .automation.queue_api import CoordinatorQueue, QueueApiError
     from .native_executor import NativeExecutorError, _load_owner_keys, _verify_signed_approval
@@ -183,7 +182,7 @@ def _cancel_task(
     try:
         _verify_signed_approval(
             approval,
-            _load_owner_keys(owner_keys_path),
+            _load_owner_keys(os.environ.get("ARCHON_OWNER_KEYS")),
             task_id=task_id,
             target=task_id,
             content_sha256=sha256(task_id.encode("utf-8")).hexdigest(),
@@ -203,8 +202,8 @@ def main(argv=None):
     s=p.add_subparsers(dest="command",required=True)
     s.add_parser("modules");s.add_parser("identities")
     init=s.add_parser("init");init.add_argument("--state",type=Path,default=Path(os.environ.get("ARCHON_STATE", DEFAULT_STATE)))
-    submit=s.add_parser("submit");submit.add_argument("--state",type=Path,default=Path(os.environ.get("ARCHON_STATE", DEFAULT_STATE)));submit.add_argument("--task-file",required=True);submit.add_argument("--approval-file",type=Path,required=True);submit.add_argument("--owner-keys",type=Path,default=os.environ.get("ARCHON_OWNER_KEYS"))
-    cancel=s.add_parser("cancel");cancel.add_argument("--state",type=Path,default=Path(os.environ.get("ARCHON_STATE", DEFAULT_STATE)));cancel.add_argument("--task-id",required=True);cancel.add_argument("--approval-file",type=Path,required=True);cancel.add_argument("--owner-keys",type=Path,default=os.environ.get("ARCHON_OWNER_KEYS"))
+    submit=s.add_parser("submit");submit.add_argument("--state",type=Path,default=Path(os.environ.get("ARCHON_STATE", DEFAULT_STATE)));submit.add_argument("--task-file",required=True);submit.add_argument("--approval-file",type=Path,required=True)
+    cancel=s.add_parser("cancel");cancel.add_argument("--state",type=Path,default=Path(os.environ.get("ARCHON_STATE", DEFAULT_STATE)));cancel.add_argument("--task-id",required=True);cancel.add_argument("--approval-file",type=Path,required=True)
     i=s.add_parser("inventory")
     i.add_argument("--root",type=Path,default=Path("/"))
     i.add_argument("--max-entries",type=int,default=10000)
@@ -221,12 +220,12 @@ def main(argv=None):
         except (OSError,ValueError) as exc:
             print(f"jarvis-v2 init: {exc}",file=sys.stderr);return 2
     elif args.command=="submit":
-        try: print(json.dumps(_submit_task(args.state,args.task_file,args.approval_file,args.owner_keys),sort_keys=True))
+        try: print(json.dumps(_submit_task(args.state,args.task_file,args.approval_file),sort_keys=True))
         except (OSError,UnicodeError,ValueError) as exc:
             print(f"jarvis-v2 submit: {exc}",file=sys.stderr);return 2
     elif args.command=="cancel":
         try:
-            print(json.dumps(_cancel_task(args.state,args.task_id,args.approval_file,args.owner_keys),sort_keys=True))
+            print(json.dumps(_cancel_task(args.state,args.task_id,args.approval_file),sort_keys=True))
         except (OSError,ValueError) as exc:
             print(f"jarvis-v2 cancel: {exc}",file=sys.stderr);return 2
     elif args.command in ("modules","identities"):

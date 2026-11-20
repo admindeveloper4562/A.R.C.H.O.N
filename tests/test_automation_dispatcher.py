@@ -5,6 +5,7 @@ from pathlib import Path
 from jarvis_v2.automation.dispatcher import ReconnectDispatcher
 from jarvis_v2.automation.queue_api import CoordinatorQueue
 from jarvis_v2.backend import NodeRoute
+from tests.queue_admission import enqueue_approved
 
 
 def payload(task_id: str) -> dict[str, object]:
@@ -23,7 +24,7 @@ class ReconnectDispatcherTests(unittest.TestCase):
     def setUp(self):
         self.path = Path(tempfile.mkdtemp()) / "queue.sqlite"
         self.queue = CoordinatorQueue.open(self.path, clock=lambda: 100.0)
-        self.queue.enqueue(task_id="AUTO-007-job", priority="P1", module="automation", payload=payload("AUTO-007"))
+        enqueue_approved(self.queue, task_id="AUTO-007-job", priority="P1", module="automation", payload=payload("AUTO-007"))
         self.calls = []
 
     def tearDown(self):
@@ -62,7 +63,7 @@ class ReconnectDispatcherTests(unittest.TestCase):
         self.assertEqual(self.queue.status()[0]["state"], "pending")
 
     def test_invalid_job_payload_is_not_claimed(self):
-        self.queue.enqueue(task_id="AUTO-007-invalid", priority="P2", module="automation", payload={})
+        enqueue_approved(self.queue, task_id="AUTO-007-invalid", priority="P2", module="automation", payload={})
         dispatcher = ReconnectDispatcher(
             self.queue,
             route=lambda job: NodeRoute("routed", "windows-1", "qwen3-8b", "capabilities_satisfied"),
