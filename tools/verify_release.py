@@ -176,8 +176,14 @@ class Verification:
             } for name in names):
                 raise RuntimeError("source distribution contains runtime or private files")
         return {
-            "wheel": {"path": str(wheel), "sha256": _sha256(wheel), "bytes": wheel.stat().st_size},
-            "sdist": {"path": str(sdist), "sha256": _sha256(sdist), "bytes": sdist.stat().st_size},
+            "wheel": {
+                "path": wheel.relative_to(self.output).as_posix(),
+                "sha256": _sha256(wheel), "bytes": wheel.stat().st_size,
+            },
+            "sdist": {
+                "path": sdist.relative_to(self.output).as_posix(),
+                "sha256": _sha256(sdist), "bytes": sdist.stat().st_size,
+            },
             "wheel_file_count": wheel_file_count,
         }
 
@@ -383,7 +389,7 @@ Path(sys.argv[3]).chmod(0o644)
             "container_report": "container-smoke-report.json",
             "local_ci_report": "local-ci-report.json",
             "artifacts": artifact_report,
-            "checksums": str(checksum_file),
+            "checksums": checksum_file.name,
             "result": "passed" if audit_status == "passed" else "conditional",
             "known_external_gates": [
                 "GitHub Actions billing unavailable",
