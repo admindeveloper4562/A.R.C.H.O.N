@@ -248,7 +248,9 @@ claims={'schema':1,'approval_id':'wheel-submit','key_id':'wheel-owner','task_id'
 message=json.dumps(claims,sort_keys=True,separators=(',',':')).encode()
 public=private.public_key().public_bytes(serialization.Encoding.Raw,serialization.PublicFormat.Raw)
 Path(sys.argv[2]).write_text(json.dumps({'schema':1,'keys':{'wheel-owner':base64.b64encode(public).decode()}}),encoding='utf-8')
+Path(sys.argv[2]).chmod(0o644)
 Path(sys.argv[3]).write_text(json.dumps(dict(claims,signature=base64.b64encode(private.sign(message)).decode())),encoding='utf-8')
+Path(sys.argv[3]).chmod(0o644)
 """
         self.run("wheel-cli-admission-fixture", [str(runtime), "-c", approval_script,
                                                   str(task_file), str(owner_keys), str(approval_file)],
