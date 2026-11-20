@@ -14,6 +14,7 @@ import sys
 import tarfile
 import time
 import tomllib
+import uuid
 import zipfile
 
 
@@ -44,7 +45,7 @@ class Verification:
         self.output = output.resolve()
         self.logs = self.output / "logs"
         self.dist = self.output / "dist"
-        self.work = self.output / "work"
+        self.work = self.output / "work" / uuid.uuid4().hex
         for directory in (self.logs, self.dist, self.work):
             directory.mkdir(parents=True, exist_ok=True)
         self.environment = os.environ.copy()
@@ -250,7 +251,7 @@ class Verification:
         self.run("install-sdist", [str(source_env), "-m", "pip", "install", "--no-deps", "--no-build-isolation",
                                     str(sdist)], timeout=600)
         self.run("sdist-pip-check", [str(source_env), "-m", "pip", "check"])
-        self.run("sdist-installed-cli", [str(source_env.parent / "bin" / "jarvis-v2"), "modules"],
+        self.run("sdist-installed-cli", [str(source_env.parent / "jarvis-v2"), "modules"],
                  cwd=outside, env=cli_env)
 
         self.run("compileall", [str(runtime), "-m", "compileall", "-q", "src", "tests", "tools"])
