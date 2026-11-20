@@ -1,0 +1,116 @@
+{
+  "schema_version": 3,
+  "mode": "executed_exact_batch",
+  "observed_at": "2026-11-20",
+  "owner_authorization": "Explicit user authorization to delete ARCHON/Astra backups, migration artifacts, and unused files",
+  "canonical_head": "2fec1e3459252f97fe900a6ade2d15e48894c70b",
+  "filesystem": {
+    "home_mount": "/home",
+    "home_device": "/dev/sda1",
+    "home_available_before_bytes": 951201792,
+    "home_available_after_bytes": 3789815808,
+    "home_available_current_observation_bytes": 3788345344,
+    "root_mount": "/",
+    "root_device": "/dev/sdb3",
+    "root_available_current_observation_bytes": 40425947136,
+    "unmounted_storage_device": "/dev/sdc1",
+    "unmounted_storage_used": false
+  },
+  "deleted_targets": [
+    {
+      "path": "/home/r34p3r/.local/state/archon-astra/backups",
+      "classification": "legacy_Astra_backup_artifacts",
+      "measured_size_bytes": 2279029117,
+      "action": "deleted_after_timer_and_process_stop"
+    },
+    {
+      "path": "/home/r34p3r/.local/state/archon-astra/checkpoints",
+      "classification": "legacy_Astra_migration_checkpoints",
+      "measured_size_bytes": 477605322,
+      "action": "deleted_after_timer_and_process_stop"
+    },
+    {
+      "path": "/home/r34p3r/.local/state/archon-astra/toolchain",
+      "classification": "obsolete_legacy_toolchain",
+      "measured_size_bytes": 79893510,
+      "action": "deleted"
+    },
+    {
+      "path": "/home/r34p3r/.local/state/archon-astra/toolchains",
+      "classification": "obsolete_legacy_TWS_toolchains",
+      "measured_size_bytes": 216801635,
+      "action": "deleted"
+    },
+    {
+      "path": "archon-python:3.12-git-20261114",
+      "classification": "unused_unreferenced_ARCHON_QC_image",
+      "docker_image_id": "df1ab2bf04e4047fdb56bca2f1eb46e574ce4dc223dfd9a0e0fd7d0493a53ded",
+      "action": "removed"
+    },
+    {
+      "path": "archon-python:3.12-git-20261114-sshkeygen",
+      "classification": "unused_unreferenced_ARCHON_QC_image",
+      "docker_image_id": "d851e414f7d8499c920345f22e3bf7eab94cad29fe39b533924a07ba56ed4fe0",
+      "action": "removed"
+    },
+    {
+      "path": "/home/r34p3r/.config/systemd/user/archon-astra.timer",
+      "classification": "obsolete_Astra_user_timer",
+      "action": "disabled_stopped_and_unlinked"
+    },
+    {
+      "path": "/home/r34p3r/.config/systemd/user/archon-astra.service",
+      "classification": "obsolete_Astra_user_service_unit",
+      "action": "unlinked_after_timer_stop"
+    }
+  ],
+  "actual_reclaimed_bytes": 2838614016,
+  "verification": {
+    "deleted_targets_absent": true,
+    "astra_timer": "not-found/inactive",
+    "astra_service": "not-found/inactive",
+    "astra_processes": 0,
+    "docker_containers_before_image_removal": 0,
+    "fresh_native_smoke": "healthy",
+    "runtime_sqlite_integrity": "ok",
+    "atlas_sqlite_integrity": "ok",
+    "foreign_key_violations": 0
+  },
+  "retained_targets": [
+    {
+      "path": "/home/r34p3r/.local/state/archon-astra/sda.sqlite3",
+      "size_bytes": 7700480,
+      "reason": "historical_task_ledger_and_receipts"
+    },
+    {
+      "path": "/home/r34p3r/.local/state/archon-astra/worktrees",
+      "size_bytes": 1254942481,
+      "reason": "unique_or_uncommitted_candidate_work"
+    },
+    {
+      "path": "/home/r34p3r/.local/state/archon-final-audit/checkpoints",
+      "size_bytes": 795522291,
+      "reason": "verified_final_audit_recovery_evidence"
+    },
+    {
+      "path": "/var/tmp/archon-reset-recovery-20261120T000000Z",
+      "size_bytes": 140377536,
+      "reason": "byte_for_byte_pre_reset_native_runtime_quarantine"
+    },
+    {
+      "path": "/home/r34p3r/dev/A.R.C.H.O.N",
+      "reason": "canonical_source_checkout"
+    }
+  ],
+  "remaining_cleanup": {
+    "status": "separate_review_required",
+    "paths": [
+      "/home/r34p3r/Projects/ARCHON",
+      "/home/r34p3r/Projects/ARCHON-astra-source",
+      "/home/r34p3r/Projects/ARCHON-astra-source-clean-20261116",
+      "/home/r34p3r/.local/state/archon-astra/worktrees",
+      "/home/r34p3r/.local/state/archon-final-audit/checkpoints"
+    ],
+    "reason": "unique work, historical evidence, or only recovery copy not individually reviewed"
+  }
+}

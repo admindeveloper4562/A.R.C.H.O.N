@@ -1,4 +1,7 @@
-# Linux: ARCHON foundation, external Astra One, and background SDA
+# Linux: ARCHON foundation, external Astra One, and background SDA (legacy / recovery only)
+
+> This document describes the retired-path candidate and is preserved for
+> recovery evidence. It is not the native ARCHON startup procedure.
 
 ## What is actually deployed
 

@@ -1,4 +1,8 @@
-# ARCHON Astra One installation runbook
+# ARCHON Astra One installation runbook (legacy / recovery only)
+
+> This is retained for historical recovery and must not be used for the native
+> installation. Use `docs/operations/ARCHON_NATIVE_RUNTIME.md` and the reviewed
+> `infra/systemd/archon.service` candidate for current ARCHON operations.
 
 This runbook installs a reproducible local control-plane layout for the
 `develop` branch. It does not modify `main`, create a second Master, edit the

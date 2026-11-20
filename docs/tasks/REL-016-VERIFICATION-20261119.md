@@ -14,8 +14,11 @@ does not claim hosted Python, Windows, native iOS, or TWS evidence.
 | Amended plan SHA | `ec8eb9d28adb55828eb68aba94f1ef5b9137c0792a8c62a495d61bf754d3bef4` |
 | REL-016 packaging amendment | `REL-016-PACKAGING-SCOPE-20261119` |
 | Packaging amendment SHA | `3e36632c38d3d13a044d3d48786789f4ca0f3b9d9b6e42742cdecb2d12660546` |
-| Integration base SHA | `79de5792c92a736238b091d2d74d17c1c5f7798c` |
-| Source SHA | `f1ffcdd3c1cb76b805cc768e446385fcd67ea850` |
+| Integration base SHA | `60c731229a2cafed8f3c6d2ab49ca3a68f414635` |
+| Candidate branch | `feature/astra-rel-016-a1-b5175fa3` |
+| Candidate worktree | `/home/r34p3r/.local/state/archon-astra/worktrees/rel-016-b5175fa3` |
+| Candidate source SHA | `60c731229a2cafed8f3c6d2ab49ca3a68f414635` |
+| Workflow SHA-256 | `dbcc492abf3ca6c6e3cdcf49900616d09891b343027c63ba9b55dfe46df8ec79` |
 | Execution mode | `ci_local_only` |
 | Remote Actions | Not triggered; `DEFERRED_QUOTA` per task instruction |
 | Native iOS | Explicitly deferred and unclaimed |

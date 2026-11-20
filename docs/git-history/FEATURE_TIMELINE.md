@@ -1,0 +1,270 @@
+# ARCHON feature timeline
+
+Chronological commit groups derived from task IDs and commit subjects. The commit index is the authoritative detail; this snapshot covers 758 reachable commits through documentation overlay `0d6658b0aa2449c4071c0ca05ddda0aad3609bd2`, with implementation source candidate `4149c1d75eee24880bfacd819342f9c21d05d51a`.
+
+## Monthly activity
+
+| Month | Commits |
+| --- | ---: |
+| 2026-11 | 758 |
+
+## Final-audit continuation
+
+| Date | SHA | Contribution |
+| --- | --- | --- |
+| 2026-11-19 23:46 +07:00 | `a286b6f1e51e` | Bound the complete reachable-history snapshot and final-audit metadata to the indexed tree. |
+| 2026-11-20 00:09 +07:00 | `4149c1d75eee` | Added bounded native control-plane probes and resumable metadata-only filesystem inventory. |
+| 2026-11-20 00:28 +07:00 | `1c27e2277a7a` | Reconciled final-audit evidence, current disk measurements, and Git provenance. |
+| 2026-11-20 00:43 +07:00 | `0d6658b0aa24` | Bound independent QC evidence and the native-operation gap matrix. |
+
+## Task-linked contributions
+
+| Task | Commits | First | Last | Latest subject |
+| --- | ---: | --- | --- | --- |
+| ATLAS-401 | 7 | 68de9b296502 | 1e3cb09ca590 | docs(atlas): document recovery and upgrade monitor panels [ATLAS-401] |
+| AUTO-001 | 1 | 5eb3dac81ffb | 5eb3dac81ffb | feat(sda): integrate independently reviewed candidate [AUTO-001] |
+| AUTO-002 | 2 | e0acc80627c4 | 39ec760e3f2f | feat(sda): integrate independently reviewed candidate [AUTO-002] |
+| AUTO-003 | 2 | 9a056a2739b8 | 2f75ac7ef28f | feat(sda): integrate independently reviewed candidate [AUTO-003] |
+| AUTO-004 | 2 | 25875065839d | d089ba2721df | feat(sda): integrate independently reviewed candidate [AUTO-004] |
+| AUTO-005 | 2 | 763df1ea361c | 941bc2313008 | feat(sda): integrate independently reviewed candidate [AUTO-005] |
+| AUTO-006 | 1 | 8551081b507d | 8551081b507d | feat(sda): integrate independently reviewed candidate [AUTO-006] |
+| AUTO-007 | 1 | 572ca71965d8 | 572ca71965d8 | feat(sda): integrate independently reviewed candidate [AUTO-007] |
+| AUTO-008 | 1 | 22486107ae16 | 22486107ae16 | feat(sda): integrate independently reviewed candidate [AUTO-008] |
+| AUTO-009 | 1 | a14801fadfd3 | a14801fadfd3 | feat(sda): integrate independently reviewed candidate [AUTO-009] |
+| AUTO-010 | 1 | 6c2563cb06aa | 6c2563cb06aa | feat(sda): integrate independently reviewed candidate [AUTO-010] |
+| AUTO-011 | 1 | 5c1e6590d3ee | 5c1e6590d3ee | feat(sda): integrate independently reviewed candidate [AUTO-011] |
+| AUTO-012 | 1 | 4381dd128810 | 4381dd128810 | feat(sda): integrate independently reviewed candidate [AUTO-012] |
+| AUTO-013 | 1 | 22f84df368b5 | 22f84df368b5 | feat(sda): integrate independently reviewed candidate [AUTO-013] |
+| BACK-001 | 3 | 7115fd7f27db | 41d2b6a0c96a | feat(sda): integrate independently reviewed candidate [BACK-001] |
+| BACK-002 | 2 | 19929c021fc0 | eda660abdec7 | feat(sda): integrate independently reviewed candidate [BACK-002] |
+| BACK-003 | 2 | 45581ec684a3 | f6b6850e5f13 | feat(sda): integrate independently reviewed candidate [BACK-003] |
+| BACK-004 | 2 | cc2c452c351e | 07059ea4b22e | feat(sda): integrate independently reviewed candidate [BACK-004] |
+| BACK-005 | 2 | b409d2597e23 | 3bbf5cde1567 | feat(sda): integrate independently reviewed candidate [BACK-005] |
+| BACK-006 | 2 | 05672fb8f415 | 91df615f4d26 | feat(sda): integrate independently reviewed candidate [BACK-006] |
+| BACK-007 | 2 | 74b1da1f33f9 | 864d55fc6f28 | feat(sda): integrate independently reviewed candidate [BACK-007] |
+| BACK-008 | 2 | 2bec3414958d | d1d71258af9e | feat(sda): integrate independently reviewed candidate [BACK-008] |
+| BACK-009 | 2 | b1b4ffc9e98c | 7d4d487ca40e | feat(sda): integrate independently reviewed candidate [BACK-009] |
+| BACK-010 | 2 | f8f95796fc6d | 2078d8e27c08 | feat(sda): integrate independently reviewed candidate [BACK-010] |
+| BACK-011 | 4 | 989d14dbe5bf | 3a1cf131f0de | feat(sda): integrate independently reviewed candidate [BACK-011] |
+| BACK-012 | 2 | 964ada733042 | 9482ba482ed9 | feat(sda): integrate independently reviewed candidate [BACK-012] |
+| BACK-013 | 2 | 8d1fd9bfb94b | 873ac97bb2d8 | feat(sda): integrate independently reviewed candidate [BACK-013] |
+| BACK-014 | 2 | b7d5ce7d71e3 | 51766eabe877 | feat(sda): integrate independently reviewed candidate [BACK-014] |
+| BACK-015 | 2 | 7f82351defae | 80e049bb26e0 | feat(sda): integrate independently reviewed candidate [BACK-015] |
+| BACK-016 | 3 | 7be6581f4032 | e68f204161dd | feat(sda): integrate independently reviewed candidate [BACK-016] |
+| BACK-017 | 2 | 39d7ee311669 | 7c10f4d60e48 | feat(sda): integrate independently reviewed candidate [BACK-017] |
+| BACK-018 | 2 | 3994e0af2ab0 | 50725ecc0878 | feat(sda): integrate independently reviewed candidate [BACK-018] |
+| BACK-019 | 2 | 2eebdd2eddf9 | 8cecaca20024 | feat(sda): integrate independently reviewed candidate [BACK-019] |
+| BACK-020 | 2 | 56ccd5daa339 | 2775316023b0 | feat(sda): integrate independently reviewed candidate [BACK-020] |
+| BACK-021 | 2 | 0a90284c310d | 8acdd3291e22 | feat(sda): integrate independently reviewed candidate [BACK-021] |
+| BACK-022 | 3 | 61dafe683a8a | 7e8abecb9f7d | feat(sda): integrate independently reviewed candidate [BACK-022] |
+| BACK-301 | 1 | 43c8db7de8a5 | 43c8db7de8a5 | feat(sda): integrate independently reviewed candidate [BACK-301] |
+| BASE-001 | 5 | c727e516cd54 | 22f3a6a379c6 | fix(sda): normalize BASE-001 audit receipt [SDA-301] |
+| BASE-002 | 2 | 32b6a3cbe8a7 | a03435f64a69 | feat(sda): integrate independently reviewed candidate [BASE-002] |
+| BASE-003 | 5 | 36dbf698e59c | 4ce14615de84 | feat(sda): integrate independently reviewed candidate [BASE-003] |
+| BASE-004 | 4 | c7fe9e144556 | 67205b477a0f | feat(sda): integrate independently reviewed candidate [BASE-004] |
+| BASE-005 | 2 | ed3a5e7c706f | af2295eca37f | feat(sda): integrate independently reviewed candidate [BASE-005] |
+| BASE-006 | 5 | fe841189bff1 | 6e709a61611e | feat(sda): integrate independently reviewed candidate [BASE-006] |
+| BASE-007 | 3 | 9b2921de6a72 | 574eeaaff76e | feat(sda): integrate independently reviewed candidate [BASE-007] |
+| BASE-008 | 1 | c2c85dabca76 | c2c85dabca76 | feat(base): add signed owner approval workflow [BASE-008] |
+| BASE-009 | 2 | f604066099ce | f482e8468552 | feat(sda): integrate independently reviewed candidate [BASE-009] |
+| BASE-010 | 5 | 4a24c2dbf178 | a7c3b173be4b | feat(sda): integrate independently reviewed candidate [BASE-010] |
+| BASE-011 | 3 | f4121af1c7d0 | 523fc9fb00b6 | feat(sda): integrate independently reviewed candidate [BASE-011] |
+| BASE-012 | 2 | 013a514342b0 | 18157857631e | feat(sda): integrate independently reviewed candidate [BASE-012] |
+| BASE-013 | 1 | 50514a3d2562 | 50514a3d2562 | feat(sda): integrate independently reviewed candidate [BASE-013] |
+| BASE-014 | 3 | 8295a7f37c9c | b9cf9d82a2ce | feat(sda): integrate independently reviewed candidate [BASE-014] |
+| BASE-015 | 4 | 36ed536d04e2 | b25eb3236099 | feat(sda): integrate independently reviewed candidate [BASE-015] |
+| BASE-016 | 2 | 8246302d7d85 | 9f0a1d45966d | feat(sda): integrate independently reviewed candidate [BASE-016] |
+| CORE-001 | 2 | ec108d1c8183 | d3c023871da5 | feat(sda): integrate independently reviewed candidate [CORE-001] |
+| CORE-002 | 2 | 89999b10259e | c4d01f37d14e | feat(sda): integrate independently reviewed candidate [CORE-002] |
+| CORE-003 | 2 | d5d556700ab8 | 4cc2e7121102 | feat(sda): integrate independently reviewed candidate [CORE-003] |
+| CORE-004 | 2 | fd597d813a2f | eaaf84c7d75d | feat(sda): integrate independently reviewed candidate [CORE-004] |
+| CORE-005 | 2 | f69db1f01f68 | 04f9c5eb3251 | feat(sda): integrate independently reviewed candidate [CORE-005] |
+| CORE-006 | 2 | 390043964119 | 4c2e8a20959d | feat(sda): integrate independently reviewed candidate [CORE-006] |
+| CORE-007 | 2 | ad23830142aa | 28050eaf3bb8 | feat(sda): integrate independently reviewed candidate [CORE-007] |
+| CORE-008 | 2 | d4088c328178 | 4b3cb16b7f24 | feat(sda): integrate independently reviewed candidate [CORE-008] |
+| CORE-009 | 2 | ec3824d01505 | 7f4b67fde983 | feat(sda): integrate independently reviewed candidate [CORE-009] |
+| CORE-010 | 2 | 752da80e156e | 1d4efb0bd477 | feat(sda): integrate independently reviewed candidate [CORE-010] |
+| CORE-011 | 2 | 52882d306a37 | ac7e2627f468 | feat(sda): integrate independently reviewed candidate [CORE-011] |
+| CORE-012 | 2 | de2a05c1ccbd | 50fd9f23361d | feat(sda): integrate independently reviewed candidate [CORE-012] |
+| CORE-013 | 2 | 584a5b53c314 | aff13a7413e9 | feat(sda): integrate independently reviewed candidate [CORE-013] |
+| CORE-014 | 2 | 5d8122afebb8 | 400581ba13a8 | feat(sda): integrate independently reviewed candidate [CORE-014] |
+| CORE-301 | 1 | 9d658b39e58a | 9d658b39e58a | feat(sda): integrate independently reviewed candidate [CORE-301] |
+| FIN-001 | 1 | 721c02d91f40 | 721c02d91f40 | feat(sda): integrate independently reviewed candidate [FIN-001] |
+| FIN-002 | 1 | de5863e2036c | de5863e2036c | feat(sda): integrate independently reviewed candidate [FIN-002] |
+| FIN-003 | 1 | 62ce257d3aa0 | 62ce257d3aa0 | feat(sda): integrate independently reviewed candidate [FIN-003] |
+| FIN-004 | 1 | 9febea99024c | 9febea99024c | feat(sda): integrate independently reviewed candidate [FIN-004] |
+| FIN-005 | 1 | 65185ad011d7 | 65185ad011d7 | feat(sda): integrate independently reviewed candidate [FIN-005] |
+| FIN-006 | 1 | e5872bdc2c11 | e5872bdc2c11 | feat(sda): integrate independently reviewed candidate [FIN-006] |
+| FIN-007 | 1 | a4185580d14c | a4185580d14c | feat(sda): integrate independently reviewed candidate [FIN-007] |
+| FIN-008 | 1 | 62f708f63111 | 62f708f63111 | feat(sda): integrate independently reviewed candidate [FIN-008] |
+| FIN-009 | 1 | 991c1741581b | 991c1741581b | feat(sda): integrate independently reviewed candidate [FIN-009] |
+| FIN-010 | 1 | 260d94e49194 | 260d94e49194 | feat(sda): integrate independently reviewed candidate [FIN-010] |
+| FIN-011 | 1 | c0005bd44c16 | c0005bd44c16 | feat(sda): integrate independently reviewed candidate [FIN-011] |
+| FIN-012 | 1 | e78016457338 | e78016457338 | feat(sda): integrate independently reviewed candidate [FIN-012] |
+| FIN-013 | 1 | 29b755a96161 | 29b755a96161 | feat(sda): integrate independently reviewed candidate [FIN-013] |
+| FIN-014 | 1 | 1bf3f66967c6 | 1bf3f66967c6 | feat(sda): integrate independently reviewed candidate [FIN-014] |
+| FIN-015 | 2 | 411af26b1b7d | 5156e39b417e | feat(sda): integrate independently reviewed candidate [FIN-015] |
+| FIN-016 | 1 | e175c467f67e | e175c467f67e | feat(sda): integrate independently reviewed candidate [FIN-016] |
+| GUARD-001 | 2 | 772880d7b6fd | 7bddcbfba520 | feat(sda): integrate independently reviewed candidate [GUARD-001] |
+| GUARD-002 | 2 | 3eb190b07dd6 | 557daff8e8c5 | feat(sda): integrate independently reviewed candidate [GUARD-002] |
+| GUARD-003 | 2 | d6bdefb56c66 | 6c98762bec46 | feat(sda): integrate independently reviewed candidate [GUARD-003] |
+| GUARD-004 | 2 | bfea8d50a615 | ea05a054309b | feat(sda): integrate independently reviewed candidate [GUARD-004] |
+| GUARD-005 | 2 | 5a3c2f8ba9a0 | b056218069a2 | feat(sda): integrate independently reviewed candidate [GUARD-005] |
+| GUARD-006 | 2 | 34f2151943e4 | 55bbd0a79154 | feat(sda): integrate independently reviewed candidate [GUARD-006] |
+| GUARD-007 | 2 | 1c045719beff | 59f7bee0ff3a | feat(sda): integrate independently reviewed candidate [GUARD-007] |
+| GUARD-008 | 2 | 0e2f8e4f6002 | 48087fb3ad50 | feat(sda): integrate independently reviewed candidate [GUARD-008] |
+| GUARD-009 | 2 | 14223e81e48a | c005b4c91fa3 | feat(sda): integrate independently reviewed candidate [GUARD-009] |
+| GUARD-010 | 2 | 0c6122175499 | 11824219e235 | feat(sda): integrate independently reviewed candidate [GUARD-010] |
+| GUARD-011 | 2 | fc40909e114f | 3be0c0968fbd | feat(sda): integrate independently reviewed candidate [GUARD-011] |
+| GUARD-012 | 2 | c156dc071c69 | 519198809021 | feat(sda): integrate independently reviewed candidate [GUARD-012] |
+| GUARD-013 | 3 | 8dd4475de652 | 9efea246d163 | feat(sda): integrate independently reviewed candidate [GUARD-013] |
+| GUARD-014 | 2 | d459c96628f0 | 2baf329884d9 | feat(sda): integrate independently reviewed candidate [GUARD-014] |
+| GUARD-015 | 2 | cd3581d2d39e | 5d0087e84027 | feat(sda): integrate independently reviewed candidate [GUARD-015] |
+| GUARD-016 | 2 | f25649eaed14 | 1fd0375d0769 | feat(sda): integrate independently reviewed candidate [GUARD-016] |
+| GUARD-017 | 2 | 44299d684879 | 8a0498197366 | feat(sda): integrate independently reviewed candidate [GUARD-017] |
+| GUARD-018 | 2 | 109b9ace30c8 | 46b9cbeb761d | feat(sda): integrate independently reviewed candidate [GUARD-018] |
+| GUARD-019 | 3 | 798487c2e269 | 354a08edbea4 | feat(sda): integrate independently reviewed candidate [GUARD-019] |
+| GUARD-301 | 1 | 389ec5ad4c9e | 389ec5ad4c9e | feat(sda): integrate independently reviewed candidate [GUARD-301] |
+| MIG-001 | 3 | 5227b91d2725 | b99ae33f2c88 | feat(sda): integrate independently reviewed candidate [MIG-001] |
+| MIG-002 | 3 | 7f709ddbb6c7 | cf9e52841761 | feat(sda): integrate independently reviewed candidate [MIG-002] |
+| MIG-003 | 5 | 210d9ebbe97b | eef1e3c8d1bf | feat(migration): establish native ARCHON runtime [MIG-003] |
+| MIG-004 | 1 | bc3e9b4bb165 | bc3e9b4bb165 | feat(sda): integrate independently reviewed candidate [MIG-004] |
+| MIG-005 | 1 | 024181b8aaf8 | 024181b8aaf8 | feat(sda): integrate independently reviewed candidate [MIG-005] |
+| MIG-006 | 1 | 5fa4eb63cf4a | 5fa4eb63cf4a | feat(sda): integrate independently reviewed candidate [MIG-006] |
+| MIG-007 | 1 | 6a1917630d6b | 6a1917630d6b | feat(sda): integrate independently reviewed candidate [MIG-007] |
+| MIG-008 | 1 | 61045aa1d75d | 61045aa1d75d | feat(sda): integrate independently reviewed candidate [MIG-008] |
+| MIG-009 | 2 | c2723362c762 | 2d0203dab621 | feat(sda): integrate independently reviewed candidate [MIG-009] |
+| MIG-010 | 3 | 08673ab7b615 | 116920b79e53 | feat(sda): amend MIG-010 for single-builder qualification |
+| MIG-011 | 1 | d1b86d89f0a5 | d1b86d89f0a5 | feat(sda): integrate independently reviewed candidate [MIG-011] |
+| MIG-012 | 3 | 484c2dd4582d | dc91a68bf51f | feat(sda): integrate independently reviewed candidate [MIG-012] |
+| MIG-013 | 2 | bb708696ca76 | a01435995415 | feat(sda): integrate independently reviewed candidate [MIG-013] |
+| MIG-014 | 1 | 689e38bdd39a | 689e38bdd39a | feat(sda): integrate independently reviewed candidate [MIG-014] |
+| MIG-015 | 2 | a3127ed0360d | 372c3fc607c8 | feat(sda): integrate independently reviewed candidate [MIG-015] |
+| MIG-016 | 2 | 3bfc90d3bb9a | 1651a3ec977a | feat(sda): integrate independently reviewed candidate [MIG-016] |
+| MIG-301 | 1 | 05c87a1c318d | 05c87a1c318d | feat(sda): integrate independently reviewed candidate [MIG-301] |
+| REL-001 | 3 | 99ef12bec680 | a91700e81fed | feat(sda): integrate independently reviewed candidate [REL-001] |
+| REL-002 | 2 | babb45e71480 | dfeab984b0e3 | feat(sda): integrate independently reviewed candidate [REL-002] |
+| REL-003 | 2 | 50db90ccd242 | 68a38a973e9d | feat(sda): integrate independently reviewed candidate [REL-003] |
+| REL-004 | 4 | 7a521a1ee384 | 5d1ba5381ae2 | feat(sda): integrate independently reviewed candidate [REL-004] |
+| REL-005 | 9 | 4d6a5407443e | 1dbf5e774822 | fix(sda): accept required external evidence attestation [REL-005] |
+| REL-006 | 1 | b66560c8cecc | b66560c8cecc | feat(sda): integrate independently reviewed candidate [REL-006] |
+| REL-007 | 1 | cbf3b3106c23 | cbf3b3106c23 | feat(sda): integrate independently reviewed candidate [REL-007] |
+| REL-008 | 1 | c4c51e8793e2 | c4c51e8793e2 | feat(sda): integrate independently reviewed candidate [REL-008] |
+| REL-010 | 1 | 75f717a3c8cb | 75f717a3c8cb | feat(sda): integrate independently reviewed candidate [REL-010] |
+| REL-011 | 1 | eecc5a70ce7b | eecc5a70ce7b | feat(sda): integrate independently reviewed candidate [REL-011] |
+| REL-012 | 1 | 99ce2739f75b | 99ce2739f75b | feat(sda): integrate independently reviewed candidate [REL-012] |
+| REL-013 | 2 | a56bd8dab31e | 96ecf9226524 | feat(sda): integrate independently reviewed candidate [REL-013] |
+| REL-014 | 2 | 9d76f5f9f3c3 | af32eee46646 | feat(sda): integrate independently reviewed candidate [REL-014] |
+| REL-015 | 2 | 50264c871c23 | 60c731229a2c | feat(sda): integrate independently reviewed candidate [REL-015] |
+| REL-016 | 2 | 69d9aa2ba429 | cf34caa1fed8 | feat(sda): integrate independently reviewed candidate [REL-016] |
+| REL-017 | 3 | 7a521a1ee384 | 0bcd0678da94 | feat(sda): integrate independently reviewed candidate [REL-017] |
+| REL-018 | 1 | 5b22db874704 | 5b22db874704 | feat(sda): integrate independently reviewed candidate [REL-018] |
+| REL-019 | 2 | f40eb9c5aa29 | 29c11f860bcb | feat(sda): integrate independently reviewed candidate [REL-019] |
+| REL-020 | 3 | d0d15340487d | 8b526c4031de | feat(sda): integrate independently reviewed candidate [REL-020] |
+| REL-021 | 2 | 9c255f8284ac | a6826ee43d7c | feat(sda): integrate independently reviewed candidate [REL-021] |
+| REL-022 | 3 | 7cabc5ed1986 | a6fda5e04c3f | feat(sda): integrate independently reviewed candidate [REL-022] |
+| REL-023 | 2 | dd18894a7ce1 | 3754b242d640 | feat(sda): integrate independently reviewed candidate [REL-023] |
+| REL-024 | 2 | 674fe939a3c4 | dd61427d1ead | feat(sda): integrate independently reviewed candidate [REL-024] |
+| REL-025 | 2 | 84934dd5363f | a2df24261d5e | feat(sda): integrate independently reviewed candidate [REL-025] |
+| RES-001 | 1 | f85664ecec5b | f85664ecec5b | feat(sda): integrate independently reviewed candidate [RES-001] |
+| RES-002 | 1 | c44026d90741 | c44026d90741 | feat(sda): integrate independently reviewed candidate [RES-002] |
+| RES-003 | 1 | ae98ffe4aaf5 | ae98ffe4aaf5 | feat(sda): integrate independently reviewed candidate [RES-003] |
+| RES-004 | 1 | d0eb1dc0bdf7 | d0eb1dc0bdf7 | feat(sda): integrate independently reviewed candidate [RES-004] |
+| RES-005 | 1 | 98940772f8bb | 98940772f8bb | feat(sda): integrate independently reviewed candidate [RES-005] |
+| RES-006 | 1 | e71cf5c0156c | e71cf5c0156c | feat(sda): integrate independently reviewed candidate [RES-006] |
+| RES-007 | 1 | b7103e08f070 | b7103e08f070 | feat(sda): integrate independently reviewed candidate [RES-007] |
+| RES-008 | 2 | d7e866611a18 | e6faabccccd6 | feat(sda): integrate independently reviewed candidate [RES-008] |
+| RES-009 | 2 | 74a1ee682ce2 | a9063e58c79a | feat(sda): integrate independently reviewed candidate [RES-009] |
+| RES-010 | 1 | 3263a0b6a731 | 3263a0b6a731 | feat(sda): integrate independently reviewed candidate [RES-010] |
+| RES-011 | 2 | 20ba2b49aff6 | 49365f9148e4 | feat(sda): integrate independently reviewed candidate [RES-011] |
+| RES-012 | 1 | 00bd51f14e19 | 00bd51f14e19 | feat(sda): integrate independently reviewed candidate [RES-012] |
+| RES-013 | 1 | d2fbdb373500 | d2fbdb373500 | feat(sda): integrate independently reviewed candidate [RES-013] |
+| RES-014 | 1 | fe59205195ef | fe59205195ef | feat(sda): integrate independently reviewed candidate [RES-014] |
+| RES-015 | 1 | 627377873ead | 627377873ead | feat(sda): integrate independently reviewed candidate [RES-015] |
+| RUN-001 | 2 | 515a13e03fd0 | 1fa76a30e266 | feat(sda): integrate independently reviewed candidate [RUN-001] |
+| RUN-002 | 2 | 9439d44e7f13 | fcd0f1902bbe | feat(sda): integrate independently reviewed candidate [RUN-002] |
+| RUN-003 | 2 | 0f8098aa1ea0 | cb7a0f9afc55 | feat(sda): integrate independently reviewed candidate [RUN-003] |
+| RUN-004 | 2 | dc3cdc0dabaa | 62f2e1c2bb12 | feat(sda): integrate independently reviewed candidate [RUN-004] |
+| RUN-005 | 5 | d09f40bf0476 | c56947c29428 | feat(sda): integrate independently reviewed candidate [RUN-005] |
+| RUN-006 | 2 | 5612c1efb102 | a935d42e95f3 | feat(sda): integrate independently reviewed candidate [RUN-006] |
+| RUN-007 | 3 | bab9ee407652 | 59bce1150939 | feat(sda): integrate independently reviewed candidate [RUN-007] |
+| RUN-008 | 1 | faac78b3df80 | faac78b3df80 | feat(sda): integrate independently reviewed candidate [RUN-008] |
+| RUN-009 | 2 | 4a45d7149353 | 2b37c1a8cfed | feat(sda): integrate independently reviewed candidate [RUN-009] |
+| RUN-010 | 1 | 71dff00abfd9 | 71dff00abfd9 | feat(sda): integrate independently reviewed candidate [RUN-010] |
+| RUN-011 | 1 | 6f2960a1c2c4 | 6f2960a1c2c4 | feat(sda): integrate independently reviewed candidate [RUN-011] |
+| RUN-012 | 2 | 43db788fc7dd | 9acf983e2850 | feat(sda): integrate independently reviewed candidate [RUN-012] |
+| RUN-013 | 1 | 2cd5ed14c0ea | 2cd5ed14c0ea | feat(sda): integrate independently reviewed candidate [RUN-013] |
+| RUN-014 | 1 | e3f08984b656 | e3f08984b656 | feat(sda): integrate independently reviewed candidate [RUN-014] |
+| RUN-015 | 1 | 0f6ac2b00420 | 0f6ac2b00420 | feat(sda): integrate independently reviewed candidate [RUN-015] |
+| RUN-016 | 1 | 52c9aed35ec6 | 52c9aed35ec6 | feat(sda): integrate independently reviewed candidate [RUN-016] |
+| RUN-017 | 1 | 8c8aa64f90fe | 8c8aa64f90fe | feat(sda): integrate independently reviewed candidate [RUN-017] |
+| RUN-018 | 1 | 86ab29532e3a | 86ab29532e3a | feat(sda): integrate independently reviewed candidate [RUN-018] |
+| SDA-001 | 2 | 78dc3faec475 | a82c09336868 | test(sda): verify Astra v0.2.0 rollback [SDA-001] |
+| SDA-002 | 2 | e1c71684d19c | 1645781b9f91 | feat(sda): integrate independently reviewed candidate [SDA-002] |
+| SDA-003 | 4 | 203f3c9e8d85 | 2b2b06246117 | feat(sda): integrate independently reviewed candidate [SDA-003] |
+| SDA-004 | 2 | ac97fd44a483 | f786b43eab98 | feat(sda): integrate independently reviewed candidate [SDA-004] |
+| SDA-005 | 2 | 12e9b7a49aa1 | 3d1f69c6554e | feat(sda): integrate independently reviewed candidate [SDA-005] |
+| SDA-006 | 2 | 5401a34a96a6 | 883c50571c47 | feat(sda): integrate independently reviewed candidate [SDA-006] |
+| SDA-007 | 2 | 77c6427e229e | b488c7331628 | feat(sda): integrate independently reviewed candidate [SDA-007] |
+| SDA-008 | 2 | fd1bded205a2 | 7a385d4be95a | feat(sda): integrate independently reviewed candidate [SDA-008] |
+| SDA-009 | 25 | 6161313c35c7 | 6af8333cd047 | feat(sda): integrate independently reviewed candidate [SDA-009] |
+| SDA-010 | 2 | 4516b656a972 | ab137a0b7a9a | feat(sda): integrate independently reviewed candidate [SDA-010] |
+| SDA-011 | 5 | cb9dc87f0860 | f8e10f24c1d9 | feat(sda): integrate independently reviewed candidate [SDA-011] |
+| SDA-012 | 1 | fa49b27de0fb | fa49b27de0fb | feat(sda): integrate independently reviewed candidate [SDA-012] |
+| SDA-013 | 1 | 0d5a4f2b3108 | 0d5a4f2b3108 | feat(sda): integrate independently reviewed candidate [SDA-013] |
+| SDA-014 | 1 | a151f0f53a52 | a151f0f53a52 | feat(sda): integrate independently reviewed candidate [SDA-014] |
+| SDA-015 | 2 | cfb365c93b77 | 0217979cba74 | feat(sda): integrate independently reviewed candidate [SDA-015] |
+| SDA-016 | 3 | be500f81b9bb | 1c7e1f15b29e | feat(sda): integrate independently reviewed candidate [SDA-016] |
+| SDA-017 | 2 | ed703ff24c4f | b419c3855a02 | feat(sda): integrate independently reviewed candidate [SDA-017] |
+| SDA-018 | 2 | b0d62560b4ab | 5e5b22b85ac3 | feat(sda): integrate independently reviewed candidate [SDA-018] |
+| SDA-019 | 2 | 8e6f672738cf | 6a2c4c8baab4 | feat(sda): integrate independently reviewed candidate [SDA-019] |
+| SDA-020 | 4 | 01dbcc32200b | 115e8b1b9e9a | feat(sda): integrate independently reviewed candidate [SDA-020] |
+| SDA-021 | 4 | 900111d923a8 | 0ec280cf87f4 | feat(sda): integrate independently reviewed candidate [SDA-021] |
+| SDA-022 | 2 | 39dd736b426c | ab85b7bf6f71 | feat(sda): integrate independently reviewed candidate [SDA-022] |
+| SDA-023 | 2 | f6990e29791e | 3641a894a707 | feat(sda): integrate independently reviewed candidate [SDA-023] |
+| SDA-024 | 2 | db75077bcc84 | 4401466e3771 | feat(sda): integrate independently reviewed candidate [SDA-024] |
+| SDA-025 | 2 | 092b89e92bd4 | d05fe5ba794c | feat(sda): integrate independently reviewed candidate [SDA-025] |
+| SDA-026 | 3 | ade85ea1f585 | b25949dd1390 | feat(sda): integrate independently reviewed candidate [SDA-026] |
+| SDA-027 | 4 | 8ee864473532 | a0e72fcab0b2 | feat(sda): integrate independently reviewed candidate [SDA-027] |
+| SDA-028 | 2 | 95bf9b6c972b | e3d7bc52f443 | feat(sda): integrate independently reviewed candidate [SDA-028] |
+| SDA-301 | 20 | e7f125113b90 | 6f6e09966ea3 | docs(sda): define concurrent recovery and safe upgrade architecture [SDA-301] |
+| SDA-401 | 10 | c4a70060a633 | 293468f646eb | feat(sda): route Main Codex candidates [SDA-401] |
+| TWS-001 | 1 | 95b2bd43ba5a | 95b2bd43ba5a | feat(sda): integrate independently reviewed candidate [TWS-001] |
+| TWS-002 | 1 | f41715ed5ef1 | f41715ed5ef1 | feat(sda): integrate independently reviewed candidate [TWS-002] |
+| TWS-003 | 1 | ddebbb3c3f37 | ddebbb3c3f37 | feat(sda): integrate independently reviewed candidate [TWS-003] |
+| TWS-004 | 1 | 544318c38fac | 544318c38fac | feat(sda): integrate independently reviewed candidate [TWS-004] |
+| TWS-005 | 1 | e7629dd68f07 | e7629dd68f07 | feat(sda): integrate independently reviewed candidate [TWS-005] |
+| TWS-006 | 1 | 03db578f9bbc | 03db578f9bbc | feat(sda): integrate independently reviewed candidate [TWS-006] |
+| TWS-007 | 1 | 8ee42445f583 | 8ee42445f583 | feat(sda): integrate independently reviewed candidate [TWS-007] |
+| TWS-008 | 1 | b0b23919eb4c | b0b23919eb4c | feat(sda): integrate independently reviewed candidate [TWS-008] |
+| TWS-009 | 1 | 7148fd56a874 | 7148fd56a874 | feat(sda): integrate independently reviewed candidate [TWS-009] |
+| TWS-010 | 1 | 655599e7589a | 655599e7589a | feat(sda): integrate independently reviewed candidate [TWS-010] |
+| TWS-011 | 2 | b81d6b187e1e | c72598fbfd28 | feat(sda): integrate independently reviewed candidate [TWS-011] |
+| TWS-012 | 3 | 034bbf268372 | 54b4fd7a7978 | feat(sda): integrate independently reviewed candidate [TWS-012] |
+| TWS-017 | 1 | deed7cb694c5 | deed7cb694c5 | feat(sda): integrate independently reviewed candidate [TWS-017] |
+| TWS-018 | 1 | 66ce40026418 | 66ce40026418 | feat(sda): integrate independently reviewed candidate [TWS-018] |
+| WIC-001 | 1 | 027fa0f910b0 | 027fa0f910b0 | feat(sda): integrate independently reviewed candidate [WIC-001] |
+| WIC-002 | 1 | 14984bab6565 | 14984bab6565 | feat(sda): integrate independently reviewed candidate [WIC-002] |
+| WIC-003 | 1 | 0e2d8128a099 | 0e2d8128a099 | feat(sda): integrate independently reviewed candidate [WIC-003] |
+| WIC-004 | 1 | 434713187620 | 434713187620 | feat(sda): integrate independently reviewed candidate [WIC-004] |
+| WIC-005 | 1 | 8afa5571ced6 | 8afa5571ced6 | feat(sda): integrate independently reviewed candidate [WIC-005] |
+| WIC-006 | 1 | 8bb2578822cf | 8bb2578822cf | feat(sda): integrate independently reviewed candidate [WIC-006] |
+| WIC-007 | 1 | 097960c926a9 | 097960c926a9 | feat(sda): integrate independently reviewed candidate [WIC-007] |
+| WIC-008 | 1 | 3b7fa39b070d | 3b7fa39b070d | feat(sda): integrate independently reviewed candidate [WIC-008] |
+| WIC-009 | 1 | 38f654be7f0d | 38f654be7f0d | feat(sda): integrate independently reviewed candidate [WIC-009] |
+| WIC-010 | 1 | 181dfa0de051 | 181dfa0de051 | feat(sda): integrate independently reviewed candidate [WIC-010] |
+| WIC-011 | 1 | 81c2574a171c | 81c2574a171c | feat(sda): integrate independently reviewed candidate [WIC-011] |
+| WIC-012 | 1 | 8f0b00360ede | 8f0b00360ede | feat(sda): integrate independently reviewed candidate [WIC-012] |
+| WIC-013 | 1 | 97b9d60310e1 | 97b9d60310e1 | feat(sda): integrate independently reviewed candidate [WIC-013] |
+| WIC-014 | 1 | c900b7bde8b4 | c900b7bde8b4 | feat(sda): integrate independently reviewed candidate [WIC-014] |
+| WIN-001 | 2 | b063d9069f33 | 7a8cb685baa1 | feat(sda): integrate independently reviewed candidate [WIN-001] |
+| WIN-002 | 2 | b6a1e5d0adb6 | bfbcd6a7ebcd | feat(sda): integrate independently reviewed candidate [WIN-002] |
+| WIN-003 | 1 | 39c0f9f9f3b8 | 39c0f9f9f3b8 | feat(sda): integrate independently reviewed candidate [WIN-003] |
+| WIN-004 | 1 | 0f1c193d3b75 | 0f1c193d3b75 | feat(sda): integrate independently reviewed candidate [WIN-004] |
+| WIN-005 | 1 | 2534a250833f | 2534a250833f | feat(sda): integrate independently reviewed candidate [WIN-005] |
+| WIN-006 | 1 | ca062c2bc8cb | ca062c2bc8cb | feat(sda): integrate independently reviewed candidate [WIN-006] |
+| WIN-007 | 1 | 2b1c3f4cd0dc | 2b1c3f4cd0dc | feat(sda): integrate independently reviewed candidate [WIN-007] |
+| WIN-008 | 1 | c819dca5b8be | c819dca5b8be | feat(sda): integrate independently reviewed candidate [WIN-008] |
+| WIN-009 | 1 | 488288dc168e | 488288dc168e | feat(sda): integrate independently reviewed candidate [WIN-009] |
+| WIN-010 | 1 | 6e023d718c1e | 6e023d718c1e | feat(sda): integrate independently reviewed candidate [WIN-010] |
+| WIN-011 | 1 | f1ffcdd3c1cb | f1ffcdd3c1cb | feat(sda): integrate independently reviewed candidate [WIN-011] |

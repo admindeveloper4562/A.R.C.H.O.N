@@ -1,21 +1,31 @@
 # ARCHON · AEGIS · ATLAS — JARVIS v2 Foundation
 
-**Identity:** ARCHON is the main AI; AEGIS is the independent Guardian; ATLAS is the infrastructure, orchestration, five-worker SDA control plane and progress monitor. Astra One remains the external bootstrap builder. See [Identity contract](docs/architecture/IDENTITIES.md).
+**Identity:** ARCHON is the main AI; AEGIS is the independent Guardian; ATLAS is the infrastructure and orchestration layer. Astra One is legacy development infrastructure and is not required by the native package. See [Identity contract](docs/architecture/IDENTITIES.md).
 
-**Status: foundation seed, NOT a deployed/qualified v2 release.** This is the clean rebuild repository scaffold for the owner's ten-module JARVIS v2 architecture. Its external bootstrap builder is Astra One. Source reuse from [`personal-jarvis`](https://github.com/admindeveloper4562/personal-jarvis) is **selective, traceable, tested and reviewed**, not a bulk copy or direct PR merge.
+**Status: Linux local scope audited, but final release is CONDITIONAL.** Native source, local regression, security, persistence, indexing, and host-inventory checks are documented under docs/final-audit. Source reuse from personal-jarvis is selective, traceable, tested and reviewed, not a bulk copy or direct PR merge.
 
 **Modules:** 01 Core · 02 SDA · 03 Backend (includes Windows Ollama node) · 04 Runtime · 05 Research · 06 Quest/TWS · 07 World Information Center · 08 Finance (read-only Mira + paper trading) · 09 Guardian/Recovery · 10 Cloudflare Always-On Automation. Business remains archived/inactive.
 
 ## Independent terminal development monitor
 
-ATLAS Monitor runs in a **second terminal**, reads actual Astra One or ATLAS SQLite state without writing, and never starts/controls the runner:
+ATLAS Monitor runs in a **second terminal**, reads an existing ARCHON/ATLAS SQLite state without writing, and never starts or controls a runner:
 
 ```bash
-python3 tools/atlas_monitor.py --source astra --watch --interval 2
-# or atlas-monitor --source astra --watch
+python3 tools/atlas_monitor.py --source auto --db ~/.local/state/archon/atlas.sqlite3 --watch --interval 2
+# or atlas-monitor --source auto --db ~/.local/state/archon/atlas.sqlite3 --watch
 ```
 
 See [ATLAS Monitor operations](docs/operations/ATLAS_TERMINAL_MONITOR.md).
+
+## Native controller
+
+The native controller owns one bounded queue cycle without Astra imports. Its built-in executor handles only read-only control-plane observations (`native_capabilities`, `module_health`, `runtime_health`, `inventory_digest`, `queue_status`, `database_inspect`, `sda_handoff_status`, and `guardian_readiness`); domain-effect operations fail closed until separately reviewed handlers are supplied:
+
+```bash
+PYTHONPATH=src python3 -m jarvis_v2.native_controller --once --state ~/.local/state/archon
+```
+
+The reviewed user-service candidate is `infra/systemd/archon.service`; it is not enabled by this audit.
 
 ## Bootstrap
 
@@ -34,15 +44,15 @@ To commit the complete foundation into the **existing empty private** GitHub rep
 To inspect code reuse, run `python3 tools/import_legacy.py --repo "$HOME/Projects/personal-jarvis"` (dry-run); after reviewing, add `--apply`. Imported source goes only to `migration/imported/` and is NOT automatically executable, deployed or promoted. See [migration matrix](docs/migration/SOURCE_REUSE_MAP.md).
 
 
-## First private GitHub bootstrap and Codex background service
+## Historical Astra bootstrap and Codex background service
 
-The empty repository target is `admindeveloper4562/A.R.C.H.O.N`. The all-in-one bootstrap source is included in `bootstrap/astra-one/` alongside the ARCHON/AEGIS/ATLAS foundation.
+The historical empty-repository bootstrap target was admindeveloper4562/A.R.C.H.O.N. The archived bootstrap source remains under bootstrap/astra-one/ for provenance and rescue recovery; it is not required for native runtime startup.
 
-The owner runs `bash tools/archon_bootstrap.sh` **once** from a fresh extraction on Ubuntu after authenticating `gh` and `codex`. It checks the empty remote, verifies both test suites, creates one root commit on `main`, creates `develop` at the same SHA, clones a separate clean source checkout, imports and approves the SHA-pinned first-milestone architecture, enqueues exactly five bounded kickoff coding tasks, and enables a user-level `archon-astra.timer`/service.
+The historical owner bootstrap ran bash tools/archon_bootstrap.sh with authenticated GitHub and Codex tooling. It is retained as archival/recovery procedure, not as native runtime startup.
 
-The service runs Astra One with five Codex Luna Medium workers, network-disabled Docker QC, independent AI review and serial local integration. **It only pushes locally verified, fast-forward integration commits to `develop`**; it never pushes `main` or performs deployment. On conflict it refuses the push and sets `PAUSE`. No development happens when STOP/PAUSE/PAUSED_QUOTA exists. Subsequent work requires additional reviewed task batches or a separately qualified backlog scheduler; this first bootstrap does not silently enqueue all 247 tasks.
+The historical service ran Astra One with bounded workers and serial local integration. Preserve it only as a separately controlled recovery path; do not treat its state as native runtime state.
 
-Observe a separate terminal using `python3 tools/atlas_monitor.py --source astra --db ~/.local/state/archon-astra/sda.sqlite3 --watch`. See `docs/operations/LINUX_ASTRA_SERVICE.md` for status, logs and stop procedures.
+Native runtime state is created under ~/.local/state/archon. Historical Astra state remains under ~/.local/state/archon-astra until the owner approves retirement. See docs/operations/ARCHON_NATIVE_RUNTIME.md for the native status boundary.
 
 ## Source of truth
 

@@ -2,7 +2,10 @@
 """Independent read-only ATLAS terminal monitor; no SDA worker imported or launched.
 
 Run without installing the project:
-    python3 tools/atlas_monitor.py --source astra --watch
+    python3 tools/atlas_monitor.py --source atlas --watch
+
+Pass ``--source astra`` only when inspecting the preserved historical Astra
+database explicitly.
 """
 from pathlib import Path
 import sys

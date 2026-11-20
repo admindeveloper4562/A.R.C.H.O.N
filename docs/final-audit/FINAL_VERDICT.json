@@ -1,0 +1,99 @@
+{
+  "schema_version": 3,
+  "verdict": "CONDITIONAL",
+  "canonical_path": "/home/r34p3r/dev/A.R.C.H.O.N",
+  "canonical_head": "2fec1e3459252f97fe900a6ade2d15e48894c70b",
+  "published_ref": "origin/feature/astra-linux-integration-c799784769",
+  "published_ref_sha": "2fec1e3459252f97fe900a6ade2d15e48894c70b",
+  "implementation_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
+  "main_sha_unchanged": "5227b91d2725bf4be4336a5ad26189fdf1034704",
+  "develop_sha_unchanged": "75582dbf48057e3d5b0e7cf4acfdba2386acfcff",
+  "source_state": "Final commit is published; production source is unchanged from the tested implementation and final commits bind refreshed evidence.",
+  "evidence": {
+    "full_regression": {
+      "tests": 590,
+      "passed": 590,
+      "failed": 0,
+      "errors": 0,
+      "duration_seconds": 29.365,
+      "exit_code": 0,
+      "source_sha": "2fec1e3459252f97fe900a6ade2d15e48894c70b",
+      "log": "/home/r34p3r/.local/state/archon/logs/unittest-2fec1e3.log"
+    },
+    "native_imports": {"modules": 106, "errors": 0},
+    "fresh_runtime": {
+      "status": "healthy",
+      "migrations_applied": 1,
+      "queue_tasks": 0,
+      "runtime_integrity": "ok",
+      "atlas_integrity": "ok",
+      "foreign_key_violations": 0,
+      "historical_ledger_loaded": false
+    },
+    "native_executor": {
+      "bounded_read_only_operations": 8,
+      "domain_effect_handlers": "not_configured",
+      "unrestricted_authority": "not_granted"
+    },
+    "independent_qc": {
+      "status": "CONDITIONAL",
+      "receipt_target": "1c27e2277a7a9f88d9d0dbd9bdac6c7b8f2f80e5",
+      "implementation_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
+      "focused_native_executor": "8/8",
+      "focused_system_inventory": "6/6",
+      "full_suite_rerun": false,
+      "note": "Production source is unchanged at the final documentation commits; no separate independent receipt was generated for the docs-only final SHA."
+    },
+    "inventory": {
+      "entries": 10000,
+      "truncated": true,
+      "pending_frames": 3459,
+      "permission_denied": 17,
+      "skipped_mounts": 28,
+      "skipped_virtual_filesystems": 4,
+      "cursor_path": "/home/r34p3r/.local/state/archon/host_inventory_cursor.json"
+    },
+    "historical_ledger": {
+      "parent_total": 247,
+      "completed": 240,
+      "archived_or_deferred": 7,
+      "child_total": 1359,
+      "verified_receipt_rows": 1281,
+      "integrity": "ok"
+    },
+    "cleanup": {
+      "actual_reclaimed_bytes": 2838614016,
+      "deleted_exact_target_count": 8,
+      "historical_ledger_retained": true,
+      "recovery_checkpoint_retained": true,
+      "native_reset_quarantine_retained": true
+    },
+    "astra_retirement": {
+      "timer": "not-found/inactive",
+      "service": "not-found/inactive",
+      "remaining_processes": 0,
+      "historical_state_retained": true,
+      "native_unattended_recovery": "not_proven"
+    }
+  },
+  "modules": {
+    "ALFRED": "PASS local",
+    "SMITH": "PARTIAL",
+    "CORTEX": "PASS local",
+    "IRIS": "PARTIAL",
+    "SAGE": "PARTIAL",
+    "LUMEN": "PARTIAL",
+    "HORIZON": "PARTIAL",
+    "CROWN": "PASS paper/read-only",
+    "PALADIN": "PARTIAL",
+    "RELAY": "PARTIAL"
+  },
+  "blocking_conditions": [
+    "signed owner-approval transport and native domain-effect execution are not proven",
+    "unattended SDA/AEGIS ownership, trusted watchdog activation/soak, and rollback application are not proven",
+    "the existing independent QC receipt targets an earlier documentation-only ancestor rather than the exact final commit",
+    "root filesystem inventory is bounded and incomplete",
+    "Windows, Apple, Blender, live-provider, finance, communications, and hosted-CI evidence remains unavailable or intentionally excluded"
+  ],
+  "next_safe_action": "Keep the fresh runtime and retained recovery evidence; separately qualify native service/watchdog/recovery and obtain an exact-current-SHA independent QC receipt before any PASS or unattended cutover claim."
+}

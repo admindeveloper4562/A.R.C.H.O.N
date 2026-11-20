@@ -278,6 +278,10 @@ class CoordinatorQueue:
     def status(self) -> list[dict[str, Any]]:
         return self._queue.status()
 
+    def control_status(self) -> dict[str, str]:
+        """Expose durable owner controls without leaking the queue implementation."""
+        return self._queue.control_status()
+
     def history(self, task_id: str, *, limit: int = 100) -> list[dict[str, Any]]:
         return self._queue.history(task_id, limit=limit)
 

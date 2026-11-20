@@ -7,16 +7,19 @@ ATLAS Monitor is a standalone terminal UI, replacing the *status-viewing* workfl
 From the clean v2 repository:
 
 ```bash
-# Real external Astra One Linux v0.2.0 SDA status, refresh every two seconds
-python3 tools/atlas_monitor.py --source astra --watch --interval 2
+# Native ARCHON/ATLAS queue status, refresh every two seconds
+python3 tools/atlas_monitor.py --source atlas --watch --interval 2
 
-# Or when installed: atlas-monitor --source astra --watch
+# Or when installed: atlas-monitor --source atlas --watch
 
 # One non-interactive snapshot (for diagnosis and local tooling)
-python3 tools/atlas_monitor.py --source astra --json
+python3 tools/atlas_monitor.py --source atlas --json
 
 # Hide task descriptions on shared screens or in JSON logs
-python3 tools/atlas_monitor.py --source astra --watch --no-objectives
+python3 tools/atlas_monitor.py --source atlas --watch --no-objectives
+
+# Historical Astra status is explicit and read-only
+python3 tools/atlas_monitor.py --source astra --watch --interval 2
 ```
 
 For a customized Astra state directory, pass its exact database path:
@@ -25,13 +28,13 @@ For a customized Astra state directory, pass its exact database path:
 python3 tools/atlas_monitor.py --source astra --db "$HOME/.local/state/astra-one-linux/sda.sqlite3" --watch
 ```
 
-For the **future** native ATLAS Core task DB:
+For the native ATLAS Core task DB:
 
 ```bash
 python3 tools/atlas_monitor.py --source atlas --db "$HOME/.local/state/archon/atlas.sqlite3" --watch
 ```
 
-You can use `--source auto` with `--db` to detect a supported database schema, but native ATLAS's seed database only records queued/leased/completed/failed tasks and a separate safe title; it does **not yet** track the full five-worker/review/merge pipeline. Do not mistake a blank five-worker panel for actual agent idleness when the runner does not persist that information.
+`--source auto` prefers the native ATLAS database when it exists, then falls back to the native SDA-compatible path and finally to explicitly discoverable historical Astra databases. Native ATLAS records queued/leased/completed/failed tasks and a separate safe title; it does **not yet** track the full five-worker/review/merge pipeline. Do not mistake a blank five-worker panel for actual agent idleness when the runner does not persist that information.
 
 ## Astra One v3 supervisor and upgrade panels
 
@@ -83,7 +86,7 @@ The CLI reads SQLite via read-only URI (`mode=ro`) with `query_only` and a short
 
 ## Operational characteristics and failure handling
 
-- **Two terminals:** start Astra One in one, ATLAS Monitor in another. Closing ATLAS Monitor does **not** stop active SDA work.
+- **Two terminals:** start the approved native controller or the explicitly selected historical Astra source in one, and ATLAS Monitor in another. Closing ATLAS Monitor does **not** stop active work.
 - When the DB is missing or unrecognized, the monitor prints a readable error and exits; it does not initialize a blank one.
 - Press **Ctrl+C** to close the monitor safely; STOP/PAUSE must only be issued by the separate authorized SDA CLI.
 - Terminal refresh uses ANSI clear only for interactive terminals. `--json` performs a single snapshot and exits, suitable for tests or operator reports.

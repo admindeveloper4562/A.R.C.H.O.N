@@ -70,12 +70,81 @@ def _root_blockers(rows: list[sqlite3.Row]) -> list[dict[str, Any]]:
     return sorted(result, key=lambda item: (-item["unlocks"], item["task_id"]))
 
 
+def _native_health(*, state_dir: Path, repository: Path) -> dict[str, Any]:
+    runtime = state_dir / "runtime.sqlite3"
+    atlas = state_dir / "atlas.sqlite3"
+    paths = (("runtime", runtime, {"backend_schema_migrations", "backend_table_owners"}),
+             ("atlas", atlas, {"tasks", "events", "core_controls"}))
+    if any(path.is_symlink() or not path.is_file() for _, path, _ in paths):
+        raise HealthError("canonical SDA database is unavailable")
+    connections: list[sqlite3.Connection] = []
+    try:
+        inspected: dict[str, dict[str, Any]] = {}
+        for label, path, required in paths:
+            db = sqlite3.connect(f"file:{path.resolve(strict=True).as_posix()}?mode=ro", uri=True, timeout=3)
+            db.row_factory = sqlite3.Row
+            db.execute("PRAGMA query_only=ON")
+            db.execute("PRAGMA busy_timeout=3000")
+            connections.append(db)
+            integrity = db.execute("PRAGMA integrity_check").fetchone()[0]
+            if integrity != "ok":
+                raise HealthError(f"native {label} integrity check failed")
+            foreign = db.execute("PRAGMA foreign_key_check").fetchall()
+            if foreign:
+                raise HealthError(f"native {label} foreign-key check failed")
+            tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            if not required <= tables:
+                raise HealthError(f"native {label} schema is incomplete")
+            inspected[label] = {
+                "path": str(path),
+                "integrity": integrity,
+                "foreign_key_violations": len(foreign),
+                "table_count": len(tables),
+            }
+        runtime_db, atlas_db = connections
+        migrations = runtime_db.execute(
+            "SELECT count(*) FROM backend_schema_migrations"
+        ).fetchone()[0]
+        task_counts = dict(atlas_db.execute(
+            "SELECT state,count(*) FROM tasks GROUP BY state"
+        ).fetchall())
+        control = atlas_db.execute(
+            "SELECT state,reason,updated_at FROM core_controls WHERE control_id=1"
+        ).fetchone()
+        return {
+            "status": "healthy",
+            "mode": "native_runtime",
+            "git": {"checkout_sha": _git_head(repository.resolve())},
+            "sqlite": inspected,
+            "runtime": {"migrations_applied": migrations},
+            "queue": {
+                "task_counts": task_counts,
+                "total": sum(task_counts.values()),
+                "control": dict(control) if control else None,
+            },
+            "historical_ledger": {
+                "loaded": False,
+                "source": "fresh runtime; historical sda.sqlite3 is not copied",
+            },
+            "controls": {name: (state_dir / name).exists() for name in ("STOP", "PAUSE", "PAUSED_QUOTA")},
+            "controller": {"service": _systemd_state("archon.service"),
+                           "timer": _systemd_state("archon.timer")},
+        }
+    except sqlite3.Error as exc:
+        raise HealthError("native runtime read failed") from exc
+    finally:
+        for db in connections:
+            db.close()
+
+
 def collect_health(*, state_dir: Path, repository: Path) -> dict[str, Any]:
     """Read the canonical state without creating or mutating any file."""
     state_dir = state_dir.expanduser().resolve()
     raw_database = state_dir / "sda.sqlite3"
-    if raw_database.is_symlink() or not raw_database.is_file():
+    if raw_database.is_symlink():
         raise HealthError("canonical SDA database is unavailable")
+    if not raw_database.is_file():
+        return _native_health(state_dir=state_dir, repository=repository)
     database = raw_database.resolve(strict=True)
     try:
         db = sqlite3.connect(f"file:{database.as_posix()}?mode=ro", uri=True, timeout=3)

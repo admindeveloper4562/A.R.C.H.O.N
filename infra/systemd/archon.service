@@ -1,0 +1,21 @@
+[Unit]
+Description=ARCHON native deterministic controller
+After=default.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/dev/A.R.C.H.O.N
+Environment=PYTHONPATH=%h/dev/A.R.C.H.O.N/src
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 -m jarvis_v2.native_controller --watch --state %h/.local/state/archon
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=%h/.local/state/archon
+RestrictAddressFamilies=AF_UNIX
+
+[Install]
+WantedBy=default.target
