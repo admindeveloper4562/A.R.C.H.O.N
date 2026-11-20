@@ -40,6 +40,18 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _write_checksum_manifest(output: Path, artifacts: list[Path]) -> Path:
+    checksum_file = output / "SHA256SUMS.txt"
+    checksum_file.write_text(
+        "".join(
+            f"{_sha256(path)}  {path.relative_to(output).as_posix()}\n"
+            for path in artifacts
+        ),
+        encoding="utf-8",
+    )
+    return checksum_file
+
+
 class Verification:
     def __init__(self, output: Path) -> None:
         self.output = output.resolve()
@@ -340,8 +352,8 @@ Path(sys.argv[3]).chmod(0o644)
             (sdist, _sha256(sdist)),
             (self.output / "archon-local-image.tar", _sha256(self.output / "archon-local-image.tar")),
         ]
-        checksum_file = self.output / "SHA256SUMS.txt"
-        checksum_file.write_text("".join(f"{digest}  {path.name}\n" for path, digest in checksums), encoding="utf-8")
+        checksum_file = _write_checksum_manifest(self.output, [path for path, _ in checksums])
+        self.run("verify-release-checksums", ["sha256sum", "-c", checksum_file.name], cwd=self.output)
 
         local_ci = {
             "source_sha": git["source_sha"],
