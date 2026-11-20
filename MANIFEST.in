@@ -1,0 +1,4 @@
+include README.md
+include config/modules.json
+include config/identities.json
+recursive-include src *.py

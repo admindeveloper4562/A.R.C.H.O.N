@@ -7,6 +7,7 @@ versioned envelope and reopens its existing SQLite format without rewriting it.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from hashlib import sha256
 import json
 from pathlib import Path
 import sqlite3
@@ -21,6 +22,7 @@ LEGACY_SCHEMA = "atlas-task-queue/1"
 MAX_PAYLOAD_BYTES = 32_768
 DEFAULT_LEASE_SECONDS = 60
 MAX_LEASE_SECONDS = 3_600
+MAX_LEASE_ATTEMPTS = 3
 _TASK_COLUMNS = {"id", "priority", "module", "payload", "state", "created_id", "lease", "receipt"}
 _EVENT_COLUMNS = {"seq", "task_id", "kind", "detail"}
 
@@ -174,20 +176,36 @@ class CoordinatorQueue:
 
     def _requeue_expired(self) -> int:
         now = self._clock()
+        attempts = "(SELECT count(*) FROM events e WHERE e.task_id=tasks.id AND e.kind='leased')"
         rows = self._queue.db.execute(
-            "select id from tasks where state='leased' and lease_expires_at > 0 and lease_expires_at <= ?",
-            (now,),
+            f"SELECT id,state,{attempts} AS attempts FROM tasks "
+            "WHERE (state='leased' AND lease_expires_at > 0 AND lease_expires_at <= ?) "
+            f"OR (state='pending' AND {attempts} >= ?)",
+            (now, MAX_LEASE_ATTEMPTS),
         ).fetchall()
-        if not rows:
-            return 0
+        changed = 0
         with self._queue.db:
             for row in rows:
-                self._queue.db.execute(
-                    "update tasks set state='pending',lease=null,lease_expires_at=0 where id=? and state='leased'",
-                    (row["id"],),
-                )
-                self._queue._emit_event(row["id"], "pending", "lease_expired")
-        return len(rows)
+                if row["attempts"] >= MAX_LEASE_ATTEMPTS:
+                    receipt = sha256(f"{row['id']}:lease_attempt_limit".encode()).hexdigest()
+                    updated = self._queue.db.execute(
+                        "UPDATE tasks SET state='failed',lease=NULL,lease_expires_at=0,receipt=? "
+                        "WHERE id=? AND state=? AND (state='pending' OR lease_expires_at <= ?)",
+                        (receipt, row["id"], row["state"], now),
+                    )
+                    if updated.rowcount:
+                        self._queue._emit_event(row["id"], "failed", "lease_attempt_limit")
+                        changed += 1
+                else:
+                    updated = self._queue.db.execute(
+                        "UPDATE tasks SET state='pending',lease=NULL,lease_expires_at=0 "
+                        "WHERE id=? AND state='leased' AND lease_expires_at > 0 AND lease_expires_at <= ?",
+                        (row["id"], now),
+                    )
+                    if updated.rowcount:
+                        self._queue._emit_event(row["id"], "pending", "lease_expired")
+                        changed += 1
+        return changed
 
     def lease_next(
         self,
@@ -234,6 +252,30 @@ class CoordinatorQueue:
                 raise QueueApiError("unknown or stale lease")
             self._queue._emit_event(item.task_id, "pending", reason)
 
+
+    def cancel(self, task_id: str) -> dict[str, str]:
+        if not isinstance(task_id, str) or not task_id or len(task_id) > 120:
+            raise QueueApiError("invalid task id")
+        receipt = sha256(f"{task_id}:cancelled".encode()).hexdigest()
+        with self._queue.db:
+            row = self._queue.db.execute(
+                "SELECT state,receipt FROM tasks WHERE id=?", (task_id,)
+            ).fetchone()
+            if row is None:
+                raise QueueApiError("unknown task")
+            if row["state"] == "cancelled":
+                return {"task_id": task_id, "state": "cancelled", "receipt": row["receipt"]}
+            if row["state"] != "pending":
+                raise QueueApiError("only pending tasks can be cancelled")
+            updated = self._queue.db.execute(
+                "UPDATE tasks SET state='cancelled',receipt=? WHERE id=? AND state='pending'",
+                (receipt, task_id),
+            )
+            if updated.rowcount != 1:
+                raise QueueApiError("task changed before cancellation")
+            self._queue._emit_event(task_id, "cancelled", receipt)
+        return {"task_id": task_id, "state": "cancelled", "receipt": receipt}
+
     def renew(self, item: QueueEnvelope, *, lease_seconds: int = DEFAULT_LEASE_SECONDS) -> QueueEnvelope:
         if not item.lease:
             raise QueueApiError("leased item required")
@@ -261,7 +303,7 @@ class CoordinatorQueue:
         ).fetchone()
         if row is None:
             raise QueueApiError("unknown task")
-        if row["state"] in {"completed", "failed"}:
+        if row["state"] in {"completed", "failed", "cancelled"}:
             if row["receipt"] == receipt and row["state"] == ("completed" if ok else "failed"):
                 return {"task_id": item.task_id, "state": row["state"], "receipt": receipt}
             raise QueueApiError("task is already finalized")

@@ -3,6 +3,7 @@ import unittest
 from pathlib import Path
 
 from jarvis_v2.automation.queue_api import (
+    MAX_LEASE_ATTEMPTS,
     LEGACY_SCHEMA,
     SCHEMA,
     CoordinatorQueue,
@@ -63,6 +64,36 @@ class CoordinatorQueueTests(unittest.TestCase):
                     reopened.complete(resumed, ok=True, receipt="verified")["state"],
                     "completed",
                 )
+
+
+    def test_expired_leases_fail_after_bounded_attempts(self):
+        with tempfile.TemporaryDirectory() as directory:
+            now = [100.0]
+            with CoordinatorQueue.open(Path(directory) / "queue.sqlite", clock=lambda: now[0]) as queue:
+                queue.enqueue(task_id="AUTO-008", priority="P1", module="automation", payload={})
+                for attempt in range(MAX_LEASE_ATTEMPTS):
+                    leased = queue.lease_next(lease_seconds=1)
+                    self.assertIsNotNone(leased)
+                    now[0] += 2
+                    ready = queue.eligible()
+                    self.assertEqual(bool(ready), attempt < MAX_LEASE_ATTEMPTS - 1)
+                self.assertEqual(queue.status()[0]["state"], "failed")
+                self.assertEqual(queue.history("AUTO-008")[-1]["kind"], "failed")
+
+
+    def test_pending_task_cancellation_is_durable_and_leased_task_is_protected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with CoordinatorQueue.open(Path(directory) / "queue.sqlite") as queue:
+                queue.enqueue(task_id="AUTO-009", priority="P1", module="automation", payload={})
+                cancelled = queue.cancel("AUTO-009")
+                self.assertEqual(cancelled["state"], "cancelled")
+                self.assertEqual(queue.cancel("AUTO-009"), cancelled)
+                self.assertEqual(queue.status()[0]["state"], "cancelled")
+                self.assertEqual(queue.history("AUTO-009")[-1]["kind"], "cancelled")
+                queue.enqueue(task_id="AUTO-010", priority="P1", module="automation", payload={})
+                queue.lease_next()
+                with self.assertRaisesRegex(ValueError, "only pending tasks"):
+                    queue.cancel("AUTO-010")
 
 
 if __name__ == "__main__":

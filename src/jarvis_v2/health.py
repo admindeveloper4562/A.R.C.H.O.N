@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections import Counter
 import json
+import os
 from pathlib import Path
 import sqlite3
 import subprocess
@@ -32,11 +33,16 @@ def _git_head(repository: Path) -> str:
             ["git", "-C", str(repository), "rev-parse", "HEAD"],
             capture_output=True, text=True, timeout=3, check=False,
         )
-    except (OSError, subprocess.SubprocessError) as exc:
-        raise HealthError("Git checkout is unavailable") from exc
-    if result.returncode or len(result.stdout.strip()) != 40:
-        raise HealthError("Git checkout SHA is unavailable")
-    return result.stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        result = None
+    if result is not None and result.returncode == 0:
+        head = result.stdout.strip()
+        if len(head) == 40 and all(char in "0123456789abcdef" for char in head):
+            return head
+    source_sha = os.environ.get("ARCHON_SOURCE_SHA", "")
+    if len(source_sha) == 40 and all(char in "0123456789abcdef" for char in source_sha):
+        return source_sha
+    return "unknown"
 
 
 def _root_blockers(rows: list[sqlite3.Row]) -> list[dict[str, Any]]:

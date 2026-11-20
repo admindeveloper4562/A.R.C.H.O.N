@@ -12,12 +12,13 @@ from hashlib import sha256
 import json
 import os
 from pathlib import Path
+import signal
 import stat
 import time
 from typing import Any
 
 from .automation.queue_api import CoordinatorQueue, QueueApiError, QueueEnvelope
-from .native_executor import NativeControlPlaneExecutor
+from .native_executor import NativeControlPlaneExecutor, NativeExecutorError, _load_owner_keys
 
 
 CONTROL_MARKERS = ("STOP", "PAUSE", "PAUSED_QUOTA")
@@ -230,6 +231,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--owner-id", default="archon-native")
     parser.add_argument("--lease-seconds", type=int, default=DEFAULT_LEASE_SECONDS)
     parser.add_argument("--poll-seconds", type=int, default=DEFAULT_POLL_SECONDS)
+    parser.add_argument("--workspace", type=Path, default=os.environ.get("ARCHON_WORKSPACE"))
+    parser.add_argument("--owner-keys", type=Path, default=os.environ.get("ARCHON_OWNER_KEYS"))
     parser.add_argument("--once", action="store_true")
     parser.add_argument("--watch", action="store_true")
     args = parser.parse_args(argv)
@@ -239,6 +242,8 @@ def main(argv: list[str] | None = None) -> int:
         executor = NativeControlPlaneExecutor(
             repository=args.repository,
             state_dir=args.state,
+            workspace_root=args.workspace,
+            owner_keys=_load_owner_keys(args.owner_keys),
         )
         with NativeController(
             args.state,
@@ -252,10 +257,22 @@ def main(argv: list[str] | None = None) -> int:
             if args.watch:
                 import threading
 
-                controller.run_forever(threading.Event())
+                stop = threading.Event()
+                def request_stop(_signum: int, _frame: Any) -> None:
+                    stop.set()
+
+                previous = {
+                    signum: signal.signal(signum, request_stop)
+                    for signum in (signal.SIGINT, signal.SIGTERM)
+                }
+                try:
+                    controller.run_forever(stop)
+                finally:
+                    for signum, handler in previous.items():
+                        signal.signal(signum, handler)
             else:
                 print(json.dumps(controller.run_once(), sort_keys=True))
-    except (NativeControllerError, OSError, ValueError) as exc:
+    except (NativeControllerError, NativeExecutorError, OSError, ValueError) as exc:
         parser.exit(2, f"archon-native-controller: {exc}\n")
     return 0
 
