@@ -137,7 +137,10 @@ class Verification:
                 raise RuntimeError("wheel is missing identities.json package data")
             if any(name.startswith("/") or ".." in Path(name).parts for name in names):
                 raise RuntimeError("wheel contains an unsafe path")
-            if any(Path(name).suffix.lower() in {".db", ".sqlite", ".log", ".pem"} for name in names):
+            if any(Path(name).suffix.lower() in {
+                ".db", ".db-wal", ".db-shm", ".sqlite", ".sqlite3",
+                ".sqlite3-wal", ".sqlite3-shm", ".log", ".pem",
+            } for name in names):
                 raise RuntimeError("wheel contains runtime or private files")
             metadata_name = next(name for name in names if name.endswith(".dist-info/METADATA"))
             pkg_metadata = archive.read(metadata_name).decode("utf-8")
@@ -155,7 +158,10 @@ class Verification:
                 raise RuntimeError("source distribution is missing identities.json")
             if any(name.startswith("/") or ".." in Path(name).parts for name in names):
                 raise RuntimeError("source distribution contains an unsafe path")
-            if any(Path(name).suffix.lower() in {".db", ".sqlite", ".log", ".pem"} for name in names):
+            if any(Path(name).suffix.lower() in {
+                ".db", ".db-wal", ".db-shm", ".sqlite", ".sqlite3",
+                ".sqlite3-wal", ".sqlite3-shm", ".log", ".pem",
+            } for name in names):
                 raise RuntimeError("source distribution contains runtime or private files")
         return {
             "wheel": {"path": str(wheel), "sha256": _sha256(wheel), "bytes": wheel.stat().st_size},

@@ -253,10 +253,24 @@ class CoordinatorQueue:
             self._queue._emit_event(item.task_id, "pending", reason)
 
 
-    def cancel(self, task_id: str) -> dict[str, str]:
+    def cancel(self, task_id: str, *, approval: Mapping[str, Any]) -> dict[str, str]:
+        """Persist a preverified owner approval with the pending-task receipt."""
         if not isinstance(task_id, str) or not task_id or len(task_id) > 120:
             raise QueueApiError("invalid task id")
-        receipt = sha256(f"{task_id}:cancelled".encode()).hexdigest()
+        if not isinstance(approval, Mapping):
+            raise QueueApiError("signed owner approval required")
+        try:
+            approval_json = json.dumps(
+                dict(approval), sort_keys=True, separators=(",", ":"), ensure_ascii=True
+            )
+        except (TypeError, ValueError) as exc:
+            raise QueueApiError("signed owner approval is invalid") from exc
+        if len(approval_json.encode("utf-8")) > 4096:
+            raise QueueApiError("signed owner approval is too large")
+        approval_id = approval.get("approval_id")
+        if not isinstance(approval_id, str) or not approval_id or len(approval_id) > 64:
+            raise QueueApiError("signed owner approval is invalid")
+        receipt = sha256(f"{task_id}:cancelled:{sha256(approval_json.encode()).hexdigest()}".encode()).hexdigest()
         with self._queue.db:
             row = self._queue.db.execute(
                 "SELECT state,receipt FROM tasks WHERE id=?", (task_id,)
@@ -273,7 +287,11 @@ class CoordinatorQueue:
             )
             if updated.rowcount != 1:
                 raise QueueApiError("task changed before cancellation")
-            self._queue._emit_event(task_id, "cancelled", receipt)
+            detail = json.dumps(
+                {"approval": dict(approval), "receipt": receipt},
+                sort_keys=True, separators=(",", ":"), ensure_ascii=True,
+            )
+            self._queue._emit_event(task_id, "cancelled", detail)
         return {"task_id": task_id, "state": "cancelled", "receipt": receipt}
 
     def renew(self, item: QueueEnvelope, *, lease_seconds: int = DEFAULT_LEASE_SECONDS) -> QueueEnvelope:

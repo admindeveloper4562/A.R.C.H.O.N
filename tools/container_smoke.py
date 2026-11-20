@@ -32,6 +32,7 @@ class Smoke:
         self.environment = os.environ.copy()
         self.override = self.output / "compose.release-test.yaml"
         self.key_store = self.output / "release-test-owner-keys.json"
+        self.cancel_approval_path = self.output / "release-test-cancel-approval.json"
         self.compose = [
             "docker", "compose", "-p", self.project,
             "-f", str(ROOT / "compose.yaml"), "-f", str(self.override),
@@ -98,6 +99,21 @@ class Smoke:
                 },
             },
         }
+
+    def cancel_document(self, private_key: Ed25519PrivateKey, task_id: str) -> dict:
+        claims = {
+            "schema": 1,
+            "approval_id": f"cancel-{task_id}",
+            "key_id": "release-test-owner",
+            "task_id": task_id,
+            "operation": "task_cancel",
+            "target": task_id,
+            "content_sha256": hashlib.sha256(task_id.encode()).hexdigest(),
+            "expires_at": int(time.time()) + 600,
+            "decision": "APPROVE",
+        }
+        message = json.dumps(claims, sort_keys=True, separators=(",", ":")).encode()
+        return dict(claims, signature=base64.b64encode(private_key.sign(message)).decode())
 
     def submit(self, name: str, task: dict, *, running: bool = True) -> dict:
         if running:
@@ -177,6 +193,8 @@ class Smoke:
             "keys": {"release-test-owner": base64.b64encode(public).decode()},
         }), encoding="utf-8")
         self.key_store.chmod(0o644)
+        self.cancel_approval_path.write_text("{}", encoding="utf-8")
+        self.cancel_approval_path.chmod(0o600)
         self.override.write_text(
             "services:\n"
             "  archon:\n"
@@ -184,8 +202,12 @@ class Smoke:
             "      ARCHON_OWNER_KEYS: /run/secrets/owner-keys.json\n"
             "    volumes:\n"
             "      - type: bind\n"
-            f"        source: {self.key_store}\n"
+            f"        source: {json.dumps(str(self.key_store))}\n"
             "        target: /run/secrets/owner-keys.json\n"
+            "        read_only: true\n"
+            "      - type: bind\n"
+            f"        source: {json.dumps(str(self.cancel_approval_path))}\n"
+            "        target: /run/secrets/cancel-approval.json\n"
             "        read_only: true\n",
             encoding="utf-8",
         )
@@ -253,11 +275,14 @@ class Smoke:
             "module": "core",
             "payload": {"operation": "native_capabilities"},
         }
+        cancellation_approval = self.cancel_document(trusted, cancelled_task["task_id"])
+        self.cancel_approval_path.write_text(json.dumps(cancellation_approval), encoding="utf-8")
         self.submit("submit-queued-cancel", cancelled_task, running=False)
         cancelled = json.loads(self.command(
             "cancel-pending-task", [*self.compose, "run", "--rm", "--no-deps", "-T",
                                      "--entrypoint", "jarvis-v2", "archon", "cancel", "--state",
-                                     "/var/lib/archon", "--task-id", cancelled_task["task_id"]],
+                                     "/var/lib/archon", "--task-id", cancelled_task["task_id"],
+                                     "--approval-file", "/run/secrets/cancel-approval.json"],
         ))
         if cancelled["state"] != "cancelled":
             raise RuntimeError("queued cancellation was not durable")
@@ -332,10 +357,10 @@ class Smoke:
 
         security = self.command(
             "container-security-config", ["docker", "inspect", "--format",
-                                          "{{.Config.User}}|{{.HostConfig.ReadonlyRootfs}}|{{json .HostConfig.CapDrop}}|{{.HostConfig.NetworkMode}}",
+                                          "{{.Config.User}}|{{.HostConfig.ReadonlyRootfs}}|{{json .HostConfig.CapDrop}}|{{.HostConfig.NetworkMode}}|{{json .HostConfig.SecurityOpt}}",
                                           container_id],
         )
-        if security != "10001:10001|true|[\"ALL\"]|none":
+        if security != "10001:10001|true|[\"ALL\"]|none|[\"no-new-privileges:true\"]":
             raise RuntimeError(f"container security settings differ from policy: {security}")
         self.command("save-container-image", ["docker", "save", "--output",
                                                str(self.output / "archon-local-image.tar"),

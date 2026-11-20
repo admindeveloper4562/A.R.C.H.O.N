@@ -1,3 +1,4 @@
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -81,19 +82,39 @@ class CoordinatorQueueTests(unittest.TestCase):
                 self.assertEqual(queue.history("AUTO-008")[-1]["kind"], "failed")
 
 
+    def test_bounded_attempts_include_released_handoffs(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with CoordinatorQueue.open(Path(directory) / "queue.sqlite") as queue:
+                queue.enqueue(task_id="AUTO-011", priority="P1", module="automation", payload={})
+                for attempt in range(MAX_LEASE_ATTEMPTS):
+                    leased = queue.lease_next()
+                    self.assertIsNotNone(leased)
+                    queue.release(leased, reason="handoff_retry")
+                    self.assertEqual(bool(queue.eligible()), attempt < MAX_LEASE_ATTEMPTS - 1)
+                self.assertEqual(queue.status()[0]["state"], "failed")
+                self.assertEqual(queue.history("AUTO-011")[-1]["kind"], "failed")
+
+
     def test_pending_task_cancellation_is_durable_and_leased_task_is_protected(self):
         with tempfile.TemporaryDirectory() as directory:
             with CoordinatorQueue.open(Path(directory) / "queue.sqlite") as queue:
                 queue.enqueue(task_id="AUTO-009", priority="P1", module="automation", payload={})
-                cancelled = queue.cancel("AUTO-009")
+                approval = {"approval_id": "owner-cancel", "signature": "signed-document"}
+                cancelled = queue.cancel("AUTO-009", approval=approval)
                 self.assertEqual(cancelled["state"], "cancelled")
-                self.assertEqual(queue.cancel("AUTO-009"), cancelled)
+                self.assertEqual(queue.cancel("AUTO-009", approval=approval), cancelled)
                 self.assertEqual(queue.status()[0]["state"], "cancelled")
-                self.assertEqual(queue.history("AUTO-009")[-1]["kind"], "cancelled")
+                event = queue.history("AUTO-009")[-1]
+                self.assertEqual(event["kind"], "cancelled")
+                detail = queue._queue.db.execute(
+                    "SELECT detail FROM events WHERE task_id=? AND kind='cancelled'",
+                    ("AUTO-009",),
+                ).fetchone()[0]
+                self.assertEqual(json.loads(detail)["approval"], approval)
                 queue.enqueue(task_id="AUTO-010", priority="P1", module="automation", payload={})
                 queue.lease_next()
                 with self.assertRaisesRegex(ValueError, "only pending tasks"):
-                    queue.cancel("AUTO-010")
+                    queue.cancel("AUTO-010", approval=approval)
 
 
 if __name__ == "__main__":

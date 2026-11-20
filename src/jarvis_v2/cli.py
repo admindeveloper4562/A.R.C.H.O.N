@@ -1,6 +1,7 @@
 """Read-only and local deterministic foundation commands. No background agents."""
 from __future__ import annotations
 import argparse
+from hashlib import sha256
 import json
 import os
 from pathlib import Path
@@ -97,8 +98,14 @@ def _submit_task(path: str, task_path: str | Path) -> dict[str, str]:
 
 
 
-def _cancel_task(path: str | Path, task_id: str) -> dict[str, str]:
+def _cancel_task(
+    path: str | Path,
+    task_id: str,
+    approval_path: str | Path,
+    owner_keys_path: str | Path | None,
+) -> dict[str, str]:
     from .automation.queue_api import CoordinatorQueue, QueueApiError
+    from .native_executor import NativeExecutorError, _load_owner_keys, _verify_signed_approval
 
     state = _state_directory(path)
     database = state / "atlas.sqlite3"
@@ -107,8 +114,41 @@ def _cancel_task(path: str | Path, task_id: str) -> dict[str, str]:
     if stat.S_IMODE(database.stat().st_mode) & 0o077:
         raise ValueError("native task queue permissions are not private")
     try:
+        descriptor = os.open(
+            Path(approval_path).expanduser(),
+            os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC,
+        )
+        try:
+            details = os.fstat(descriptor)
+            if not stat.S_ISREG(details.st_mode) or details.st_size > 16 * 1024:
+                raise ValueError("task cancellation approval is invalid")
+            with os.fdopen(descriptor, "rb") as stream:
+                descriptor = -1
+                raw = stream.read(16 * 1024 + 1)
+            if len(raw) > 16 * 1024:
+                raise ValueError("task cancellation approval is too large")
+            approval = json.loads(raw)
+        finally:
+            if descriptor >= 0:
+                os.close(descriptor)
+    except (OSError, UnicodeError, ValueError) as exc:
+        raise ValueError("task cancellation approval is unavailable or invalid") from exc
+    if not isinstance(approval, dict):
+        raise ValueError("task cancellation approval is invalid")
+    try:
+        _verify_signed_approval(
+            approval,
+            _load_owner_keys(owner_keys_path),
+            task_id=task_id,
+            target=task_id,
+            content_sha256=sha256(task_id.encode("utf-8")).hexdigest(),
+            operation="task_cancel",
+        )
+    except NativeExecutorError as exc:
+        raise ValueError("task cancellation approval is not authorized") from exc
+    try:
         with CoordinatorQueue.open(database) as queue:
-            return queue.cancel(task_id)
+            return queue.cancel(task_id, approval=approval)
     except QueueApiError as exc:
         raise ValueError("task cancellation failed") from exc
 
@@ -119,7 +159,7 @@ def main(argv=None):
     s.add_parser("modules");s.add_parser("identities")
     init=s.add_parser("init");init.add_argument("--state",type=Path,default=Path(os.environ.get("ARCHON_STATE", DEFAULT_STATE)))
     submit=s.add_parser("submit");submit.add_argument("--state",type=Path,default=Path(os.environ.get("ARCHON_STATE", DEFAULT_STATE)));submit.add_argument("--task-file",required=True)
-    cancel=s.add_parser("cancel");cancel.add_argument("--state",type=Path,default=Path(os.environ.get("ARCHON_STATE", DEFAULT_STATE)));cancel.add_argument("--task-id",required=True)
+    cancel=s.add_parser("cancel");cancel.add_argument("--state",type=Path,default=Path(os.environ.get("ARCHON_STATE", DEFAULT_STATE)));cancel.add_argument("--task-id",required=True);cancel.add_argument("--approval-file",type=Path,required=True);cancel.add_argument("--owner-keys",type=Path,default=os.environ.get("ARCHON_OWNER_KEYS"))
     i=s.add_parser("inventory")
     i.add_argument("--root",type=Path,default=Path("/"))
     i.add_argument("--max-entries",type=int,default=10000)
@@ -140,7 +180,8 @@ def main(argv=None):
         except (OSError,UnicodeError,ValueError) as exc:
             print(f"jarvis-v2 submit: {exc}",file=sys.stderr);return 2
     elif args.command=="cancel":
-        try: print(json.dumps(_cancel_task(args.state,args.task_id),sort_keys=True))
+        try:
+            print(json.dumps(_cancel_task(args.state,args.task_id,args.approval_file,args.owner_keys),sort_keys=True))
         except (OSError,ValueError) as exc:
             print(f"jarvis-v2 cancel: {exc}",file=sys.stderr);return 2
     elif args.command in ("modules","identities"):

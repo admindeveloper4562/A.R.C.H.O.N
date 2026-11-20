@@ -167,6 +167,7 @@ def _verify_signed_approval(
     task_id: str,
     target: str,
     content_sha256: str,
+    operation: str = "workspace_write",
 ) -> str:
     if not isinstance(approval, Mapping) or set(approval) != _APPROVAL_FIELDS | {"signature"}:
         raise NativeExecutorError("owner_approval_invalid")
@@ -175,7 +176,7 @@ def _verify_signed_approval(
         type(approval["schema"]) is not int
         or approval["schema"] != 1
         or approval["decision"] != "APPROVE"
-        or approval["operation"] != "workspace_write"
+        or approval["operation"] != operation
         or approval["task_id"] != task_id
         or approval["target"] != target
         or approval["content_sha256"] != content_sha256

@@ -33,7 +33,7 @@ The three installed commands are `jarvis-v2`, `atlas-monitor`, and `archon-nativ
 archon-native-controller --watch --state "$HOME/.local/state/archon" --repository "$PWD"
 ```
 
-Admission is local to the OS user who can access the private state directory. `jarvis-v2 submit --task-file -` reads one JSON task document from standard input; `jarvis-v2 cancel --task-id ID` cancels a task only while it remains pending. A leased task cannot be cancelled. Expired leases are retried at most three times.
+Admission is local to the OS user who can access the private state directory. `jarvis-v2 submit --task-file -` reads one JSON task document from standard input. Cancellation requires `jarvis-v2 cancel --task-id ID --approval-file signed-approval.json`; it verifies the Ed25519 signature using `ARCHON_OWNER_KEYS`, binds approval to `task_cancel` and the exact task ID, and persists the signed approval with the receipt. Only pending tasks can be cancelled; a leased task cannot. A task receives at most three lease attempts total, including expired leases and explicit releases after failed handoffs; it is failed and quarantined before another attempt.
 
 ## Run the container
 
@@ -55,9 +55,9 @@ The container health check runs `jarvis-v2 health`. The controller handles `SIGT
 | --- | --- | --- |
 | `ARCHON_STATE` | `/var/lib/archon` in Compose | Private persistent runtime state |
 | `ARCHON_WORKSPACE` | `/workspace` in Compose | Dedicated private directory for the optional bounded file effect |
-| `ARCHON_OWNER_KEYS` | unset | Optional path to a read-only JSON trust store of Ed25519 public keys |
+| `ARCHON_OWNER_KEYS` | unset | Optional path to a read-only JSON trust store of Ed25519 public keys for approved workspace writes and task cancellation |
 
-Compose does not configure owner keys, so the file effect is disabled by default. If an operator provisions a trusted public key, mount only the public-key store read-only and set `ARCHON_OWNER_KEYS` to its container path. Keep private signing keys outside the image and container. A `workspace_write` approval binds the task ID, exact single filename, content digest, operation, decision, key ID, and expiry; it can create a new file of at most 64 KiB and cannot overwrite an existing different file. It does not enable arbitrary shell, network, financial, or communication actions.
+Compose does not configure owner keys, so cancellation approval and the file effect are unavailable by default. If an operator provisions a trusted public key, mount only the public-key store read-only and set `ARCHON_OWNER_KEYS` to its container path. Keep private signing keys outside the image and container. A `workspace_write` approval binds the task ID, exact single filename, content digest, operation, decision, key ID, and expiry; it can create a new file of at most 64 KiB and cannot overwrite an existing different file. A `task_cancel` approval binds the same signed claims to the exact task ID and cancellation operation; the queue event retains the signed approval and receipt. These controls do not enable arbitrary shell, network, financial, or communication actions.
 
 Do not mount the Docker socket, host home directory, Astra One state, credentials, or general-purpose host paths into the service.
 

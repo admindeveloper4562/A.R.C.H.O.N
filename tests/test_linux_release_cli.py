@@ -1,4 +1,6 @@
 import contextlib
+import base64
+import hashlib
 import io
 import json
 import os
@@ -10,6 +12,9 @@ import time
 import unittest
 from pathlib import Path
 
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
 from jarvis_v2.automation.queue_api import CoordinatorQueue
 from jarvis_v2.cli import main
 
@@ -17,9 +22,25 @@ from jarvis_v2.cli import main
 class LinuxReleaseCliTests(unittest.TestCase):
     def _run_cli(self, arguments):
         output = io.StringIO()
-        with contextlib.redirect_stdout(output):
+        with contextlib.redirect_stdout(output), contextlib.redirect_stderr(io.StringIO()):
             code = main(arguments)
         return code, json.loads(output.getvalue()) if output.getvalue().strip() else None
+
+    @staticmethod
+    def _cancel_approval(private_key, task_id):
+        claims = {
+            "schema": 1,
+            "approval_id": f"cancel-{task_id}",
+            "key_id": "test-owner",
+            "task_id": task_id,
+            "operation": "task_cancel",
+            "target": task_id,
+            "content_sha256": hashlib.sha256(task_id.encode()).hexdigest(),
+            "expires_at": int(time.time()) + 600,
+            "decision": "APPROVE",
+        }
+        signed = json.dumps(claims, sort_keys=True, separators=(",", ":")).encode()
+        return dict(claims, signature=base64.b64encode(private_key.sign(signed)).decode())
 
     def test_fresh_init_admits_and_cancels_local_task(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -43,13 +64,40 @@ class LinuxReleaseCliTests(unittest.TestCase):
             ])
             self.assertEqual(code, 0)
             self.assertEqual(admitted["status"], "accepted")
+            trusted = Ed25519PrivateKey.generate()
+            untrusted = Ed25519PrivateKey.generate()
+            keys = root / "owner-keys.json"
+            keys.write_text(json.dumps({
+                "schema": 1,
+                "keys": {"test-owner": base64.b64encode(trusted.public_key().public_bytes(
+                    serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+                )).decode()},
+            }))
+            keys.chmod(0o600)
+            approval_file = root / "cancel-approval.json"
+            approval_file.write_text(json.dumps(self._cancel_approval(untrusted, "release-smoke")))
+            code, denied = self._run_cli([
+                "cancel", "--state", str(state), "--task-id", "release-smoke",
+                "--approval-file", str(approval_file), "--owner-keys", str(keys),
+            ])
+            self.assertEqual(code, 2)
+            self.assertIsNone(denied)
+            with CoordinatorQueue.open(state / "atlas.sqlite3") as queue:
+                self.assertEqual(queue.status()[0]["state"], "pending")
+            approval_file.write_text(json.dumps(self._cancel_approval(trusted, "release-smoke")))
             code, cancelled = self._run_cli([
                 "cancel", "--state", str(state), "--task-id", "release-smoke",
+                "--approval-file", str(approval_file), "--owner-keys", str(keys),
             ])
             self.assertEqual(code, 0)
             self.assertEqual(cancelled["state"], "cancelled")
             with CoordinatorQueue.open(state / "atlas.sqlite3") as queue:
                 self.assertEqual(queue.status()[0]["state"], "cancelled")
+                detail = queue._queue.db.execute(
+                    "SELECT detail FROM events WHERE task_id=? AND kind='cancelled'",
+                    ("release-smoke",),
+                ).fetchone()[0]
+                self.assertEqual(json.loads(detail)["approval"], json.loads(approval_file.read_text()))
 
     @unittest.skipUnless(sys.platform == "linux", "Linux process signal behavior")
     def test_watch_controller_exits_on_sigterm(self):
