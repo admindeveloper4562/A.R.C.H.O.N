@@ -275,7 +275,7 @@ class Verification:
 
         audit_env = self.create_venv("dependency-audit")
         self.run("install-pip-audit", [str(audit_env), "-m", "pip", "install", AUDIT_TOOL], timeout=600)
-        audit = self.run("pip-audit", [str(audit_env.parent / "bin" / "pip-audit"),
+        audit = self.run("pip-audit", [str(audit_env.parent / "pip-audit"),
                                         "--requirement", str(ROOT / "requirements/runtime.lock"),
                                         "--format", "json"], timeout=600, allow_failure=True)
         try:
