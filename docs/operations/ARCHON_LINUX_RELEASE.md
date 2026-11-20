@@ -81,8 +81,8 @@ Back up the state and workspace using the procedure below before upgrading. Keep
 ```sh
 rollback_image="archon-local:rollback-$(date -u +%Y%m%dT%H%M%SZ)"
 docker image tag archon-local:0.0.3 "$rollback_image"
-docker compose stop -t 10
 ARCHON_SOURCE_SHA="$(git rev-parse HEAD)" docker compose build
+docker compose stop -t 10
 docker compose up -d --force-recreate
 docker compose exec -T archon jarvis-v2 health --state /var/lib/archon --repo /app
 docker compose exec -T archon jarvis-v2 modules
@@ -96,9 +96,77 @@ services:
     image: $rollback_image
 EOF
 ```
-In the restore procedure below set `project=archon-rollback` and replace its final `up -d` command with `docker compose -p "$project" -f compose.yaml -f "$rollback_override" up -d`. Keep the failed project's volumes until the restored instance passes its checks; never restore over the only copy of a live volume or run the older image against a database the newer release may have migrated.
+In the restore procedure below set `project=archon-rollback` and replace its final `up -d` command with `docker compose -p "$project" -f compose.yaml -f "$rollback_override" up -d`. If the original deployment mounted owner keys, add that same read-only bind mount to the override before starting the restored project:
+```yaml
+    volumes:
+      - type: bind
+        source: /etc/archon/owner-keys.json
+        target: /etc/archon/owner-keys.json
+        read_only: true
+```
+Keep the failed project's volumes until the restored instance passes its checks; never restore over the only copy of a live volume or run the older image against a database the newer release may have migrated.
 
-For a wheel installation, stop the foreground controller, keep the prior virtual environment, and back up `runtime.sqlite3`, `atlas.sqlite3`, and `effects.sqlite3` with SQLite's backup API; check each backup with `PRAGMA integrity_check`. Install the new wheel with `python -m pip install --upgrade artifacts/release-qualification/dist/jarvis_v2-0.0.3-py3-none-any.whl`, then run `jarvis-v2 health` before restarting the controller. If the migration or health check fails, switch back to the previous environment and restore the verified database backup into a separate state directory before starting it.
+### Wheel upgrade and rollback
+Keep the existing virtual environment unchanged. Stop its controller, then make a private SQLite backup before applying migrations:
+```sh
+umask 077
+state_dir="${ARCHON_STATE:-$HOME/.local/state/archon}"
+backup_dir="$HOME/.local/state/archon-backup-$(date -u +%Y%m%dT%H%M%SZ)"
+mkdir -m 700 "$backup_dir"
+python3 - "$state_dir" "$backup_dir" <<'PY'
+from pathlib import Path
+import os
+import sqlite3
+import sys
+
+source_dir, backup_dir = map(Path, sys.argv[1:])
+for name in ("runtime.sqlite3", "atlas.sqlite3", "effects.sqlite3"):
+    source_path = source_dir / name
+    if not source_path.exists():
+        continue
+    with sqlite3.connect(f"file:{source_path}?mode=ro", uri=True) as source:
+        with sqlite3.connect(backup_dir / name) as target:
+            source.backup(target)
+            if target.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+                raise SystemExit(f"backup integrity failed: {name}")
+    os.chmod(backup_dir / name, 0o600)
+PY
+```
+If `ARCHON_WORKSPACE` is configured, copy it while the controller is stopped and keep it paired with this database snapshot:
+```sh
+if [ -n "${ARCHON_WORKSPACE:-}" ]; then
+  mkdir -m 700 "$backup_dir/workspace"
+  cp -a "$ARCHON_WORKSPACE/." "$backup_dir/workspace/"
+fi
+```
+Create a new virtual environment so the previous one remains available, install the wheel, and run `init` to apply migrations before health checks:
+```sh
+wheel=artifacts/release-qualification/dist/jarvis_v2-0.0.3-py3-none-any.whl
+new_venv="$HOME/.local/share/archon/venvs/$(date -u +%Y%m%dT%H%M%SZ)"
+mkdir -p "$(dirname "$new_venv")"
+python3 -m venv "$new_venv"
+"$new_venv/bin/python" -m pip install "$wheel"
+"$new_venv/bin/jarvis-v2" init --state "$state_dir"
+"$new_venv/bin/jarvis-v2" health --state "$state_dir" --repo "$PWD"
+"$new_venv/bin/archon-native-controller" --watch --state "$state_dir" --repository "$PWD"
+```
+If migration or health checks fail, do not run the old environment against the migrated state. Restore the SQLite backup into a new private state directory, restore any workspace snapshot to a separate path, set `old_venv` to the preserved environment, and start that version against the restored paths:
+```sh
+rollback_state="$HOME/.local/state/archon-rollback-$(date -u +%Y%m%dT%H%M%SZ)"
+mkdir -m 700 "$rollback_state"
+cp "$backup_dir"/*.sqlite3 "$rollback_state/"
+chmod 600 "$rollback_state"/*.sqlite3
+old_venv="${ARCHON_PREVIOUS_VENV:?set to the preserved virtual environment path}"
+"$old_venv/bin/jarvis-v2" health --state "$rollback_state" --repo "$PWD"
+if [ -d "$backup_dir/workspace" ]; then
+  rollback_workspace="$HOME/.local/state/archon-workspace-rollback-$(date -u +%Y%m%dT%H%M%SZ)"
+  mkdir -m 700 "$rollback_workspace"
+  cp -a "$backup_dir/workspace/." "$rollback_workspace/"
+  ARCHON_WORKSPACE="$rollback_workspace" "$old_venv/bin/archon-native-controller" --watch --state "$rollback_state" --repository "$PWD"
+else
+  "$old_venv/bin/archon-native-controller" --watch --state "$rollback_state" --repository "$PWD"
+fi
+```
 
 ### Environment and owner approvals
 
@@ -107,7 +175,7 @@ For a wheel installation, stop the foreground controller, keep the prior virtual
 | `ARCHON_STATE` | `/var/lib/archon` in Compose | Private persistent runtime state |
 | `ARCHON_WORKSPACE` | `/workspace` in Compose | Dedicated private directory for the optional bounded file effect |
 
-Compose does not mount owner keys, so task submission, processing, cancellation, and the file effect are unavailable by default. The core container still starts and reports health without this trust store. To enable them, install the public-key store at `/etc/archon/owner-keys.json` on Linux with administrator-controlled ownership and no group/world write access; in Compose, mount only that file read-only at the same container path. The file must be readable by UID `10001` (for example mode `0644`). If the store is unavailable, pending tasks remain queued; tasks with missing, invalid, expired, or mismatched admission proof are failed before an executor receives them. Keep private signing keys outside the image and container. A `workspace_write` approval binds the task ID, exact single filename, content digest, operation, decision, key ID, and expiry; it can create a new file of at most 64 KiB and cannot overwrite an existing different file. Admission and `task_cancel` approvals bind the exact task or cancellation request; signed approval documents and receipts are retained in queue events. These controls do not enable arbitrary shell, network, financial, or communication actions.
+Compose does not mount owner keys, so task submission, processing, cancellation, and the file effect are unavailable by default. The core container still starts and reports health without this trust store. To enable them, install the public-key store at `/etc/archon/owner-keys.json` on Linux with root-controlled ownership and no group/world write access; in Compose, mount only that file read-only at the same container path. The file must be readable by UID `10001` (for example mode `0644`). If the store is unavailable, pending tasks remain queued; tasks with missing, invalid, expired, or mismatched admission proof are failed before an executor receives them. Keep private signing keys outside the image and container. A `workspace_write` approval binds the task ID, exact single filename, content digest, operation, decision, key ID, and expiry; it can create a new file of at most 64 KiB and cannot overwrite an existing different file. Admission and `task_cancel` approvals bind the exact task or cancellation request; signed approval documents and receipts are retained in queue events. These controls do not enable arbitrary shell, network, financial, or communication actions.
 
 Do not mount the Docker socket, host home directory, Astra One state, credentials, or general-purpose host paths into the service.
 
