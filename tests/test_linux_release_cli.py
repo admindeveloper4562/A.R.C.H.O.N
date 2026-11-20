@@ -42,7 +42,27 @@ class LinuxReleaseCliTests(unittest.TestCase):
         signed = json.dumps(claims, sort_keys=True, separators=(",", ":")).encode()
         return dict(claims, signature=base64.b64encode(private_key.sign(signed)).decode())
 
-    def test_fresh_init_admits_and_cancels_local_task(self):
+    @staticmethod
+    def _admission_approval(private_key, task):
+        task_id = task["task_id"]
+        task_bytes = json.dumps(
+            task, sort_keys=True, separators=(",", ":"), ensure_ascii=True,
+        ).encode()
+        claims = {
+            "schema": 1,
+            "approval_id": f"submit-{hashlib.sha256(task_id.encode()).hexdigest()[:24]}",
+            "key_id": "test-owner",
+            "task_id": task_id,
+            "operation": "task_submit",
+            "target": task_id,
+            "content_sha256": hashlib.sha256(task_bytes).hexdigest(),
+            "expires_at": int(time.time()) + 600,
+            "decision": "APPROVE",
+        }
+        signed = json.dumps(claims, sort_keys=True, separators=(",", ":")).encode()
+        return dict(claims, signature=base64.b64encode(private_key.sign(signed)).decode())
+
+    def test_fresh_init_requires_signed_admission_and_cancels_local_task(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             state = root / "state"
@@ -52,18 +72,14 @@ class LinuxReleaseCliTests(unittest.TestCase):
             for name in ("runtime.sqlite3", "atlas.sqlite3"):
                 self.assertEqual((state / name).stat().st_mode & 0o077, 0)
 
-            document = root / "task.json"
-            document.write_text(json.dumps({
+            task = {
                 "task_id": "release-smoke",
                 "priority": "P3",
                 "module": "core",
                 "payload": {"operation": "native_capabilities"},
-            }))
-            code, admitted = self._run_cli([
-                "submit", "--state", str(state), "--task-file", str(document),
-            ])
-            self.assertEqual(code, 0)
-            self.assertEqual(admitted["status"], "accepted")
+            }
+            document = root / "task.json"
+            document.write_text(json.dumps(task))
             trusted = Ed25519PrivateKey.generate()
             untrusted = Ed25519PrivateKey.generate()
             keys = root / "owner-keys.json"
@@ -74,6 +90,42 @@ class LinuxReleaseCliTests(unittest.TestCase):
                 )).decode()},
             }))
             keys.chmod(0o600)
+            admission_file = root / "admission-approval.json"
+            submit_args = [
+                "submit", "--state", str(state), "--task-file", str(document),
+                "--approval-file", str(admission_file), "--owner-keys", str(keys),
+            ]
+            admission_file.write_text(json.dumps(self._admission_approval(untrusted, task)))
+            code, denied = self._run_cli(submit_args)
+            self.assertEqual(code, 2)
+            self.assertIsNone(denied)
+            with CoordinatorQueue.open(state / "atlas.sqlite3") as queue:
+                self.assertEqual(queue.status(), [])
+
+            admission_file.write_text(json.dumps(self._admission_approval(trusted, task)))
+            document.write_text(json.dumps({**task, "payload": {"operation": "queue_status"}}))
+            code, denied = self._run_cli(submit_args)
+            self.assertEqual(code, 2)
+            self.assertIsNone(denied)
+            with CoordinatorQueue.open(state / "atlas.sqlite3") as queue:
+                self.assertEqual(queue.status(), [])
+
+            document.write_text(json.dumps(task))
+            code, admitted = self._run_cli(submit_args)
+            self.assertEqual(code, 0)
+            self.assertEqual(admitted["status"], "accepted")
+            self.assertEqual(admitted["approval_id"], json.loads(admission_file.read_text())["approval_id"])
+            self.assertEqual(len(admitted["receipt"]), 64)
+            with CoordinatorQueue.open(state / "atlas.sqlite3") as queue:
+                self.assertEqual(queue.status()[0]["state"], "pending")
+                detail = queue._queue.db.execute(
+                    "SELECT detail FROM events WHERE task_id=? AND kind='pending'",
+                    ("release-smoke",),
+                ).fetchone()[0]
+                persisted = json.loads(detail)
+                self.assertEqual(persisted["approval"], json.loads(admission_file.read_text()))
+                self.assertEqual(persisted["receipt"], admitted["receipt"])
+
             approval_file = root / "cancel-approval.json"
             approval_file.write_text(json.dumps(self._cancel_approval(untrusted, "release-smoke")))
             code, denied = self._run_cli([

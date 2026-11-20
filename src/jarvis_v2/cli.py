@@ -13,6 +13,43 @@ from .health import HealthError, collect_health
 from .system_inventory import InventoryError, collect_inventory, write_inventory
 
 DEFAULT_STATE = Path.home() / ".local" / "state" / "archon"
+_MAX_TASK_DOCUMENT_BYTES = 256 * 1024
+_MAX_APPROVAL_DOCUMENT_BYTES = 16 * 1024
+
+
+def _read_json_document(path: str | Path, *, label: str, max_bytes: int, stdin: bool = False) -> dict:
+    descriptor = -1
+    try:
+        if stdin and str(path) == "-":
+            stream = getattr(sys.stdin, "buffer", sys.stdin)
+            raw = stream.read(max_bytes + 1)
+            if isinstance(raw, str):
+                raw = raw.encode("utf-8")
+        else:
+            descriptor = os.open(
+                Path(path).expanduser(),
+                os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC,
+            )
+            details = os.fstat(descriptor)
+            if not stat.S_ISREG(details.st_mode) or details.st_size > max_bytes:
+                raise ValueError(f"{label} is unavailable or invalid")
+            with os.fdopen(descriptor, "rb") as source:
+                descriptor = -1
+                raw = source.read(max_bytes + 1)
+    except OSError as exc:
+        raise ValueError(f"{label} is unavailable or invalid") from exc
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+    if len(raw) > max_bytes:
+        raise ValueError(f"{label} is too large")
+    try:
+        document = json.loads(raw)
+    except (UnicodeError, ValueError) as exc:
+        raise ValueError(f"{label} is unavailable or invalid") from exc
+    if not isinstance(document, dict):
+        raise ValueError(f"{label} is invalid")
+    return document
 
 def _config_file(name: str) -> Path:
     development = Path(__file__).resolve().parents[2] / "config" / name
@@ -59,31 +96,50 @@ def _initialize_state(path: str | Path) -> dict[str, object]:
     return {"status": "initialized", "mode": "native_runtime", "migrations_applied": len(migrations)}
 
 
-def _submit_task(path: str, task_path: str | Path) -> dict[str, str]:
+def _submit_task(
+    path: str | Path,
+    task_path: str | Path,
+    approval_path: str | Path,
+    owner_keys_path: str | Path | None,
+) -> dict[str, str]:
     from .automation.queue_api import CoordinatorQueue, QueueApiError
-
+    from .native_executor import NativeExecutorError, _load_owner_keys, _verify_signed_approval
     state = _state_directory(path)
     database = state / "atlas.sqlite3"
     if database.is_symlink() or not database.is_file():
         raise ValueError("native task queue is unavailable")
     if stat.S_IMODE(database.stat().st_mode) & 0o077:
         raise ValueError("native task queue permissions are not private")
-    if str(task_path) == "-":
-        raw = sys.stdin.read()
-    else:
-        source = Path(task_path).expanduser()
-        if source.is_symlink() or not source.is_file() or source.stat().st_size > 256 * 1024:
-            raise ValueError("task document is unavailable or too large")
-        raw = source.read_text(encoding="utf-8")
-    if len(raw.encode("utf-8")) > 256 * 1024:
-        raise ValueError("task document is too large")
-    task = json.loads(raw)
+    task = _read_json_document(
+        task_path, label="task document", max_bytes=_MAX_TASK_DOCUMENT_BYTES, stdin=True,
+    )
     if (
-        not isinstance(task, dict)
-        or set(task) != {"task_id", "priority", "module", "payload"}
+        set(task) != {"task_id", "priority", "module", "payload"}
+        or not isinstance(task["task_id"], str)
+        or not task["task_id"]
+        or len(task["task_id"]) > 120
         or not isinstance(task["payload"], dict)
     ):
         raise ValueError("task document shape is invalid")
+    approval = _read_json_document(
+        approval_path,
+        label="task admission approval",
+        max_bytes=_MAX_APPROVAL_DOCUMENT_BYTES,
+    )
+    task_bytes = json.dumps(
+        task, sort_keys=True, separators=(",", ":"), ensure_ascii=True,
+    ).encode("utf-8")
+    try:
+        approval_id = _verify_signed_approval(
+            approval,
+            _load_owner_keys(owner_keys_path),
+            task_id=task["task_id"],
+            target=task["task_id"],
+            content_sha256=sha256(task_bytes).hexdigest(),
+            operation="task_submit",
+        )
+    except NativeExecutorError as exc:
+        raise ValueError("task admission approval is not authorized") from exc
     try:
         with CoordinatorQueue.open(database) as queue:
             envelope = queue.enqueue(
@@ -91,10 +147,16 @@ def _submit_task(path: str, task_path: str | Path) -> dict[str, str]:
                 priority=task["priority"],
                 module=task["module"],
                 payload=task["payload"],
+                approval=approval,
             )
     except QueueApiError as exc:
         raise ValueError("task admission failed") from exc
-    return {"status": "accepted", "task_id": envelope.task_id}
+    return {
+        "status": "accepted",
+        "task_id": envelope.task_id,
+        "approval_id": approval_id,
+        "receipt": envelope.admission_receipt or "",
+    }
 
 
 
@@ -113,28 +175,11 @@ def _cancel_task(
         raise ValueError("native task queue is unavailable")
     if stat.S_IMODE(database.stat().st_mode) & 0o077:
         raise ValueError("native task queue permissions are not private")
-    try:
-        descriptor = os.open(
-            Path(approval_path).expanduser(),
-            os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC,
-        )
-        try:
-            details = os.fstat(descriptor)
-            if not stat.S_ISREG(details.st_mode) or details.st_size > 16 * 1024:
-                raise ValueError("task cancellation approval is invalid")
-            with os.fdopen(descriptor, "rb") as stream:
-                descriptor = -1
-                raw = stream.read(16 * 1024 + 1)
-            if len(raw) > 16 * 1024:
-                raise ValueError("task cancellation approval is too large")
-            approval = json.loads(raw)
-        finally:
-            if descriptor >= 0:
-                os.close(descriptor)
-    except (OSError, UnicodeError, ValueError) as exc:
-        raise ValueError("task cancellation approval is unavailable or invalid") from exc
-    if not isinstance(approval, dict):
-        raise ValueError("task cancellation approval is invalid")
+    approval = _read_json_document(
+        approval_path,
+        label="task cancellation approval",
+        max_bytes=_MAX_APPROVAL_DOCUMENT_BYTES,
+    )
     try:
         _verify_signed_approval(
             approval,
@@ -158,7 +203,7 @@ def main(argv=None):
     s=p.add_subparsers(dest="command",required=True)
     s.add_parser("modules");s.add_parser("identities")
     init=s.add_parser("init");init.add_argument("--state",type=Path,default=Path(os.environ.get("ARCHON_STATE", DEFAULT_STATE)))
-    submit=s.add_parser("submit");submit.add_argument("--state",type=Path,default=Path(os.environ.get("ARCHON_STATE", DEFAULT_STATE)));submit.add_argument("--task-file",required=True)
+    submit=s.add_parser("submit");submit.add_argument("--state",type=Path,default=Path(os.environ.get("ARCHON_STATE", DEFAULT_STATE)));submit.add_argument("--task-file",required=True);submit.add_argument("--approval-file",type=Path,required=True);submit.add_argument("--owner-keys",type=Path,default=os.environ.get("ARCHON_OWNER_KEYS"))
     cancel=s.add_parser("cancel");cancel.add_argument("--state",type=Path,default=Path(os.environ.get("ARCHON_STATE", DEFAULT_STATE)));cancel.add_argument("--task-id",required=True);cancel.add_argument("--approval-file",type=Path,required=True);cancel.add_argument("--owner-keys",type=Path,default=os.environ.get("ARCHON_OWNER_KEYS"))
     i=s.add_parser("inventory")
     i.add_argument("--root",type=Path,default=Path("/"))
@@ -176,7 +221,7 @@ def main(argv=None):
         except (OSError,ValueError) as exc:
             print(f"jarvis-v2 init: {exc}",file=sys.stderr);return 2
     elif args.command=="submit":
-        try: print(json.dumps(_submit_task(args.state,args.task_file),sort_keys=True))
+        try: print(json.dumps(_submit_task(args.state,args.task_file,args.approval_file,args.owner_keys),sort_keys=True))
         except (OSError,UnicodeError,ValueError) as exc:
             print(f"jarvis-v2 submit: {exc}",file=sys.stderr);return 2
     elif args.command=="cancel":

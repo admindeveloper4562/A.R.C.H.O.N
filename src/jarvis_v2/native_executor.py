@@ -50,7 +50,7 @@ SUPPORTED_OPERATIONS = (
 )
 
 REJECTED_OPERATION_REASONS = {
-    "task_submission": "separate_authenticated queue admission required",
+    "task_submission": "signed local queue admission is separate from executor operations",
     "filesystem_write": "reviewed bounded handler and owner approval required",
     "service_control": "external trusted watchdog required",
     "network_request": "module-specific connector and authorization required",

@@ -63,6 +63,7 @@ class QueueEnvelope:
     module: str
     payload: dict[str, Any]
     lease: str | None = None
+    admission_receipt: str | None = None
 
     def __post_init__(self) -> None:
         _text(self.task_id, "task_id", 120)
@@ -72,6 +73,12 @@ class QueueEnvelope:
         _payload(self.payload)
         if self.lease is not None:
             _text(self.lease, "lease", 128)
+        if self.admission_receipt is not None and (
+            not isinstance(self.admission_receipt, str)
+            or len(self.admission_receipt) != 64
+            or any(char not in "0123456789abcdef" for char in self.admission_receipt)
+        ):
+            raise QueueSchemaError("invalid admission receipt")
 
     def to_dict(self) -> dict[str, Any]:
         value: dict[str, Any] = {
@@ -158,12 +165,52 @@ class CoordinatorQueue:
         source_schema = detect_schema(path)
         return cls(TaskQueue(path), source_schema=source_schema, clock=clock)
 
-    def enqueue(self, *, task_id: str, priority: str, module: str, payload: Mapping[str, Any]) -> QueueEnvelope:
-        envelope = QueueEnvelope(task_id, priority, module, dict(payload))
+    def enqueue(
+        self,
+        *,
+        task_id: str,
+        priority: str,
+        module: str,
+        payload: Mapping[str, Any],
+        approval: Mapping[str, Any] | None = None,
+    ) -> QueueEnvelope:
+        receipt = None
+        event_detail = "queued"
+        if approval is not None:
+            if not isinstance(approval, Mapping) or (
+                approval.get("task_id") != task_id
+                or approval.get("operation") != "task_submit"
+                or not isinstance(approval.get("approval_id"), str)
+                or not approval["approval_id"]
+                or len(approval["approval_id"]) > 64
+            ):
+                raise QueueApiError("task admission approval is invalid")
+            try:
+                approval_json = json.dumps(
+                    dict(approval), sort_keys=True, separators=(",", ":"), ensure_ascii=True,
+                )
+            except (TypeError, ValueError) as exc:
+                raise QueueApiError("task admission approval is invalid") from exc
+            approval_bytes = approval_json.encode("utf-8")
+            if len(approval_bytes) > 4096:
+                raise QueueApiError("task admission approval is too large")
+            receipt = sha256(
+                f"{task_id}:admitted:{sha256(approval_bytes).hexdigest()}".encode("utf-8")
+            ).hexdigest()
+            event_detail = json.dumps(
+                {"approval": dict(approval), "receipt": receipt},
+                sort_keys=True, separators=(",", ":"), ensure_ascii=True,
+            )
+        envelope = QueueEnvelope(
+            task_id, priority, module, dict(payload), admission_receipt=receipt,
+        )
         if any(row["id"] == task_id for row in self._queue.status()):
             raise QueueApiError("task already exists")
         try:
-            self._queue.add(task_id=task_id, priority=priority, module=module, payload=envelope.payload)
+            self._queue.add(
+                task_id=task_id, priority=priority, module=module,
+                payload=envelope.payload, event_detail=event_detail,
+            )
         except sqlite3.IntegrityError as exc:
             raise QueueApiError("task already exists") from exc
         return envelope

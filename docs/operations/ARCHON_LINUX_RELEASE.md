@@ -33,7 +33,34 @@ The three installed commands are `jarvis-v2`, `atlas-monitor`, and `archon-nativ
 archon-native-controller --watch --state "$HOME/.local/state/archon" --repository "$PWD"
 ```
 
-Admission is local to the OS user who can access the private state directory. `jarvis-v2 submit --task-file -` reads one JSON task document from standard input. Cancellation requires `jarvis-v2 cancel --task-id ID --approval-file signed-approval.json`; it verifies the Ed25519 signature using `ARCHON_OWNER_KEYS`, binds approval to `task_cancel` and the exact task ID, and persists the signed approval with the receipt. Only pending tasks can be cancelled; a leased task cannot. A task receives at most three lease attempts total, including expired leases and explicit releases after failed handoffs; it is failed and quarantined before another attempt.
+Admission remains local; no task network API is exposed. In addition to OS access to the private state directory, `jarvis-v2 submit` requires an owner-signed approval for the exact canonical task document. The Ed25519 approval binds `task_submit`, the task ID, SHA-256 of the full task document, decision, key ID, and expiry; it is verified before queue writes and persisted with an admission receipt. Use `--approval-file signed-approval.json`; the public-key store is selected with `--owner-keys` or `ARCHON_OWNER_KEYS`.
+
+Create the approval on the owner's workstation. Keep the private key there; only its public key belongs in the read-only trust store mounted into the container. The trust store format is `{"schema":1,"keys":{"owner-1":"BASE64_RAW_ED25519_PUBLIC_KEY"}}`. Save this as `sign_task.py` and run `python sign_task.py task.json owner-private.pem task-approval.json owner-1` to sign one task file:
+
+```python
+import base64, hashlib, json, sys, time, uuid
+from pathlib import Path
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+task_path, private_key_path, approval_path, key_id = sys.argv[1:5]
+task = json.loads(Path(task_path).read_text(encoding="utf-8"))
+task_bytes = json.dumps(task, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode()
+claims = {
+    "schema": 1, "approval_id": f"admit-{uuid.uuid4().hex}", "key_id": key_id,
+    "task_id": task["task_id"], "operation": "task_submit", "target": task["task_id"],
+    "content_sha256": hashlib.sha256(task_bytes).hexdigest(),
+    "expires_at": int(time.time()) + 600, "decision": "APPROVE",
+}
+key = serialization.load_pem_private_key(Path(private_key_path).read_bytes(), password=None)
+if not isinstance(key, Ed25519PrivateKey):
+    raise TypeError("expected an Ed25519 private key")
+message = json.dumps(claims, sort_keys=True, separators=(",", ":")).encode()
+approval = dict(claims, signature=base64.b64encode(key.sign(message)).decode())
+Path(approval_path).write_text(json.dumps(approval), encoding="utf-8")
+```
+
+Submit with `jarvis-v2 submit --task-file task.json --approval-file task-approval.json`. Cancellation also requires an Ed25519 approval bound to `task_cancel` and the exact task ID; its signed approval and receipt are persisted. Only pending tasks can be cancelled; a leased task cannot. A task receives at most three lease attempts total, including expired leases and explicit releases after failed handoffs; it is failed and quarantined before another attempt.
 
 ## Run the container
 
@@ -55,9 +82,9 @@ The container health check runs `jarvis-v2 health`. The controller handles `SIGT
 | --- | --- | --- |
 | `ARCHON_STATE` | `/var/lib/archon` in Compose | Private persistent runtime state |
 | `ARCHON_WORKSPACE` | `/workspace` in Compose | Dedicated private directory for the optional bounded file effect |
-| `ARCHON_OWNER_KEYS` | unset | Optional path to a read-only JSON trust store of Ed25519 public keys for approved workspace writes and task cancellation |
+| `ARCHON_OWNER_KEYS` | unset | Optional path to a read-only JSON trust store of Ed25519 public keys for task admission, cancellation, and approved workspace writes |
 
-Compose does not configure owner keys, so cancellation approval and the file effect are unavailable by default. If an operator provisions a trusted public key, mount only the public-key store read-only and set `ARCHON_OWNER_KEYS` to its container path. Keep private signing keys outside the image and container. A `workspace_write` approval binds the task ID, exact single filename, content digest, operation, decision, key ID, and expiry; it can create a new file of at most 64 KiB and cannot overwrite an existing different file. A `task_cancel` approval binds the same signed claims to the exact task ID and cancellation operation; the queue event retains the signed approval and receipt. These controls do not enable arbitrary shell, network, financial, or communication actions.
+Compose does not configure owner keys, so task admission, cancellation, and the file effect are unavailable by default. If an operator provisions a trusted public key, mount only the public-key store read-only and set `ARCHON_OWNER_KEYS` to its container path. Keep private signing keys outside the image and container. A `workspace_write` approval binds the task ID, exact single filename, content digest, operation, decision, key ID, and expiry; it can create a new file of at most 64 KiB and cannot overwrite an existing different file. Admission and `task_cancel` approvals bind the exact task or cancellation request; signed approval documents and receipts are retained in queue events. These controls do not enable arbitrary shell, network, financial, or communication actions.
 
 Do not mount the Docker socket, host home directory, Astra One state, credentials, or general-purpose host paths into the service.
 

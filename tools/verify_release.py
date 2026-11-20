@@ -236,8 +236,30 @@ class Verification:
             "module": "core",
             "payload": {"operation": "native_capabilities"},
         }), encoding="utf-8")
-        self.run("wheel-cli-submit", [str(runtime.parent / "jarvis-v2"), "submit", "--state", str(state),
-                                       "--task-file", str(task_file)], cwd=outside, env=cli_env)
+        owner_keys = self.work / "wheel-owner-keys.json"
+        approval_file = self.work / "wheel-admission-approval.json"
+        approval_script = r"""import base64,hashlib,json,sys,time
+from pathlib import Path
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+task=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+private=Ed25519PrivateKey.generate()
+claims={'schema':1,'approval_id':'wheel-submit','key_id':'wheel-owner','task_id':task['task_id'],'operation':'task_submit','target':task['task_id'],'content_sha256':hashlib.sha256(json.dumps(task,sort_keys=True,separators=(',',':'),ensure_ascii=True).encode()).hexdigest(),'expires_at':int(time.time())+600,'decision':'APPROVE'}
+message=json.dumps(claims,sort_keys=True,separators=(',',':')).encode()
+public=private.public_key().public_bytes(serialization.Encoding.Raw,serialization.PublicFormat.Raw)
+Path(sys.argv[2]).write_text(json.dumps({'schema':1,'keys':{'wheel-owner':base64.b64encode(public).decode()}}),encoding='utf-8')
+Path(sys.argv[3]).write_text(json.dumps(dict(claims,signature=base64.b64encode(private.sign(message)).decode())),encoding='utf-8')
+"""
+        self.run("wheel-cli-admission-fixture", [str(runtime), "-c", approval_script,
+                                                  str(task_file), str(owner_keys), str(approval_file)],
+                 cwd=outside, env=cli_env)
+        submitted = self.run("wheel-cli-submit", [str(runtime.parent / "jarvis-v2"), "submit",
+                                                   "--state", str(state), "--task-file", str(task_file),
+                                                   "--approval-file", str(approval_file),
+                                                   "--owner-keys", str(owner_keys)], cwd=outside, env=cli_env)
+        submitted_data = json.loads(submitted.stdout)
+        if submitted_data.get("status") != "accepted" or len(submitted_data.get("receipt", "")) != 64:
+            raise RuntimeError("installed CLI did not produce an approval-bound admission receipt")
         once = self.run("wheel-controller-once", [str(runtime.parent / "archon-native-controller"), "--once",
                                                   "--state", str(state), "--repository", str(outside)],
                         cwd=outside, env=cli_env)
