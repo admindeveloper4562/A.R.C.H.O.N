@@ -194,7 +194,7 @@ class Smoke:
         }), encoding="utf-8")
         self.key_store.chmod(0o644)
         self.cancel_approval_path.write_text("{}", encoding="utf-8")
-        self.cancel_approval_path.chmod(0o600)
+        self.cancel_approval_path.chmod(0o644)
         self.override.write_text(
             "services:\n"
             "  archon:\n"
