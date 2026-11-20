@@ -7,10 +7,10 @@ This release packages the existing Linux implementation as Python version `0.0.3
 From a clean feature or development branch with Python 3.11 or newer and Docker Compose v2:
 
 ```sh
-./tools/verify_release.sh
+PIP_NO_INDEX= PIP_INDEX_URL=https://pypi.org/simple PIP_DEFAULT_TIMEOUT=120 ./tools/verify_release.sh
 ```
 
-The command checks the clean Git state, builds the wheel and source distribution, installs each into clean virtual environments, runs the existing local checks and full `unittest` suite, inventories dependencies, audits the pinned runtime dependency, and builds and exercises the container. It writes full subprocess logs and reports under `artifacts/release-qualification/`. It requires network access to install pinned build/audit dependencies and query vulnerability data. A successful local run does not establish GitHub-hosted policy enforcement.
+The command checks the clean Git state, builds the wheel and source distribution, installs each into clean virtual environments, runs the existing local checks and full `unittest` suite, inventories dependencies, audits the pinned runtime dependency, and builds and exercises the container. It writes full subprocess logs and reports under `artifacts/release-qualification/`. It requires network access to install pinned build/audit dependencies and query vulnerability data. Clear `PIP_NO_INDEX` when it is set by an offline shell; a successful local run does not establish GitHub-hosted policy enforcement.
 
 The wheel, source distribution and locally built container image remain local. `SHA256SUMS.txt`, dependency inventory, regression report, security report, container report, and release manifest are written alongside them. The verifier refuses dirty worktrees and `main`.
 
@@ -75,6 +75,30 @@ docker compose stop -t 10
 Compose starts a foreground native controller, initializes the runtime volume, and uses a read-only root filesystem, UID/GID `10001`, dropped Linux capabilities, `no-new-privileges`, no network, and no published ports. The state and bounded workspace are named persistent volumes. Core operation does not need Ollama, a desktop session, host systemd, GPU access, Astra One, or network access. Local model, browser/desktop, hardware, finance, communications, and native service integrations remain optional or disabled.
 
 The container health check runs `jarvis-v2 health`. The controller handles `SIGTERM`; stop it with `docker compose stop -t 10` so it can finish its current bounded operation and close SQLite cleanly.
+
+## Upgrade and rollback
+Back up the state and workspace using the procedure below before upgrading. Keep the current image under a separate tag, then build from the new verified checkout and recreate the service:
+```sh
+rollback_image="archon-local:rollback-$(date -u +%Y%m%dT%H%M%SZ)"
+docker image tag archon-local:0.0.3 "$rollback_image"
+docker compose stop -t 10
+ARCHON_SOURCE_SHA="$(git rev-parse HEAD)" docker compose build
+docker compose up -d --force-recreate
+docker compose exec -T archon jarvis-v2 health --state /var/lib/archon --repo /app
+docker compose exec -T archon jarvis-v2 modules
+```
+Keep the backup and tagged image until health and task checks pass. If an upgrade fails after changing the database, stop that project and restore the backup into a new Compose project using the procedure below. Create an override for the saved image:
+```sh
+rollback_override="$(mktemp --suffix=.yaml)"
+cat > "$rollback_override" <<EOF
+services:
+  archon:
+    image: $rollback_image
+EOF
+```
+In the restore procedure below set `project=archon-rollback` and replace its final `up -d` command with `docker compose -p "$project" -f compose.yaml -f "$rollback_override" up -d`. Keep the failed project's volumes until the restored instance passes its checks; never restore over the only copy of a live volume or run the older image against a database the newer release may have migrated.
+
+For a wheel installation, stop the foreground controller, keep the prior virtual environment, and back up `runtime.sqlite3`, `atlas.sqlite3`, and `effects.sqlite3` with SQLite's backup API; check each backup with `PRAGMA integrity_check`. Install the new wheel with `python -m pip install --upgrade artifacts/release-qualification/dist/jarvis_v2-0.0.3-py3-none-any.whl`, then run `jarvis-v2 health` before restarting the controller. If the migration or health check fails, switch back to the previous environment and restore the verified database backup into a separate state directory before starting it.
 
 ### Environment and owner approvals
 
@@ -162,7 +186,7 @@ docker compose -p "$project" up -d
 docker compose -p "$project" exec -T archon jarvis-v2 health --state /var/lib/archon --repo /app
 ```
 
-Keep the previous project and volumes stopped until the restored project passes health and task checks. A rollback is to stop the new project and restart the prior project with its original volumes; do not restore over the only copy of a live volume.
+Keep the previous project and volumes stopped until the restored project passes health and task checks. For an in-place upgrade rollback, start the restored project with the previous image using the Compose override described above. Do not restore over the only copy of a live volume.
 
 ## Release limitations
 
