@@ -5,6 +5,8 @@ import tempfile
 import json
 import subprocess
 import sys
+import os
+import textwrap
 from pathlib import Path
 
 from tools.ci_checks import _contains_secret, _workflow_is_safe
@@ -24,7 +26,7 @@ class CIWorkflowTests(unittest.TestCase):
 
         self.assertIn("  test:\n", python_job)
         self.assertIn("runs-on: ubuntu-latest", python_job)
-        self.assertIn("python -m unittest discover -s tests", python_job)
+        self.assertIn("PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src python -m unittest discover -s tests -v", python_job)
 
         self.assertIn("  ios:\n", ios_job)
         self.assertIn("runs-on: macos-latest", ios_job)
@@ -45,6 +47,44 @@ class CIWorkflowTests(unittest.TestCase):
         self.assertGreaterEqual(workflow.count("len(run_id) > 32"), 2)
         self.assertNotIn("actions/checkout@", fallback)
         self.assertNotIn("actions/setup-python@", fallback)
+
+    def test_preflight_and_fallback_receipt_scripts_write_to_runner_temp(self):
+        workflow = WORKFLOW.read_text()
+        cases = (
+            ("Write startup receipt", "startup.json"),
+            ("Write prerequisite-failure receipt", "fallback.json"),
+        )
+        for step_name, filename in cases:
+            with self.subTest(step=step_name), tempfile.TemporaryDirectory() as temp:
+                block = workflow.split(f"      - name: {step_name}\n", 1)[1].split("\n      - name:", 1)[0]
+                script = block.split("python3 - <<'PY'\n", 1)[1].split("\n          PY", 1)[0]
+                script = textwrap.dedent(script)
+                artifact_dir = Path(temp) / "ci-artifacts"
+                artifact_dir.mkdir()
+                env = os.environ.copy()
+                env.update({
+                    "RUNNER_TEMP": temp,
+                    "GITHUB_SHA": "a" * 40,
+                    "GITHUB_RUN_ID": "12345",
+                    "GITHUB_REPOSITORY": "owner/repository",
+                    "PREFLIGHT_RESULT": "success",
+                    "PYTHON_RESULT": "failure",
+                    "IOS_RESULT": "success",
+                })
+                result = subprocess.run(
+                    [sys.executable, "-c", script],
+                    cwd=ROOT,
+                    env=env,
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                    check=False,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                receipt = json.loads((artifact_dir / filename).read_text())
+                self.assertEqual(receipt["commit"], "a" * 40)
+                self.assertEqual(receipt["run_id"], "12345")
+                self.assertEqual((artifact_dir / filename).stat().st_mode & 0o777, 0o600)
 
     def test_workflow_pins_actions_and_uploads_bounded_receipt(self):
         workflow = WORKFLOW.read_text()

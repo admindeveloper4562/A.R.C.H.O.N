@@ -14,9 +14,9 @@ legacy rescue path.
 | Task | `MIG-013` |
 | Source SHA | `43c8db7de8a5f0277a7db23379019d05f2edd2c6` |
 | Destination base SHA | `dc91a68bf51f90f27588d2bf27f3779740dad95c` |
-| Integration checkout | `/home/r34p3r/.local/state/archon-astra/integration-reconciled-20261114` |
+| Integration checkout | `$ARCHON_HOME/.local/state/archon-astra/integration-reconciled-20261114` |
 | Legacy source origin | `https://github.com/admindeveloper4562/personal-jarvis.git` |
-| Legacy source checkout | `/home/r34p3r/Projects/personal-jarvis` |
+| Legacy source checkout | `$ARCHON_HOME/Projects/personal-jarvis` |
 | Legacy source HEAD | `b5168028433a448755a8fdb5d9cb1180f513250e` |
 | Manifest SHA-256 | `ebb23c5a55c647ef62958e11a6eee5697f0a4e5f1520424bfd9fb857cdd4900f` |
 | Provenance log SHA-256 | `5ab2f924a7edae5c114c6b0570454d43c2ed746db8db83e5ea37d1e15e835aef` |

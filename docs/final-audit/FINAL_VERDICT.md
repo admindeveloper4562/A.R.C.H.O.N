@@ -1,13 +1,7 @@
-# Final ARCHON verdict: CONDITIONAL
+# Final verdict pointer
 
-The canonical installation is `/home/r34p3r/dev/A.R.C.H.O.N` at final commit `2fec1e3459252f97fe900a6ade2d15e48894c70b`, published to the feature branch `origin/feature/astra-linux-integration-c799784769`. `main` and remote `develop` were not rewritten or advanced. The production source content is the previously tested implementation at `4149c1d75eee24880bfacd819342f9c21d05d51a`; the commits between that implementation and the final commit are documentation/evidence binding only.
+The current exact-source Linux qualification is recorded in FINAL_RELEASE_VERDICT.md and the eight linked evidence reports.
 
-The exact final checkout passed 590 standard-library regression tests with 0 failures and 0 errors in 29.365 seconds. The complete log is `/home/r34p3r/.local/state/archon/logs/unittest-2fec1e3.log`. Fresh native runtime initialization, controller one-shot, health, runtime/ATLAS SQLite integrity, foreign-key checks, code index rebuild, and metadata-only inventory initialization passed. The fresh runtime reports `healthy`, one migration applied, zero queued tasks, and historical ledger loading disabled.
+Current application source SHA: 0ae26d563e5998a9390588feb58eb3d5c0081ffb. Verdict: CONDITIONAL. Package version: 0.0.3.
 
-The authorized cleanup batch reclaimed 2,838,614,016 bytes. It removed only the four verified legacy Astra backup/checkpoint/toolchain directories, two unreferenced ARCHON Docker images, and obsolete Astra user units. The Astra timer was disabled and stopped before deletion; no Astra process remains. Historical task receipts, the 7.7 MB SQLite ledger, unique worktrees, provenance/owner evidence, the verified final-audit checkpoint, and the byte-for-byte native reset quarantine were retained.
-
-The ten-module Linux status remains mixed: ALFRED and CORTEX pass local contract checks; CROWN passes paper/read-only checks; SMITH, IRIS, SAGE, LUMEN, HORIZON, PALADIN, and RELAY remain partial because live external/device, provider, unattended-control, or watchdog evidence is absent. The native executor remains deliberately bounded to read-only control-plane probes; domain-effect handlers and unrestricted authority remain fail-closed.
-
-This is **CONDITIONAL**, not PASS. Mandatory evidence still missing includes signed owner-approval transport for native domain effects, unattended SDA/AEGIS execution, trusted watchdog activation and soak, rollback application, exact-current-commit independent-QC receipt (the existing independent receipt targets a documentation-only ancestor with unchanged production source), and external Windows/Apple/Blender/provider/hosted-CI acceptance. Root filesystem inventory is bounded at 10,000 metadata entries with 3,459 resumable frames and is not complete.
-
-Historical task accounting remains separate: 247 parents comprise 240 completed and 7 archived/deferred; 1,359 child rows and 1,281 receipt rows remain historical evidence, not newly executed runtime work. The seven deferred parents are not represented as completed.
+Older baseline and cleanup reports in this directory describe earlier snapshots and remain historical. They do not override the current exact-source reports.

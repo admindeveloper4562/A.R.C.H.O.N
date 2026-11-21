@@ -22,7 +22,7 @@ jobs:
           if not re.fullmatch(r"[0-9a-fA-F]{40}", commit) or not run_id.isdigit() or len(run_id) > 32 or not re.fullmatch(r"[A-Za-z0-9_.-]{1,100}/[A-Za-z0-9_.-]{1,100}", repository):
               raise SystemExit(2)
           receipt = {"schema_version": 1, "profile": "preflight", "status": "started", "commit": commit.lower(), "run_id": run_id, "remote_ci": "EXECUTED_HOSTED", "provenance": {"repository": repository, "workflow": "foundation-ci", "job": "foundation-preflight", "matrix": "none", "artifact": "ci-report-preflight"}}
-          target = Path(artifact_dir) / "startup.json"
+          target = Path(os.environ["RUNNER_TEMP"]) / "ci-artifacts" / "startup.json"
           encoded = (json.dumps(receipt, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
           flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
           fd = os.open(target, flags, 0o600)
@@ -53,7 +53,7 @@ jobs:
       - name: Run seed unit tests
         id: unit_tests
         continue-on-error: true
-        run: PYTHONPATH=src python -m unittest discover -s tests -v
+        run: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src python -m unittest discover -s tests -v
       - name: PR branch and commit convention
         id: policy
         continue-on-error: true
@@ -209,7 +209,7 @@ jobs:
               "checks": checks,
               "remediation": {"preflight": "inspect_workflow_startup", "python_job": "inspect_python_job_receipt_or_prerequisite_failure", "ios_job": "inspect_ios_job_receipt_or_prerequisite_failure"},
           }
-          target = Path(artifact_dir) / "fallback.json"
+          target = Path(os.environ["RUNNER_TEMP"]) / "ci-artifacts" / "fallback.json"
           encoded = (json.dumps(receipt, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
           flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
           fd = os.open(target, flags, 0o600)

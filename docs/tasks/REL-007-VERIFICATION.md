@@ -45,7 +45,7 @@ The following commands ran in the isolated REL-007 worktree with
 
 The complete sanitized evidence manifest is outside the Git worktree at:
 
-`/home/r34p3r/.local/state/archon-astra/private/candidates/REL-007/REL-007-evidence-manifest.json`
+`$ARCHON_HOME/.local/state/archon-astra/private/candidates/REL-007/REL-007-evidence-manifest.json`
 
 Manifest SHA-256:
 `3ae7067eaf92273f27e2187a2aadb2869cef19eeafbc0849435e7c713a60245b`

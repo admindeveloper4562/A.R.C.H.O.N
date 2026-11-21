@@ -1,6 +1,6 @@
 # Astra dependency and retirement audit
 
-Observed against `/home/r34p3r/dev/A.R.C.H.O.N` on 2026-11-19. The native source path was tested with `PYTHONPATH=src` only; Astra modules were not placed on `sys.path`.
+Observed against `$ARCHON_HOME/dev/A.R.C.H.O.N` on 2026-11-19. The native source path was tested with `PYTHONPATH=src` only; Astra modules were not placed on `sys.path`.
 
 ## Findings
 

@@ -16,7 +16,7 @@ retire Astra One.
 | Candidate base / rollback SHA | `2ebb3ad294bf611bec22df5c3851532e25fe120a` |
 | Candidate SHA | Bound by the Master after commit |
 | Destination host | `reaper` local development host only |
-| Integration checkout | `/home/r34p3r/.local/state/archon-astra/integration-reconciled-20261114` |
+| Integration checkout | `$ARCHON_HOME/.local/state/archon-astra/integration-reconciled-20261114` |
 | Remote publication | Not attempted |
 | Native SDA cutover | Not performed |
 
@@ -28,7 +28,7 @@ trusted watchdog retain that checkpoint; no Git history rewrite is required.
 
 The deterministic Master verified the signed receipt at:
 
-`/home/r34p3r/.local/state/archon-astra/private/owner-approvals/MIG-012-v6/MIG-012.json`
+`$ARCHON_HOME/.local/state/archon-astra/private/owner-approvals/MIG-012-v6/MIG-012.json`
 
 Recorded receipt facts:
 
