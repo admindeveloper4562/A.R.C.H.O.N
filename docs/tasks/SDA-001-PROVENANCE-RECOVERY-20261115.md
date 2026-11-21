@@ -18,7 +18,7 @@ runtime install, native SDA cutover, task completion, or production release.
 ## Evidence
 
 - Recovered staging directory:
-  `/home/r34p3r/.local/state/archon-astra/provenance/SDA-001/git-v0.2.0-digQmVpl/`.
+  `$ARCHON_HOME/.local/state/archon-astra/provenance/SDA-001/git-v0.2.0-digQmVpl/`.
 - Commit object type and resolution: `commit`, exact SHA
   `5227b91d2725bf4be4336a5ad26189fdf1034704`.
 - `VERSION` and `MANIFEST.json` both report `0.2.0`.

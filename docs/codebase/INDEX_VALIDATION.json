@@ -1,6 +1,6 @@
 {
   "available": true,
-  "database": "/home/r34p3r/.local/state/archon/code_index.sqlite3",
+  "database": "$ARCHON_HOME/.local/state/archon/code_index.sqlite3",
   "excluded_sensitive": 1,
   "indexed": 552,
   "skipped": 0,

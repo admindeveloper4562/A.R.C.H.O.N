@@ -8,7 +8,7 @@ independent-QC receipts.
 
 ## Source and recovery
 
-- Canonical checkout: `/home/r34p3r/dev/A.R.C.H.O.N`
+- Canonical checkout: `$ARCHON_HOME/dev/A.R.C.H.O.N`
 - Branch: `feature/astra-linux-integration-c799784769`
 - Current local HEAD: `c6827a0354c14b1007be7b377917bd9bff43f567`
 - Current commit is documentation-only: refreshed `FUNCTION_CATALOG` provenance.
@@ -28,7 +28,7 @@ independent-QC receipts.
 
 ## Native runtime
 
-- State root: `/home/r34p3r/.local/state/archon`.
+- State root: `$ARCHON_HOME/.local/state/archon`.
 - Read-only health: `healthy`, mode `native_runtime`.
 - Runtime and ATLAS databases: integrity `ok`, foreign-key violations `0`.
 - Fresh runtime migration count: `1`; queue total: `0`; historical ledger loaded:

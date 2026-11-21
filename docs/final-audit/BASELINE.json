@@ -2,7 +2,7 @@
   "schema_version": 1,
   "observed_at": "2026-11-19T13:19:59+00:00",
   "canonical_target": {
-    "path": "/home/r34p3r/dev/A.R.C.H.O.N",
+    "path": "$ARCHON_HOME/dev/A.R.C.H.O.N",
     "commit": "a2df24261d5ea19e9260f7f6c270b26ea9abdb03",
     "branch": "feature/astra-linux-integration-c799784769",
     "status": "clean",
@@ -13,7 +13,7 @@
   },
   "repositories": [
     {
-      "path": "/home/r34p3r/Projects/ARCHON",
+      "path": "$ARCHON_HOME/Projects/ARCHON",
       "head": "46cd0e3883cba73354f372daa9f3d57993c260c9",
       "branch": "fix/sda/cloudflare-external-evidence",
       "status_entries": 14,
@@ -25,7 +25,7 @@
       "size": "320M"
     },
     {
-      "path": "/home/r34p3r/Projects/ARCHON-astra-source",
+      "path": "$ARCHON_HOME/Projects/ARCHON-astra-source",
       "head": "43c8db7de8a5f0277a7db23379019d05f2edd2c6",
       "branch": "develop",
       "status_entries": 1,
@@ -33,14 +33,14 @@
       "size": "49M"
     },
     {
-      "path": "/home/r34p3r/Projects/ARCHON-astra-source-clean-20261116",
+      "path": "$ARCHON_HOME/Projects/ARCHON-astra-source-clean-20261116",
       "head": "6fc168796641dc24eceb07bd306fd65b0f54cb9b",
       "branch": "feat/rel/REL-004-linux-first",
       "status_entries": 0,
       "size": "6.1M"
     },
     {
-      "path": "/home/r34p3r/.local/state/archon-astra/integration-reconciled-20261114",
+      "path": "$ARCHON_HOME/.local/state/archon-astra/integration-reconciled-20261114",
       "head": "a2df24261d5ea19e9260f7f6c270b26ea9abdb03",
       "branch": "feature/astra-linux-integration-c799784769",
       "status_entries": 0,
@@ -56,20 +56,20 @@
     "local_target_vs_remote": "remote integration/develop is an ancestor of local a2df; remote publication of a2df is not verified"
   },
   "worktrees": [
-    {"path": "/home/r34p3r/Projects/ARCHON", "head": "46cd0e3883cba73354f372daa9f3d57993c260c9", "status_entries": 14},
-    {"path": "/home/r34p3r/.local/state/archon-astra/worktrees/admit-approved-owner", "head": "c02bec7ec8b13cf203c9e3676ac6393cb6cc220a", "status_entries": 0},
-    {"path": "/home/r34p3r/.local/state/archon-astra/worktrees/atlas-401-v3-upgrade", "head": "c4a70060a6339b6817a01263c6ee4b569aa00a1b", "status_entries": 0},
-    {"path": "/home/r34p3r/.local/state/archon-astra/worktrees/base-008-owner-approval-g1", "head": "36e918ecd172dbd36b52a86047a27cdf8bbf25a1", "status_entries": 0},
-    {"path": "/home/r34p3r/.local/state/archon-astra/worktrees/external-resolution", "head": "0d8254adfddc13317991d209acf869a03cb30d71", "status_entries": 0},
-    {"path": "/home/r34p3r/.local/state/archon-astra/worktrees/fin001-owner-gate-v3", "head": "3f18595c78b76e6b786a0ce7acb6541b46f9321e", "status_entries": 0},
-    {"path": "/home/r34p3r/.local/state/archon-astra/worktrees/owner-approval-signatures", "head": "9f1ab6f1201c0a98adadc7e2e766bc90b162aa16", "status_entries": 278, "status_detail": "staged changes plus unresolved merge conflicts; preserve untouched"},
-    {"path": "/home/r34p3r/.local/state/archon-astra/worktrees/owner-gate-claim", "head": "a11974e38ba40fb10d14bcdc85772145302befca", "status_entries": 0},
-    {"path": "/home/r34p3r/.local/state/archon-astra/worktrees/rel-005-control", "head": "42a662cb7c5d60f3397aede5d9651fe2f7f69962", "status_entries": 0},
-    {"path": "/home/r34p3r/.local/state/archon-astra/worktrees/sda-001-provenance-recovery-g2", "head": "a82c09336868f8abf424da370a3e62debc802373", "status_entries": 0},
-    {"path": "/home/r34p3r/Projects/ARCHON-sda009-import-worktree", "head": "99494bfbc22cc20ca0f14092d6ae6c0405970bba", "status_entries": 0}
+    {"path": "$ARCHON_HOME/Projects/ARCHON", "head": "46cd0e3883cba73354f372daa9f3d57993c260c9", "status_entries": 14},
+    {"path": "$ARCHON_HOME/.local/state/archon-astra/worktrees/admit-approved-owner", "head": "c02bec7ec8b13cf203c9e3676ac6393cb6cc220a", "status_entries": 0},
+    {"path": "$ARCHON_HOME/.local/state/archon-astra/worktrees/atlas-401-v3-upgrade", "head": "c4a70060a6339b6817a01263c6ee4b569aa00a1b", "status_entries": 0},
+    {"path": "$ARCHON_HOME/.local/state/archon-astra/worktrees/base-008-owner-approval-g1", "head": "36e918ecd172dbd36b52a86047a27cdf8bbf25a1", "status_entries": 0},
+    {"path": "$ARCHON_HOME/.local/state/archon-astra/worktrees/external-resolution", "head": "0d8254adfddc13317991d209acf869a03cb30d71", "status_entries": 0},
+    {"path": "$ARCHON_HOME/.local/state/archon-astra/worktrees/fin001-owner-gate-v3", "head": "3f18595c78b76e6b786a0ce7acb6541b46f9321e", "status_entries": 0},
+    {"path": "$ARCHON_HOME/.local/state/archon-astra/worktrees/owner-approval-signatures", "head": "9f1ab6f1201c0a98adadc7e2e766bc90b162aa16", "status_entries": 278, "status_detail": "staged changes plus unresolved merge conflicts; preserve untouched"},
+    {"path": "$ARCHON_HOME/.local/state/archon-astra/worktrees/owner-gate-claim", "head": "a11974e38ba40fb10d14bcdc85772145302befca", "status_entries": 0},
+    {"path": "$ARCHON_HOME/.local/state/archon-astra/worktrees/rel-005-control", "head": "42a662cb7c5d60f3397aede5d9651fe2f7f69962", "status_entries": 0},
+    {"path": "$ARCHON_HOME/.local/state/archon-astra/worktrees/sda-001-provenance-recovery-g2", "head": "a82c09336868f8abf424da370a3e62debc802373", "status_entries": 0},
+    {"path": "$ARCHON_HOME/Projects/ARCHON-sda009-import-worktree", "head": "99494bfbc22cc20ca0f14092d6ae6c0405970bba", "status_entries": 0}
   ],
   "ledger": {
-    "database": "/home/r34p3r/.local/state/archon-astra/sda.sqlite3",
+    "database": "$ARCHON_HOME/.local/state/archon-astra/sda.sqlite3",
     "integrity": "ok",
     "foreign_key_violations": 0,
     "parent_total": 247,
@@ -87,13 +87,13 @@
     "supervisor_cases": {"resolved": 71, "resolved_external": 1},
     "source_sha": "75582dbf48057e3d5b0e7cf4acfdba2386acfcff",
     "integration_sha": "a2df24261d5ea19e9260f7f6c270b26ea9abdb03",
-    "integration_path": "/home/r34p3r/.local/state/archon-astra/integration-reconciled-20261114"
+    "integration_path": "$ARCHON_HOME/.local/state/archon-astra/integration-reconciled-20261114"
   },
   "runtime": {
     "processes": [
       {
         "pid": 20774,
-        "command": "python3 /home/r34p3r/Projects/ARCHON/tools/atlas_monitor.py --source astra --db /home/r34p3r/.local/state/archon-astra/sda.sqlite3 --watch --interval 0.5",
+        "command": "python3 $ARCHON_HOME/Projects/ARCHON/tools/atlas_monitor.py --source astra --db $ARCHON_HOME/.local/state/archon-astra/sda.sqlite3 --watch --interval 0.5",
         "classification": "read-only monitor; legacy state path"
       }
     ],
@@ -108,7 +108,7 @@
     "home_filesystem": {"size": "110G", "used": "103G", "available": "975M", "use_percent": "100%"},
     "archon_astra_state": "4.6G",
     "migration_checkpoint": {
-      "path": "/home/r34p3r/.local/state/archon-final-audit/checkpoints/20261119T125838Z",
+      "path": "$ARCHON_HOME/.local/state/archon-final-audit/checkpoints/20261119T125838Z",
       "size": "751M",
       "files": 145,
       "purpose": "Git bundles plus verified SQLite recovery copies; retained"
@@ -146,7 +146,7 @@
     "pytest and hosted CI evidence are unavailable in this host snapshot."
   ],
   "checkpoint": {
-    "path": "/home/r34p3r/.local/state/archon-final-audit/checkpoints/20261119T125838Z",
+    "path": "$ARCHON_HOME/.local/state/archon-final-audit/checkpoints/20261119T125838Z",
     "git_bundles_verified": true,
     "sqlite_backups": [
       {"path": "sqlite/sda.sqlite3", "integrity": "ok", "foreign_key_violations": 0, "sha256": "6a37810719d1e93a9ecca14cc6aebd2e992f721be17ab5dc722ea1d39e947fc0"},
