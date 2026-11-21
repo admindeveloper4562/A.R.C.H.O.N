@@ -1,11 +1,13 @@
 # Current test audit
 
-Exact-source candidate: 759e78dc04c61ed7f01a4b714d35ab8c999d2a85 (tree 7472b26bbc24538851a920ff89ac9a65206050a8).
+Exact application source candidate: `2e24790c983bf3c8d2d0f99de7a086427355f172` (tree `5dc151512b5df78ecf5e911a93222ad2a44fb94b`).
 
-The full local release verifier passed 635 tests with zero failures and zero skips in 47.793 seconds; total verifier wall time was 48.243 seconds. The local CI equivalent passed 42 checks, with two expected negative return codes. The coordination suite passed 191/191 in 62.389 seconds.
+- Root regression: 637/637 passed on Python 3.12.3 and 637/637 on Python 3.11.18; zero failures/skips in the root runs.
+- Coordination: 191/191 passed.
+- Local CI equivalent: 42 checks with the two expected-negative outcomes classified correctly.
+- Independent QC repeated the full verifier twice with different color environment settings and observed matching wheel/sdist hashes.
+- Container smoke and archive-backed fresh restart passed.
+- The 72-task inference/data soak was run against a previous whole-source SHA with an identical `src/` tree; it was not multi-hour and is not exact-whole-source soak evidence.
+- GitHub Actions unavailable due billing; not run.
 
-The exact-759 bundle contains no Python 3.11 installation run or Ollama/inference soak. Independent QC passed for source 759e. Separately, the runbook marker-preservation test passed 1/1 on a docs/test follow-up worktree; the full verifier and QC for that child candidate remain pending. Hosted Actions was not run because billing was unavailable.
-
-These results do not establish operational acceptance of all modules, full cross-module operation, independent AEGIS watchdog, production owner signing, native SDA cutover, hosted enforcement, multi-hour soak, or Windows/Apple compatibility.
-
-Qualification addendum SHA-256: d207ae3841092a77e231fb7cda821c2f564bc27c52dc884a226c9272994736ee.
+Full report hashes are in [QUALIFICATION_ADDENDUM_2E24790.json](QUALIFICATION_ADDENDUM_2E24790.json).

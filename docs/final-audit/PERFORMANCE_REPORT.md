@@ -1,14 +1,5 @@
-# Linux performance evidence
+# Performance report
 
-> Historical snapshot captured 2026-11-21 for source 0ae26d563e5998a9390588feb58eb3d5c0081ffb. The current source-759 qualification contains no Ollama or extended-soak measurements; see SOAK_TEST.md.
+Candidate source `2e24790c983bf3c8d2d0f99de7a086427355f172` passed the release regression in 49.232 seconds of unittest time (49.671 seconds verifier wall time). The coordination suite passed 191 tests in 60.584 seconds. A bounded workload on the identical runtime `src/` tree completed 72 tasks (36 local-model, 36 database) in 491.427 seconds (0.1465 tasks/s), with 12 restarts, maximum queue depth 6 and final queue depth 0. Across 36 model calls, latency was 3.192 s minimum, 14.2895 s median, 13.6003 s mean and 24.545 s maximum. CPU-busy samples across 72 task calls were 42.86% minimum, 53.135% median, 52.359% mean and 58.17% maximum. Available host memory snapshots were 7,970 MiB before and 6,299 MiB after; GPU use/utilization snapshots were 1,390 MiB/3% before and 3,184 MiB/31% after. Per-call GPU utilization across 36 model calls had a 25.5% median and 35% maximum.
 
-Application source SHA: 0ae26d563e5998a9390588feb58eb3d5c0081ffb. These prior measurements came from a bounded local qwen3:4b workload on the host available at that snapshot.
-- 36 native serial tasks completed in 289.326 seconds: 18 inference and 18 read-only database inspections.
-- Throughput: 0.124 completed tasks/second; maximum queue depth: 12.
-- Model latency: 4.059–25.427 seconds; median 17.665 seconds.
-- System CPU busy during model calls: mean 81.45%, range 72.46–87.61%.
-- GPU memory after calls: 3,039–3,076 MiB; utilization after calls: 19–35%.
-- Host available memory: 7,159 MiB before and 6,983 MiB after.
-- Three controller restart boundaries and a final restart produced no task replay; SQLite integrity and runtime health passed.
-
-These measurements remain historical and are not source-759 performance evidence or production guarantees.
+This was a bounded run on source `2621056f64f3bee6f41b794913302d0fa36491b6`, whose runtime `src/` tree matches the candidate; it was not a run on the exact full candidate. CPU-busy values are per-call samples, and RAM/GPU values are snapshots rather than peak measurements. Peak process RSS, multi-hour behavior and production performance under sustained multi-user load remain unqualified.

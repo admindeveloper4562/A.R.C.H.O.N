@@ -1,23 +1,25 @@
 # Local release verification report
 
-Qualified application source SHA: 759e78dc04c61ed7f01a4b714d35ab8c999d2a85. Source tree: 7472b26bbc24538851a920ff89ac9a65206050a8. Package version: 0.0.3. Build environment: Linux, Python 3.12.3.
+Qualified application source: `2e24790c983bf3c8d2d0f99de7a086427355f172`; tree `5dc151512b5df78ecf5e911a93222ad2a44fb94b`; package `0.0.3`; Linux, Python 3.12.3.
 
 ## Result
 
-- Full local release verifier: PASS, exit 0.
-- Root regression suite: 635 passed, 0 failed, 0 skipped in 47.793 seconds; verifier wall time 48.243 seconds.
-- Local CI equivalent: 42 checks, all classified as expected and passed. Forty returned 0; two expected negative checks returned 2 for caller trust-store rejection and 1 for uninstall absence.
-- Coordination suite: 191 passed, 0 failed, 0 skipped in 62.389 seconds.
-- Dependency, secret, and source scans passed. pip-audit 2.10.1 reported zero known vulnerabilities.
-- Reproducible duplicate wheel/sdist builds produced identical hashes. Fresh Python 3.12.3 package and CLI checks passed.
-- Clean-container smoke and saved-image archive reload passed; source, health, module registration, and SQLite integrity were verified.
-- Python 3.11 installation is not evidenced for this exact candidate. Hosted GitHub Actions was not run because billing was unavailable.
-- Independent QC passed for the root evidence source 759e78dc04c61ed7f01a4b714d35ab8c999d2a85. The runbook marker test on a follow-up docs/test candidate passed 1/1, but the full verifier on that child candidate is pending.
+- Full release verifier: PASS, exit 0; 637 tests passed, 0 failed, 0 skipped; unittest 49.232 seconds, verifier wall 49.671 seconds.
+- Local CI equivalent: PASS, 42 checks; 40 expected success codes and two expected-negative results (return codes 2 and 1).
+- Coordination suite: PASS, 191/191 in 60.584 seconds.
+- pip-audit 2.10.1: zero known vulnerabilities. Dependency, secret, and security scans passed.
+- Wheel and source distribution built twice with matching hashes; exact artifacts installed and checked on Python 3.12.3 and 3.11.18. Python 3.11.18 root suite passed 637/637 with zero skips.
+- The exact-candidate verifier ran with the local Ollama integration opt-ins enabled. The separate qwen3:4b workload and its source-tree caveat are in SOAK_TEST.md. The default container has network mode none and does not connect to a host Ollama service.
+- Container smoke and fresh saved-image reload passed. The saved archive hash and reload evidence are in the addendum.
+- Two independent QC verifier runs reproduced the wheel/sdist hashes and passed their container smoke.
+- The packaged image-only Compose manifest passed a fresh-volume start/restart, health, ten-module registration, non-root UID/GID, and SQLite integrity check; receipt SHA-256 `b5bce93865595ada53e76f28e59f49f58067582eecbfb1dcac4485b89e27d501`; manifest SHA-256 `746dbb8db950e28f4693eab45b55e56722ae71cc3413cf616e70984304b04dff`.
+- GitHub Actions was not run because billing is unavailable. Local CI is not hosted CI enforcement; hosted status is `DEFERRED_QUOTA`.
 
 ## Artifact checksums
 
-- Wheel, 303,942 bytes: 66d6ac2e977c65f7d48321852d7021383ab3c38540f2299612a56d93dd15f879.
-- Source distribution, 346,655 bytes: 9f585df16ac92b14d088a69fb20fa24a3573029ecefc873a526b8f982af70aeb.
-- Root saved container image archive: 4a6d21a613c9611c63c94c2a2410b1817c53c574ed49d5e537d86dbc9a258709.
+- Wheel: `jarvis_v2-0.0.3-py3-none-any.whl`, 303,942 bytes, SHA-256 `5f04940e72466a83835a527530dc6ca3acdfb6452f0d62da8b7c9c751304ec75`.
+- Source distribution: `jarvis_v2-0.0.3.tar.gz`, 347,780 bytes, SHA-256 `fb289c4aef7061acf998502e6e6b06bfef9d8e93058c56ac99246d4e0f4f5826`.
+- OCI image archive: `archon-local-image.tar`, 50,039,296 bytes, SHA-256 `b62e2645aef0437ab715a864f05926a3fd97273ec03d6a9c9cbd1f2768473a26`.
+- Root release manifest SHA-256: `1919d0f4072f91b632d0e3c9317ecfb10f0f5e5ef2788340fe11fd4934b42e3a`.
 
-Qualification addendum SHA-256: d207ae3841092a77e231fb7cda821c2f564bc27c52dc884a226c9272994736ee. Selected source-bound evidence report hashes are recorded in that addendum.
+See [QUALIFICATION_ADDENDUM_2E24790.json](QUALIFICATION_ADDENDUM_2E24790.json) for exact report hashes and boundaries.

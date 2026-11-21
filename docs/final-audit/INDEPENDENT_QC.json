@@ -1,46 +1,52 @@
 {
-  "schema_version": 5,
-  "qualified_application_source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85",
-  "source_tree": "7472b26bbc24538851a920ff89ac9a65206050a8",
-  "overall_release_verdict": "CONDITIONAL",
-  "overall_qc_status": "PENDING_FOR_FOLLOWUP_CANDIDATE",
-  "root_exact_source_verifier": {
-    "status": "PASS",
-    "exit_code": 0,
-    "tests": 635,
-    "passed": 635,
+  "candidate_source_sha": "2e24790c983bf3c8d2d0f99de7a086427355f172",
+  "container_archive_comparison": {
+    "byte_hashes_match": false,
+    "force_color_qc_sha256": "f428caf76ecb0059df95e5e51bd32d68fb7b028b75f2234310880c0f3797a07c",
+    "image_config_and_layer_blobs_match": true,
+    "matching_layer_blob_count": 10,
+    "no_color_qc_sha256": "2f6f1076f8240845e2054b4ba6be0bc0b46b8197b5ad95f3d4f0ef485caab85c",
+    "oci_index_differs_due_to_buildkit_attestation": true,
+    "root_sha256": "b62e2645aef0437ab715a864f05926a3fd97273ec03d6a9c9cbd1f2768473a26"
+  },
+  "full_verifier_runs": [
+    {
+      "container_report_sha256": "852e0bfd5264b410407a85173075861967255c5b147578c2d243d1b381ed8822",
+      "environment": "FORCE_COLOR=1",
+      "failed": 0,
+      "passed": 637,
+      "regression_report_sha256": "2cd94bdb729f09d59d789726c366fa7313e80f32f8325545bfb7c8c37c6e2e71",
+      "release_manifest_sha256": "c5865205d9a113524ba9f00f7b698e03c7cd2a824141575b4a8c69033e93cf48",
+      "skipped": 0,
+      "tests": 637
+    },
+    {
+      "container_report_sha256": "5858d2fe9e518294cd90bb6b04aa4afde782d490573caf77e8c53388fefd8e9f",
+      "environment": "NO_COLOR=1",
+      "failed": 0,
+      "passed": 637,
+      "regression_report_sha256": "eb68562a7e72463e85177aaa2eec5801cbe4c90a0c6d96012de3f936f7ca6790",
+      "release_manifest_sha256": "b7081b80c8158856d7462df6795d715135ba1f21a00b072f5b4715de34ac0514",
+      "skipped": 0,
+      "tests": 637
+    }
+  ],
+  "python311_suite": {
     "failed": 0,
-    "skipped": 0
+    "note": "two opt-in Ollama tests skipped in independent compatibility run",
+    "passed": 635,
+    "skipped": 2,
+    "tests": 637
   },
-  "recorded_coordination_suite": {
-    "status": "PASS",
-    "tests": 191,
-    "seconds": 62.389,
-    "independent_review": "PASS for source 759; follow-up candidate pending"
-  },
-  "unavailable_exact_candidate_evidence": {
-    "python_3_11_install": "not evidenced",
-    "ollama_local_inference_soak": "not evidenced"
-  },
-  "independent_qc_receipt_sha256": null,
-  "final_hash_reconciliation": "PENDING",
-  "qualification_addendum_sha256": "d207ae3841092a77e231fb7cda821c2f564bc27c52dc884a226c9272994736ee",
-  "root_evidence_hashes": {
-    "release_manifest": "6db833ec41179e68326361278281be7275a6ffe98f5400d618515d4fc7e51aad",
-    "full_regression_report": "a7b455151c65b4662be9a1ef96f4c254271e8c43bb6512e109b3d0b360eea777",
-    "local_ci_report": "6f0cc7efe47ae69276b1690efbd949d7b53b4918bff1c64a080eb485cbfbbe15",
-    "security_report": "b73b0d2fb8077735ea5c0de7242d860bbbd04f1d585297dba2b76eedd7c7fe11",
-    "container_smoke_report": "41c5f4ad5e5148d9148401482c6fbff38b607d4833a547e090dda4032ba94445",
-    "coordination_suite_log": "0314683dd9b9640b3fb2861faec6e0c6cf145789ff1464e1f34350d341724772",
-    "archive_reload_report": "c7e26c4510e00dc847e5c9d5a2e9fb5a58ee17c9ce8db657191a974c949a8c55",
-    "sha256sums": "aca126d037c839f83458ee1d0ae00c554ac3f9be09f2b651984c5c4f33405b62"
-  },
-  "publication": "pending",
-  "independent_qc_for_source_759": "PASS",
-  "followup_docs_test_candidate": {
-    "focused_runbook_test": "PASS 1/1",
-    "full_exact_source_verifier": "PENDING",
-    "independent_qc": "PENDING",
-    "candidate_commit_sha": "pending_commit"
-  }
+  "result": "passed",
+  "reviewer_independent": true,
+  "schema_version": 2,
+  "scope_limitations": [
+    "no independent AEGIS qualification",
+    "no multi-hour soak",
+    "no formal GitHub approving review"
+  ],
+  "sdist_sha256": "fb289c4aef7061acf998502e6e6b06bfef9d8e93058c56ac99246d4e0f4f5826",
+  "source_tree": "5dc151512b5df78ecf5e911a93222ad2a44fb94b",
+  "wheel_sha256": "5f04940e72466a83835a527530dc6ca3acdfb6452f0d62da8b7c9c751304ec75"
 }

@@ -1,12 +1,9 @@
 # Current security status
 
-Candidate source: 759e78dc04c61ed7f01a4b714d35ab8c999d2a85. Verdict: CONDITIONAL.
+Candidate source `2e24790c983bf3c8d2d0f99de7a086427355f172`. Security checks passed for the tested scope; overall release remains CONDITIONAL.
 
-- Dependency, secret, and source security scans passed. pip-audit 2.10.1 reported zero known vulnerabilities.
-- Clean-container profile: UID/GID 10001, read-only root filesystem, all capabilities dropped, no-new-privileges, and network mode none.
-- Fixed container-internal paths include /app, /var/lib/archon, and /workspace. They are container paths, not host/user-specific paths.
-- Unauthorized admission and workspace effect were rejected. Caller-supplied trust-store override was rejected by an expected-negative installed-CLI check.
-- Exact-candidate security/privacy checks reported no host/user-specific path patterns or matched credential patterns.
-- Finance and communications effects remained disabled. Host user-service status was not refreshed in this candidate's evidence bundle.
-- Independent AEGIS/watchdog/rollback, production owner signing, native SDA cutover, and hosted GitHub enforcement are not qualified. GitHub Actions was not run because billing was unavailable.
-- Independent QC passed for root source 759e. The follow-up runbook/test candidate still awaits exact-source full verification/QC. GitHub refs are last-observed only and were not refreshed for this docs-only task.
+- pip-audit: zero known vulnerabilities; dependency, secret, and source checks passed.
+- Container: UID 10001, read-only root, all capabilities dropped, network disabled, no-new-privileges.
+- Unauthorized admission and workspace effect rejected. Test approvals used a disposable key, not a production owner key.
+- Tracked source scan had zero private-key, GitHub-token, and AWS access-key pattern matches; nine generic absolute-home-path matches remain across seven files. Git history was not scanned. Owner/repository identifiers were explicitly approved for public exposure.
+- No live finance or communication actions enabled; no host user service activated.

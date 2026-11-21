@@ -25,7 +25,7 @@ The timer was disabled before deletion, the service was inactive, no Astra monit
 - `$ARCHON_HOME/.local/state/archon-astra/worktrees` because unique/uncommitted candidate work may exist.
 - Astra `private`, `owner`, `provenance`, `reports`, qualification, and integration evidence.
 - `$ARCHON_HOME/.local/state/archon-final-audit/checkpoints` — verified Git/SQLite recovery checkpoint.
-- `/var/tmp/archon-reset-recovery-20261120T000000Z` — byte-for-byte quarantine of the pre-reset native state.
+- `<runtime-state>/pre-reset-quarantine` — byte-for-byte quarantine of the pre-reset native state; machine-local path omitted.
 - Canonical source `$ARCHON_HOME/dev/A.R.C.H.O.N` and historical source clones pending separate provenance review.
 
 These retained paths were not included in the deletion batch. The deleted backup/toolchain contents are not recoverable from a second copy; the Git and runtime recovery paths above remain available.

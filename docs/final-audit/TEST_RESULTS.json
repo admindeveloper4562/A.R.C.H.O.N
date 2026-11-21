@@ -1,108 +1,76 @@
 {
-  "source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85",
-  "source_tree": "7472b26bbc24538851a920ff89ac9a65206050a8",
-  "package_version": "0.0.3",
-  "verdict": "CONDITIONAL",
-  "full_regression": {
-    "result": "passed",
-    "tests": 635,
-    "passed": 635,
-    "failed": 0,
-    "skipped": 0,
-    "unittest_seconds": 47.793,
-    "verifier_wall_seconds": 48.243
-  },
-  "local_ci": {
-    "result": "passed",
-    "checks": 42,
-    "returncode_zero": 40,
-    "expected_negative_checks": {
-      "untrusted_caller_trust_store": 2,
-      "uninstall_absence": 1
-    },
-    "hosted_actions": "not_run_billing_unavailable"
-  },
-  "coordination": {
-    "result": "passed",
-    "tests": 191,
-    "passed": 191,
-    "failed": 0,
-    "skipped": 0,
-    "seconds": 62.389,
-    "independent_qc": "passed_for_source_759"
-  },
-  "package": {
-    "version": "0.0.3",
-    "build_python": "3.12.3",
-    "declared_requires_python": ">=3.11",
-    "python_3_11_install": "not_evidenced_for_exact_candidate",
-    "wheel_bytes": 303942,
-    "wheel_sha256": "66d6ac2e977c65f7d48321852d7021383ab3c38540f2299612a56d93dd15f879",
-    "sdist_bytes": 346655,
-    "sdist_sha256": "9f585df16ac92b14d088a69fb20fa24a3573029ecefc873a526b8f982af70aeb",
-    "duplicate_builds": "matching_hashes"
-  },
-  "security": {
-    "local_dependency_secret_source_scans": "passed",
-    "pip_audit_version": "2.10.1",
-    "known_vulnerabilities": 0
+  "artifacts": {
+    "manifest_sha256": "1919d0f4072f91b632d0e3c9317ecfb10f0f5e5ef2788340fe11fd4934b42e3a",
+    "sdist_sha256": "fb289c4aef7061acf998502e6e6b06bfef9d8e93058c56ac99246d4e0f4f5826",
+    "wheel_sha256": "5f04940e72466a83835a527530dc6ca3acdfb6452f0d62da8b7c9c751304ec75"
   },
   "container": {
-    "smoke_commands": 47,
+    "image_archive_sha256": "b62e2645aef0437ab715a864f05926a3fd97273ec03d6a9c9cbd1f2768473a26",
     "result": "passed",
-    "network_mode": "none",
-    "runtime_uid_gid": "10001:10001",
-    "root_filesystem_read_only": true,
-    "all_capabilities_dropped": true,
-    "no_new_privileges": true,
-    "fresh_state": true,
-    "sqlite_integrity": "ok",
-    "image_archive_sha256": "4a6d21a613c9611c63c94c2a2410b1817c53c574ed49d5e537d86dbc9a258709",
-    "archive_reload": "passed",
-    "module_runtime_states": "all_planned"
+    "saved_image_reload_sha256": "fd22458aade184599ff2993d75a8fb489142eaca4e4a1b65201a56caa24cf46b",
+    "smoke_sha256": "0c4f95a49dd72fd2e375cd36936b37eb38092f6b468598b45fef535478ee1537",
+    "sqlite_integrity": "passed"
   },
-  "local_inference_soak": "not_evidenced_for_exact_candidate",
-  "independent_qc": "passed_for_source_759",
-  "qualification_addendum_sha256": "d207ae3841092a77e231fb7cda821c2f564bc27c52dc884a226c9272994736ee",
-  "evidence_report_sha256": {
-    "release_manifest": "6db833ec41179e68326361278281be7275a6ffe98f5400d618515d4fc7e51aad",
-    "full_regression": "a7b455151c65b4662be9a1ef96f4c254271e8c43bb6512e109b3d0b360eea777",
-    "local_ci": "6f0cc7efe47ae69276b1690efbd949d7b53b4918bff1c64a080eb485cbfbbe15",
-    "security": "b73b0d2fb8077735ea5c0de7242d860bbbd04f1d585297dba2b76eedd7c7fe11",
-    "container_smoke": "41c5f4ad5e5148d9148401482c6fbff38b607d4833a547e090dda4032ba94445",
-    "coordination_log": "0314683dd9b9640b3fb2861faec6e0c6cf145789ff1464e1f34350d341724772",
-    "archive_reload": "c7e26c4510e00dc847e5c9d5a2e9fb5a58ee17c9ce8db657191a974c949a8c55",
-    "sha256sums": "aca126d037c839f83458ee1d0ae00c554ac3f9be09f2b651984c5c4f33405b62"
-  },
-  "followup_docs_test_candidate": {
-    "focused_command": "PYTHONPATH=src python3 -m unittest tests.test_linux_release_runbook -v",
-    "tests": 1,
-    "passed": 1,
+  "coordination": {
     "failed": 0,
-    "full_exact_source_verifier": "pending",
-    "independent_qc": "pending"
+    "log_sha256": "88afa35ae7ec2b4551173e017d91e6b514aa75e5dbccdbd8584a96a22ad39505",
+    "passed": 191,
+    "seconds": 60.584,
+    "skipped": 0,
+    "tests": 191
   },
-  "current_candidate_source_sha": "pending_commit_then_full_verification",
-  "canonical_host_ledger_snapshot": {
-    "captured_at": "2026-11-22 03:03:40 +07",
-    "read_only": true,
-    "modified": false,
-    "integrity_check": "ok",
-    "quick_check": "ok",
-    "foreign_key_violations": 0,
-    "parents_completed": 240,
-    "parents_archived": 7,
-    "subtasks_completed": 1319,
-    "subtasks_archived": 40,
-    "receipt_rows": 1281,
-    "distinct_receipt_children": 1276,
-    "completed_children_missing_receipts": 43,
-    "project_queue_items": 1,
-    "pending_review_merge": 0,
-    "active_blocked_queued_controller_tasks": 0,
-    "supervisor_lanes_idle": 3,
-    "process_liveness": "unknown",
-    "control_markers": [],
-    "host_user_service_and_astra_runner_timer": "inactive"
-  }
+  "independent_qc": {
+    "manifest_sha256": [
+      "c5865205d9a113524ba9f00f7b698e03c7cd2a824141575b4a8c69033e93cf48",
+      "b7081b80c8158856d7462df6795d715135ba1f21a00b072f5b4715de34ac0514"
+    ],
+    "result": "passed",
+    "runs": 2
+  },
+  "limitations": [
+    "module runtime states planned",
+    "independent AEGIS/watchdog and rollback unqualified",
+    "full autonomous cross-module workflows unverified",
+    "multi-hour soak not run",
+    "GitHub Actions unavailable due billing",
+    "Windows/Apple validation deferred"
+  ],
+  "local_ci": {
+    "checks": 42,
+    "exit_classifications": {
+      "0": 40,
+      "1": 1,
+      "2": 1
+    },
+    "hosted_actions": "DEFERRED_QUOTA",
+    "result": "passed"
+  },
+  "package_version": "0.0.3",
+  "python311": {
+    "failed": 0,
+    "installed_wheel_and_sdist": true,
+    "manifest_sha256": "4f0ec16da32b50423101b55c79288c3897ad5bcd1a8ad0ef3e1e0e0bf6dbced7",
+    "passed": 637,
+    "python": "3.11.18",
+    "skipped": 0,
+    "total": 637
+  },
+  "root_tests": {
+    "failed": 0,
+    "passed": 637,
+    "python": "3.12.3",
+    "skipped": 0,
+    "total": 637,
+    "unittest_seconds": 49.232,
+    "verifier_wall_seconds": 49.671
+  },
+  "schema_version": 2,
+  "security": {
+    "credential_pattern_matches": 0,
+    "known_vulnerabilities": 0,
+    "pip_audit_version": "2.10.1"
+  },
+  "source_sha": "2e24790c983bf3c8d2d0f99de7a086427355f172",
+  "source_tree": "5dc151512b5df78ecf5e911a93222ad2a44fb94b",
+  "verdict": "CONDITIONAL"
 }

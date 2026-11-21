@@ -1,0 +1,288 @@
+{
+  "archive_reload": {
+    "exit_code": 0,
+    "fresh_container_healthy": true,
+    "image_archive_sha256": "b62e2645aef0437ab715a864f05926a3fd97273ec03d6a9c9cbd1f2768473a26",
+    "module_states": "all planned",
+    "registered_module_keys": 10,
+    "report_sha256": "fd22458aade184599ff2993d75a8fb489142eaca4e4a1b65201a56caa24cf46b",
+    "result": "passed",
+    "sqlite_integrity": {
+      "atlas": "ok",
+      "runtime": "ok"
+    }
+  },
+  "assessment_date": "2026-11-22",
+  "bounded_inference_soak": {
+    "candidate_runtime_src_tree_sha256": "5671f31b7340fae8a2979fe9d7b88d563f1e90a4",
+    "controller_restarts": 12,
+    "cpu_busy_percent_per_task": {
+      "count": 72,
+      "max": 58.17,
+      "mean": 52.35916666666667,
+      "median": 53.135,
+      "min": 42.86,
+      "scope": "per-task call samples, not peak host or process CPU"
+    },
+    "database_tasks": 36,
+    "gpu_after_model_call_samples": {
+      "count": 36,
+      "memory_used_mib_max": 3184,
+      "memory_used_mib_median": 3184.0,
+      "utilization_percent_max": 35,
+      "utilization_percent_median": 25.5
+    },
+    "gpu_after_snapshot": {
+      "memory_total_mib": 4096,
+      "memory_used_mib": 3184,
+      "utilization_percent": 31
+    },
+    "gpu_before_snapshot": {
+      "memory_total_mib": 4096,
+      "memory_used_mib": 1390,
+      "utilization_percent": 3
+    },
+    "host_available_memory_mib_after": 6299,
+    "host_available_memory_mib_before": 7970,
+    "max_queue_depth": 6,
+    "model": "qwen3:4b",
+    "model_call_latency_seconds": {
+      "count": 36,
+      "max": 24.545,
+      "mean": 13.600305555555556,
+      "median": 14.2895,
+      "min": 3.192
+    },
+    "model_tasks": 36,
+    "process_peak_rss_captured": false,
+    "receipt_sha256": "20716944133572eb77f250f3ce6801ca785e494fd4841a2e531a8b4edaba8c83",
+    "result": "passed_with_scope_limit",
+    "runtime_src_tree_sha256": "5671f31b7340fae8a2979fe9d7b88d563f1e90a4",
+    "scope": "identical runtime source subtree but not exact whole-source candidate; bounded, not multi-hour; RAM/GPU values are before/after snapshots and not peaks",
+    "seconds": 491.427,
+    "source_sha": "2621056f64f3bee6f41b794913302d0fa36491b6",
+    "tasks": 72,
+    "tasks_completed_per_second": 0.14651209640495944,
+    "final_queue_depth": 0
+  },
+  "candidate": {
+    "package_version": "0.0.3",
+    "qualification_scope": "application source; audit documents are committed separately",
+    "source_sha": "2e24790c983bf3c8d2d0f99de7a086427355f172",
+    "source_tree": "5dc151512b5df78ecf5e911a93222ad2a44fb94b"
+  },
+  "canonical_task_ledger_read_only": {
+    "backup_created_for_this_read_only_check": false,
+    "completed_subtasks_without_receipts": 43,
+    "control_markers_found": 0,
+    "database_mutated": false,
+    "declared_parents": 247,
+    "declared_subtasks": 1359,
+    "distinct_children_with_receipts": 1276,
+    "foreign_key_violations": 0,
+    "integrity_check": "ok",
+    "live_process_liveness": "not established; no service active",
+    "parent_status_counts": {
+      "archived": 7,
+      "completed": 240
+    },
+    "pending_review_merge_rebuild_queues": 0,
+    "project": "JARVIS V2 Full Build",
+    "project_queue": "pending",
+    "run_history_nonterminal_records": {
+      "blocked_worker": 1,
+      "interrupted_repairer": 2,
+      "interrupted_worker": 11
+    },
+    "snapshot_utc": "2026-11-21T22:41:47Z",
+    "subtask_receipt_rows": 1281,
+    "subtask_status_counts": {
+      "archived": 40,
+      "completed": 1319
+    },
+    "supervisor_lanes": {
+      "recovery_coder_idle": 2,
+      "upgrade_auditor_idle": 1
+    }
+  },
+  "container": {
+    "capabilities_dropped": [
+      "ALL"
+    ],
+    "command_records": 47,
+    "fresh_state": true,
+    "image": "archon-local:0.0.3",
+    "image_archive_bytes": 50039296,
+    "image_archive_file": "archon-local-image.tar",
+    "image_archive_sha256": "b62e2645aef0437ab715a864f05926a3fd97273ec03d6a9c9cbd1f2768473a26",
+    "image_only_compose": {
+      "fresh_health": "healthy",
+      "manifest_sha256": "746dbb8db950e28f4693eab45b55e56722ae71cc3413cf616e70984304b04dff",
+      "module_keys": 10,
+      "persistent_restart": "passed",
+      "report_sha256": "b5bce93865595ada53e76f28e59f49f58067582eecbfb1dcac4485b89e27d501",
+      "result": "passed",
+      "runtime_uid_gid": "10001:10001",
+      "test_volumes_removed": true
+    },
+    "network_mode": "none",
+    "no_new_privileges": true,
+    "read_only_rootfs": true,
+    "result": "passed",
+    "runtime_uid_gid": "10001:10001",
+    "smoke_report_sha256": "0c4f95a49dd72fd2e375cd36936b37eb38092f6b468598b45fef535478ee1537",
+    "smoke_summary_sha256": "517a3fb76018e9da9cc85d35329534254894480c118548085fc753891dbfcf94",
+    "sqlite_integrity": {
+      "atlas.sqlite3": "ok",
+      "effects.sqlite3": "ok",
+      "runtime.sqlite3": "ok"
+    },
+    "task_effects": [
+      "signed bounded admission",
+      "read-only task",
+      "approved workspace write",
+      "unauthorized admission/write rejection",
+      "cancellation",
+      "interrupted-effect recovery",
+      "restart persistence",
+      "graceful shutdown"
+    ]
+  },
+  "coordination": {
+    "failed": 0,
+    "log_sha256": "88afa35ae7ec2b4551173e017d91e6b514aa75e5dbccdbd8584a96a22ad39505",
+    "passed": 191,
+    "result": "passed",
+    "seconds": 60.584,
+    "skipped": 0,
+    "tests": 191
+  },
+  "git_snapshot_before_publication": {
+    "base_develop_sha": "41dab1ad003c7526d80e3caaa46e63a6da1b6496",
+    "branch": "feat/release/REL-025-linux-release-final",
+    "force_push": false,
+    "local_candidate_sha": "2e24790c983bf3c8d2d0f99de7a086427355f172",
+    "main_modified": false,
+    "main_sha": "5227b91d2725bf4be4336a5ad26189fdf1034704",
+    "published": false
+  },
+  "independent_qc": {
+    "candidate_source_sha": "2e24790c983bf3c8d2d0f99de7a086427355f172",
+    "container_archive_comparison": {
+      "byte_hash_matches_root": false,
+      "difference_reason": "independent BuildKit attestation metadata; container image content matches but tar-byte reproducibility is not established",
+      "force_color_sha256": "f428caf76ecb0059df95e5e51bd32d68fb7b028b75f2234310880c0f3797a07c",
+      "image_config_and_all_layer_blobs_match": true,
+      "matching_layer_blob_count": 10,
+      "no_color_sha256": "2f6f1076f8240845e2054b4ba6be0bc0b46b8197b5ad95f3d4f0ef485caab85c",
+      "oci_index_differs": true,
+      "root_sha256": "b62e2645aef0437ab715a864f05926a3fd97273ec03d6a9c9cbd1f2768473a26"
+    },
+    "force_color_run": {
+      "container_report_sha256": "852e0bfd5264b410407a85173075861967255c5b147578c2d243d1b381ed8822",
+      "local_ci_checks": 42,
+      "pip_audit_findings": 0,
+      "regression_report_sha256": "2cd94bdb729f09d59d789726c366fa7313e80f32f8325545bfb7c8c37c6e2e71",
+      "release_manifest_sha256": "c5865205d9a113524ba9f00f7b698e03c7cd2a824141575b4a8c69033e93cf48",
+      "tests": 637
+    },
+    "formal_github_review": "not yet requested",
+    "full_verifier_runs": 2,
+    "no_color_run": {
+      "container_report_sha256": "5858d2fe9e518294cd90bb6b04aa4afde782d490573caf77e8c53388fefd8e9f",
+      "local_ci_checks": 42,
+      "pip_audit_findings": 0,
+      "regression_report_sha256": "eb68562a7e72463e85177aaa2eec5801cbe4c90a0c6d96012de3f936f7ca6790",
+      "release_manifest_sha256": "b7081b80c8158856d7462df6795d715135ba1f21a00b072f5b4715de34ac0514",
+      "tests": 637
+    },
+    "package_artifact_hashes_match_root": true,
+    "python311_independent_suite": "637 tests; 635 passed, 0 failed, 2 opt-in Ollama skips; installed CLI/resources passed",
+    "result": "passed"
+  },
+  "limitations": [
+    "all ten module runtime states are planned",
+    "full ALFRED cross-module personal-assistant workflow not run",
+    "SMITH autonomous code-to-QC-to-PR-to-merge workflow not run",
+    "controlled-clock RELAY end-to-end dispatch not run",
+    "independent AEGIS watchdog survival and verified rollback not qualified",
+    "production owner-delegation transport and native SDA cutover not qualified",
+    "multi-hour soak not run",
+    "Git object history privacy scan not run",
+    "GitHub Actions unavailable due billing; local CI is not hosted enforcement",
+    "Windows and Apple-native validation deferred",
+    "live finance and third-party communication effects remain disabled"
+  ],
+  "local_ci": {
+    "checks": 42,
+    "hosted_actions": "DEFERRED_QUOTA; not run",
+    "negative_checks": "two expected rejection/absence checks",
+    "report_sha256": "ae49abc1102e7f905d0e09f07256fb421c231ca2e3a589749a0e9fa79c526315",
+    "result": "passed",
+    "returncode_counts": {
+      "0": 40,
+      "1": 1,
+      "2": 1
+    }
+  },
+  "overall_verdict": "CONDITIONAL",
+  "package": {
+    "build_python": "3.12.3",
+    "declared_python": ">=3.11",
+    "python311": {
+      "cli_resource_pip_checks": "passed",
+      "python": "3.11.18",
+      "qualification_manifest_sha256": "4f0ec16da32b50423101b55c79288c3897ad5bcd1a8ad0ef3e1e0e0bf6dbced7",
+      "root_suite": {
+        "failed": 0,
+        "passed": 637,
+        "skipped": 0,
+        "tests": 637
+      },
+      "wheel_and_sdist_installed": true
+    },
+    "reproducible_duplicate_builds": true,
+    "sdist": {
+      "bytes": 347780,
+      "file": "jarvis_v2-0.0.3.tar.gz",
+      "sha256": "fb289c4aef7061acf998502e6e6b06bfef9d8e93058c56ac99246d4e0f4f5826"
+    },
+    "version": "0.0.3",
+    "wheel": {
+      "bytes": 303942,
+      "file": "jarvis_v2-0.0.3-py3-none-any.whl",
+      "sha256": "5f04940e72466a83835a527530dc6ca3acdfb6452f0d62da8b7c9c751304ec75"
+    }
+  },
+  "regression": {
+    "failed": 0,
+    "passed": 637,
+    "python": "3.12.3",
+    "release_manifest_sha256": "1919d0f4072f91b632d0e3c9317ecfb10f0f5e5ef2788340fe11fd4934b42e3a",
+    "report_sha256": "a790f2d4801166d5e678e87708bf053f7e0d768918889a6f8ca7de25c3cb1536",
+    "result": "passed",
+    "skipped": 0,
+    "tests": 637,
+    "unittest_seconds": 49.232,
+    "verifier_wall_seconds": 49.671
+  },
+  "schema_version": 2,
+  "security": {
+    "known_vulnerabilities": 0,
+    "pip_audit_version": "2.10.1",
+    "result": "passed_for_tested_scope",
+    "security_report_sha256": "aa40ec786d5d7f9b72559aff416b1dfd86e6981e45a3651628beb3628d27f48a",
+    "source_scan": {
+      "absolute_home_path_matches": 9,
+      "credential_patterns": {
+        "aws_access_key": 0,
+        "github_token": 0,
+        "private_key": 0
+      },
+      "files_with_matches": 7,
+      "git_object_history_scanned": false,
+      "note": "repository/account identifiers were explicitly approved by the owner; matched values are not reproduced here",
+      "tracked_files_before_audit_docs": 613
+    }
+  }
+}

@@ -1,20 +1,15 @@
 # Security acceptance
 
-Candidate application source: 759e78dc04c61ed7f01a4b714d35ab8c999d2a85. Result: source scans and tested container boundaries PASS; release security acceptance remains CONDITIONAL.
+Candidate source: `2e24790c983bf3c8d2d0f99de7a086427355f172`. Source scanners, dependency audit, and tested container boundaries passed for the stated scope; overall release security remains **CONDITIONAL**.
 
-## Checks passed
+## Passed checks
 
-- Dependency, secret, and source security scans passed. pip-audit 2.10.1 reported zero known vulnerabilities.
-- The clean container ran as UID/GID 10001 with a read-only root filesystem, all capabilities dropped, no-new-privileges, and network mode none.
-- Container-internal fixed paths include /app, /var/lib/archon, and /workspace. These are image/container paths, not host or user-specific paths.
-- Fresh container SQLite integrity passed. Unauthorized task admission created no queue entry; unauthorized workspace write was rejected. Caller-supplied trust-store override was rejected by an expected-negative installed-CLI check.
-- The exact-candidate source/privacy checks reported no host/user-specific path patterns or matched credential patterns. Fixed container-internal paths such as /app, /var/lib/archon, and /workspace are container paths, not host/user-specific paths.
-- The backup/restore runbook now archives the three native control markers and restores them with restrictive permissions before startup. A focused test executes both embedded snippets and confirms the restored controller stays in safe_mode while any marker remains.
+- Dependency, secret, and source checks passed. `pip-audit` 2.10.1 reported zero known vulnerabilities.
+- Test container ran as UID/GID 10001 with read-only root filesystem, all capabilities dropped, `no-new-privileges`, and network mode `none`.
+- Unauthorized task admission was rejected without a queue entry; unauthorized workspace write was denied. Signed test approval was accepted only within the disposable allowlist. Caller-supplied trust-store override was rejected.
+- The tracked-tree scan found zero private-key, GitHub-token, and AWS access-key pattern matches. It found nine generic absolute-home-path matches across seven files; two are fixed container-home paths. Remaining historical examples/provenance were assessed as non-credential material. The owner explicitly approved repository/account identifiers for public exposure. Git object history was not scanned.
+- No financial or third-party communication effects were enabled.
 
 ## Limits
 
-- The ephemeral test signing key was used only for disposable qualification state; production owner signing and approval transport remain unqualified.
-- No live financial or communications effects were enabled.
-- Independent AEGIS watchdog, unattended rollback, native SDA cutover, and external GitHub enforcement are not accepted.
-- GitHub Actions was not run because billing was unavailable. Local verification is not equivalent to hosted enforcement.
-- Independent QC passed for root source 759e. The follow-up runbook/test candidate still needs exact-source full verification and QC; its report hashes remain pending.
+Production owner-signing and delegation transport, independent AEGIS/watchdog, native SDA cutover, external service controls, and hosted GitHub enforcement remain unqualified. See the candidate-bound privacy and security fields in [QUALIFICATION_ADDENDUM_2E24790.json](QUALIFICATION_ADDENDUM_2E24790.json).

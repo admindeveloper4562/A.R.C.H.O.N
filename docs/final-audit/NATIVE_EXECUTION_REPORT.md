@@ -1,22 +1,16 @@
 # Native execution report
 
-Candidate application source: 759e78dc04c61ed7f01a4b714d35ab8c999d2a85. Result: bounded Linux execution PASS; production operation CONDITIONAL.
+Candidate application source: `2e24790c983bf3c8d2d0f99de7a086427355f172`. Result: bounded Linux execution **PASS**; full production operation **CONDITIONAL**.
 
 ## Verified operations
 
-- Version 0.0.3 wheel and source distribution were built reproducibly. Duplicate builds had matching hashes; fresh package, CLI, and pip checks passed in the Python 3.12.3 environment.
-- The local CI workflow exercised jarvis-v2, atlas-monitor, and archon-native-controller entry points, health, module listing, initialization, bounded admission, and controller operation.
-- Clean-container acceptance verified fresh runtime initialization and health; read-only task execution; one approved workspace write; rejection of unauthorized admission and write; cancellation; interrupted-effect recovery; persistence; restart; and graceful shutdown.
-- Container databases atlas.sqlite3, effects.sqlite3, and runtime.sqlite3 passed integrity checks.
-- Saved image archive reload passed at exact source 759e78dc04c61ed7f01a4b714d35ab8c999d2a85. The ten module names registered, with every state planned.
-- The test authorization used an ephemeral test-only signing identity, not a production owner key.
-- A focused runbook test executed the backup and restore snippets against disposable state/workspace directories and verified that all three control markers survive with restrictive permissions and force safe_mode. The full verifier for the follow-up candidate is pending.
+- Installed wheel and sdist expose `jarvis-v2`, `atlas-monitor`, and `archon-native-controller` entry points; fresh installation, resource loading, `pip check`, and CLI checks passed on Python 3.12.3 and 3.11.18.
+- Authenticated task admission used a disposable Ed25519 test identity and signed approval; caller-provided trust-store substitution was rejected.
+- The isolated container completed a read-only task and an allowlisted workspace write, rejected unauthorized admission/write, cancelled a pending task, reconciled an interrupted effect after restart, and preserved state across restart.
+- Container runtime used UID/GID 10001, read-only root, dropped all Linux capabilities, no-new-privileges, and network mode `none`.
+- SQLite integrity passed for `atlas.sqlite3`, `effects.sqlite3`, and `runtime.sqlite3` in acceptance; the separately reloaded image passed its fresh atlas/runtime integrity checks.
+- Saved image archive SHA-256: `b62e2645aef0437ab715a864f05926a3fd97273ec03d6a9c9cbd1f2768473a26`; archive reload report SHA-256: `fd22458aade184599ff2993d75a8fb489142eaca4e4a1b65201a56caa24cf46b`.
 
-## Boundaries and gaps
+## Boundaries
 
-- Local Ollama inference and an extended inference soak were not evidenced for exact source 759e78dc04c61ed7f01a4b714d35ab8c999d2a85.
-- The declared Python requirement is >=3.11, but this exact-candidate bundle records verification under Python 3.12.3 only; Python 3.11 install qualification is unavailable here.
-- Production signed owner delegation, production approval transport, native SDA cutover, and unattended task execution are not qualified.
-- Independent AEGIS watchdog activation and protected rollback are not qualified.
-- No host user service was activated by this qualification. Host service status was not refreshed in this evidence bundle.
-- Full module workflows and cross-module assistant, autonomous-development, and controlled-clock automation scenarios remain unverified.
+These tests establish bounded controller/executor operations in disposable state, not arbitrary host shell execution or production owner-signing integration. Native SDA cutover, autonomous SMITH development/merge, cancellation under every process-failure timing, and unrestricted external integrations are not qualified. The host user service remains inactive.

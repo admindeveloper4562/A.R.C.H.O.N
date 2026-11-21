@@ -1,78 +1,48 @@
 {
-  "schema_version": 6,
-  "qualified_application_source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85",
-  "source_tree": "7472b26bbc24538851a920ff89ac9a65206050a8",
-  "verdict": "CONDITIONAL",
+  "container": "passed",
+  "coordination_tests": {
+    "failed": 0,
+    "log_sha256": "88afa35ae7ec2b4551173e017d91e6b514aa75e5dbccdbd8584a96a22ad39505",
+    "passed": 191,
+    "seconds": 60.584,
+    "skipped": 0,
+    "tests": 191
+  },
+  "host_service": "inactive",
+  "independent_qc": "passed",
+  "local_ci": {
+    "checks": 42,
+    "exit_classifications": {
+      "0": 40,
+      "1": 1,
+      "2": 1
+    },
+    "hosted_actions": "DEFERRED_QUOTA",
+    "result": "passed"
+  },
+  "main_sha": "5227b91d2725bf4be4336a5ad26189fdf1034704",
   "package_version": "0.0.3",
-  "evidence": {
-    "root_tests": 635,
-    "root_failures": 0,
-    "root_skipped": 0,
-    "local_ci_checks": 42,
-    "coordination_tests": 191,
-    "known_dependency_vulnerabilities": 0,
-    "modules_registered": 10,
-    "module_states_planned": 10,
-    "container_smoke_commands": 47,
-    "package_duplicate_builds": "matching_hashes",
-    "python_3_11_install": "not_evidenced_for_exact_candidate",
-    "ollama_soak": "not_evidenced_for_exact_candidate"
-  },
-  "blocking_conditions": [
-    "independent QC and final hash reconciliation pending",
-    "all ten module states are planned; full operational module acceptance not established",
-    "full ALFRED/SAGE/HORIZON assistant workflow not run",
-    "SMITH autonomous patch/QC/PR/merge workflow not run",
-    "controlled-clock RELAY/ATLAS end-to-end workflow not run",
-    "independent AEGIS watchdog, unattended recovery, and rollback not qualified",
-    "production signed owner delegation and native SDA cutover not qualified",
-    "exact-candidate local inference and multi-hour soak not evidenced",
-    "Python 3.11 install, Windows, Apple, and hardware-specific validation deferred",
-    "GitHub Actions not run because billing was unavailable"
+  "release_source_sha": "2e24790c983bf3c8d2d0f99de7a086427355f172",
+  "required_gates_open": [
+    "full module operation",
+    "independent AEGIS recovery and rollback",
+    "production owner delegation/native SDA cutover",
+    "multi-hour soak",
+    "hosted CI",
+    "Windows/Apple validation"
   ],
-  "git_snapshot": {
-    "publication": "pending",
-    "pr_6": "open; last-observed head 9bc3284",
-    "pr_1": "open without reviews; not merged",
-    "last_observed_develop_sha": "41dab1ad003c7526d80e3caaa46e63a6da1b6496",
-    "last_observed_main_sha": "5227b91d2725bf4be4336a5ad26189fdf1034704",
-    "main_modified": false,
-    "force_push": false,
-    "refresh_before_publication": true
+  "root_tests": {
+    "failed": 0,
+    "passed": 637,
+    "python": "3.12.3",
+    "skipped": 0,
+    "total": 637,
+    "unittest_seconds": 49.232,
+    "verifier_wall_seconds": 49.671
   },
-  "last_prior_host_services": "inactive in prior source-1dc snapshot; not refreshed for this candidate",
-  "qualification_addendum_sha256": "d207ae3841092a77e231fb7cda821c2f564bc27c52dc884a226c9272994736ee",
-  "host_ledger_snapshot": {
-    "captured_at": "2026-11-22 03:03:40 +07",
-    "read_only": true,
-    "modified": false,
-    "integrity_check": "ok",
-    "quick_check": "ok",
-    "foreign_key_violations": 0,
-    "parents": {
-      "total": 247,
-      "completed": 240,
-      "archived": 7
-    },
-    "subtasks": {
-      "total": 1359,
-      "completed": 1319,
-      "archived": 40,
-      "receipt_rows": 1281,
-      "distinct_receipt_children": 1276,
-      "completed_missing_receipts": 43,
-      "archived_excluded_from_missing_receipts": true
-    },
-    "queue": {
-      "project_items": 1,
-      "pending": 0,
-      "review": 0,
-      "merge": 0,
-      "active_blocked_or_queued_controller_tasks": 0
-    },
-    "supervisor_lanes_idle": 3,
-    "process_liveness": "unknown",
-    "control_markers": [],
-    "host_user_service_and_astra_runner_timer": "inactive"
-  }
+  "schema_version": 2,
+  "security": "passed_for_tested_scope",
+  "source_tree": "5dc151512b5df78ecf5e911a93222ad2a44fb94b",
+  "tested_develop_sha": "41dab1ad003c7526d80e3caaa46e63a6da1b6496",
+  "verdict": "CONDITIONAL"
 }

@@ -93,7 +93,7 @@
       "reason": "verified_final_audit_recovery_evidence"
     },
     {
-      "path": "/var/tmp/archon-reset-recovery-20261120T000000Z",
+      "path": "<runtime-state>/pre-reset-quarantine",
       "size_bytes": 140377536,
       "reason": "byte_for_byte_pre_reset_native_runtime_quarantine"
     },

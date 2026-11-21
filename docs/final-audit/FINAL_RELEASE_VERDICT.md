@@ -2,34 +2,34 @@
 
 ## Verdict: CONDITIONAL
 
-The results below describe root qualification source 759e78dc04c61ed7f01a4b714d35ab8c999d2a85. A follow-up runbook and test change has focused evidence, but its new commit still needs the full verifier and independent QC.
+The Linux package, local verification workflow, bounded signed executor, clean container, persistent volumes, restart recovery, and saved-image reload pass on the tested candidate. A complete autonomous ARCHON system is not established: all ten module states remain `planned`, the full cross-module assistant and autonomous development workflows were not run, independent AEGIS recovery/rollback is not qualified, and multi-hour operation remains unverified.
 
-Exact-source regression, local CI, package reproducibility, security scans, container acceptance, and saved-image reload passed. A complete operational release is not established: all ten module states remain planned, exact-candidate local inference/soak is unavailable, several required workflows were not run, and independent QC is pending.
+## Candidate and Git snapshot
 
-## Candidate and Git
-
-- Application source SHA: 759e78dc04c61ed7f01a4b714d35ab8c999d2a85.
-- Source tree: 7472b26bbc24538851a920ff89ac9a65206050a8.
-- Package version: 0.0.3; declared Python requirement: >=3.11.
-- Candidate publication is pending. Last observed GitHub snapshot from the preceding evidence report: PR #6 open at head 9bc3284; develop 41dab1ad003c7526d80e3caaa46e63a6da1b6496; main 5227b91d2725bf4be4336a5ad26189fdf1034704. These refs were not refreshed for this docs-only work; fetch and verify ancestry before any publication.
-- PR #1 was last observed open without reviews and not merged. Do not treat this as refreshed remote state.
-- No change to main or force-push is reported. This docs candidate has not been published.
+- Qualified application code SHA: `2e24790c983bf3c8d2d0f99de7a086427355f172`.
+- Source tree: `5dc151512b5df78ecf5e911a93222ad2a44fb94b`.
+- Package version: `0.0.3`; declared Python `>=3.11`.
+- Candidate branch: `feat/release/REL-025-linux-release-final`, based on `origin/develop` `41dab1ad003c7526d80e3caaa46e63a6da1b6496`.
+- At qualification, `origin/main` was `5227b91d2725bf4be4336a5ad26189fdf1034704` and was not modified. This candidate had not yet been published; refresh and recheck refs before pushing.
+- GitHub Actions remains unavailable due billing; hosted CI is deferred, not passed.
 
 ## Acceptance snapshot
 
-Current host-ledger snapshot at 2026-11-22 03:03:40 +07 was read-only: integrity_check/quick_check ok, zero foreign-key violations, 240/247 parents completed, 7 archived; 1,319/1,359 subtasks completed, 40 archived; 1,281 receipt rows across 1,276 distinct children, and 43 completed children missing receipts excluding archived. One project queue item; zero pending/review/merge items; no active/blocked/queued controller task. Three supervisor lanes idle; process liveness unknown; no STOP/PAUSE/PAUSED_QUOTA; host user service and Astra runner/timer inactive. The database was not modified.
-
-- Local release verifier: PASS, 635/635 root tests; 0 failures and 0 skips in 47.793 seconds (48.243 seconds verifier wall time).
-- Local CI equivalent: PASS, 42 checks, including 2 expected-negative checks. Hosted GitHub Actions was not run because billing was unavailable.
-- Coordination suite: PASS, 191/191 in 62.389 seconds. Independent QC is still PENDING.
-- Version 0.0.3 wheel and sdist built reproducibly with matching duplicate-build hashes. Python 3.12.3 install and CLI checks passed; exact-candidate Python 3.11 install evidence is unavailable.
-- Clean-container acceptance and saved-image archive reload passed with fresh state, no network, UID/GID 10001, read-only root, all capabilities dropped, no-new-privileges, and SQLite integrity.
-- Local dependency, secret, and source scans passed; pip-audit reported zero known vulnerabilities.
-- All ten module names registered, but every reported module state was planned. Registration and component tests are not operational acceptance.
-- Exact-candidate Ollama/local-inference soak was not included. The earlier source-1dc soak is not used as evidence for this candidate.
+- Python 3.12.3 regression: 637 passed, 0 failed, 0 skipped; local CI: 42 expected checks; coordination: 191/191.
+- Python 3.11.18 wheel/sdist installation, installed CLI/resource checks, and root regression: 637 passed, 0 failed, 0 skipped.
+- Local inference: the exact-candidate root suite ran with Ollama opt-in integration enabled; `qwen3:4b` completed the separately recorded bounded workload on the identical runtime source subtree. Container networking remains disabled by default.
+- pip-audit: zero known vulnerabilities. Container: UID 10001, network none, read-only root, all caps dropped; bounded task effects, denial, restart, recovery, and SQLite integrity passed.
+- Independent QC: two complete exact-source runs passed with color forcing on/off; package hashes matched the root build.
+- Runtime-tree soak: 72 bounded tasks over 491.427 seconds (0.1465 tasks/s), with 12 restarts, on an identical `src/` subtree but not the exact whole-source candidate. Across 36 model calls, latency median was 14.2895 s (3.192–24.545 s); 72 per-task CPU-busy samples had a 53.135% median (42.86–58.17%). Host available-memory snapshots were 7,970/6,299 MiB before/after; GPU snapshots were 1,390 MiB/3% before and 3,184 MiB/31% after. These do not establish peak usage; no multi-hour run or peak process RSS was captured.
+- The released image-only Compose manifest passed startup, health, ten-key registration, non-root identity, workspace persistence across restart, and SQLite integrity; receipt SHA-256 `b5bce93865595ada53e76f28e59f49f58067582eecbfb1dcac4485b89e27d501`.
 
 ## Remaining release gates
 
-Full ALFRED/SAGE/HORIZON assistant workflow; SMITH autonomous change through independent QC/PR/merge; controlled-clock RELAY/ATLAS end-to-end; independent AEGIS watchdog, unattended recovery, and rollback; production signed owner delegation and native SDA cutover; exact-candidate local inference and multi-hour soak; Python 3.11 install acceptance; Windows, Apple, hardware-specific, live external feed/provider, finance, and communications validation. No host user service was activated. Overall independent QC and final hash reconciliation remain pending.
+1. Full operation for ALFRED, SMITH, SAGE, HORIZON, LUMEN, CROWN, RELAY, and cross-module flows.
+2. Independently protected AEGIS/watchdog, unattended recovery, and verified rollback.
+3. Production owner delegation/signature transport and native SDA cutover.
+4. Multi-hour soak and live performance/resource qualification.
+5. Git object-history privacy scan; the tracked-tree scan has nine absolute-home-path patterns in seven files, but no credential-pattern matches.
+6. Hosted CI remains deferred by billing; Windows and Apple-native validation remain deferred.
 
-Focused runbook regression: 1/1 passed by executing the backup and restore snippets in disposable directories and asserting safe_mode with all original markers present. The source-759 qualification addendum SHA-256 is d207ae3841092a77e231fb7cda821c2f564bc27c52dc884a226c9272994736ee; it does not include the follow-up candidate.
+The exact evidence and hashes are in [QUALIFICATION_ADDENDUM_2E24790.json](QUALIFICATION_ADDENDUM_2E24790.json). The host user service remains inactive. Do not interpret this CONDITIONAL result as approval for live finance, communication, public network exposure, or unattended privileged recovery.

@@ -1,24 +1,24 @@
 # Coordination and end-to-end evidence
 
-Candidate application source: 759e78dc04c61ed7f01a4b714d35ab8c999d2a85.
+Candidate application source: `2e24790c983bf3c8d2d0f99de7a086427355f172`.
 
-## Executed evidence
+## Executed
 
-- Full local regression: 635 passed, 0 failed, 0 skipped; 47.793 seconds.
-- Recorded coordination suite: 191 passed, 0 failed, 0 skipped in 62.389 seconds.
-- Exact-candidate container acceptance ran 47 commands and exited 0. It exercised fresh health, persistence, SQLite integrity, bounded task admission, read-only work, one approved workspace write, rejection of unauthorized admission/effect, cancellation, interrupted-effect recovery, restart, and graceful stop.
-- Saved-image archive reload passed with healthy status and all ten registered module states planned.
-- Independent QC passed for the source-759 root evidence. The follow-up docs/test candidate is not covered by that receipt; its exact-source full verifier/QC and final hash reconciliation remain pending.
+- Root regression: 637/637; zero failures or skips.
+- Astra/ATLAS coordination suite: 191/191 passed in 60.584 seconds; log SHA-256 `88afa35ae7ec2b4551173e017d91e6b514aa75e5dbccdbd8584a96a22ad39505`.
+- Container acceptance exercised fresh initialization, health, module registration, signed bounded admission, read-only work, one authorized workspace write, unauthorized admission/effect rejection, cancellation, interrupted-effect reconciliation, restart persistence, SQLite integrity, and graceful stop.
+- Saved-image archive reload started a fresh container from the saved image archive and verified health, module registration, persistence databases, and graceful exit.
+- Two independent verifier runs passed on the same candidate SHA; manifests and artifact hashes are recorded in the addendum.
+- Image-only Compose deployment passed fresh startup, health, ten-key registration, workspace persistence across restart, UID/GID 10001, and SQLite integrity; receipt SHA-256 `b5bce93865595ada53e76f28e59f49f58067582eecbfb1dcac4485b89e27d501`.
 
-## Scenario matrix
+## Scenarios not demonstrated
 
-| Scenario | Result | Evidence boundary |
+| Scenario | Status | Boundary |
 | --- | --- | --- |
-| A — ALFRED/CORTEX/SAGE/HORIZON personal-assistant request | NOT RUN end to end | No single request traversed these modules and produced a persisted audited answer. |
-| B — SMITH change, tests, independent QC, PR, and merge | NOT RUN end to end | No runtime task completed the autonomous code-to-merge sequence. |
-| C — Failure detection and recovery | PARTIAL | Container interrupted-effect recovery and restart/persistence passed. Independent protected AEGIS/watchdog recovery and rollback were not qualified. |
-| D — RELAY schedule through ATLAS, execution, and restart | NOT RUN end to end | Controlled-clock dispatch and non-replay across the whole workflow were not demonstrated. |
-| E — Security rejection | PASS for tested boundaries | Unauthorized admission and workspace write were rejected; caller trust-store override was rejected by an expected-negative CLI check. This does not prove every authorization boundary. |
-| F — Normal multitask workload | PARTIAL | Bounded queue and container operations passed. No exact-759 Ollama soak or sustained parallel-worker coordination was included. |
+| ALFRED personal assistant through CORTEX, SAGE, and HORIZON | NOT RUN end to end | No single user request traversed all modules and produced a persisted, audited answer. |
+| SMITH autonomous change, tests, independent QC, PR, and merge | NOT RUN end to end | Unit and bounded execution tests do not prove runtime code-to-merge operation. |
+| Independent AEGIS process failure and rollback | NOT QUALIFIED | No independently protected watchdog or verified unattended rollback. |
+| Controlled-clock RELAY scheduling and recovery | NOT RUN end to end | No clock-controlled dispatch through ATLAS and restart reconciliation. |
+| Multi-hour normal-use operation | NOT RUN | The bounded 72-task local inference/data soak lasted 491.427 seconds on the identical runtime source subtree, not the exact whole-source candidate. |
 
-The 191-test coordination result is source-bound in the qualification addendum. Independent QC for source 759 passed; the new follow-up candidate remains unqualified until exact-source checks finish.
+The tested SQLite task ledger also contains incomplete historical child receipts; see [AEGIS_RECOVERY_REPORT.md](AEGIS_RECOVERY_REPORT.md). Overall verdict remains CONDITIONAL.
