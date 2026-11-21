@@ -9,7 +9,7 @@ The tested Linux package, container, bounded native executor, and local inferenc
 - Qualified application source SHA: 0ae26d563e5998a9390588feb58eb3d5c0081ffb.
 - Package version: 0.0.3.
 - Remote base checked before publication: develop 41dab1ad003c7526d80e3caaa46e63a6da1b6496; main 5227b91d2725bf4be4336a5ad26189fdf1034704.
-- Final GitHub publication SHA is recorded in the post-publication release receipt and the final qualification response. Main was not modified and no history was rewritten.
+- GitHub publication has not yet been performed. After the reviewed PR merges, record the resulting develop SHA in the post-publication release receipt and final qualification response. Main was not modified and no history was rewritten.
 - Independent read-only source QC passed for the exact application source SHA. The 626 root tests, 191 coordination tests, and 40 local CI steps passed.
 
 ## Acceptance snapshot
