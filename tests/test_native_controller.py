@@ -37,6 +37,23 @@ class NativeControllerTests(unittest.TestCase):
                         ])
         self.assertEqual(rejected.exception.code, 2)
 
+    def test_local_model_executor_requires_lease_timeout_margin(self):
+        with tempfile.TemporaryDirectory() as directory:
+            state = Path(directory)
+            executor = NativeControlPlaneExecutor(
+                repository=Path(__file__).parents[1],
+                state_dir=state,
+                owner_keys=native_executor._load_configured_owner_keys(),
+                model_gateway=LocalOllamaGateway(
+                    OllamaInferenceProfile(model="qwen3:4b", num_ctx=2_048),
+                    timeout_seconds=45,
+                ),
+            )
+            with self.assertRaisesRegex(NativeControllerError, "lease of at least 60 seconds"):
+                NativeController(state, executor=executor, lease_seconds=59)
+            with NativeController(state, executor=executor, lease_seconds=60) as controller:
+                self.assertEqual(controller.lease_seconds, 60)
+
     @patch.object(LocalOllamaGateway, "complete")
     def test_signed_native_model_task_persists_and_returns_a_safe_reference(self, complete):
         task_id = "native-model-queue"

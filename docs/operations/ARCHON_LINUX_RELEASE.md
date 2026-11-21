@@ -33,7 +33,7 @@ The three installed commands are `jarvis-v2`, `atlas-monitor`, and `archon-nativ
 archon-native-controller --watch --state "$HOME/.local/state/archon" --repository "$PWD"
 ```
 
-For host-local inference, explicitly set `ARCHON_OLLAMA_MODEL=qwen3:4b` (or pass `--ollama-model qwen3:4b`) when starting the native controller. This enables only the configured Qwen3 model through `127.0.0.1:11434`, requires the fixed trusted owner-key store, and leaves provider fallback disabled. The signed task document must contain exactly `operation: model_inference` and a UTF-8 prompt up to 16 KiB; inference uses a 2,048-token context and a 45-second timeout. The controller stores the completed answer in mode-`0600` `conversations.sqlite3` and prints a task-bound `result_ref` in `--once` mode. Retrieve it with `jarvis-v2 result --state "$HOME/.local/state/archon" --task-id TASK_ID`. Model-supplied tool calls are not executed. The standard container stays network-isolated and does not enable this host-only Ollama option.
+For host-local inference, explicitly set `ARCHON_OLLAMA_MODEL=qwen3:4b` (or pass `--ollama-model qwen3:4b`) when starting the native controller. This enables only the configured Qwen3 model through `127.0.0.1:11434`, requires the fixed trusted owner-key store, and leaves provider fallback disabled. The signed task document must contain exactly `operation: model_inference` and a UTF-8 prompt up to 16 KiB; inference uses a 2,048-token context and a 45-second timeout. The controller rejects leases shorter than 60 seconds when this capability is enabled, leaving 15 seconds for durable completion. It stores the completed answer in mode-`0600` `conversations.sqlite3` and prints a task-bound `result_ref` in `--once` mode. Retrieve it with `jarvis-v2 result --state "$HOME/.local/state/archon" --task-id TASK_ID`. Model-supplied tool calls are not executed. The standard container stays network-isolated and does not enable this host-only Ollama option.
 
 Admission remains local; no task network API is exposed. In addition to OS access to the private state directory, `jarvis-v2 submit` requires an owner-signed approval for the exact canonical task document. The Ed25519 approval binds `task_submit`, the task ID, SHA-256 of the full task document, decision, key ID, and expiry; both the CLI and queue API verify it before writing, and the native controller verifies the persisted approval again before leasing. Use `--approval-file signed-approval.json`. The trusted public-key store is fixed at `/etc/archon/owner-keys.json`; no CLI flag or process environment variable can select a different store.
 
@@ -122,7 +122,7 @@ import sqlite3
 import sys
 
 source_dir, backup_dir = map(Path, sys.argv[1:])
-for name in ("runtime.sqlite3", "atlas.sqlite3", "effects.sqlite3"):
+for name in ("runtime.sqlite3", "atlas.sqlite3", "effects.sqlite3", "conversations.sqlite3"):
     source_path = source_dir / name
     if not source_path.exists():
         continue
@@ -203,7 +203,7 @@ if any(path.is_symlink() for path in workspace.rglob("*")):
 with tempfile.TemporaryDirectory() as temporary:
     temp = Path(temporary)
     backups = []
-    for name in ("runtime.sqlite3", "atlas.sqlite3", "effects.sqlite3"):
+    for name in ("runtime.sqlite3", "atlas.sqlite3", "effects.sqlite3", "conversations.sqlite3"):
         source_path = state / name
         if not source_path.exists():
             continue
@@ -212,6 +212,8 @@ with tempfile.TemporaryDirectory() as temporary:
         target = sqlite3.connect(target_path)
         try:
             source.backup(target)
+            if target.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+                raise SystemExit(f"backup integrity failed: {name}")
         finally:
             target.close()
             source.close()
@@ -247,7 +249,7 @@ with tempfile.TemporaryDirectory() as temporary:
     shutil.copytree(root / "workspace", "/workspace", dirs_exist_ok=True)
     Path("/var/lib/archon").chmod(0o700)
     Path("/workspace").chmod(0o700)
-    for name in ("runtime.sqlite3", "atlas.sqlite3", "effects.sqlite3"):
+    for name in ("runtime.sqlite3", "atlas.sqlite3", "effects.sqlite3", "conversations.sqlite3"):
         restored = Path("/var/lib/archon") / name
         if restored.exists():
             restored.chmod(0o600)

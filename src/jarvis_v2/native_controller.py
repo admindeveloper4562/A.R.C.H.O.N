@@ -27,6 +27,7 @@ CONTROL_MARKERS = ("STOP", "PAUSE", "PAUSED_QUOTA")
 DEFAULT_POLL_SECONDS = 2
 MAX_POLL_SECONDS = 300
 DEFAULT_LEASE_SECONDS = 60
+MIN_MODEL_LEASE_SECONDS = 60
 MAX_OWNER_ID = 128
 
 
@@ -105,6 +106,12 @@ class NativeController:
             raise NativeControllerError("invalid owner id")
         if type(lease_seconds) is not int or not 1 <= lease_seconds <= 3_600:
             raise NativeControllerError("lease duration is outside the bounded policy")
+        if (
+            isinstance(executor, NativeControlPlaneExecutor)
+            and "model_inference" in executor.capabilities()
+            and lease_seconds < MIN_MODEL_LEASE_SECONDS
+        ):
+            raise NativeControllerError("local model inference requires a lease of at least 60 seconds")
         if type(poll_seconds) is not int or not 1 <= poll_seconds <= MAX_POLL_SECONDS:
             raise NativeControllerError("poll interval is outside the bounded policy")
         if executor is not None and not callable(executor):
