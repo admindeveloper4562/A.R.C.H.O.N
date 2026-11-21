@@ -1,12 +1,5 @@
 # Performance report
 
-Measured local results:
+Candidate source `2e24790c983bf3c8d2d0f99de7a086427355f172` passed the release regression in 49.232 seconds of unittest time (49.671 seconds verifier wall time). The coordination suite passed 191 tests in 60.584 seconds. A bounded workload on the identical runtime `src/` tree completed 72 tasks (36 local-model, 36 database) in 491.427 seconds (0.1465 tasks/s), with 12 restarts, maximum queue depth 6 and final queue depth 0. Across 36 model calls, latency was 3.192 s minimum, 14.2895 s median, 13.6003 s mean and 24.545 s maximum. CPU-busy samples across 72 task calls were 42.86% minimum, 53.135% median, 52.359% mean and 58.17% maximum. Available host memory snapshots were 7,970 MiB before and 6,299 MiB after; GPU use/utilization snapshots were 1,390 MiB/3% before and 3,184 MiB/31% after. Per-call GPU utilization across 36 model calls had a 25.5% median and 35% maximum.
 
-- Full 590-test unittest run: 29.365 seconds at exact final checkout `2fec1e3459252f97fe900a6ade2d15e48894c70b`; production source is unchanged from `4149c1d75eee24880bfacd819342f9c21d05d51a`.
-- Native import sweep: 106 modules, completed in under one second.
-- FTS5 index: 552 files indexed from 553 cataloged files; representative search queries returned 1 to 5 results.
-- Bounded host inventory: 10,000 metadata entries collected in approximately three seconds; the fresh reset persisted a 3,459-frame continuation cursor.
-- Runtime capability inventory: Ollama model listing and NVIDIA GPU/driver probe completed successfully; VA-API, ROCm, and OpenCL probes were unavailable and recorded as such.
-- Fresh SQLite database backup/restore: runtime.sqlite3 and atlas.sqlite3 passed.
-
-These are development-host measurements, not production capacity claims. No sustained queue throughput, model latency, Blender performance, Windows Ollama benchmark, network-provider latency, or resource-soak test was run. The host has 12 logical CPUs, 15GiB RAM, and a 110G home filesystem with about 3.8 GB available after cleanup; disk pressure remains a material performance and reliability limitation.
+This was a bounded run on source `2621056f64f3bee6f41b794913302d0fa36491b6`, whose runtime `src/` tree matches the candidate; it was not a run on the exact full candidate. CPU-busy values are per-call samples, and RAM/GPU values are snapshots rather than peak measurements. Peak process RSS, multi-hour behavior and production performance under sustained multi-user load remain unqualified.

@@ -1,4 +1,5 @@
 import json
+import os
 import sqlite3
 import subprocess
 import tempfile
@@ -7,6 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from jarvis_v2.backend.storage import StorageManager
+from jarvis_v2.backend.conversation import ConversationStore
 from jarvis_v2.core.queue import TaskQueue
 from jarvis_v2.health import HealthError, collect_health
 
@@ -60,6 +62,10 @@ class HealthTests(unittest.TestCase):
             with StorageManager(state / "runtime.sqlite3") as storage:
                 storage.migrate()
             TaskQueue(state / "atlas.sqlite3").close()
+            conversations = state / "conversations.sqlite3"
+            with ConversationStore(conversations):
+                pass
+            conversations.chmod(0o600)
             subprocess.run(["git", "init", "-q", str(root / "repo")], check=True)
             repo = root / "repo"
             subprocess.run(["git", "-C", str(repo), "config", "user.email", "health@test"], check=True)
@@ -72,6 +78,28 @@ class HealthTests(unittest.TestCase):
             self.assertEqual(result["mode"], "native_runtime")
             self.assertFalse(result["historical_ledger"]["loaded"])
             self.assertEqual(result["queue"]["total"], 0)
+            self.assertEqual(result["sqlite"]["conversations"]["integrity"], "ok")
+            conversations.chmod(0o644)
+            with self.assertRaisesRegex(HealthError, "conversations database permissions"):
+                collect_health(state_dir=state, repository=repo)
+
+    def test_health_supports_installed_package_without_git_checkout(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            state = root / "state"
+            state.mkdir()
+            with StorageManager(state / "runtime.sqlite3") as storage:
+                storage.migrate()
+            TaskQueue(state / "atlas.sqlite3").close()
+            repo = root / "installed-package"
+            repo.mkdir()
+            with patch.dict(os.environ, {"ARCHON_SOURCE_SHA": "a" * 40}):
+                result = collect_health(state_dir=state, repository=repo)
+            self.assertEqual(result["status"], "healthy")
+            self.assertEqual(result["git"]["checkout_sha"], "a" * 40)
+            with patch.dict(os.environ, {"ARCHON_SOURCE_SHA": "unknown"}):
+                result = collect_health(state_dir=state, repository=repo)
+            self.assertEqual(result["git"]["checkout_sha"], "unknown")
 
     def test_cli_health_returns_structured_state(self):
         result = subprocess.run(

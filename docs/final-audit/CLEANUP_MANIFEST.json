@@ -18,25 +18,25 @@
   },
   "deleted_targets": [
     {
-      "path": "/home/r34p3r/.local/state/archon-astra/backups",
+      "path": "$ARCHON_HOME/.local/state/archon-astra/backups",
       "classification": "legacy_Astra_backup_artifacts",
       "measured_size_bytes": 2279029117,
       "action": "deleted_after_timer_and_process_stop"
     },
     {
-      "path": "/home/r34p3r/.local/state/archon-astra/checkpoints",
+      "path": "$ARCHON_HOME/.local/state/archon-astra/checkpoints",
       "classification": "legacy_Astra_migration_checkpoints",
       "measured_size_bytes": 477605322,
       "action": "deleted_after_timer_and_process_stop"
     },
     {
-      "path": "/home/r34p3r/.local/state/archon-astra/toolchain",
+      "path": "$ARCHON_HOME/.local/state/archon-astra/toolchain",
       "classification": "obsolete_legacy_toolchain",
       "measured_size_bytes": 79893510,
       "action": "deleted"
     },
     {
-      "path": "/home/r34p3r/.local/state/archon-astra/toolchains",
+      "path": "$ARCHON_HOME/.local/state/archon-astra/toolchains",
       "classification": "obsolete_legacy_TWS_toolchains",
       "measured_size_bytes": 216801635,
       "action": "deleted"
@@ -54,12 +54,12 @@
       "action": "removed"
     },
     {
-      "path": "/home/r34p3r/.config/systemd/user/archon-astra.timer",
+      "path": "$ARCHON_HOME/.config/systemd/user/archon-astra.timer",
       "classification": "obsolete_Astra_user_timer",
       "action": "disabled_stopped_and_unlinked"
     },
     {
-      "path": "/home/r34p3r/.config/systemd/user/archon-astra.service",
+      "path": "$ARCHON_HOME/.config/systemd/user/archon-astra.service",
       "classification": "obsolete_Astra_user_service_unit",
       "action": "unlinked_after_timer_stop"
     }
@@ -78,38 +78,38 @@
   },
   "retained_targets": [
     {
-      "path": "/home/r34p3r/.local/state/archon-astra/sda.sqlite3",
+      "path": "$ARCHON_HOME/.local/state/archon-astra/sda.sqlite3",
       "size_bytes": 7700480,
       "reason": "historical_task_ledger_and_receipts"
     },
     {
-      "path": "/home/r34p3r/.local/state/archon-astra/worktrees",
+      "path": "$ARCHON_HOME/.local/state/archon-astra/worktrees",
       "size_bytes": 1254942481,
       "reason": "unique_or_uncommitted_candidate_work"
     },
     {
-      "path": "/home/r34p3r/.local/state/archon-final-audit/checkpoints",
+      "path": "$ARCHON_HOME/.local/state/archon-final-audit/checkpoints",
       "size_bytes": 795522291,
       "reason": "verified_final_audit_recovery_evidence"
     },
     {
-      "path": "/var/tmp/archon-reset-recovery-20261120T000000Z",
+      "path": "<runtime-state>/pre-reset-quarantine",
       "size_bytes": 140377536,
       "reason": "byte_for_byte_pre_reset_native_runtime_quarantine"
     },
     {
-      "path": "/home/r34p3r/dev/A.R.C.H.O.N",
+      "path": "$ARCHON_HOME/dev/A.R.C.H.O.N",
       "reason": "canonical_source_checkout"
     }
   ],
   "remaining_cleanup": {
     "status": "separate_review_required",
     "paths": [
-      "/home/r34p3r/Projects/ARCHON",
-      "/home/r34p3r/Projects/ARCHON-astra-source",
-      "/home/r34p3r/Projects/ARCHON-astra-source-clean-20261116",
-      "/home/r34p3r/.local/state/archon-astra/worktrees",
-      "/home/r34p3r/.local/state/archon-final-audit/checkpoints"
+      "$ARCHON_HOME/Projects/ARCHON",
+      "$ARCHON_HOME/Projects/ARCHON-astra-source",
+      "$ARCHON_HOME/Projects/ARCHON-astra-source-clean-20261116",
+      "$ARCHON_HOME/.local/state/archon-astra/worktrees",
+      "$ARCHON_HOME/.local/state/archon-final-audit/checkpoints"
     ],
     "reason": "unique work, historical evidence, or only recovery copy not individually reviewed"
   }

@@ -1,6 +1,6 @@
 # Native ARCHON runtime
 
-The canonical source checkout is /home/r34p3r/dev/A.R.C.H.O.N. Native runtime state is kept under ~/.local/state/archon:
+The canonical source checkout is $ARCHON_HOME/dev/A.R.C.H.O.N. Native runtime state is kept under ~/.local/state/archon:
 
 - runtime.sqlite3: empty module-owned Backend storage after migrations
 - atlas.sqlite3: empty native queue schema

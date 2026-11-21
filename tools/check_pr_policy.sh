@@ -7,4 +7,4 @@ base=$(git merge-base HEAD "origin/$GITHUB_BASE_REF")
 while IFS= read -r msg; do
   [[ -z "$msg" ]] && continue
   python3 tools/check_git_policy.py --branch "$GITHUB_HEAD_REF" --commit "$msg"
-done < <(git log --format=%s "$base..HEAD")
+done < <(git log --no-merges --format=%s "$base..HEAD")

@@ -1,20 +1,7 @@
-# Independent QC receipt
+# Independent quality-control receipt
 
-Observed 2026-11-20 against current local HEAD `1c27e2277a7a9f88d9d0dbd9bdac6c7b8f2f80e5` by an independently provisioned, read-only QC subagent. The tested implementation candidate is `4149c1d75eee24880bfacd819342f9c21d05d51a`; the current HEAD is a documentation-only overlay whose source diff contains no production-code changes. The QC did not edit files, commit, push, change services, delete data, or mutate persistent databases.
+Exact candidate source: `2e24790c983bf3c8d2d0f99de7a086427355f172`; tree `5dc151512b5df78ecf5e911a93222ad2a44fb94b`. Independent QC completed two full `tools/verify_release.py` runs, one under `FORCE_COLOR=1` and one without color. Both passed 637 regression tests, 42 local CI classifications, dependency/security checks, and container smoke. Wheel and sdist hashes matched the root builds. OCI archive tar hashes differed: root `b62e2645aef0437ab715a864f05926a3fd97273ec03d6a9c9cbd1f2768473a26`, FORCE_COLOR QC `f428caf76ecb0059df95e5e51bd32d68fb7b028b75f2234310880c0f3797a07c`, NO_COLOR QC `2f6f1076f8240845e2054b4ba6be0bc0b46b8197b5ad95f3d4f0ef485caab85c`. The image config and all layer blobs/diff IDs matched; the OCI index differs because independent builds carry different BuildKit attestation metadata, so tar-byte reproducibility is not claimed. Independent run manifest hashes: `c5865205d9a113524ba9f00f7b698e03c7cd2a824141575b4a8c69033e93cf48` and `b7081b80c8158856d7462df6795d715135ba1f21a00b072f5b4715de34ac0514`.
 
-| Check | Result | Evidence |
-| --- | --- | --- |
-| Git identity and provenance | PASS | Current HEAD `1c27e22`; implementation `4149c1d` is an ancestor; source branch is 36 ahead of the verified remote and the documentation overlay is 37 ahead; 0 behind |
-| Active audit JSON | PASS | Active final-audit JSON parsed; current source and implementation fields bind to `4149c1d`; overlay binding is recorded separately |
-| Diff hygiene | PASS | `git diff --check` passed |
-| Native executor tests | PASS | Focused native executor suite: 8/8 |
-| Resumable inventory tests | PASS | Focused system-inventory suite: 6/6 |
-| Native one-shot | PASS | Temporary isolated state returned `idle` / `no_ready_work` |
-| Native health | PASS | `healthy`, `native_runtime`, queue 0; SQLite health valid |
-| Historical ledger envelope | PASS | Read-only query: 247 parents = 240 completed + 7 archived; 1,359 children; 1,281 receipt rows |
-| Native systemd candidate | PASS | `systemd-analyze verify infra/systemd/archon.service` passed |
-| Remote publication | PARTIAL | Remote refs verified; local source and documentation overlay remain unpublished |
-| Astra boundary | PARTIAL | Timer enabled/active and read-only monitor PID 20774 remains; no service state was changed |
-| Native release completeness | PARTIAL | Domain effects, unattended SDA/AEGIS ownership, trusted watchdog activation, and rollback soak remain unproven |
+The QC reviewer did not author or change the candidate. A separate Python 3.11 artifact run installed both distributions and validated CLIs/resources; its suite had 635 pass, 0 fail, and 2 opt-in Ollama skips. Root Python 3.11 qualification passed 637/637 with no skips.
 
-The QC intentionally skipped the full regression rerun and all destructive, archive-move, service-cutover, Astra-retirement, and remote-publication operations. Main-session evidence remains 590/590 at implementation candidate `4149c1d`; the focused independent checks above validate the current exact checkout and its source ancestry.
+QC did not certify full module operation, an independent AEGIS watchdog/rollback, multi-hour soak, hosted CI, or production delegation. No GitHub approving review has yet been recorded.

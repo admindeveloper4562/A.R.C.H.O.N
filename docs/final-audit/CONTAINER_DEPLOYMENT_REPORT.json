@@ -1,0 +1,32 @@
+{
+  "acceptance": {
+    "capabilities_dropped": [
+      "ALL"
+    ],
+    "disposable_test_volumes_removed": true,
+    "fresh_compose_start": "passed",
+    "graceful_stop": "passed",
+    "health": "healthy",
+    "module_keys_registered": 10,
+    "module_states": "planned",
+    "network_mode": "none",
+    "no_new_privileges": true,
+    "read_only_rootfs": true,
+    "restart": "passed",
+    "runtime_uid_gid": "10001:10001",
+    "sqlite_integrity": {
+      "atlas.sqlite3": "ok",
+      "runtime.sqlite3": "ok"
+    },
+    "workspace_volume_persistence": "passed"
+  },
+  "deployment_manifest": {
+    "file": "compose.image.yaml",
+    "image": "archon-local:0.0.3",
+    "sha256": "746dbb8db950e28f4693eab45b55e56722ae71cc3413cf616e70984304b04dff"
+  },
+  "image_archive_sha256": "b62e2645aef0437ab715a864f05926a3fd97273ec03d6a9c9cbd1f2768473a26",
+  "result": "passed",
+  "schema_version": 1,
+  "source_sha": "2e24790c983bf3c8d2d0f99de7a086427355f172"
+}

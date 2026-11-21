@@ -11,6 +11,7 @@ from .windows_agent import LOCAL_OPERATIONS
 
 _SHA256 = re.compile(r"^[0-9a-fA-F]{64}$")
 MAX_ALLOWED_PATHS = 32
+_CAPABILITY_OPERATIONS = LOCAL_OPERATIONS | {"workspace_write"}
 
 _SENSITIVE_COMPONENTS = frozenset({".aws", ".azure", ".docker", ".gnupg", ".kube", ".ssh"})
 _SENSITIVE_FILES = frozenset({".git-credentials", ".netrc", ".npmrc", ".pypirc"})
@@ -58,7 +59,7 @@ class TaskCapabilityManifest:
             raise TaskCapabilityError("task capability manifest is Linux-only")
         if not isinstance(self.operations, frozenset) or not self.operations:
             raise TaskCapabilityError("operations must be a non-empty frozenset")
-        if not self.operations <= LOCAL_OPERATIONS:
+        if not self.operations <= _CAPABILITY_OPERATIONS:
             raise TaskCapabilityError("operation is not allowlisted")
         object.__setattr__(self, "allowed_paths", _paths(self.allowed_paths))
 

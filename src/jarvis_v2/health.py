@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from collections import Counter
 import json
+import os
 from pathlib import Path
 import sqlite3
+import stat
 import subprocess
 from typing import Any
 
@@ -32,11 +34,16 @@ def _git_head(repository: Path) -> str:
             ["git", "-C", str(repository), "rev-parse", "HEAD"],
             capture_output=True, text=True, timeout=3, check=False,
         )
-    except (OSError, subprocess.SubprocessError) as exc:
-        raise HealthError("Git checkout is unavailable") from exc
-    if result.returncode or len(result.stdout.strip()) != 40:
-        raise HealthError("Git checkout SHA is unavailable")
-    return result.stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        result = None
+    if result is not None and result.returncode == 0:
+        head = result.stdout.strip()
+        if len(head) == 40 and all(char in "0123456789abcdef" for char in head):
+            return head
+    source_sha = os.environ.get("ARCHON_SOURCE_SHA", "")
+    if len(source_sha) == 40 and all(char in "0123456789abcdef" for char in source_sha):
+        return source_sha
+    return "unknown"
 
 
 def _root_blockers(rows: list[sqlite3.Row]) -> list[dict[str, Any]]:
@@ -73,8 +80,18 @@ def _root_blockers(rows: list[sqlite3.Row]) -> list[dict[str, Any]]:
 def _native_health(*, state_dir: Path, repository: Path) -> dict[str, Any]:
     runtime = state_dir / "runtime.sqlite3"
     atlas = state_dir / "atlas.sqlite3"
-    paths = (("runtime", runtime, {"backend_schema_migrations", "backend_table_owners"}),
-             ("atlas", atlas, {"tasks", "events", "core_controls"}))
+    paths = [("runtime", runtime, {"backend_schema_migrations", "backend_table_owners"}),
+             ("atlas", atlas, {"tasks", "events", "core_controls"})]
+    conversations = state_dir / "conversations.sqlite3"
+    if os.path.lexists(conversations):
+        details = conversations.lstat()
+        if (
+            not stat.S_ISREG(details.st_mode)
+            or details.st_uid != os.geteuid()
+            or stat.S_IMODE(details.st_mode) & 0o077
+        ):
+            raise HealthError("native conversations database permissions are unsafe")
+        paths.append(("conversations", conversations, {"conversations", "conversation_turns"}))
     if any(path.is_symlink() or not path.is_file() for _, path, _ in paths):
         raise HealthError("canonical SDA database is unavailable")
     connections: list[sqlite3.Connection] = []
@@ -101,7 +118,7 @@ def _native_health(*, state_dir: Path, repository: Path) -> dict[str, Any]:
                 "foreign_key_violations": len(foreign),
                 "table_count": len(tables),
             }
-        runtime_db, atlas_db = connections
+        runtime_db, atlas_db = connections[:2]
         migrations = runtime_db.execute(
             "SELECT count(*) FROM backend_schema_migrations"
         ).fetchone()[0]

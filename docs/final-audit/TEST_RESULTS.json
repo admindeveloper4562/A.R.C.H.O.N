@@ -1,84 +1,76 @@
 {
-  "schema_version": 2,
-  "source_sha": "2fec1e3459252f97fe900a6ade2d15e48894c70b",
-  "implementation_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
-  "canonical_head": "2fec1e3459252f97fe900a6ade2d15e48894c70b",
-  "current_documentation_overlay_sha": "2fec1e3459252f97fe900a6ade2d15e48894c70b",
-  "source_state": "exact final checkout tested; production source content is unchanged from implementation 4149c1d",
-  "code_index_snapshot_sha": "2fec1e3459252f97fe900a6ade2d15e48894c70b",
-  "runner": "python3 -m unittest discover -s tests -p 'test_*.py' -q",
-  "pytest_available": false,
-  "independent_qc": {
-    "status": "CONDITIONAL",
-    "target_head": "1c27e2277a7a9f88d9d0dbd9bdac6c7b8f2f80e5",
-    "implementation_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
-    "focused_native_executor": "8/8",
-    "focused_system_inventory": "6/6",
-    "full_suite_rerun": false,
-    "receipt": "docs/final-audit/INDEPENDENT_QC.json"
+  "artifacts": {
+    "manifest_sha256": "1919d0f4072f91b632d0e3c9317ecfb10f0f5e5ef2788340fe11fd4934b42e3a",
+    "sdist_sha256": "fb289c4aef7061acf998502e6e6b06bfef9d8e93058c56ac99246d4e0f4f5826",
+    "wheel_sha256": "5f04940e72466a83835a527530dc6ca3acdfb6452f0d62da8b7c9c751304ec75"
   },
-  "full_suite": {
-    "tests": 590,
-    "passed": 590,
+  "container": {
+    "image_archive_sha256": "b62e2645aef0437ab715a864f05926a3fd97273ec03d6a9c9cbd1f2768473a26",
+    "result": "passed",
+    "saved_image_reload_sha256": "fd22458aade184599ff2993d75a8fb489142eaca4e4a1b65201a56caa24cf46b",
+    "smoke_sha256": "0c4f95a49dd72fd2e375cd36936b37eb38092f6b468598b45fef535478ee1537",
+    "sqlite_integrity": "passed"
+  },
+  "coordination": {
     "failed": 0,
-    "errors": 0,
-    "duration_seconds": 29.365,
-    "exit_code": 0,
-    "evidence_log": "/home/r34p3r/.local/state/archon/logs/unittest-2fec1e3.log"
+    "log_sha256": "88afa35ae7ec2b4551173e017d91e6b514aa75e5dbccdbd8584a96a22ad39505",
+    "passed": 191,
+    "seconds": 60.584,
+    "skipped": 0,
+    "tests": 191
   },
-  "native_import_sweep": {"modules": 106, "errors": 0, "exit_code": 0},
-  "native_controller_checks": {
-    "one_shot_fresh_state": "pass",
-    "process_lock_fencing": "pass",
-    "control_marker_admission": "pass",
-    "executor_success_and_failure_receipts": "pass",
-    "bounded_control_plane_executor": "pass",
-    "read_only_probe_operations": 8,
-    "resumable_inventory_cursor": "pass",
-    "terminate_and_restart": "pass",
-    "systemd_analyze_verify": "pass",
-    "service_installed": false,
-    "domain_effect_handlers": "not_configured",
-    "trusted_watchdog": "not_configured"
+  "independent_qc": {
+    "manifest_sha256": [
+      "c5865205d9a113524ba9f00f7b698e03c7cd2a824141575b4a8c69033e93cf48",
+      "b7081b80c8158856d7462df6795d715135ba1f21a00b072f5b4715de34ac0514"
+    ],
+    "result": "passed",
+    "runs": 2
   },
-  "native_health": {
-    "status": "healthy",
-    "mode": "native_runtime",
-    "historical_ledger_loaded": false,
-    "queue_tasks": 0,
-    "sqlite_integrity": "ok",
-    "foreign_key_violations": 0
+  "limitations": [
+    "module runtime states planned",
+    "independent AEGIS/watchdog and rollback unqualified",
+    "full autonomous cross-module workflows unverified",
+    "multi-hour soak not run",
+    "GitHub Actions unavailable due billing",
+    "Windows/Apple validation deferred"
+  ],
+  "local_ci": {
+    "checks": 42,
+    "exit_classifications": {
+      "0": 40,
+      "1": 1,
+      "2": 1
+    },
+    "hosted_actions": "DEFERRED_QUOTA",
+    "result": "passed"
   },
-  "inventory_capabilities": {
-    "ollama_models": ["qwen3:4b", "qwen2.5-coder:7b", "qwen2.5-coder:3b"],
-    "nvidia_acceleration": "NVIDIA GeForce GTX 980, 4096 MiB, driver 535.309.01",
-    "filesystem_scan": "bounded_metadata_only_with_private_resume_cursor",
-    "scanned_entries": 10000,
-    "pending_directory_frames": 3459,
-    "permission_denied": 17,
-    "skipped_mounts": 28,
-    "skipped_virtual_filesystems": 4
+  "package_version": "0.0.3",
+  "python311": {
+    "failed": 0,
+    "installed_wheel_and_sdist": true,
+    "manifest_sha256": "4f0ec16da32b50423101b55c79288c3897ad5bcd1a8ad0ef3e1e0e0bf6dbced7",
+    "passed": 637,
+    "python": "3.11.18",
+    "skipped": 0,
+    "total": 637
   },
-  "local_ci_checks": {
-    "dependency_scan": 0,
-    "secret_scan": 0,
-    "security_scan": 0
+  "root_tests": {
+    "failed": 0,
+    "passed": 637,
+    "python": "3.12.3",
+    "skipped": 0,
+    "total": 637,
+    "unittest_seconds": 49.232,
+    "verifier_wall_seconds": 49.671
   },
-  "fresh_database_checks": {
-    "runtime.sqlite3": {"migration": "pass", "integrity": "ok", "foreign_key_violations": 0, "backup_restore": "pass"},
-    "atlas.sqlite3": {"migration": "pass", "integrity": "ok", "foreign_key_violations": 0, "backup_restore": "pass"},
-    "code_index.sqlite3": {"integrity": "ok", "foreign_key_violations": 0}
+  "schema_version": 2,
+  "security": {
+    "credential_pattern_matches": 0,
+    "known_vulnerabilities": 0,
+    "pip_audit_version": "2.10.1"
   },
-  "not_run": [
-    "pytest",
-    "hosted CI",
-    "real financial transactions",
-    "real messages or external actions",
-    "Windows device/Ollama performance",
-    "iOS/macOS validation",
-    "Blender execution",
-    "live external provider validation",
-    "trusted watchdog activation and rollback soak",
-    "native service installation, trusted watchdog activation and rollback soak"
-  ]
+  "source_sha": "2e24790c983bf3c8d2d0f99de7a086427355f172",
+  "source_tree": "5dc151512b5df78ecf5e911a93222ad2a44fb94b",
+  "verdict": "CONDITIONAL"
 }

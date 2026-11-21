@@ -6,6 +6,7 @@ import os
 import re
 import base64
 import hashlib
+import json
 import stat
 import subprocess
 import sys
@@ -40,7 +41,7 @@ UNTRUSTED_GITHUB_CONTEXT = re.compile(
 )
 EXCLUDED_WORKSPACE_DIRS = frozenset({
     ".git", ".serena", ".venv", "venv", "node_modules", "__pycache__", ".pytest_cache",
-    ".ruff_cache", ".mypy_cache", ".test-output", "build", "dist", "ci-artifacts",
+    ".ruff_cache", ".mypy_cache", ".test-output", "build", "dist", "ci-artifacts", "artifacts",
     "codebase", "final-audit",
 })
 
@@ -140,7 +141,7 @@ def dependency_scan() -> int:
         if (
             not isinstance(build_system, dict)
             or build_system.get("build-backend") != "setuptools.build_meta"
-            or build_system.get("requires") != ["setuptools>=68"]
+            or build_system.get("requires") != ["setuptools==84.2.1", "wheel==0.48.0"]
             or package_find.get("where") != ["src"]
         ):
             return 2
@@ -210,7 +211,13 @@ def dependency_scan() -> int:
         )
         if install_rc:
             return install_rc
-        return _quiet_run([str(python), "-m", "pip", "check"], timeout=60, env=clean_env)
+        expected = json.dumps(requirements)
+        check = (
+            "import importlib.metadata as m; "
+            f"d=m.distribution({name!r}); expected={expected}; actual=d.requires or []; "
+            "raise SystemExit(0 if all(item in actual for item in expected) else 2)"
+        )
+        return _quiet_run([str(python), "-c", check], timeout=60, env=clean_env)
 
 
 def _contains_secret(data: bytes) -> bool:
