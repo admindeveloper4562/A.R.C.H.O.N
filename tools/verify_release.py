@@ -81,8 +81,14 @@ class Verification:
         env: dict[str, str] | None = None,
         timeout: int = 600,
         input_text: str | None = None,
-        allow_failure: bool = False,
+        expected_returncodes: tuple[int, ...] = (0,),
     ) -> subprocess.CompletedProcess[str]:
+        if (
+            not isinstance(expected_returncodes, tuple)
+            or not expected_returncodes
+            or any(type(code) is not int for code in expected_returncodes)
+        ):
+            raise ValueError("expected_returncodes must be a non-empty tuple of integers")
         started = time.monotonic()
         result = subprocess.run(
             command,
@@ -102,12 +108,16 @@ class Verification:
             "name": name,
             "command": command,
             "returncode": result.returncode,
+            "expected_returncodes": list(expected_returncodes),
+            "exit_classification": "expected" if result.returncode in expected_returncodes else "unexpected",
             "duration_seconds": round(duration, 3),
             "log": str(log.relative_to(self.output)),
         })
-        if result.returncode and not allow_failure:
+        if result.returncode not in expected_returncodes:
             tail = "\n".join(output.splitlines()[-30:])
-            raise RuntimeError(f"{name} exited {result.returncode}; see {log}\n{tail}")
+            raise RuntimeError(
+                f"{name} exited {result.returncode}; expected {expected_returncodes}; see {log}\n{tail}"
+            )
         return result
 
     def write_json(self, name: str, content: object) -> Path:
@@ -277,7 +287,7 @@ Path(sys.argv[3]).chmod(0o644)
         submitted = self.run("wheel-cli-rejects-caller-trust-store", [str(runtime.parent / "jarvis-v2"), "submit",
                                                                         "--state", str(state), "--task-file", str(task_file),
                                                                         "--approval-file", str(approval_file)],
-                             cwd=outside, env=cli_env, allow_failure=True)
+                             cwd=outside, env=cli_env, expected_returncodes=(2,))
         if submitted.returncode != 2 or "task admission approval is not authorized" not in submitted.stderr:
             raise RuntimeError("installed CLI did not reject the caller-selected owner trust store")
         if submitted.stdout.strip():
@@ -291,9 +301,11 @@ Path(sys.argv[3]).chmod(0o644)
         self.run("install-for-uninstall-check", [str(uninstall_env), "-m", "pip", "install", "--no-deps", str(wheel)])
         self.run("wheel-pip-uninstall", [str(uninstall_env), "-m", "pip", "uninstall", "-y", project["name"]])
         uninstalled = self.run("wheel-pip-uninstalled", [str(uninstall_env), "-m", "pip", "show", project["name"]],
-                               allow_failure=True)
-        if uninstalled.returncode == 0:
-            raise RuntimeError("pip uninstall left jarvis-v2 installed")
+                               expected_returncodes=(1,))
+        if project["name"].casefold() not in (uninstalled.stdout + uninstalled.stderr).casefold() or "not found" not in (
+            uninstalled.stdout + uninstalled.stderr
+        ).casefold():
+            raise RuntimeError("pip uninstall did not report the package as absent")
 
         source_env = self.create_venv("sdist-install")
         self.run("install-sdist-build-tools", [str(source_env), "-m", "pip", "install",
@@ -327,7 +339,7 @@ Path(sys.argv[3]).chmod(0o644)
         self.run("install-pip-audit", [str(audit_env), "-m", "pip", "install", AUDIT_TOOL], timeout=600)
         audit = self.run("pip-audit", [str(audit_env.parent / "pip-audit"),
                                         "--requirement", str(ROOT / "requirements/runtime.lock"),
-                                        "--format", "json"], timeout=600, allow_failure=True)
+                                         "--format", "json"], timeout=600, expected_returncodes=(0, 1))
         try:
             audit_json = json.loads(audit.stdout)
             vulnerabilities = sum(len(item.get("vulns", [])) for item in audit_json.get("dependencies", []))
