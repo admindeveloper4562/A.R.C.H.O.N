@@ -45,9 +45,10 @@
     "host_home_access": "deny_except_explicit_repository_checkout",
     "production_runtime_data": "deny",
     "docker_socket_mount": "deny",
+    "github_repository_writes": "task_branches_and_reviewed_pull_requests_only; develop_updates_only_by_serialized_merger_after_all_gates",
     "container_scope": "rootless_or_unprivileged_disposable_test_containers_without_host_home_or_docker_socket_mounts",
     "model_scope": "loopback_local_inference_only",
-    "external_integrations": "read_only_or_fixture_only"
+    "non_repository_external_integrations": "read_only_or_fixture_only"
   },
   "network": {
     "default": "deny",
@@ -92,6 +93,8 @@
     "deterministic_tests_required": true,
     "security_and_privacy_checks_required": true,
     "independent_qc_required": true,
+    "only_serialized_merger_may_update_develop": true,
+    "merger_must_differ_from_author_and_qc": true,
     "formal_github_review": "required_if_repository_rules_require_it",
     "hosted_ci": "never_claim_pass_when_unavailable"
   },

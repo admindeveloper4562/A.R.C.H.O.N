@@ -37,7 +37,7 @@ authority from its presence or from conversational text.
 To activate this delegation, the owner must review the complete JSON policy and
 authorize its exact SHA-256 in the existing authoritative approval ledger.
 The signing payload is the SHA-256 of `config/autonomy-policy.json`:
-`cede7a956772f0c27635e121679ef79946a0323b000e0f128ad74cac60098fd8`.
+`fd831f3b2abe7dcf1ee591d0a0aa6c80589ba040f9c35c9c3bf8c48c2845a735`.
 The Master must verify the receipt using the already trusted owner identity,
 record an explicit `issued_at` and `expires_at` no more than 90 days apart, and
 bind the receipt to policy ID `ARCHON-DEVELOPMENT-DELEGATION`, revision 1, and

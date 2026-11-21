@@ -26,6 +26,9 @@ class DevelopmentDelegationDraftTests(unittest.TestCase):
         self.assertIn("send_external_communications", denied)
         self.assertEqual(policy["network"]["default"], "deny")
         self.assertFalse(policy["stop_and_revocation"]["agent_may_clear_stop"])
+        self.assertTrue(policy["quality_gates"]["only_serialized_merger_may_update_develop"])
+        self.assertTrue(policy["quality_gates"]["merger_must_differ_from_author_and_qc"])
+        self.assertIn("develop_updates_only_by_serialized_merger", policy["resources"]["github_repository_writes"])
 
 
 if __name__ == "__main__":
