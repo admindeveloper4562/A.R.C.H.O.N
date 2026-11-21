@@ -1,0 +1,124 @@
+{
+  "schema": "archon.autonomy-policy/v1",
+  "policy_id": "ARCHON-DEVELOPMENT-DELEGATION",
+  "revision": 1,
+  "status": "PENDING_OWNER_SIGNATURE_AND_RUNTIME_ENFORCEMENT",
+  "repository": {
+    "owner": "admindeveloper4562",
+    "name": "A.R.C.H.O.N",
+    "canonical_url": "https://github.com/admindeveloper4562/A.R.C.H.O.N"
+  },
+  "branches": {
+    "task_branch_pattern": "^(feat|fix|refactor|test|docs|chore|recovery|experiment|hotfix)/(core|sda|backend|runtime|research|tws|wic|finance|guardian|automation|platform|migration|release)/[A-Z]{2,8}-[0-9]{3,4}-[a-z0-9]+(?:-[a-z0-9]+)*$",
+    "integration_target": "develop",
+    "integration_mode": "reviewed_pull_request_only",
+    "denied_targets": ["main", "release/*"]
+  },
+  "operations": {
+    "allowed": [
+      "read_repository",
+      "edit_scoped_source_tests_docs_and_config",
+      "run_local_tests_scans_and_package_builds",
+      "run_disposable_unprivileged_test_containers",
+      "create_local_task_branch_and_commit",
+      "push_task_branch",
+      "open_or_update_pull_request",
+      "merge_to_develop_after_exact_candidate_independent_qc_and_platform_acceptance"
+    ],
+    "denied": [
+      "change_repository_visibility_or_access",
+      "write_main_or_rewrite_history",
+      "force_push",
+      "change_trust_roots_or_signing_identities",
+      "disable_security_controls_or_clear_emergency_stop",
+      "read_or_export_secrets",
+      "write_production_data_or_deploy_production",
+      "send_external_communications",
+      "perform_financial_transactions",
+      "delete_non_disposable_user_data",
+      "run_unrestricted_host_commands"
+    ]
+  },
+  "resources": {
+    "repository_scope": "this_repository_only",
+    "filesystem_scope": ["scoped_repository_worktree", "disposable_archon_test_state"],
+    "host_home_access": "deny_except_explicit_repository_checkout",
+    "production_runtime_data": "deny",
+    "docker_socket_mount": "deny",
+    "container_scope": "rootless_or_unprivileged_disposable_test_containers_without_host_home_or_docker_socket_mounts",
+    "model_scope": "loopback_local_inference_only",
+    "external_integrations": "read_only_or_fixture_only"
+  },
+  "network": {
+    "default": "deny",
+    "allowed_https_hosts": [
+      "github.com",
+      "api.github.com",
+      "pypi.org",
+      "files.pythonhosted.org",
+      "api.osv.dev",
+      "registry-1.docker.io",
+      "auth.docker.io"
+    ],
+    "allowed_loopback_endpoint": "http://127.0.0.1:11434",
+    "remote_model_providers": "deny_without_separate_signed_scope"
+  },
+  "credential_identities": {
+    "github": "existing_repository-scoped_authenticated_connection_only",
+    "owner_signing": "existing_trust_anchor_in_authoritative_approval_ledger",
+    "secret_values_in_policy": false,
+    "credential_export": false
+  },
+  "execution_limits": {
+    "mutating_builders": 1,
+    "parallel_independent_qc_sessions": 1,
+    "independent_qc_identity_must_differ_from_author": true,
+    "retry_limit_for_same_failure_fingerprint": 2,
+    "maximum_task_runtime_seconds": 14400,
+    "maximum_process_timeout_seconds": 3600,
+    "maximum_disposable_scratch_bytes": 1073741824,
+    "maximum_delegation_lifetime_days": 90,
+    "long_running_sessions": "bounded_and_restartable_with_durable_checkpoint",
+    "unbounded_processes": false
+  },
+  "risk_classes": {
+    "read_or_disposable_test": "LOW",
+    "repository_source_change_or_task_branch_push": "MODERATE",
+    "pull_request_or_develop_merge": "HIGH_REQUIRES_INDEPENDENT_QC_AND_PLATFORM_RULES",
+    "main_production_secret_finance_communications_or_trust_root": "PROHIBITED"
+  },
+  "quality_gates": {
+    "exact_candidate_sha_required": true,
+    "deterministic_tests_required": true,
+    "security_and_privacy_checks_required": true,
+    "independent_qc_required": true,
+    "formal_github_review": "required_if_repository_rules_require_it",
+    "hosted_ci": "never_claim_pass_when_unavailable"
+  },
+  "audit_record": [
+    "policy_id_and_revision",
+    "task_id_and_owner",
+    "base_sha_candidate_sha_diff_digest_and_branch",
+    "test_commands_results_environment_and_artifact_hashes",
+    "independent_qc_identity_and_verdict",
+    "pull_request_and_integration_sha",
+    "stop_pause_and_revocation_state"
+  ],
+  "stop_and_revocation": {
+    "stop_markers": ["STOP", "PAUSE", "PAUSE_NORMAL", "PAUSE_RECOVERY", "PAUSED_QUOTA"],
+    "on_stop": "deny_new_claims_and_effects_preserve_state_and_audit",
+    "agent_may_clear_stop": false,
+    "revocation": "owner_signed_receipt_or_expiration; emergency_stop_is_immediate"
+  },
+  "activation": {
+    "enabled": false,
+    "requires_owner_signed_receipt_bound_to_policy_sha256": true,
+    "requires_independent_policy_review": true,
+    "requires_runtime_enforcement_and_negative_tests": true,
+    "owner_receipt_id": null,
+    "owner_signing_key_id": null,
+    "issued_at": null,
+    "expires_at": null,
+    "signature": null
+  }
+}
