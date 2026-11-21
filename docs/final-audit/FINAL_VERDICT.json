@@ -8,6 +8,13 @@
     "skipped": 0,
     "tests": 191
   },
+  "git_publication": {
+    "candidate_commit": "bd66b6411c8de4cd4e6709b1cefbc60d57865c06",
+    "main_sha_unchanged": "5227b91d2725bf4be4336a5ad26189fdf1034704",
+    "pull_request": 7,
+    "result": "merged",
+    "develop_integration_sha": "67e8689da898fb62026fdfbd1875bc9bbf64f783"
+  },
   "host_service": "inactive",
   "independent_qc": "passed",
   "local_ci": {

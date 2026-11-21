@@ -10,7 +10,7 @@ The Linux package, local verification workflow, bounded signed executor, clean c
 - Source tree: `5dc151512b5df78ecf5e911a93222ad2a44fb94b`.
 - Package version: `0.0.3`; declared Python `>=3.11`.
 - Candidate branch: `feat/release/REL-025-linux-release-final`, based on `origin/develop` `41dab1ad003c7526d80e3caaa46e63a6da1b6496`.
-- At qualification, `origin/main` was `5227b91d2725bf4be4336a5ad26189fdf1034704` and was not modified. This candidate had not yet been published; refresh and recheck refs before pushing.
+- Release publication: PR [#7](https://github.com/admindeveloper4562/A.R.C.H.O.N/pull/7) merged into `develop` at `67e8689da898fb62026fdfbd1875bc9bbf64f783`; candidate `bd66b6411c8de4cd4e6709b1cefbc60d57865c06` is included. The last post-merge check found `origin/develop` at that integration SHA and `origin/main` unchanged at `5227b91d2725bf4be4336a5ad26189fdf1034704`.
 - GitHub Actions remains unavailable due billing; hosted CI is deferred, not passed.
 
 ## Acceptance snapshot
