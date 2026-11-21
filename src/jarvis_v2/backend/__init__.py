@@ -112,6 +112,7 @@ from .protocol_adapters import (
     ProtocolToolCall,
     ResponsesAdapter,
 )
+from .ollama_gateway import LocalOllamaGateway, OllamaGatewayError
 from .context import (
     CHARS_PER_TOKEN,
     ContextPackError,
@@ -284,6 +285,8 @@ __all__ = [
     "ProtocolResponse",
     "ProtocolToolCall",
     "ResponsesAdapter",
+    "LocalOllamaGateway",
+    "OllamaGatewayError",
     "RevocableConnectorBroker",
     "CHARS_PER_TOKEN",
     "ContextPackError",

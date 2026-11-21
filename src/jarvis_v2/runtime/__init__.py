@@ -11,6 +11,7 @@ from .service import (
 from .security import OwnerSession, RuntimeSecurity, RuntimeSecurityError, SECURITY_HEADERS
 from .chat import ChatService, ChatServiceError
 from .offline import LocalAdapter, OfflineChatService, OfflineChatServiceError
+from .ollama import OllamaOfflineAdapter
 from .speech import MAX_AUDIO_CHUNK_BYTES, MAX_AUDIO_CHUNKS, SpeechAdapter, SpeechService, SpeechServiceError
 from .browser import (
     BrowserActionReceipt,
@@ -89,6 +90,7 @@ __all__ = [
     "LocalAdapter",
     "OfflineChatService",
     "OfflineChatServiceError",
+    "OllamaOfflineAdapter",
     "MAX_AUDIO_CHUNK_BYTES",
     "MAX_AUDIO_CHUNKS",
     "SpeechAdapter",
