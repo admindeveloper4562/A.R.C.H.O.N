@@ -1867,7 +1867,7 @@
           "assignee_role": "worker",
           "instruction": "Verify rootless disposable execution, AppArmor/seccomp or equivalent, read-only minimal mounts, no Docker socket, no host credentials, no shared worker secrets and default-deny network. Test traversal, symlinks, namespace and attempted host access.",
           "deliverable": "Sandbox threat-test matrix and reproducible host-level evidence.",
-          "done_when": "Worker cannot read host/home/SSH/Cloudflare secrets, other worktrees or production DB; network remains denied unless a task-scoped allowlist is explicitly granted.",
+          "done_when": "Worker cannot read host-local SSH credentials or Cloudflare secret stores, other worktrees or the production DB; network remains denied unless a task-scoped allowlist is explicitly granted.",
           "depends_on": [
             "SDA-016.S05"
           ],
