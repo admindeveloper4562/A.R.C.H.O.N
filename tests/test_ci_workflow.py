@@ -26,7 +26,7 @@ class CIWorkflowTests(unittest.TestCase):
 
         self.assertIn("  test:\n", python_job)
         self.assertIn("runs-on: ubuntu-latest", python_job)
-        self.assertIn("python -m unittest discover -s tests", python_job)
+        self.assertIn("PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src python -m unittest discover -s tests -v", python_job)
 
         self.assertIn("  ios:\n", ios_job)
         self.assertIn("runs-on: macos-latest", ios_job)
