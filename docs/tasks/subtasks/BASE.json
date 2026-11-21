@@ -1,11 +1,11 @@
 {
   "schema": "jarvis.v2.subtask-module/1",
   "created": "2026-11-14",
-  "source_parent_plan_blob_sha": "36e674f4e58fc19aa8158da42d802b9599a23763",
+  "source_parent_plan_blob_sha": "98e2b845d30253bcc47193b0cc79095f5fac5a12",
   "module": "BASE",
   "module_name": "M0 — Source audit, safety, acceptance baseline",
   "parent_count": 16,
-  "subtask_count": 69,
+  "subtask_count": 71,
   "parents": [
     {
       "parent_id": "BASE-001",
@@ -14,7 +14,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Capture clean and dirty Git states on Ubuntu plus main/develop and draft PR refs",
-      "acceptance": "Host audit records all refs, worktrees, STOP markers and uncommitted changes",
+      "acceptance": "Host audit records all refs, worktrees, STOP markers and uncommitted changes; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. CI evidence includes SAST, dependency/SCA, secret, IaC/container and SBOM checks; DAST is restricted to allowlisted owner-controlled staging targets.",
       "parent_dependencies": [],
       "required_owner_gate": false,
       "manual_owner_gate_required": false,
@@ -29,7 +29,10 @@
       "module_guardrails": [
         "Read-only inventory unless explicitly authorized.",
         "Preserve refs, worktrees, logs and existing data.",
-        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI.",
+        "ASEL baseline: every inventory and CI step must preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL baseline: preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -101,7 +104,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Resolve GitHub Actions zero-step runner blocker issue 15",
-      "acceptance": "Python and iOS CI jobs allocate runners and actually execute test steps",
+      "acceptance": "Python and iOS CI jobs allocate runners and actually execute test steps; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. CI evidence includes SAST, dependency/SCA, secret, IaC/container and SBOM checks; DAST is restricted to allowlisted owner-controlled staging targets.",
       "parent_dependencies": [],
       "required_owner_gate": false,
       "manual_owner_gate_required": false,
@@ -116,7 +119,10 @@
       "module_guardrails": [
         "Read-only inventory unless explicitly authorized.",
         "Preserve refs, worktrees, logs and existing data.",
-        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI.",
+        "ASEL baseline: every inventory and CI step must preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL baseline: preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans."
       ],
       "special_instructions": [
         "Monthly GitHub Actions quota is exhausted. Do not trigger or retry remote workflows. Use local reproduction and leave remote-runner acceptance pending."
@@ -205,7 +211,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Restore reproducible CI and dependency/secret/security scans",
-      "acceptance": "Fresh PR checks produce pass or actionable failure with artifacts",
+      "acceptance": "Fresh PR checks produce pass or actionable failure with artifacts; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. CI evidence includes SAST, dependency/SCA, secret, IaC/container and SBOM checks; DAST is restricted to allowlisted owner-controlled staging targets. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "BASE-002"
       ],
@@ -222,7 +228,10 @@
       "module_guardrails": [
         "Read-only inventory unless explicitly authorized.",
         "Preserve refs, worktrees, logs and existing data.",
-        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI.",
+        "ASEL baseline: every inventory and CI step must preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL baseline: preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans."
       ],
       "special_instructions": [
         "Do not trigger GitHub Actions while quota is exhausted. Validate workflow definitions and available checks locally; remote CI remains deferred."
@@ -300,6 +309,21 @@
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-003.S06",
+          "sequence": 6,
+          "kind": "security_scan",
+          "title": "Wire continuous security scanners into CI and scheduled checks",
+          "assignee_role": "worker",
+          "instruction": "Add reproducible SAST, dependency/SCA, secret, IaC/container, license and SBOM scans to the local/PR pipeline; publish redacted evidence bound to commit SHA. Define nightly re-scan and severity gates. Do not trigger remote Actions while quota is exhausted.",
+          "deliverable": "Scanner configuration, policy thresholds, sample findings and a commit-bound scan receipt.",
+          "done_when": "All required scanners execute locally or are explicitly marked deferred; secrets are redacted; Critical/High findings fail the gate; no fake green result.",
+          "depends_on": [
+            "BASE-003.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
         }
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
@@ -311,7 +335,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Review unmerged SDA PR chain 6 through 13 and PR 17",
-      "acceptance": "Record merge order, SHA, duplicate code, conflicts, test outcomes and keep/drop rationale",
+      "acceptance": "Record merge order, SHA, duplicate code, conflicts, test outcomes and keep/drop rationale; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. CI evidence includes SAST, dependency/SCA, secret, IaC/container and SBOM checks; DAST is restricted to allowlisted owner-controlled staging targets. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "BASE-001"
       ],
@@ -328,7 +352,10 @@
       "module_guardrails": [
         "Read-only inventory unless explicitly authorized.",
         "Preserve refs, worktrees, logs and existing data.",
-        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI.",
+        "ASEL baseline: every inventory and CI step must preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL baseline: preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -400,7 +427,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Review PR 5 Workhorse context experiments",
-      "acceptance": "Four modes evaluated and decision documented with measured quality and cost",
+      "acceptance": "Four modes evaluated and decision documented with measured quality and cost; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. CI evidence includes SAST, dependency/SCA, secret, IaC/container and SBOM checks; DAST is restricted to allowlisted owner-controlled staging targets.",
       "parent_dependencies": [
         "BASE-001"
       ],
@@ -417,7 +444,10 @@
       "module_guardrails": [
         "Read-only inventory unless explicitly authorized.",
         "Preserve refs, worktrees, logs and existing data.",
-        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI.",
+        "ASEL baseline: every inventory and CI step must preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL baseline: preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -489,7 +519,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Review PR 14 TWS and PR 16 Cloudflare independently",
-      "acceptance": "Feature inventory maps files to tests and remaining host/device blockers",
+      "acceptance": "Feature inventory maps files to tests and remaining host/device blockers; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. CI evidence includes SAST, dependency/SCA, secret, IaC/container and SBOM checks; DAST is restricted to allowlisted owner-controlled staging targets. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence. Host/file operations also require path and symlink/TOCTOU tests, bounded execution, per-file owner approval for deletion and an immutable action receipt.",
       "parent_dependencies": [
         "BASE-001"
       ],
@@ -506,7 +536,10 @@
       "module_guardrails": [
         "Read-only inventory unless explicitly authorized.",
         "Preserve refs, worktrees, logs and existing data.",
-        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI.",
+        "ASEL baseline: every inventory and CI step must preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL baseline: preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -578,7 +611,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Reconcile historical TASKS.md and DEVELOPMENT_LOG with new queue",
-      "acceptance": "Crosswalk old task IDs to new IDs without overwriting historical evidence",
+      "acceptance": "Crosswalk old task IDs to new IDs without overwriting historical evidence; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. CI evidence includes SAST, dependency/SCA, secret, IaC/container and SBOM checks; DAST is restricted to allowlisted owner-controlled staging targets.",
       "parent_dependencies": [
         "BASE-001"
       ],
@@ -595,7 +628,10 @@
       "module_guardrails": [
         "Read-only inventory unless explicitly authorized.",
         "Preserve refs, worktrees, logs and existing data.",
-        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI.",
+        "ASEL baseline: every inventory and CI step must preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL baseline: preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -667,7 +703,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Approve final 10-module architecture and explicit Business exclusion",
-      "acceptance": "Signed architecture digest and owner-reviewed scope are stored; Business archived",
+      "acceptance": "Signed architecture digest and owner-reviewed scope are stored; Business archived; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. CI evidence includes SAST, dependency/SCA, secret, IaC/container and SBOM checks; DAST is restricted to allowlisted owner-controlled staging targets.",
       "parent_dependencies": [
         "BASE-001"
       ],
@@ -684,7 +720,10 @@
       "module_guardrails": [
         "Read-only inventory unless explicitly authorized.",
         "Preserve refs, worktrees, logs and existing data.",
-        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI.",
+        "ASEL baseline: every inventory and CI step must preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL baseline: preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -741,7 +780,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Establish CODING_HANDBOOK.md controlled governance",
-      "acceptance": "Handbook exists with edit approvals and read-only worker enforcement",
+      "acceptance": "Handbook exists with edit approvals and read-only worker enforcement; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. CI evidence includes SAST, dependency/SCA, secret, IaC/container and SBOM checks; DAST is restricted to allowlisted owner-controlled staging targets.",
       "parent_dependencies": [
         "BASE-008"
       ],
@@ -758,7 +797,10 @@
       "module_guardrails": [
         "Read-only inventory unless explicitly authorized.",
         "Preserve refs, worktrees, logs and existing data.",
-        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI.",
+        "ASEL baseline: every inventory and CI step must preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL baseline: preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -845,7 +887,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Resolve case-colliding docs names and generated build artifacts",
-      "acceptance": "Clean Windows/Linux checkout and packaging policy pass without data loss",
+      "acceptance": "Clean Windows/Linux checkout and packaging policy pass without data loss; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. CI evidence includes SAST, dependency/SCA, secret, IaC/container and SBOM checks; DAST is restricted to allowlisted owner-controlled staging targets. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "BASE-001"
       ],
@@ -862,7 +904,10 @@
       "module_guardrails": [
         "Read-only inventory unless explicitly authorized.",
         "Preserve refs, worktrees, logs and existing data.",
-        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI.",
+        "ASEL baseline: every inventory and CI step must preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL baseline: preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -964,7 +1009,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Audit AGENTS.md SECURITY.md and approval boundaries",
-      "acceptance": "Risk matrix and regression plan for deletion, secrets, external actions",
+      "acceptance": "Risk matrix and regression plan for deletion, secrets, external actions; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. CI evidence includes SAST, dependency/SCA, secret, IaC/container and SBOM checks; DAST is restricted to allowlisted owner-controlled staging targets. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "BASE-001"
       ],
@@ -981,7 +1026,10 @@
       "module_guardrails": [
         "Read-only inventory unless explicitly authorized.",
         "Preserve refs, worktrees, logs and existing data.",
-        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI.",
+        "ASEL baseline: every inventory and CI step must preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL baseline: preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1042,6 +1090,21 @@
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BASE-011.S05",
+          "sequence": 5,
+          "kind": "threat_model",
+          "title": "Create the cross-module threat model and authorized asset inventory",
+          "assignee_role": "worker",
+          "instruction": "Map trust boundaries, assets, entry points, data classes, threats, owners and containment actions for all ten modules, Windows/Linux hosts, Cloudflare and integrations. Define authorized scan targets and prohibited third-party targets.",
+          "deliverable": "Versioned threat model, asset inventory, risk register and approved scan scope.",
+          "done_when": "Every module and external boundary has an owner, threat, control and test; active scans are restricted to inventoried owner-controlled targets.",
+          "depends_on": [
+            "BASE-011.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
         }
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
@@ -1053,7 +1116,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Benchmark actual Linux host and authenticated Codex model availability",
-      "acceptance": "Record exact CPU/RAM/disk, Codex model IDs, quotas and concurrent capacity",
+      "acceptance": "Record exact CPU/RAM/disk, Codex model IDs, quotas and concurrent capacity; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. CI evidence includes SAST, dependency/SCA, secret, IaC/container and SBOM checks; DAST is restricted to allowlisted owner-controlled staging targets. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "BASE-001"
       ],
@@ -1070,7 +1133,10 @@
       "module_guardrails": [
         "Read-only inventory unless explicitly authorized.",
         "Preserve refs, worktrees, logs and existing data.",
-        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI.",
+        "ASEL baseline: every inventory and CI step must preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL baseline: preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1142,7 +1208,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Audit existing Cloudflare resources, D1 IDs and secrets without disclosure",
-      "acceptance": "Inventory identifies old coordinator, Astra monitor, resource limits and auth boundaries",
+      "acceptance": "Inventory identifies old coordinator, Astra monitor, resource limits and auth boundaries; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. CI evidence includes SAST, dependency/SCA, secret, IaC/container and SBOM checks; DAST is restricted to allowlisted owner-controlled staging targets. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence.",
       "parent_dependencies": [
         "BASE-006"
       ],
@@ -1159,7 +1225,10 @@
       "module_guardrails": [
         "Read-only inventory unless explicitly authorized.",
         "Preserve refs, worktrees, logs and existing data.",
-        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI.",
+        "ASEL baseline: every inventory and CI step must preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL baseline: preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1231,7 +1300,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Define reproducible acceptance evidence and milestone checklists",
-      "acceptance": "Every gate has test command, source SHA, owner, artifact and failure behavior",
+      "acceptance": "Every gate has test command, source SHA, owner, artifact and failure behavior; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. CI evidence includes SAST, dependency/SCA, secret, IaC/container and SBOM checks; DAST is restricted to allowlisted owner-controlled staging targets. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "BASE-008",
         "BASE-011"
@@ -1249,7 +1318,10 @@
       "module_guardrails": [
         "Read-only inventory unless explicitly authorized.",
         "Preserve refs, worktrees, logs and existing data.",
-        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI.",
+        "ASEL baseline: every inventory and CI step must preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL baseline: preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1336,7 +1408,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Create secure branch-specific code symbol and FTS index plan",
-      "acceptance": "Generated-file, secret and license exclusions verified; refresh keyed by blob SHA",
+      "acceptance": "Generated-file, secret and license exclusions verified; refresh keyed by blob SHA; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. CI evidence includes SAST, dependency/SCA, secret, IaC/container and SBOM checks; DAST is restricted to allowlisted owner-controlled staging targets. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence. Host/file operations also require path and symlink/TOCTOU tests, bounded execution, per-file owner approval for deletion and an immutable action receipt.",
       "parent_dependencies": [
         "BASE-001"
       ],
@@ -1353,7 +1425,10 @@
       "module_guardrails": [
         "Read-only inventory unless explicitly authorized.",
         "Preserve refs, worktrees, logs and existing data.",
-        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI.",
+        "ASEL baseline: every inventory and CI step must preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL baseline: preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1440,7 +1515,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Create approval policy for clean rebuild repo name, branch and promotion",
-      "acceptance": "No rebuild repository created before real SDA gate and explicit owner decision",
+      "acceptance": "No rebuild repository created before real SDA gate and explicit owner decision; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. CI evidence includes SAST, dependency/SCA, secret, IaC/container and SBOM checks; DAST is restricted to allowlisted owner-controlled staging targets. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "BASE-008",
         "BASE-014"
@@ -1458,7 +1533,10 @@
       "module_guardrails": [
         "Read-only inventory unless explicitly authorized.",
         "Preserve refs, worktrees, logs and existing data.",
-        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI."
+        "Do not trigger GitHub Actions while monthly build quota is exhausted; use local checks and defer remote CI.",
+        "ASEL baseline: every inventory and CI step must preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL baseline: preserve provenance, redact findings and distinguish skipped/quota-blocked scans from passed scans."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1508,5 +1586,8 @@
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
     }
-  ]
+  ],
+  "updated": "2026-11-15",
+  "security_architecture": "docs/architecture/SECURITY_ARCHITECTURE.md",
+  "security_policy_id": "ASEL-1.0"
 }

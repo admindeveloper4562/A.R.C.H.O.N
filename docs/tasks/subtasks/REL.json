@@ -1,11 +1,11 @@
 {
   "schema": "jarvis.v2.subtask-module/1",
   "created": "2026-11-14",
-  "source_parent_plan_blob_sha": "36e674f4e58fc19aa8158da42d802b9599a23763",
+  "source_parent_plan_blob_sha": "98e2b845d30253bcc47193b0cc79095f5fac5a12",
   "module": "REL",
   "module_name": "M12 — Cross-module qualification, deployment and v2 release",
   "parent_count": 25,
-  "subtask_count": 127,
+  "subtask_count": 129,
   "parents": [
     {
       "parent_id": "REL-001",
@@ -14,7 +14,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Create full cross-module contract and event compatibility test suite",
-      "acceptance": "All ten module schemas/permissions have runnable fixture tests",
+      "acceptance": "All ten module schemas/permissions have runnable fixture tests; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "CORE-014",
         "BACK-022"
@@ -31,7 +31,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -118,7 +120,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Validate independent deploy/stop and smallest-module fault isolation",
-      "acceptance": "Fault one module and prove unrelated services survive",
+      "acceptance": "Fault one module and prove unrelated services survive; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "GUARD-019",
         "REL-001"
@@ -135,7 +137,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -252,7 +256,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Verify Core-SDA project delegation and completion result",
-      "acceptance": "Real project flows through Supervisor, 5 workers, QC, merger to Core event",
+      "acceptance": "Real project flows through Supervisor, 5 workers, QC, merger to Core event; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "SDA-026",
         "CORE-014",
@@ -271,7 +275,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -358,7 +364,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Verify local Windows and Linux model routing, quotas and context handoff",
-      "acceptance": "Cross-device model state reconstructed without duplicate tools",
+      "acceptance": "Cross-device model state reconstructed without duplicate tools; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship.",
       "parent_dependencies": [
         "WIN-011",
         "BACK-011",
@@ -376,7 +382,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -463,7 +471,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Verify Cloudflare pending jobs while all PCs are offline",
-      "acceptance": "Cloudflare only stores jobs; reconnect resumes safely and reports age",
+      "acceptance": "Cloudflare only stores jobs; reconnect resumes safely and reports age; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence.",
       "parent_dependencies": [
         "AUTO-012",
         "REL-001"
@@ -480,7 +488,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -567,7 +577,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Verify Guardian next-slot non-preemptive priority under live workload",
-      "acceptance": "Active inference finishes; new worker model calls wait while Guardian runs",
+      "acceptance": "Active inference finishes; new worker model calls wait while Guardian runs; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship. Recovery paths also require fencing, signed known-good artifacts, token revocation, preserved forensic evidence and independent rollback authorization.",
       "parent_dependencies": [
         "GUARD-019",
         "REL-003"
@@ -584,7 +594,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -671,7 +683,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Verify Runtime chat/voice/browser and permissions on Ubuntu",
-      "acceptance": "Real Firefox, voice device, typed actions and denial tests pass",
+      "acceptance": "Real Firefox, voice device, typed actions and denial tests pass; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence.",
       "parent_dependencies": [
         "RUN-018",
         "REL-001"
@@ -688,7 +700,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -775,7 +789,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Verify Research into memory and handbook edit authority",
-      "acceptance": "Citations retain provenance; ordinary coding workers cannot edit handbook",
+      "acceptance": "Citations retain provenance; ordinary coding workers cannot edit handbook; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "RES-015",
         "REL-001"
@@ -792,7 +806,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -864,7 +880,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Verify TWS mobile pairing, 3D fallback and cross-module quest gates",
-      "acceptance": "Real iPhone/device evidence, XP non-duplication and graceful failure",
+      "acceptance": "Real iPhone/device evidence, XP non-duplication and graceful failure; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship.",
       "parent_dependencies": [
         "TWS-020",
         "REL-001"
@@ -881,7 +897,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -968,7 +986,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Verify WIC freshness, corrections and time-sensitive notifications",
-      "acceptance": "No false live claim, duplication or unsourced notification",
+      "acceptance": "No false live claim, duplication or unsourced notification; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship.",
       "parent_dependencies": [
         "WIC-014",
         "REL-001"
@@ -985,7 +1003,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1072,7 +1092,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Verify Mira scoped analytics and paper-only finance integration",
-      "acceptance": "No cross-person leak or broker order; financial fixture totals correct",
+      "acceptance": "No cross-person leak or broker order; financial fixture totals correct; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship. Financial paths also require consent and row-scope denial tests, exact ledger reconciliation and proof that no live broker/Mira write route exists.",
       "parent_dependencies": [
         "FIN-016",
         "REL-001"
@@ -1089,7 +1109,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1176,7 +1198,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Run full security adversarial matrix against each module",
-      "acceptance": "Injection, auth, path, CSRF, XSS, secrets and prompt boundary tests pass",
+      "acceptance": "Injection, auth, path, CSRF, XSS, secrets and prompt boundary tests pass; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence. Host/file operations also require path and symlink/TOCTOU tests, bounded execution, per-file owner approval for deletion and an immutable action receipt.",
       "parent_dependencies": [
         "REL-002",
         "REL-007",
@@ -1195,7 +1217,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1271,6 +1295,21 @@
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-012.S06",
+          "sequence": 6,
+          "kind": "red_team",
+          "title": "Run independent red-team and active-defence qualification across all modules",
+          "assignee_role": "worker",
+          "instruction": "Run scoped non-destructive adversarial tests for prompt injection, authorization bypass, SSRF, CSRF/XSS, path traversal, secret leakage, sandbox escape, API abuse, supply-chain tampering and containment. Include independent QC.",
+          "deliverable": "Red-team plan, authorized target list, reproducible findings, retest receipts and residual-risk register.",
+          "done_when": "All Critical findings are fixed; High findings are fixed or have time-limited owner-signed exceptions; containment and revocation are proven; no scan exceeds authorized scope.",
+          "depends_on": [
+            "REL-012.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
         }
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
@@ -1282,7 +1321,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Run system crash, corruption, provider outage and rollback drills",
-      "acceptance": "Durable recovery with approvals/STOP preserved and known-good rollback",
+      "acceptance": "Durable recovery with approvals/STOP preserved and known-good rollback; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship. Recovery paths also require fencing, signed known-good artifacts, token revocation, preserved forensic evidence and independent rollback authorization.",
       "parent_dependencies": [
         "REL-002",
         "REL-004",
@@ -1302,7 +1341,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1419,7 +1460,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Benchmark five-worker SDA plus model/DB workload resource limits",
-      "acceptance": "Measured throughput, quotas, RAM, backpressure and no runaway workers",
+      "acceptance": "Measured throughput, quotas, RAM, backpressure and no runaway workers; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship.",
       "parent_dependencies": [
         "REL-003",
         "REL-013"
@@ -1436,7 +1477,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1508,7 +1551,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Validate backup/restore and data retention per domain",
-      "acceptance": "Clean-room restore preserves state without inappropriate private-data retention",
+      "acceptance": "Clean-room restore preserves state without inappropriate private-data retention; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship.",
       "parent_dependencies": [
         "BACK-018",
         "REL-009",
@@ -1527,7 +1570,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1644,7 +1689,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Run full CI on declared Python versions and native iOS runners",
-      "acceptance": "All required jobs execute and pass; artifacts stored per SHA",
+      "acceptance": "All required jobs execute and pass; artifacts stored per SHA; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "BASE-003",
         "REL-012",
@@ -1662,7 +1707,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [
         "Do not trigger remote GitHub Actions or consume native iOS runner quota. Run available local tests; remote Python/iOS runner acceptance remains pending."
@@ -1751,7 +1798,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Produce deployment IaC/manifests, installation and operator runbooks",
-      "acceptance": "Reproducible documented Linux, Windows, Cloudflare and optional iOS install",
+      "acceptance": "Reproducible documented Linux, Windows, Cloudflare and optional iOS install; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence.",
       "parent_dependencies": [
         "REL-014",
         "REL-016",
@@ -1769,7 +1816,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1871,7 +1920,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Run staging end-to-end user-acceptance scenarios and accessibility audit",
-      "acceptance": "Owner-approved scripted journeys pass with objective evidence",
+      "acceptance": "Owner-approved scripted journeys pass with objective evidence; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship.",
       "parent_dependencies": [
         "REL-007",
         "REL-008",
@@ -1892,7 +1941,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1949,7 +2000,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Review licensing, provenance, threat model and release-blocking defects",
-      "acceptance": "No unreviewed third-party artifacts or unresolved critical findings",
+      "acceptance": "No unreviewed third-party artifacts or unresolved critical findings; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "REL-012",
         "REL-018"
@@ -1966,7 +2017,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2027,6 +2080,21 @@
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
+        },
+        {
+          "id": "REL-019.S05",
+          "sequence": 5,
+          "kind": "release_security_gate",
+          "title": "Enforce security release gate with SBOM, provenance and vulnerability policy",
+          "assignee_role": "worker",
+          "instruction": "Verify signed build artifacts, source provenance, SBOM, dependency/license findings, scan freshness, runtime hardening, threat-model coverage and approved exceptions before freezing candidate SHA.",
+          "deliverable": "Release security attestation bound to candidate SHA and scan artifacts.",
+          "done_when": "Critical findings block release; High findings block unless a time-limited owner-signed exception with compensating controls exists; missing/stale scan evidence fails closed.",
+          "depends_on": [
+            "REL-019.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
         }
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
@@ -2038,7 +2106,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Review exact accepted backlog IDs and frozen candidate Git SHA",
-      "acceptance": "No required tasks incomplete, or documented owner-approved deferrals that do not violate gates",
+      "acceptance": "No required tasks incomplete, or documented owner-approved deferrals that do not violate gates; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship.",
       "parent_dependencies": [
         "REL-019",
         "MIG-014"
@@ -2055,7 +2123,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2112,7 +2182,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Owner authorizes v2.0.0 production promotion",
-      "acceptance": "Explicit signed approval tied to immutable candidate SHA",
+      "acceptance": "Explicit signed approval tied to immutable candidate SHA; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "REL-020"
       ],
@@ -2128,7 +2198,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [
         "Mandatory owner approval tied to immutable release candidate SHA; no agent can approve."
@@ -2187,7 +2259,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Promote accepted develop to main and tag v2.0.0",
-      "acceptance": "Protected-branch CI, tag provenance and deployment receipts verified",
+      "acceptance": "Protected-branch CI, tag provenance and deployment receipts verified; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "REL-021"
       ],
@@ -2203,7 +2275,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [
         "Promote only after REL-021 is satisfied. Do not push main or tag a release before the owner gate."
@@ -2307,7 +2381,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Post-release smoke, rollback readiness and monitoring validation",
-      "acceptance": "24-hour metrics if available, smoke proofs, rollback tested before signoff",
+      "acceptance": "24-hour metrics if available, smoke proofs, rollback tested before signoff; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "REL-022"
       ],
@@ -2323,7 +2397,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2440,7 +2516,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Archive historical Business ideas and close out original repository migration",
-      "acceptance": "Source evidence retained, no Business production service, legacy still recoverable",
+      "acceptance": "Source evidence retained, no Business production service, legacy still recoverable; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "REL-022"
       ],
@@ -2456,7 +2532,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2558,7 +2636,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Publish final complete v2 acceptance report and maintenance roadmap",
-      "acceptance": "Version, artifacts, tests, host verification and known limitations truthfully documented",
+      "acceptance": "Version, artifacts, tests, host verification and known limitations truthfully documented; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Release qualification includes adversarial, API/DAST, runtime, supply-chain and recovery tests; no unresolved Critical/High security finding may ship. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "REL-023",
         "REL-024"
@@ -2575,7 +2653,9 @@
       "module_guardrails": [
         "Bind acceptance to immutable candidate SHA and test artifact hashes.",
         "Mocks alone do not prove host/device/provider/recovery/deployment acceptance.",
-        "No main/production promotion without owner gate."
+        "No main/production promotion without owner gate.",
+        "Release boundary: security evidence must be current, commit-bound and independently reviewed; unresolved Critical/High findings block promotion.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2655,5 +2735,8 @@
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
     }
-  ]
+  ],
+  "updated": "2026-11-15",
+  "security_architecture": "docs/architecture/SECURITY_ARCHITECTURE.md",
+  "security_policy_id": "ASEL-1.0"
 }

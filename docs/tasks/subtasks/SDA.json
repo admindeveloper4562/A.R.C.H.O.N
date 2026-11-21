@@ -1,11 +1,11 @@
 {
   "schema": "jarvis.v2.subtask-module/1",
   "created": "2026-11-14",
-  "source_parent_plan_blob_sha": "36e674f4e58fc19aa8158da42d802b9599a23763",
+  "source_parent_plan_blob_sha": "98e2b845d30253bcc47193b0cc79095f5fac5a12",
   "module": "SDA",
   "module_name": "M1 — Astra One and full SDA qualification",
   "parent_count": 28,
-  "subtask_count": 161,
+  "subtask_count": 163,
   "parents": [
     {
       "parent_id": "SDA-001",
@@ -14,7 +14,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Audit and import Astra One Linux v0.2.0 package into isolated source staging",
-      "acceptance": "Package manifest/tests verified; actual source committed for review, not treated as production",
+      "acceptance": "Package manifest/tests verified; actual source committed for review, not treated as production; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "BASE-004",
         "BASE-012"
@@ -31,7 +31,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -148,7 +151,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Inspect existing Workhorse v2 Master and reconcile with Astra One",
-      "acceptance": "One canonical Master chosen; duplicate queues/process controllers cannot both run",
+      "acceptance": "One canonical Master chosen; duplicate queues/process controllers cannot both run; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC. Host/file operations also require path and symlink/TOCTOU tests, bounded execution, per-file owner approval for deletion and an immutable action receipt.",
       "parent_dependencies": [
         "SDA-001"
       ],
@@ -164,7 +167,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -236,7 +242,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Verify Codex supervisor, worker, QC and merger model profiles",
-      "acceptance": "Authenticated CLI executes read-only smoke; unavailable aliases produce explicit stop",
+      "acceptance": "Authenticated CLI executes read-only smoke; unavailable aliases produce explicit stop; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target. Host/file operations also require path and symlink/TOCTOU tests, bounded execution, per-file owner approval for deletion and an immutable action receipt.",
       "parent_dependencies": [
         "BASE-012",
         "SDA-001"
@@ -253,7 +259,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -340,7 +349,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Define durable schema and transactions for SDA five queues",
-      "acceptance": "project/pending/rebuild/review/merge queue transitions atomic and restart-safe",
+      "acceptance": "project/pending/rebuild/review/merge queue transitions atomic and restart-safe; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target. Recovery paths also require fencing, signed known-good artifacts, token revocation, preserved forensic evidence and independent rollback authorization. Financial paths also require consent and row-scope denial tests, exact ledger reconciliation and proof that no live broker/Mira write route exists.",
       "parent_dependencies": [
         "SDA-002"
       ],
@@ -356,7 +365,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -443,7 +455,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Implement job schema with priority, dependency, approval and scope",
-      "acceptance": "Invalid dependencies, scope escalation and duplicate job ID are rejected",
+      "acceptance": "Invalid dependencies, scope escalation and duplicate job ID are rejected; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC.",
       "parent_dependencies": [
         "SDA-004"
       ],
@@ -459,7 +471,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -561,7 +576,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Build single-controller lock, PID/lease fencing and duplicate Master prevention",
-      "acceptance": "Second Master refuses to start; stale lock safely reconciled",
+      "acceptance": "Second Master refuses to start; stale lock safely reconciled; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC.",
       "parent_dependencies": [
         "SDA-004"
       ],
@@ -577,7 +592,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -679,7 +697,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Implement deterministic eligible-task selector and starvation safeguards",
-      "acceptance": "Priority plus FIFO and dependency tests pass; blocked head skipped",
+      "acceptance": "Priority plus FIFO and dependency tests pass; blocked head skipped; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC.",
       "parent_dependencies": [
         "SDA-005"
       ],
@@ -695,7 +713,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -797,7 +818,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Create Supervisor read-only repository inspection and requirements parser",
-      "acceptance": "Supervisor cites pinned repo contents and exact acceptance without editing code",
+      "acceptance": "Supervisor cites pinned repo contents and exact acceptance without editing code; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC.",
       "parent_dependencies": [
         "BASE-009",
         "SDA-003"
@@ -814,7 +835,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -916,7 +940,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Generate TASK.md per project and machine-validated task DAG",
-      "acceptance": "Reviewable TASK.md round-trips to SQLite task IDs without competing truth",
+      "acceptance": "Reviewable TASK.md round-trips to SQLite task IDs without competing truth; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC.",
       "parent_dependencies": [
         "SDA-005",
         "SDA-008"
@@ -933,7 +957,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1035,7 +1062,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Build five independent coding slots with Git worktrees and scoped tools",
-      "acceptance": "Five mock workers run concurrently, distinct branches, no shared branch modification",
+      "acceptance": "Five mock workers run concurrently, distinct branches, no shared branch modification; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC.",
       "parent_dependencies": [
         "SDA-006",
         "SDA-007",
@@ -1053,7 +1080,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1155,7 +1185,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Implement durable context/session/thread handoff per task",
-      "acceptance": "Resume from checkpoint after discarded model session without losing acceptance",
+      "acceptance": "Resume from checkpoint after discarded model session without losing acceptance; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC.",
       "parent_dependencies": [
         "SDA-004",
         "SDA-010"
@@ -1172,7 +1202,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1274,7 +1307,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Implement Codex JSONL receipts and bounded output/token parsing",
-      "acceptance": "Thread ID, usage, tool effects and error categories persist without leaking secrets",
+      "acceptance": "Thread ID, usage, tool effects and error categories persist without leaking secrets; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "SDA-010"
       ],
@@ -1290,7 +1323,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1392,7 +1428,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Integrate reference-repo allowlist and scoped source packing",
-      "acceptance": "Untrusted external code cannot override policy; context fits target window",
+      "acceptance": "Untrusted external code cannot override policy; context fits target window; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC.",
       "parent_dependencies": [
         "BASE-015",
         "SDA-011"
@@ -1409,7 +1445,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1511,7 +1550,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Implement normal Codex worker task completion and commit envelope",
-      "acceptance": "Real bounded code change committed with source SHA, files and tests",
+      "acceptance": "Real bounded code change committed with source SHA, files and tests; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC. Host/file operations also require path and symlink/TOCTOU tests, bounded execution, per-file owner approval for deletion and an immutable action receipt.",
       "parent_dependencies": [
         "SDA-010",
         "SDA-012"
@@ -1528,7 +1567,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1630,7 +1672,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Implement independent deterministic QC and read-only AI review",
-      "acceptance": "QC receipt binds candidate SHA to tests, security and architecture policy",
+      "acceptance": "QC receipt binds candidate SHA to tests, security and architecture policy; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC.",
       "parent_dependencies": [
         "SDA-014"
       ],
@@ -1646,7 +1688,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1718,7 +1763,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Implement isolated safe test execution with Docker and no network",
-      "acceptance": "Host filesystem/secrets inaccessible; test outcomes repeatable",
+      "acceptance": "Host filesystem/secrets inaccessible; test outcomes repeatable; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence. Host/file operations also require path and symlink/TOCTOU tests, bounded execution, per-file owner approval for deletion and an immutable action receipt.",
       "parent_dependencies": [
         "SDA-015"
       ],
@@ -1734,7 +1779,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1810,6 +1858,21 @@
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-016.S06",
+          "sequence": 6,
+          "kind": "sandbox_security",
+          "title": "Prove hardened worker sandbox isolation and escape resistance",
+          "assignee_role": "worker",
+          "instruction": "Verify rootless disposable execution, AppArmor/seccomp or equivalent, read-only minimal mounts, no Docker socket, no host credentials, no shared worker secrets and default-deny network. Test traversal, symlinks, namespace and attempted host access.",
+          "deliverable": "Sandbox threat-test matrix and reproducible host-level evidence.",
+          "done_when": "Worker cannot read host-local SSH credentials or Cloudflare secret stores, other worktrees or the production DB; network remains denied unless a task-scoped allowlist is explicitly granted.",
+          "depends_on": [
+            "SDA-016.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
         }
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
@@ -1821,7 +1884,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Implement repairer with same-session return and bounded 20-attempt breakdown",
-      "acceptance": "Failed candidate returns with error proof; limit archives history and quarantines candidate",
+      "acceptance": "Failed candidate returns with error proof; limit archives history and quarantines candidate; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC.",
       "parent_dependencies": [
         "SDA-015",
         "SDA-011"
@@ -1838,7 +1901,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1940,7 +2006,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Implement serialized merger and freshness-aware integration branch",
-      "acceptance": "Only one merger updates authorized ref; final regression passes",
+      "acceptance": "Only one merger updates authorized ref; final regression passes; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "SDA-015",
         "SDA-006"
@@ -1957,7 +2023,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2059,7 +2128,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Implement conflict retry, rebuild queue and immutable breakdown reports",
-      "acceptance": "20-attempt cap respected; old refs/commits recoverable",
+      "acceptance": "20-attempt cap respected; old refs/commits recoverable; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC.",
       "parent_dependencies": [
         "SDA-017",
         "SDA-018"
@@ -2076,7 +2145,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2193,7 +2265,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Implement STOP, PAUSE, quota, approval gates and crash reconciliation",
-      "acceptance": "Crash during safe boundary does not bypass STOP or repeat tool action",
+      "acceptance": "Crash during safe boundary does not bypass STOP or repeat tool action; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC.",
       "parent_dependencies": [
         "SDA-006",
         "SDA-011"
@@ -2210,7 +2282,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2312,7 +2387,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Implement SDA-specific self-doctor and deduplicated fault proposals",
-      "acceptance": "Single reproducible fault creates one scoped repair proposal, not an unbounded loop",
+      "acceptance": "Single reproducible fault creates one scoped repair proposal, not an unbounded loop; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC.",
       "parent_dependencies": [
         "SDA-020"
       ],
@@ -2328,7 +2403,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2430,7 +2508,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Implement checkpoint export, state backups and restore drills",
-      "acceptance": "Fresh process recovers tasks, leases, approvals, refs and receipts correctly",
+      "acceptance": "Fresh process recovers tasks, leases, approvals, refs and receipts correctly; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC. Host/file operations also require path and symlink/TOCTOU tests, bounded execution, per-file owner approval for deletion and an immutable action receipt.",
       "parent_dependencies": [
         "SDA-020"
       ],
@@ -2446,7 +2524,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2563,7 +2644,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Wire SDA metadata event stream into Cloudflare progress API",
-      "acceptance": "Per-worker states, actual tests and commits shown; private prompt/code not uploaded",
+      "acceptance": "Per-worker states, actual tests and commits shown; private prompt/code not uploaded; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence.",
       "parent_dependencies": [
         "SDA-012",
         "SDA-020"
@@ -2580,7 +2661,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2682,7 +2766,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Run host-based real five-worker feature integration qualification",
-      "acceptance": "Actual Codex builds five independent candidates, QC passes, clean serial merge",
+      "acceptance": "Actual Codex builds five independent candidates, QC passes, clean serial merge; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "SDA-016",
         "SDA-018",
@@ -2700,7 +2784,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2787,7 +2874,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Inject failures, model outage, quota, STOP, restart and rollback",
-      "acceptance": "Real host drills prove no duplicate external effects or unsafe auto-promotion",
+      "acceptance": "Real host drills prove no duplicate external effects or unsafe auto-promotion; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target. Recovery paths also require fencing, signed known-good artifacts, token revocation, preserved forensic evidence and independent rollback authorization.",
       "parent_dependencies": [
         "SDA-019",
         "SDA-020",
@@ -2805,7 +2892,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2911,6 +3001,21 @@
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
+        },
+        {
+          "id": "SDA-025.S08",
+          "sequence": 8,
+          "kind": "incident_drill",
+          "title": "Exercise active defence and incident containment during SDA faults",
+          "assignee_role": "worker",
+          "instruction": "Simulate malicious worker behavior, secret exposure, suspicious outbound traffic and compromised dependency. Exercise task STOP, worker quarantine, network isolation, capability revocation, evidence preservation and clean restore.",
+          "deliverable": "Incident timeline, containment receipts, revoked-capability proof and restored-state SHA.",
+          "done_when": "Containment is deterministic and bounded; STOP/PAUSE persists; evidence is preserved; no automatic production promotion or uncontrolled restart occurs.",
+          "depends_on": [
+            "SDA-025.S07"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
         }
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
@@ -2922,7 +3027,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Produce independently reviewed SDA gates A-I acceptance report",
-      "acceptance": "Evidence bundle passes all required gates or lists blockers; no premature success",
+      "acceptance": "Evidence bundle passes all required gates or lists blockers; no premature success; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC.",
       "parent_dependencies": [
         "SDA-024",
         "SDA-025",
@@ -2940,7 +3045,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -3027,7 +3135,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Owner approval for clean JARVIS v2 rebuild repository",
-      "acceptance": "Written approval, exact repo name and migration scope recorded",
+      "acceptance": "Written approval, exact repo name and migration scope recorded; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "SDA-026",
         "BASE-016"
@@ -3044,7 +3152,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [
         "The intended repository already exists: admindeveloper4562/A.R.C.H.O.N. Verify and record it as the destination; do not create a second repository. Preserve owner approval for migration scope."
@@ -3103,7 +3214,7 @@
       "priority": "P0",
       "status": "NOT_STARTED",
       "title": "Create clean rebuild repo and controlled initial develop/main policy",
-      "acceptance": "New repo has verified CI, branch protections, provenance and zero legacy runtime data",
+      "acceptance": "New repo has verified CI, branch protections, provenance and zero legacy runtime data; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Workers run in disposable least-privilege sandboxes with no host secrets, Docker socket or network by default; candidate code, dependencies and artifacts are scanned before independent QC.",
       "parent_dependencies": [
         "SDA-027",
         "MIG-001"
@@ -3120,7 +3231,10 @@
       "module_guardrails": [
         "One deterministic Master and five isolated Codex worktrees; never run two Masters on one queue.",
         "Workers cannot self-approve, merge to develop, change protected policies or deploy.",
-        "Independent QC and serialized Merger are mandatory."
+        "Independent QC and serialized Merger are mandatory.",
+        "ASEL worker boundary: isolated worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets.",
+        "ASEL worker boundary: a Git worktree is not a sandbox; use disposable low-privilege execution, no Docker socket, no host secrets and default-deny egress."
       ],
       "special_instructions": [
         "Verify/bootstrap the existing admindeveloper4562/A.R.C.H.O.N repository and main/develop policy; do not create a duplicate repository."
@@ -3232,5 +3346,8 @@
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
     }
-  ]
+  ],
+  "updated": "2026-11-15",
+  "security_architecture": "docs/architecture/SECURITY_ARCHITECTURE.md",
+  "security_policy_id": "ASEL-1.0"
 }

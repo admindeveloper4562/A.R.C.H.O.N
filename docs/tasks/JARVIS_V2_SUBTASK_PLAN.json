@@ -5,11 +5,11 @@
   "target_repository": "admindeveloper4562/A.R.C.H.O.N",
   "target_integration_branch": "develop",
   "source_parent_plan_path": "docs/tasks/JARVIS_V2_TASK_PLAN.json",
-  "source_parent_plan_blob_sha": "36e674f4e58fc19aa8158da42d802b9599a23763",
+  "source_parent_plan_blob_sha": "98e2b845d30253bcc47193b0cc79095f5fac5a12",
   "parent_task_count": 247,
   "parent_task_ids_preserved": true,
-  "parent_plan_modified": false,
-  "total_subtasks": 1359,
+  "parent_plan_modified": true,
+  "total_subtasks": 1381,
   "module_count": 10,
   "business_module_active": false,
   "module_files": [
@@ -17,21 +17,21 @@
       "module": "BASE",
       "name": "M0 — Source audit, safety, acceptance baseline",
       "parent_count": 16,
-      "subtask_count": 69,
+      "subtask_count": 71,
       "path": "docs/tasks/subtasks/BASE.json"
     },
     {
       "module": "SDA",
       "name": "M1 — Astra One and full SDA qualification",
       "parent_count": 28,
-      "subtask_count": 161,
+      "subtask_count": 163,
       "path": "docs/tasks/subtasks/SDA.json"
     },
     {
       "module": "MIG",
       "name": "M1b — Clean repository migration and self-host transition",
       "parent_count": 16,
-      "subtask_count": 85,
+      "subtask_count": 86,
       "path": "docs/tasks/subtasks/MIG.json"
     },
     {
@@ -45,70 +45,70 @@
       "module": "BACK",
       "name": "M3 — Backend shared data, gateway and memory",
       "parent_count": 22,
-      "subtask_count": 129,
+      "subtask_count": 134,
       "path": "docs/tasks/subtasks/BACK.json"
     },
     {
       "module": "AUTO",
       "name": "M4 — Cloudflare always-on automation and observability",
       "parent_count": 13,
-      "subtask_count": 73,
+      "subtask_count": 74,
       "path": "docs/tasks/subtasks/AUTO.json"
     },
     {
       "module": "WIN",
       "name": "M5 — Windows local Ollama inference agent",
       "parent_count": 11,
-      "subtask_count": 62,
+      "subtask_count": 63,
       "path": "docs/tasks/subtasks/WIN.json"
     },
     {
       "module": "GUARD",
       "name": "M6 — Guardian, integrity, recovery and priority",
       "parent_count": 19,
-      "subtask_count": 111,
+      "subtask_count": 114,
       "path": "docs/tasks/subtasks/GUARD.json"
     },
     {
       "module": "RUN",
       "name": "M7 — Runtime personal assistant",
       "parent_count": 18,
-      "subtask_count": 101,
+      "subtask_count": 102,
       "path": "docs/tasks/subtasks/RUN.json"
     },
     {
       "module": "RES",
       "name": "M8 — Research, GitHub and media knowledge",
       "parent_count": 15,
-      "subtask_count": 80,
+      "subtask_count": 81,
       "path": "docs/tasks/subtasks/RES.json"
     },
     {
       "module": "TWS",
       "name": "M9 — Twelve-Winged quests, Aurelia and mobile",
       "parent_count": 20,
-      "subtask_count": 116,
+      "subtask_count": 117,
       "path": "docs/tasks/subtasks/TWS.json"
     },
     {
       "module": "WIC",
       "name": "M10 — World Information Center",
       "parent_count": 14,
-      "subtask_count": 77,
+      "subtask_count": 78,
       "path": "docs/tasks/subtasks/WIC.json"
     },
     {
       "module": "FIN",
       "name": "M11 — Personal CFO and paper trading",
       "parent_count": 16,
-      "subtask_count": 86,
+      "subtask_count": 87,
       "path": "docs/tasks/subtasks/FIN.json"
     },
     {
       "module": "REL",
       "name": "M12 — Cross-module qualification, deployment and v2 release",
       "parent_count": 25,
-      "subtask_count": 127,
+      "subtask_count": 129,
       "path": "docs/tasks/subtasks/REL.json"
     }
   ],
@@ -129,12 +129,28 @@
     "scheduling": "Respect parent dependencies, P0/P1/P2 priority and FIFO among eligible tasks.",
     "completion": "All children, owner gates, independent QC and serial merge must pass before parent completion.",
     "canonical_runtime_state": "Astra One SQLite ledger; these JSON files are immutable planning inputs, not a second live queue.",
-    "queue_import": "Import exactly 247 parents into project_queue; attach child records to parents rather than creating unrelated top-level tasks."
+    "queue_import": "Import exactly 247 parents into project_queue; attach child records to parents rather than creating unrelated top-level tasks.",
+    "security_gate": "Every task packet carries ASEL-1.0 security acceptance. Workers cannot disable scanners, suppress findings or self-approve. Security findings and scan receipts are reviewed independently by QC.",
+    "active_scan_scope": "Only inventoried owner-controlled repositories, registered hosts, staging APIs and Cloudflare resources; bounded, non-destructive and rate-limited."
   },
   "constraints": {
     "github_actions": "Do not trigger remote Actions while monthly quota is exhausted. Use local checks; remote-only acceptance remains deferred, never passed.",
     "codex_quota": "On Codex quota exhaustion, pause without consuming retries and preserve checkpoints. Do not silently substitute models.",
     "docker_qc": "Use local Docker no-network QC where appropriate; it does not prove real Windows/iOS/Cloudflare production behavior.",
-    "existing_repo": "Use admindeveloper4562/A.R.C.H.O.N; do not create a duplicate repository."
+    "existing_repo": "Use admindeveloper4562/A.R.C.H.O.N; do not create a duplicate repository.",
+    "security": "Fail closed on scanner failure or missing/stale required evidence. Critical findings block release; High findings block by default and require a time-limited owner-signed exception with compensating controls.",
+    "active_scanning": "No third-party targets, credential spraying, destructive testing or production DAST without explicit owner authorization."
+  },
+  "updated": "2026-11-15",
+  "security_architecture": "docs/architecture/SECURITY_ARCHITECTURE.md",
+  "security_policy_id": "ASEL-1.0",
+  "security_enrichment": {
+    "parent_tasks_enriched": 247,
+    "parent_ids_preserved": true,
+    "parent_dependencies_changed": false,
+    "focused_security_child_tasks_added": 22,
+    "new_module_added": false,
+    "runtime_sqlite_ledger_modified": false,
+    "notes": "Existing parent IDs, dependencies, statuses and canonical runtime SQLite ledger are preserved. Security child tasks attach to existing parents."
   }
 }

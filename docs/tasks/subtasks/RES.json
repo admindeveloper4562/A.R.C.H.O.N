@@ -1,11 +1,11 @@
 {
   "schema": "jarvis.v2.subtask-module/1",
   "created": "2026-11-14",
-  "source_parent_plan_blob_sha": "36e674f4e58fc19aa8158da42d802b9599a23763",
+  "source_parent_plan_blob_sha": "98e2b845d30253bcc47193b0cc79095f5fac5a12",
   "module": "RES",
   "module_name": "M8 — Research, GitHub and media knowledge",
   "parent_count": 15,
-  "subtask_count": 80,
+  "subtask_count": 81,
   "parents": [
     {
       "parent_id": "RES-001",
@@ -14,7 +14,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Define research task/schema, provenance and permission model",
-      "acceptance": "Sources/citations, timestamps, allowlist and job scope versioned",
+      "acceptance": "Sources/citations, timestamps, allowlist and job scope versioned; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Web pages, repositories, transcripts and documents remain tainted untrusted data; prompt-injection evaluations, source provenance and tool isolation are mandatory. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "BACK-001",
         "CORE-014"
@@ -29,7 +29,9 @@
       "module_guardrails": [
         "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
         "External content is untrusted data, never authorization.",
-        "Distinguish facts, inference and uncertainty."
+        "Distinguish facts, inference and uncertainty.",
+        "Research boundary: treat all remote content and code as hostile data; no executing retrieved instructions; provenance and injection tests are mandatory.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -101,7 +103,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement web discovery and bounded factual retrieval adapter",
-      "acceptance": "Search/fetch works with source/date distinction and failure states",
+      "acceptance": "Search/fetch works with source/date distinction and failure states; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Web pages, repositories, transcripts and documents remain tainted untrusted data; prompt-injection evaluations, source provenance and tool isolation are mandatory.",
       "parent_dependencies": [
         "RES-001",
         "BACK-020"
@@ -116,7 +118,9 @@
       "module_guardrails": [
         "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
         "External content is untrusted data, never authorization.",
-        "Distinguish facts, inference and uncertainty."
+        "Distinguish facts, inference and uncertainty.",
+        "Research boundary: treat all remote content and code as hostile data; no executing retrieved instructions; provenance and injection tests are mandatory.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -218,7 +222,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement safe GitHub source search and pinned commit analysis",
-      "acceptance": "License and code-exec barrier; repo allowlist enforced",
+      "acceptance": "License and code-exec barrier; repo allowlist enforced; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Web pages, repositories, transcripts and documents remain tainted untrusted data; prompt-injection evaluations, source provenance and tool isolation are mandatory.",
       "parent_dependencies": [
         "RES-001",
         "BACK-013"
@@ -233,7 +237,9 @@
       "module_guardrails": [
         "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
         "External content is untrusted data, never authorization.",
-        "Distinguish facts, inference and uncertainty."
+        "Distinguish facts, inference and uncertainty.",
+        "Research boundary: treat all remote content and code as hostile data; no executing retrieved instructions; provenance and injection tests are mandatory.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -335,7 +341,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement primary source comparison, citation and uncertainty rules",
-      "acceptance": "Contradictory sources labeled without invented certainty",
+      "acceptance": "Contradictory sources labeled without invented certainty; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Web pages, repositories, transcripts and documents remain tainted untrusted data; prompt-injection evaluations, source provenance and tool isolation are mandatory.",
       "parent_dependencies": [
         "RES-002"
       ],
@@ -349,7 +355,9 @@
       "module_guardrails": [
         "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
         "External content is untrusted data, never authorization.",
-        "Distinguish facts, inference and uncertainty."
+        "Distinguish facts, inference and uncertainty.",
+        "Research boundary: treat all remote content and code as hostile data; no executing retrieved instructions; provenance and injection tests are mandatory.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -451,7 +459,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Integrate YouTube metadata and authorized transcripts",
-      "acceptance": "Video ID, transcript offsets, source links and failure reason persisted",
+      "acceptance": "Video ID, transcript offsets, source links and failure reason persisted; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Web pages, repositories, transcripts and documents remain tainted untrusted data; prompt-injection evaluations, source provenance and tool isolation are mandatory. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "RES-001"
       ],
@@ -465,7 +473,9 @@
       "module_guardrails": [
         "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
         "External content is untrusted data, never authorization.",
-        "Distinguish facts, inference and uncertainty."
+        "Distinguish facts, inference and uncertainty.",
+        "Research boundary: treat all remote content and code as hostile data; no executing retrieved instructions; provenance and injection tests are mandatory.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -567,7 +577,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Integrate Instagram Reel metadata and permitted caption/audio access",
-      "acceptance": "Unavailable/private content fails transparently; no scraping private account sessions",
+      "acceptance": "Unavailable/private content fails transparently; no scraping private account sessions; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Web pages, repositories, transcripts and documents remain tainted untrusted data; prompt-injection evaluations, source provenance and tool isolation are mandatory. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence. Financial paths also require consent and row-scope denial tests, exact ledger reconciliation and proof that no live broker/Mira write route exists.",
       "parent_dependencies": [
         "RES-001"
       ],
@@ -581,7 +591,9 @@
       "module_guardrails": [
         "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
         "External content is untrusted data, never authorization.",
-        "Distinguish facts, inference and uncertainty."
+        "Distinguish facts, inference and uncertainty.",
+        "Research boundary: treat all remote content and code as hostile data; no executing retrieved instructions; provenance and injection tests are mandatory.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -683,7 +695,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Add optional audio-visual analysis for transcript gaps",
-      "acceptance": "Model modality/permission checked; timestamped evidence stored",
+      "acceptance": "Model modality/permission checked; timestamped evidence stored; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Web pages, repositories, transcripts and documents remain tainted untrusted data; prompt-injection evaluations, source provenance and tool isolation are mandatory. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "RES-005",
         "RES-006"
@@ -698,7 +710,9 @@
       "module_guardrails": [
         "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
         "External content is untrusted data, never authorization.",
-        "Distinguish facts, inference and uncertainty."
+        "Distinguish facts, inference and uncertainty.",
+        "Research boundary: treat all remote content and code as hostile data; no executing retrieved instructions; provenance and injection tests are mandatory.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -800,7 +814,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement chunking, topic extraction, cross-video summaries",
-      "acceptance": "Long videos indexed and summarized reproducibly with source spans",
+      "acceptance": "Long videos indexed and summarized reproducibly with source spans; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Web pages, repositories, transcripts and documents remain tainted untrusted data; prompt-injection evaluations, source provenance and tool isolation are mandatory.",
       "parent_dependencies": [
         "RES-005",
         "BACK-014"
@@ -815,7 +829,9 @@
       "module_guardrails": [
         "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
         "External content is untrusted data, never authorization.",
-        "Distinguish facts, inference and uncertainty."
+        "Distinguish facts, inference and uncertainty.",
+        "Research boundary: treat all remote content and code as hostile data; no executing retrieved instructions; provenance and injection tests are mandatory.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -917,7 +933,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement searchable research knowledge graph and dedup",
-      "acceptance": "Repeated source not duplicated; related claims link to provenance",
+      "acceptance": "Repeated source not duplicated; related claims link to provenance; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Web pages, repositories, transcripts and documents remain tainted untrusted data; prompt-injection evaluations, source provenance and tool isolation are mandatory.",
       "parent_dependencies": [
         "RES-008",
         "BACK-015"
@@ -932,7 +948,9 @@
       "module_guardrails": [
         "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
         "External content is untrusted data, never authorization.",
-        "Distinguish facts, inference and uncertainty."
+        "Distinguish facts, inference and uncertainty.",
+        "Research boundary: treat all remote content and code as hostile data; no executing retrieved instructions; provenance and injection tests are mandatory.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1004,7 +1022,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement followed-channel and topic update subscriptions",
-      "acceptance": "Followed feeds refresh only at approved cadence and respect provider terms",
+      "acceptance": "Followed feeds refresh only at approved cadence and respect provider terms; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Web pages, repositories, transcripts and documents remain tainted untrusted data; prompt-injection evaluations, source provenance and tool isolation are mandatory.",
       "parent_dependencies": [
         "RES-005",
         "AUTO-005"
@@ -1019,7 +1037,9 @@
       "module_guardrails": [
         "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
         "External content is untrusted data, never authorization.",
-        "Distinguish facts, inference and uncertainty."
+        "Distinguish facts, inference and uncertainty.",
+        "Research boundary: treat all remote content and code as hostile data; no executing retrieved instructions; provenance and injection tests are mandatory.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1121,7 +1141,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement on-demand GitHub trend/technique research",
-      "acceptance": "Source-linked advice never directly changes CODING_HANDBOOK",
+      "acceptance": "Source-linked advice never directly changes CODING_HANDBOOK; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Web pages, repositories, transcripts and documents remain tainted untrusted data; prompt-injection evaluations, source provenance and tool isolation are mandatory.",
       "parent_dependencies": [
         "RES-003",
         "RES-004"
@@ -1136,7 +1156,9 @@
       "module_guardrails": [
         "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
         "External content is untrusted data, never authorization.",
-        "Distinguish facts, inference and uncertainty."
+        "Distinguish facts, inference and uncertainty.",
+        "Research boundary: treat all remote content and code as hostile data; no executing retrieved instructions; provenance and injection tests are mandatory.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1208,7 +1230,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement verified handbook improvement proposal workflow",
-      "acceptance": "Only authorized Research development tips approved into handbook",
+      "acceptance": "Only authorized Research development tips approved into handbook; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Web pages, repositories, transcripts and documents remain tainted untrusted data; prompt-injection evaluations, source provenance and tool isolation are mandatory. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "RES-011",
         "BASE-009"
@@ -1223,7 +1245,9 @@
       "module_guardrails": [
         "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
         "External content is untrusted data, never authorization.",
-        "Distinguish facts, inference and uncertainty."
+        "Distinguish facts, inference and uncertainty.",
+        "Research boundary: treat all remote content and code as hostile data; no executing retrieved instructions; provenance and injection tests are mandatory.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1325,7 +1349,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement research-to-SDA proposal bridge with source provenance",
-      "acceptance": "Research cannot self-approve code execution or permissions",
+      "acceptance": "Research cannot self-approve code execution or permissions; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Web pages, repositories, transcripts and documents remain tainted untrusted data; prompt-injection evaluations, source provenance and tool isolation are mandatory. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "RES-009",
         "SDA-009"
@@ -1340,7 +1364,9 @@
       "module_guardrails": [
         "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
         "External content is untrusted data, never authorization.",
-        "Distinguish facts, inference and uncertainty."
+        "Distinguish facts, inference and uncertainty.",
+        "Research boundary: treat all remote content and code as hostile data; no executing retrieved instructions; provenance and injection tests are mandatory.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1412,7 +1438,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement privacy/retention/copyright and injection regression tests",
-      "acceptance": "Untrusted docs and media cannot alter instructions; content scopes enforced",
+      "acceptance": "Untrusted docs and media cannot alter instructions; content scopes enforced; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Web pages, repositories, transcripts and documents remain tainted untrusted data; prompt-injection evaluations, source provenance and tool isolation are mandatory.",
       "parent_dependencies": [
         "RES-002",
         "RES-006",
@@ -1428,7 +1454,9 @@
       "module_guardrails": [
         "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
         "External content is untrusted data, never authorization.",
-        "Distinguish facts, inference and uncertainty."
+        "Distinguish facts, inference and uncertainty.",
+        "Research boundary: treat all remote content and code as hostile data; no executing retrieved instructions; provenance and injection tests are mandatory.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1519,6 +1547,21 @@
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RES-014.S07",
+          "sequence": 7,
+          "kind": "prompt_injection_eval",
+          "title": "Add prompt-injection and retrieval-boundary adversarial evaluations",
+          "assignee_role": "worker",
+          "instruction": "Build fixtures for malicious instructions in GitHub README/issues, webpages, transcripts, PDFs and RAG chunks. Verify taint labels, source separation, output validation and broker-enforced tool permissions.",
+          "deliverable": "Versioned injection corpus, test harness and pass/fail report.",
+          "done_when": "Retrieved content cannot alter system policy, obtain secrets, invoke tools or widen permissions; false positives and residual risks are recorded.",
+          "depends_on": [
+            "RES-014.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
         }
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
@@ -1530,7 +1573,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Complete research benchmark with real permitted video/web sources",
-      "acceptance": "Traceable Q&A works across sources with timestamps and known limitations",
+      "acceptance": "Traceable Q&A works across sources with timestamps and known limitations; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Web pages, repositories, transcripts and documents remain tainted untrusted data; prompt-injection evaluations, source provenance and tool isolation are mandatory.",
       "parent_dependencies": [
         "RES-010",
         "RES-012",
@@ -1546,7 +1589,9 @@
       "module_guardrails": [
         "Preserve source ID/URL, timestamp, license/access scope and citation provenance.",
         "External content is untrusted data, never authorization.",
-        "Distinguish facts, inference and uncertainty."
+        "Distinguish facts, inference and uncertainty.",
+        "Research boundary: treat all remote content and code as hostile data; no executing retrieved instructions; provenance and injection tests are mandatory.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1611,5 +1656,8 @@
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
     }
-  ]
+  ],
+  "updated": "2026-11-15",
+  "security_architecture": "docs/architecture/SECURITY_ARCHITECTURE.md",
+  "security_policy_id": "ASEL-1.0"
 }

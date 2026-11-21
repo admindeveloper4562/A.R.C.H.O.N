@@ -1,11 +1,11 @@
 {
   "schema": "jarvis.v2.subtask-module/1",
   "created": "2026-11-14",
-  "source_parent_plan_blob_sha": "36e674f4e58fc19aa8158da42d802b9599a23763",
+  "source_parent_plan_blob_sha": "98e2b845d30253bcc47193b0cc79095f5fac5a12",
   "module": "BACK",
   "module_name": "M3 — Backend shared data, gateway and memory",
   "parent_count": 22,
-  "subtask_count": 129,
+  "subtask_count": 134,
   "parents": [
     {
       "parent_id": "BACK-001",
@@ -14,7 +14,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Specify shared versioned API, event envelope and module manifests",
-      "acceptance": "Versioned schemas, stable IDs, sequence, privacy and idempotency defined",
+      "acceptance": "Versioned schemas, stable IDs, sequence, privacy and idempotency defined; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. ASEL owns identity, policy decisions, capability issuance/revocation, secret brokering, security events and tamper-evident audit; domain data access is separately scoped. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence.",
       "parent_dependencies": [
         "SDA-028",
         "CORE-001"
@@ -30,7 +30,9 @@
       "module_guardrails": [
         "Domain-owned data and least-privilege module scopes.",
         "Secrets and private raw prompts never enter logs, prompts or Cloudflare telemetry.",
-        "Provider handoff preserves task IDs, permissions and tool-effect receipts."
+        "Provider handoff preserves task IDs, permissions and tool-effect receipts.",
+        "ASEL owner: implement deterministic policy engine, capability broker, identity/device trust, secret broker, scanner orchestration, security event pipeline and tamper-evident audit under ATLAS.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -117,7 +119,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement canonical storage migrations and data ownership boundaries",
-      "acceptance": "Each module owns tables; migrations rollback or fail closed",
+      "acceptance": "Each module owns tables; migrations rollback or fail closed; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. ASEL owns identity, policy decisions, capability issuance/revocation, secret brokering, security events and tamper-evident audit; domain data access is separately scoped. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "BACK-001"
       ],
@@ -132,7 +134,9 @@
       "module_guardrails": [
         "Domain-owned data and least-privilege module scopes.",
         "Secrets and private raw prompts never enter logs, prompts or Cloudflare telemetry.",
-        "Provider handoff preserves task IDs, permissions and tool-effect receipts."
+        "Provider handoff preserves task IDs, permissions and tool-effect receipts.",
+        "ASEL owner: implement deterministic policy engine, capability broker, identity/device trust, secret broker, scanner orchestration, security event pipeline and tamper-evident audit under ATLAS.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -234,7 +238,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement event bus with transactional outbox and dedup receipts",
-      "acceptance": "At-least-once delivery without duplicate effects",
+      "acceptance": "At-least-once delivery without duplicate effects; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. ASEL owns identity, policy decisions, capability issuance/revocation, secret brokering, security events and tamper-evident audit; domain data access is separately scoped. Financial paths also require consent and row-scope denial tests, exact ledger reconciliation and proof that no live broker/Mira write route exists.",
       "parent_dependencies": [
         "BACK-002",
         "CORE-005"
@@ -250,7 +254,9 @@
       "module_guardrails": [
         "Domain-owned data and least-privilege module scopes.",
         "Secrets and private raw prompts never enter logs, prompts or Cloudflare telemetry.",
-        "Provider handoff preserves task IDs, permissions and tool-effect receipts."
+        "Provider handoff preserves task IDs, permissions and tool-effect receipts.",
+        "ASEL owner: implement deterministic policy engine, capability broker, identity/device trust, secret broker, scanner orchestration, security event pipeline and tamper-evident audit under ATLAS.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -352,7 +358,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement central auth identity, scoped capability grants and approvals",
-      "acceptance": "Least privilege enforced on server; denial tests cover all modules",
+      "acceptance": "Least privilege enforced on server; denial tests cover all modules; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. ASEL owns identity, policy decisions, capability issuance/revocation, secret brokering, security events and tamper-evident audit; domain data access is separately scoped. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "BACK-001"
       ],
@@ -367,7 +373,9 @@
       "module_guardrails": [
         "Domain-owned data and least-privilege module scopes.",
         "Secrets and private raw prompts never enter logs, prompts or Cloudflare telemetry.",
-        "Provider handoff preserves task IDs, permissions and tool-effect receipts."
+        "Provider handoff preserves task IDs, permissions and tool-effect receipts.",
+        "ASEL owner: implement deterministic policy engine, capability broker, identity/device trust, secret broker, scanner orchestration, security event pipeline and tamper-evident audit under ATLAS.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -458,6 +466,21 @@
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BACK-004.S07",
+          "sequence": 7,
+          "kind": "asel_policy",
+          "title": "Implement ASEL deterministic policy decision point and capability broker",
+          "assignee_role": "worker",
+          "instruction": "Implement policy-as-code outside all LLMs. Issue short-lived, single-use capabilities bound to subject, device, task, audience, resource, action, scope, expiry and nonce; deny by default; support revocation and owner-bound approvals.",
+          "deliverable": "Policy engine, capability token contract, authorization matrix and denial/replay receipts.",
+          "done_when": "Every module's tool/data access is checked server-side; expired/replayed/escalated capabilities are denied; models cannot mint or widen capabilities.",
+          "depends_on": [
+            "BACK-004.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
         }
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
@@ -469,7 +492,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement secure secret retrieval and configuration boundaries",
-      "acceptance": "Secrets never enter prompts, tracked files or Cloudflare logs",
+      "acceptance": "Secrets never enter prompts, tracked files or Cloudflare logs; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. ASEL owns identity, policy decisions, capability issuance/revocation, secret brokering, security events and tamper-evident audit; domain data access is separately scoped. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence. Host/file operations also require path and symlink/TOCTOU tests, bounded execution, per-file owner approval for deletion and an immutable action receipt.",
       "parent_dependencies": [
         "BACK-004"
       ],
@@ -484,7 +507,9 @@
       "module_guardrails": [
         "Domain-owned data and least-privilege module scopes.",
         "Secrets and private raw prompts never enter logs, prompts or Cloudflare telemetry.",
-        "Provider handoff preserves task IDs, permissions and tool-effect receipts."
+        "Provider handoff preserves task IDs, permissions and tool-effect receipts.",
+        "ASEL owner: implement deterministic policy engine, capability broker, identity/device trust, secret broker, scanner orchestration, security event pipeline and tamper-evident audit under ATLAS.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -575,6 +600,21 @@
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BACK-005.S07",
+          "sequence": 7,
+          "kind": "secret_broker",
+          "title": "Implement isolated secrets broker, rotation and leak response",
+          "assignee_role": "worker",
+          "instruction": "Use OS-protected or dedicated secret storage; separate credentials by module/service; expose secrets only to authorized executors, never model context, RAG, logs or Cloudflare telemetry. Add rotation, revocation and leak containment.",
+          "deliverable": "Secret lifecycle contract, redaction fixtures, rotation/revocation drill and audit evidence.",
+          "done_when": "Compromised worker cannot read unrelated secrets; canary secrets never appear in prompts/logs/artifacts; revoked credentials stop working.",
+          "depends_on": [
+            "BACK-005.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
         }
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
@@ -586,7 +626,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement model/provider registry and capability negotiation",
-      "acceptance": "Context, tool support, quota, privacy and locality tested before dispatch",
+      "acceptance": "Context, tool support, quota, privacy and locality tested before dispatch; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. ASEL owns identity, policy decisions, capability issuance/revocation, secret brokering, security events and tamper-evident audit; domain data access is separately scoped. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "BACK-001",
         "BASE-012"
@@ -602,7 +642,9 @@
       "module_guardrails": [
         "Domain-owned data and least-privilege module scopes.",
         "Secrets and private raw prompts never enter logs, prompts or Cloudflare telemetry.",
-        "Provider handoff preserves task IDs, permissions and tool-effect receipts."
+        "Provider handoff preserves task IDs, permissions and tool-effect receipts.",
+        "ASEL owner: implement deterministic policy engine, capability broker, identity/device trust, secret broker, scanner orchestration, security event pipeline and tamper-evident audit under ATLAS.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -704,7 +746,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement model-neutral conversation and turn store",
-      "acceptance": "Conversation id/sequence/provider/tool effects persisted durably",
+      "acceptance": "Conversation id/sequence/provider/tool effects persisted durably; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. ASEL owns identity, policy decisions, capability issuance/revocation, secret brokering, security events and tamper-evident audit; domain data access is separately scoped.",
       "parent_dependencies": [
         "BACK-002"
       ],
@@ -719,7 +761,9 @@
       "module_guardrails": [
         "Domain-owned data and least-privilege module scopes.",
         "Secrets and private raw prompts never enter logs, prompts or Cloudflare telemetry.",
-        "Provider handoff preserves task IDs, permissions and tool-effect receipts."
+        "Provider handoff preserves task IDs, permissions and tool-effect receipts.",
+        "ASEL owner: implement deterministic policy engine, capability broker, identity/device trust, secret broker, scanner orchestration, security event pipeline and tamper-evident audit under ATLAS.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -821,7 +865,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement provider-specific Responses/chat protocol adapters",
-      "acceptance": "Typed adapters verified with real compatible provider smoke",
+      "acceptance": "Typed adapters verified with real compatible provider smoke; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. ASEL owns identity, policy decisions, capability issuance/revocation, secret brokering, security events and tamper-evident audit; domain data access is separately scoped.",
       "parent_dependencies": [
         "BACK-006"
       ],
@@ -836,7 +880,9 @@
       "module_guardrails": [
         "Domain-owned data and least-privilege module scopes.",
         "Secrets and private raw prompts never enter logs, prompts or Cloudflare telemetry.",
-        "Provider handoff preserves task IDs, permissions and tool-effect receipts."
+        "Provider handoff preserves task IDs, permissions and tool-effect receipts.",
+        "ASEL owner: implement deterministic policy engine, capability broker, identity/device trust, secret broker, scanner orchestration, security event pipeline and tamper-evident audit under ATLAS.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -938,7 +984,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement token/context packer preserving safety constraints",
-      "acceptance": "Exact requirements, recent receipts and policy never lost in compression",
+      "acceptance": "Exact requirements, recent receipts and policy never lost in compression; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. ASEL owns identity, policy decisions, capability issuance/revocation, secret brokering, security events and tamper-evident audit; domain data access is separately scoped. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "BACK-007",
         "BACK-006"
@@ -954,7 +1000,9 @@
       "module_guardrails": [
         "Domain-owned data and least-privilege module scopes.",
         "Secrets and private raw prompts never enter logs, prompts or Cloudflare telemetry.",
-        "Provider handoff preserves task IDs, permissions and tool-effect receipts."
+        "Provider handoff preserves task IDs, permissions and tool-effect receipts.",
+        "ASEL owner: implement deterministic policy engine, capability broker, identity/device trust, secret broker, scanner orchestration, security event pipeline and tamper-evident audit under ATLAS.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1056,7 +1104,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement sticky routing, circuit breakers and usage budgets",
-      "acceptance": "Quota/outage triggers permitted pause or handoff, no covert paid fallback",
+      "acceptance": "Quota/outage triggers permitted pause or handoff, no covert paid fallback; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. ASEL owns identity, policy decisions, capability issuance/revocation, secret brokering, security events and tamper-evident audit; domain data access is separately scoped.",
       "parent_dependencies": [
         "BACK-008"
       ],
@@ -1071,7 +1119,9 @@
       "module_guardrails": [
         "Domain-owned data and least-privilege module scopes.",
         "Secrets and private raw prompts never enter logs, prompts or Cloudflare telemetry.",
-        "Provider handoff preserves task IDs, permissions and tool-effect receipts."
+        "Provider handoff preserves task IDs, permissions and tool-effect receipts.",
+        "ASEL owner: implement deterministic policy engine, capability broker, identity/device trust, secret broker, scanner orchestration, security event pipeline and tamper-evident audit under ATLAS.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1173,7 +1223,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement atomic cross-provider context handoff protocol",
-      "acceptance": "Two-provider interruption tests preserve task ID, permission and tool receipts",
+      "acceptance": "Two-provider interruption tests preserve task ID, permission and tool receipts; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. ASEL owns identity, policy decisions, capability issuance/revocation, secret brokering, security events and tamper-evident audit; domain data access is separately scoped. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "BACK-009",
         "BACK-010"
@@ -1189,7 +1239,9 @@
       "module_guardrails": [
         "Domain-owned data and least-privilege module scopes.",
         "Secrets and private raw prompts never enter logs, prompts or Cloudflare telemetry.",
-        "Provider handoff preserves task IDs, permissions and tool-effect receipts."
+        "Provider handoff preserves task IDs, permissions and tool-effect receipts.",
+        "ASEL owner: implement deterministic policy engine, capability broker, identity/device trust, secret broker, scanner orchestration, security event pipeline and tamper-evident audit under ATLAS.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1291,7 +1343,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement tool-effect journal with exactly-once reconciliation rules",
-      "acceptance": "No repeated email, file mutation or Git action after crash",
+      "acceptance": "No repeated email, file mutation or Git action after crash; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. ASEL owns identity, policy decisions, capability issuance/revocation, secret brokering, security events and tamper-evident audit; domain data access is separately scoped. Host/file operations also require path and symlink/TOCTOU tests, bounded execution, per-file owner approval for deletion and an immutable action receipt.",
       "parent_dependencies": [
         "BACK-003",
         "BACK-007"
@@ -1307,7 +1359,9 @@
       "module_guardrails": [
         "Domain-owned data and least-privilege module scopes.",
         "Secrets and private raw prompts never enter logs, prompts or Cloudflare telemetry.",
-        "Provider handoff preserves task IDs, permissions and tool-effect receipts."
+        "Provider handoff preserves task IDs, permissions and tool-effect receipts.",
+        "ASEL owner: implement deterministic policy engine, capability broker, identity/device trust, secret broker, scanner orchestration, security event pipeline and tamper-evident audit under ATLAS.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1409,7 +1463,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement repo code AST/FTS5 index using recorded blob SHAs",
-      "acceptance": "Symbols/imports/tests searchable with provenance and secret exclusion",
+      "acceptance": "Symbols/imports/tests searchable with provenance and secret exclusion; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. ASEL owns identity, policy decisions, capability issuance/revocation, secret brokering, security events and tamper-evident audit; domain data access is separately scoped. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "BASE-015",
         "BACK-002"
@@ -1425,7 +1479,9 @@
       "module_guardrails": [
         "Domain-owned data and least-privilege module scopes.",
         "Secrets and private raw prompts never enter logs, prompts or Cloudflare telemetry.",
-        "Provider handoff preserves task IDs, permissions and tool-effect receipts."
+        "Provider handoff preserves task IDs, permissions and tool-effect receipts.",
+        "ASEL owner: implement deterministic policy engine, capability broker, identity/device trust, secret broker, scanner orchestration, security event pipeline and tamper-evident audit under ATLAS.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1527,7 +1583,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement source-grounded document/text retrieval and RAG",
-      "acceptance": "Search results include access scope, source ID, timestamp and citations",
+      "acceptance": "Search results include access scope, source ID, timestamp and citations; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. ASEL owns identity, policy decisions, capability issuance/revocation, secret brokering, security events and tamper-evident audit; domain data access is separately scoped.",
       "parent_dependencies": [
         "BACK-013",
         "BACK-007"
@@ -1543,7 +1599,9 @@
       "module_guardrails": [
         "Domain-owned data and least-privilege module scopes.",
         "Secrets and private raw prompts never enter logs, prompts or Cloudflare telemetry.",
-        "Provider handoff preserves task IDs, permissions and tool-effect receipts."
+        "Provider handoff preserves task IDs, permissions and tool-effect receipts.",
+        "ASEL owner: implement deterministic policy engine, capability broker, identity/device trust, secret broker, scanner orchestration, security event pipeline and tamper-evident audit under ATLAS.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1645,7 +1703,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement local embeddings optional reranker with hardware budget",
-      "acceptance": "Memory/time bounded and keyword fallback remains correct",
+      "acceptance": "Memory/time bounded and keyword fallback remains correct; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. ASEL owns identity, policy decisions, capability issuance/revocation, secret brokering, security events and tamper-evident audit; domain data access is separately scoped.",
       "parent_dependencies": [
         "BACK-014"
       ],
@@ -1660,7 +1718,9 @@
       "module_guardrails": [
         "Domain-owned data and least-privilege module scopes.",
         "Secrets and private raw prompts never enter logs, prompts or Cloudflare telemetry.",
-        "Provider handoff preserves task IDs, permissions and tool-effect receipts."
+        "Provider handoff preserves task IDs, permissions and tool-effect receipts.",
+        "ASEL owner: implement deterministic policy engine, capability broker, identity/device trust, secret broker, scanner orchestration, security event pipeline and tamper-evident audit under ATLAS.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1762,7 +1822,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement local prompt maker with template versioning and audit",
-      "acceptance": "Prompts are reproducible without storing sensitive raw sources",
+      "acceptance": "Prompts are reproducible without storing sensitive raw sources; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. ASEL owns identity, policy decisions, capability issuance/revocation, secret brokering, security events and tamper-evident audit; domain data access is separately scoped.",
       "parent_dependencies": [
         "BACK-009"
       ],
@@ -1777,7 +1837,9 @@
       "module_guardrails": [
         "Domain-owned data and least-privilege module scopes.",
         "Secrets and private raw prompts never enter logs, prompts or Cloudflare telemetry.",
-        "Provider handoff preserves task IDs, permissions and tool-effect receipts."
+        "Provider handoff preserves task IDs, permissions and tool-effect receipts.",
+        "ASEL owner: implement deterministic policy engine, capability broker, identity/device trust, secret broker, scanner orchestration, security event pipeline and tamper-evident audit under ATLAS.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1849,7 +1911,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement scheduler and time/zone-safe durable reminders",
-      "acceptance": "Reboot and timezone/DST tests preserve reminder semantics",
+      "acceptance": "Reboot and timezone/DST tests preserve reminder semantics; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. ASEL owns identity, policy decisions, capability issuance/revocation, secret brokering, security events and tamper-evident audit; domain data access is separately scoped.",
       "parent_dependencies": [
         "BACK-003"
       ],
@@ -1864,7 +1926,9 @@
       "module_guardrails": [
         "Domain-owned data and least-privilege module scopes.",
         "Secrets and private raw prompts never enter logs, prompts or Cloudflare telemetry.",
-        "Provider handoff preserves task IDs, permissions and tool-effect receipts."
+        "Provider handoff preserves task IDs, permissions and tool-effect receipts.",
+        "ASEL owner: implement deterministic policy engine, capability broker, identity/device trust, secret broker, scanner orchestration, security event pipeline and tamper-evident audit under ATLAS.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1966,7 +2030,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement encrypted/safe backups, WAL checks and schema restore",
-      "acceptance": "Restore clean DB and verify audit continuity and secrets boundary",
+      "acceptance": "Restore clean DB and verify audit continuity and secrets boundary; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. ASEL owns identity, policy decisions, capability issuance/revocation, secret brokering, security events and tamper-evident audit; domain data access is separately scoped. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "BACK-002"
       ],
@@ -1981,7 +2045,9 @@
       "module_guardrails": [
         "Domain-owned data and least-privilege module scopes.",
         "Secrets and private raw prompts never enter logs, prompts or Cloudflare telemetry.",
-        "Provider handoff preserves task IDs, permissions and tool-effect receipts."
+        "Provider handoff preserves task IDs, permissions and tool-effect receipts.",
+        "ASEL owner: implement deterministic policy engine, capability broker, identity/device trust, secret broker, scanner orchestration, security event pipeline and tamper-evident audit under ATLAS.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2098,7 +2164,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement service inventory, status, metrics and health API",
-      "acceptance": "Each component reports honest readiness/liveness, version and resource use",
+      "acceptance": "Each component reports honest readiness/liveness, version and resource use; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. ASEL owns identity, policy decisions, capability issuance/revocation, secret brokering, security events and tamper-evident audit; domain data access is separately scoped. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence.",
       "parent_dependencies": [
         "BACK-001"
       ],
@@ -2113,7 +2179,9 @@
       "module_guardrails": [
         "Domain-owned data and least-privilege module scopes.",
         "Secrets and private raw prompts never enter logs, prompts or Cloudflare telemetry.",
-        "Provider handoff preserves task IDs, permissions and tool-effect receipts."
+        "Provider handoff preserves task IDs, permissions and tool-effect receipts.",
+        "ASEL owner: implement deterministic policy engine, capability broker, identity/device trust, secret broker, scanner orchestration, security event pipeline and tamper-evident audit under ATLAS.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2174,6 +2242,21 @@
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BACK-019.S05",
+          "sequence": 5,
+          "kind": "runtime_sensor",
+          "title": "Implement runtime security telemetry and health signals",
+          "assignee_role": "worker",
+          "instruction": "Define minimal process, file-integrity, network-egress, authentication, privilege and configuration-drift events on registered hosts/services. Correlate to task/device/module and emit redacted signed events to ASEL.",
+          "deliverable": "Event schema, sensor coverage matrix, alert thresholds and sample tamper-evident events.",
+          "done_when": "Unnecessary personal content is not collected; tampered/missing telemetry is visible; no AI-only enforcement.",
+          "depends_on": [
+            "BACK-019.S04"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
         }
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
@@ -2185,7 +2268,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement permission-scoped connector broker and revocation",
-      "acceptance": "Google/GitHub/Mira/Cloudflare connectors independently revocable",
+      "acceptance": "Google/GitHub/Mira/Cloudflare connectors independently revocable; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. ASEL owns identity, policy decisions, capability issuance/revocation, secret brokering, security events and tamper-evident audit; domain data access is separately scoped. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence. Financial paths also require consent and row-scope denial tests, exact ledger reconciliation and proof that no live broker/Mira write route exists.",
       "parent_dependencies": [
         "BACK-004",
         "BACK-005"
@@ -2201,7 +2284,9 @@
       "module_guardrails": [
         "Domain-owned data and least-privilege module scopes.",
         "Secrets and private raw prompts never enter logs, prompts or Cloudflare telemetry.",
-        "Provider handoff preserves task IDs, permissions and tool-effect receipts."
+        "Provider handoff preserves task IDs, permissions and tool-effect receipts.",
+        "ASEL owner: implement deterministic policy engine, capability broker, identity/device trust, secret broker, scanner orchestration, security event pipeline and tamper-evident audit under ATLAS.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2292,6 +2377,21 @@
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BACK-020.S07",
+          "sequence": 7,
+          "kind": "connector_defence",
+          "title": "Harden connector scopes, token revocation and anomaly response",
+          "assignee_role": "worker",
+          "instruction": "Require per-connector scopes, short-lived credentials, separate identities, explicit write approvals, rate limits and immediate revocation. Detect unusual access and prevent cross-connector credential reuse.",
+          "deliverable": "Connector scope matrix, revocation drill and anomalous-use test report.",
+          "done_when": "Revoking one connector invalidates its capabilities without affecting unrelated connectors; unauthorized scope expansion is denied and audited.",
+          "depends_on": [
+            "BACK-020.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
         }
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
@@ -2303,7 +2403,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Implement Windows local-agent interface and capability leases",
-      "acceptance": "Node identity, heartbeat, routing and bounded job schema tested",
+      "acceptance": "Node identity, heartbeat, routing and bounded job schema tested; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. ASEL owns identity, policy decisions, capability issuance/revocation, secret brokering, security events and tamper-evident audit; domain data access is separately scoped. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "BACK-003",
         "BACK-004",
@@ -2320,7 +2420,9 @@
       "module_guardrails": [
         "Domain-owned data and least-privilege module scopes.",
         "Secrets and private raw prompts never enter logs, prompts or Cloudflare telemetry.",
-        "Provider handoff preserves task IDs, permissions and tool-effect receipts."
+        "Provider handoff preserves task IDs, permissions and tool-effect receipts.",
+        "ASEL owner: implement deterministic policy engine, capability broker, identity/device trust, secret broker, scanner orchestration, security event pipeline and tamper-evident audit under ATLAS.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2422,7 +2524,7 @@
       "priority": "P1",
       "status": "NOT_STARTED",
       "title": "Run Backend security/performance/privacy and backup acceptance suite",
-      "acceptance": "No sensitive cross-scope leak; failover and recovery proof stored",
+      "acceptance": "No sensitive cross-scope leak; failover and recovery proof stored; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. ASEL owns identity, policy decisions, capability issuance/revocation, secret brokering, security events and tamper-evident audit; domain data access is separately scoped. Recovery paths also require fencing, signed known-good artifacts, token revocation, preserved forensic evidence and independent rollback authorization.",
       "parent_dependencies": [
         "BACK-011",
         "BACK-012",
@@ -2441,7 +2543,9 @@
       "module_guardrails": [
         "Domain-owned data and least-privilege module scopes.",
         "Secrets and private raw prompts never enter logs, prompts or Cloudflare telemetry.",
-        "Provider handoff preserves task IDs, permissions and tool-effect receipts."
+        "Provider handoff preserves task IDs, permissions and tool-effect receipts.",
+        "ASEL owner: implement deterministic policy engine, capability broker, identity/device trust, secret broker, scanner orchestration, security event pipeline and tamper-evident audit under ATLAS.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2547,9 +2651,27 @@
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
+        },
+        {
+          "id": "BACK-022.S08",
+          "sequence": 8,
+          "kind": "scanner_orchestrator",
+          "title": "Implement ASEL active security scanner orchestration and security dashboard",
+          "assignee_role": "worker",
+          "instruction": "Orchestrate allowlisted non-destructive scans across source, dependencies, secrets, IaC, containers, SBOM, staging APIs and registered hosts. Schedule PR, nightly, pre-release and incident scans; deduplicate findings and bind results to SHA/asset/version.",
+          "deliverable": "Scanner adapter interface, schedule, severity policy, finding store, dashboard and evidence receipts.",
+          "done_when": "Only authorized assets are scanned; scan failure is visible and fails required gates; no secret values in findings; Critical/High findings block promotion.",
+          "depends_on": [
+            "BACK-022.S07"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
         }
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
     }
-  ]
+  ],
+  "updated": "2026-11-15",
+  "security_architecture": "docs/architecture/SECURITY_ARCHITECTURE.md",
+  "security_policy_id": "ASEL-1.0"
 }

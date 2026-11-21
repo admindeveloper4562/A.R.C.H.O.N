@@ -1,11 +1,11 @@
 {
   "schema": "jarvis.v2.subtask-module/1",
   "created": "2026-11-14",
-  "source_parent_plan_blob_sha": "36e674f4e58fc19aa8158da42d802b9599a23763",
+  "source_parent_plan_blob_sha": "98e2b845d30253bcc47193b0cc79095f5fac5a12",
   "module": "RUN",
   "module_name": "M7 — Runtime personal assistant",
   "parent_count": 18,
-  "subtask_count": 101,
+  "subtask_count": 102,
   "parents": [
     {
       "parent_id": "RUN-001",
@@ -14,7 +14,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Audit legacy Runtime routes and preserve tested local behavior",
-      "acceptance": "Existing server features mapped to new contracts; no dead demo routes presented live",
+      "acceptance": "Existing server features mapped to new contracts; no dead demo routes presented live; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Browser/desktop automation uses origin/path allowlists, safe URL handling, CSRF/XSS/SSRF controls and explicit approval for consequential side effects.",
       "parent_dependencies": [
         "BASE-007",
         "SDA-028"
@@ -31,7 +31,9 @@
       "module_guardrails": [
         "Observe -> propose -> authorize -> execute -> verify.",
         "Deletion, external messages, publishing, purchases and privileged actions require approval.",
-        "Browser sessions and credentials remain isolated."
+        "Browser sessions and credentials remain isolated.",
+        "Runtime boundary: isolate browser profiles and user sessions; validate URLs/redirects/downloads; require approval for external side effects.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -103,7 +105,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement Runtime service/API on shared Backend and Core dispatcher",
-      "acceptance": "Authenticated requests, task handoff, event stream and scopes tested",
+      "acceptance": "Authenticated requests, task handoff, event stream and scopes tested; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Browser/desktop automation uses origin/path allowlists, safe URL handling, CSRF/XSS/SSRF controls and explicit approval for consequential side effects. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence.",
       "parent_dependencies": [
         "RUN-001",
         "CORE-014",
@@ -121,7 +123,9 @@
       "module_guardrails": [
         "Observe -> propose -> authorize -> execute -> verify.",
         "Deletion, external messages, publishing, purchases and privileged actions require approval.",
-        "Browser sessions and credentials remain isolated."
+        "Browser sessions and credentials remain isolated.",
+        "Runtime boundary: isolate browser profiles and user sessions; validate URLs/redirects/downloads; require approval for external side effects.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -223,7 +227,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Migrate secure owner sessions, CSRF, Host/Origin and web hardening",
-      "acceptance": "Cross-origin, session hijack and malformed input regressions pass",
+      "acceptance": "Cross-origin, session hijack and malformed input regressions pass; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Browser/desktop automation uses origin/path allowlists, safe URL handling, CSRF/XSS/SSRF controls and explicit approval for consequential side effects.",
       "parent_dependencies": [
         "RUN-002",
         "BACK-004"
@@ -240,7 +244,9 @@
       "module_guardrails": [
         "Observe -> propose -> authorize -> execute -> verify.",
         "Deletion, external messages, publishing, purchases and privileged actions require approval.",
-        "Browser sessions and credentials remain isolated."
+        "Browser sessions and credentials remain isolated.",
+        "Runtime boundary: isolate browser profiles and user sessions; validate URLs/redirects/downloads; require approval for external side effects.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -342,7 +348,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Build responsive Firefox-first dashboard navigation",
-      "acceptance": "Home/Calendar/Email/Actions/Files/System/Projects/Voice/Activity/Settings open and reload",
+      "acceptance": "Home/Calendar/Email/Actions/Files/System/Projects/Voice/Activity/Settings open and reload; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Browser/desktop automation uses origin/path allowlists, safe URL handling, CSRF/XSS/SSRF controls and explicit approval for consequential side effects. Host/file operations also require path and symlink/TOCTOU tests, bounded execution, per-file owner approval for deletion and an immutable action receipt.",
       "parent_dependencies": [
         "RUN-002"
       ],
@@ -358,7 +364,9 @@
       "module_guardrails": [
         "Observe -> propose -> authorize -> execute -> verify.",
         "Deletion, external messages, publishing, purchases and privileged actions require approval.",
-        "Browser sessions and credentials remain isolated."
+        "Browser sessions and credentials remain isolated.",
+        "Runtime boundary: isolate browser profiles and user sessions; validate URLs/redirects/downloads; require approval for external side effects.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -460,7 +468,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement live chat streaming, cancellation and durable history",
-      "acceptance": "Failed/canceled turn not stored as successful; precise error UI",
+      "acceptance": "Failed/canceled turn not stored as successful; precise error UI; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Browser/desktop automation uses origin/path allowlists, safe URL handling, CSRF/XSS/SSRF controls and explicit approval for consequential side effects.",
       "parent_dependencies": [
         "RUN-003",
         "BACK-007",
@@ -478,7 +486,9 @@
       "module_guardrails": [
         "Observe -> propose -> authorize -> execute -> verify.",
         "Deletion, external messages, publishing, purchases and privileged actions require approval.",
-        "Browser sessions and credentials remain isolated."
+        "Browser sessions and credentials remain isolated.",
+        "Runtime boundary: isolate browser profiles and user sessions; validate URLs/redirects/downloads; require approval for external side effects.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -580,7 +590,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement local/offline conversational model mode with explicit fallback",
-      "acceptance": "Unavailable model pauses or uses authorized adapter; no fabricated live answer",
+      "acceptance": "Unavailable model pauses or uses authorized adapter; no fabricated live answer; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Browser/desktop automation uses origin/path allowlists, safe URL handling, CSRF/XSS/SSRF controls and explicit approval for consequential side effects. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "RUN-005",
         "BACK-010"
@@ -597,7 +607,9 @@
       "module_guardrails": [
         "Observe -> propose -> authorize -> execute -> verify.",
         "Deletion, external messages, publishing, purchases and privileged actions require approval.",
-        "Browser sessions and credentials remain isolated."
+        "Browser sessions and credentials remain isolated.",
+        "Runtime boundary: isolate browser profiles and user sessions; validate URLs/redirects/downloads; require approval for external side effects.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -699,7 +711,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement STT capture, wake/push-to-talk and privacy controls",
-      "acceptance": "Mic permission/quiet hours and processing state visible",
+      "acceptance": "Mic permission/quiet hours and processing state visible; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Browser/desktop automation uses origin/path allowlists, safe URL handling, CSRF/XSS/SSRF controls and explicit approval for consequential side effects. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence. Host/file operations also require path and symlink/TOCTOU tests, bounded execution, per-file owner approval for deletion and an immutable action receipt.",
       "parent_dependencies": [
         "RUN-002"
       ],
@@ -715,7 +727,9 @@
       "module_guardrails": [
         "Observe -> propose -> authorize -> execute -> verify.",
         "Deletion, external messages, publishing, purchases and privileged actions require approval.",
-        "Browser sessions and credentials remain isolated."
+        "Browser sessions and credentials remain isolated.",
+        "Runtime boundary: isolate browser profiles and user sessions; validate URLs/redirects/downloads; require approval for external side effects.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -787,7 +801,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement TTS British-butler speech with interruption",
-      "acceptance": "Streaming speech can stop mid-response without corrupting conversation",
+      "acceptance": "Streaming speech can stop mid-response without corrupting conversation; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Browser/desktop automation uses origin/path allowlists, safe URL handling, CSRF/XSS/SSRF controls and explicit approval for consequential side effects.",
       "parent_dependencies": [
         "RUN-007",
         "RUN-005"
@@ -804,7 +818,9 @@
       "module_guardrails": [
         "Observe -> propose -> authorize -> execute -> verify.",
         "Deletion, external messages, publishing, purchases and privileged actions require approval.",
-        "Browser sessions and credentials remain isolated."
+        "Browser sessions and credentials remain isolated.",
+        "Runtime boundary: isolate browser profiles and user sessions; validate URLs/redirects/downloads; require approval for external side effects.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -906,7 +922,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement bounded local desktop app launch and inventory actions",
-      "acceptance": "Allowed applications only; audit and confirmations enforced",
+      "acceptance": "Allowed applications only; audit and confirmations enforced; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Browser/desktop automation uses origin/path allowlists, safe URL handling, CSRF/XSS/SSRF controls and explicit approval for consequential side effects. Host/file operations also require path and symlink/TOCTOU tests, bounded execution, per-file owner approval for deletion and an immutable action receipt.",
       "parent_dependencies": [
         "RUN-002",
         "BACK-004"
@@ -923,7 +939,9 @@
       "module_guardrails": [
         "Observe -> propose -> authorize -> execute -> verify.",
         "Deletion, external messages, publishing, purchases and privileged actions require approval.",
-        "Browser sessions and credentials remain isolated."
+        "Browser sessions and credentials remain isolated.",
+        "Runtime boundary: isolate browser profiles and user sessions; validate URLs/redirects/downloads; require approval for external side effects.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -995,7 +1013,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement persistent authorized browser profile and human login handoff",
-      "acceptance": "Credentials/cookies never enter model context; site actions scoped",
+      "acceptance": "Credentials/cookies never enter model context; site actions scoped; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Browser/desktop automation uses origin/path allowlists, safe URL handling, CSRF/XSS/SSRF controls and explicit approval for consequential side effects. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence. Host/file operations also require path and symlink/TOCTOU tests, bounded execution, per-file owner approval for deletion and an immutable action receipt.",
       "parent_dependencies": [
         "RUN-003",
         "BACK-004"
@@ -1012,7 +1030,9 @@
       "module_guardrails": [
         "Observe -> propose -> authorize -> execute -> verify.",
         "Deletion, external messages, publishing, purchases and privileged actions require approval.",
-        "Browser sessions and credentials remain isolated."
+        "Browser sessions and credentials remain isolated.",
+        "Runtime boundary: isolate browser profiles and user sessions; validate URLs/redirects/downloads; require approval for external side effects.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1114,7 +1134,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement safe browser navigate/read/click/form typed tools",
-      "acceptance": "Untrusted page instructions cannot escalate to local shell or send unapproved messages",
+      "acceptance": "Untrusted page instructions cannot escalate to local shell or send unapproved messages; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Browser/desktop automation uses origin/path allowlists, safe URL handling, CSRF/XSS/SSRF controls and explicit approval for consequential side effects. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence. Host/file operations also require path and symlink/TOCTOU tests, bounded execution, per-file owner approval for deletion and an immutable action receipt.",
       "parent_dependencies": [
         "RUN-010"
       ],
@@ -1130,7 +1150,9 @@
       "module_guardrails": [
         "Observe -> propose -> authorize -> execute -> verify.",
         "Deletion, external messages, publishing, purchases and privileged actions require approval.",
-        "Browser sessions and credentials remain isolated."
+        "Browser sessions and credentials remain isolated.",
+        "Runtime boundary: isolate browser profiles and user sessions; validate URLs/redirects/downloads; require approval for external side effects.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1232,7 +1254,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Preserve metadata-only file inventory, repo discovery and FTS search",
-      "acceptance": "Read-only defaults and bounded roots prevent private data exfiltration",
+      "acceptance": "Read-only defaults and bounded roots prevent private data exfiltration; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Browser/desktop automation uses origin/path allowlists, safe URL handling, CSRF/XSS/SSRF controls and explicit approval for consequential side effects. Host/file operations also require path and symlink/TOCTOU tests, bounded execution, per-file owner approval for deletion and an immutable action receipt.",
       "parent_dependencies": [
         "RUN-002"
       ],
@@ -1248,7 +1270,9 @@
       "module_guardrails": [
         "Observe -> propose -> authorize -> execute -> verify.",
         "Deletion, external messages, publishing, purchases and privileged actions require approval.",
-        "Browser sessions and credentials remain isolated."
+        "Browser sessions and credentials remain isolated.",
+        "Runtime boundary: isolate browser profiles and user sessions; validate URLs/redirects/downloads; require approval for external side effects.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1320,7 +1344,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement previews, per-file approvals, Trash/restore and DELETE-LOGS",
-      "acceptance": "Each file deletion separately authorized and audited; no bulk bypass",
+      "acceptance": "Each file deletion separately authorized and audited; no bulk bypass; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Browser/desktop automation uses origin/path allowlists, safe URL handling, CSRF/XSS/SSRF controls and explicit approval for consequential side effects. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence. Host/file operations also require path and symlink/TOCTOU tests, bounded execution, per-file owner approval for deletion and an immutable action receipt.",
       "parent_dependencies": [
         "RUN-012",
         "BACK-004"
@@ -1337,7 +1361,9 @@
       "module_guardrails": [
         "Observe -> propose -> authorize -> execute -> verify.",
         "Deletion, external messages, publishing, purchases and privileged actions require approval.",
-        "Browser sessions and credentials remain isolated."
+        "Browser sessions and credentials remain isolated.",
+        "Runtime boundary: isolate browser profiles and user sessions; validate URLs/redirects/downloads; require approval for external side effects.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1454,7 +1480,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement calendar events and scheduling connector with approval scopes",
-      "acceptance": "Read/create/update operations gated and timezone safe",
+      "acceptance": "Read/create/update operations gated and timezone safe; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Browser/desktop automation uses origin/path allowlists, safe URL handling, CSRF/XSS/SSRF controls and explicit approval for consequential side effects. Network-facing paths also require allowlisted targets, SSRF/redirect validation, request-schema checks, rate limits and staging DAST evidence.",
       "parent_dependencies": [
         "RUN-002",
         "BACK-020"
@@ -1471,7 +1497,9 @@
       "module_guardrails": [
         "Observe -> propose -> authorize -> execute -> verify.",
         "Deletion, external messages, publishing, purchases and privileged actions require approval.",
-        "Browser sessions and credentials remain isolated."
+        "Browser sessions and credentials remain isolated.",
+        "Runtime boundary: isolate browser profiles and user sessions; validate URLs/redirects/downloads; require approval for external side effects.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1573,7 +1601,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement authenticated email search, draft and explicitly approved send",
-      "acceptance": "No send without owner approval; dedup and receipts survive timeout",
+      "acceptance": "No send without owner approval; dedup and receipts survive timeout; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Browser/desktop automation uses origin/path allowlists, safe URL handling, CSRF/XSS/SSRF controls and explicit approval for consequential side effects. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "RUN-002",
         "BACK-020"
@@ -1590,7 +1618,9 @@
       "module_guardrails": [
         "Observe -> propose -> authorize -> execute -> verify.",
         "Deletion, external messages, publishing, purchases and privileged actions require approval.",
-        "Browser sessions and credentials remain isolated."
+        "Browser sessions and credentials remain isolated.",
+        "Runtime boundary: isolate browser profiles and user sessions; validate URLs/redirects/downloads; require approval for external side effects.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1692,7 +1722,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement reminders, routine automation and notification preferences",
-      "acceptance": "Schedules survive restart and quiet hours respected",
+      "acceptance": "Schedules survive restart and quiet hours respected; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Browser/desktop automation uses origin/path allowlists, safe URL handling, CSRF/XSS/SSRF controls and explicit approval for consequential side effects. Recovery paths also require fencing, signed known-good artifacts, token revocation, preserved forensic evidence and independent rollback authorization.",
       "parent_dependencies": [
         "RUN-014",
         "BACK-017"
@@ -1709,7 +1739,9 @@
       "module_guardrails": [
         "Observe -> propose -> authorize -> execute -> verify.",
         "Deletion, external messages, publishing, purchases and privileged actions require approval.",
-        "Browser sessions and credentials remain isolated."
+        "Browser sessions and credentials remain isolated.",
+        "Runtime boundary: isolate browser profiles and user sessions; validate URLs/redirects/downloads; require approval for external side effects.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1811,7 +1843,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement operational System/Projects/Activity dashboards with real data",
-      "acceptance": "No fake health/CI; source timestamps and failures visible",
+      "acceptance": "No fake health/CI; source timestamps and failures visible; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Browser/desktop automation uses origin/path allowlists, safe URL handling, CSRF/XSS/SSRF controls and explicit approval for consequential side effects.",
       "parent_dependencies": [
         "RUN-004",
         "BACK-019",
@@ -1829,7 +1861,9 @@
       "module_guardrails": [
         "Observe -> propose -> authorize -> execute -> verify.",
         "Deletion, external messages, publishing, purchases and privileged actions require approval.",
-        "Browser sessions and credentials remain isolated."
+        "Browser sessions and credentials remain isolated.",
+        "Runtime boundary: isolate browser profiles and user sessions; validate URLs/redirects/downloads; require approval for external side effects.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1931,7 +1965,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Qualify Runtime on actual Ubuntu Firefox and voice hardware",
-      "acceptance": "AC-01..AC-12 host acceptance tests recorded",
+      "acceptance": "AC-01..AC-12 host acceptance tests recorded; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Browser/desktop automation uses origin/path allowlists, safe URL handling, CSRF/XSS/SSRF controls and explicit approval for consequential side effects.",
       "parent_dependencies": [
         "RUN-005",
         "RUN-008",
@@ -1952,7 +1986,9 @@
       "module_guardrails": [
         "Observe -> propose -> authorize -> execute -> verify.",
         "Deletion, external messages, publishing, purchases and privileged actions require approval.",
-        "Browser sessions and credentials remain isolated."
+        "Browser sessions and credentials remain isolated.",
+        "Runtime boundary: isolate browser profiles and user sessions; validate URLs/redirects/downloads; require approval for external side effects.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2043,9 +2079,27 @@
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
+        },
+        {
+          "id": "RUN-018.S07",
+          "sequence": 7,
+          "kind": "runtime_defence",
+          "title": "Verify browser, desktop and personal-assistant runtime defences",
+          "assignee_role": "worker",
+          "instruction": "Test isolated browser profiles, origin/path allowlists, safe redirects, SSRF and download handling, CSRF/XSS protections, user-session separation, confirmation for external side effects and process privilege limits.",
+          "deliverable": "Runtime attack matrix and browser/device test receipts.",
+          "done_when": "A malicious page cannot issue tools or access unrelated sessions; risky side effects require exact scoped approval; downloaded files are untrusted.",
+          "depends_on": [
+            "RUN-018.S06"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
         }
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
     }
-  ]
+  ],
+  "updated": "2026-11-15",
+  "security_architecture": "docs/architecture/SECURITY_ARCHITECTURE.md",
+  "security_policy_id": "ASEL-1.0"
 }

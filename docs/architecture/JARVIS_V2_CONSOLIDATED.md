@@ -4,7 +4,7 @@
 
 # JARVIS v2 — Consolidated System Architecture and SDA Build Contract
 
-**Revision:** 2026-11-13, user handwritten architecture + previous JARVIS v2 master handoff  
+**Revision:** 2026-11-15, consolidated architecture plus ASEL active security amendment  
 **Status:** Proposed consolidated specification; **not** an approved deployment or completed implementation.  
 **Product:** JARVIS v2 (Astra One is its temporary external SDA bootstrap/build environment).  
 **Precedence:** This revision supersedes earlier module counts and role assignments where conflicting: add Core and Windows local agent, make Guardian module 9 with non-preemptive highest model priority, add Cloudflare Automation module 10, and suspend Business. It retains previously requested requirements not contradicted here.
@@ -362,3 +362,42 @@ Dependencies may allow safe parallel contract work. Do not report a milestone do
 **Retained from earlier JARVIS v2 decisions:** persistent sessions/checkpoints/tool receipts and model handoff; five-worker Workhorse with role-specific QC/merge and retry limits; TWS's twelve wings, quest evidence, Aurelia and iOS; read-only scoped Mira/partner privacy and paper-only brokerage; independent module manifests, mirroring and guardian fail-safe; STOP/PAUSE, deletion approval and logs; structured release gates and unpadded X.Y.Z; Cloudflare authenticated progress feed; research video summarizer + RAG; British-butler Runtime voice/browser/desktop; Git repository allowlists and provenance; optional on-device local inference; clean repository only after SDA qualification.
 
 **Outstanding owner decisions before final approval:** exact availability/configuration of Core's `gpt-6-sol` in the intended CLI; Guardian model and host location given Linux VRAM; whether Core and SDA have separate dedicated hosted-model concurrency budgets; Cloudflare plan/limits and approved alert channels; which Windows tasks/files can be accessed remotely; actual consent scope of Mira records; whether the 20-retry historical limit should be reduced for repeated identical failures; name/location of the eventual clean JARVIS repository. Safe defaults above apply until decided.
+
+
+## 20. Security architecture amendment — ASEL 1.0 (2026-11-15)
+
+**Decision:** Add an active security scanning, defensive monitoring and incident-containment subsystem to the existing rebuild. This is an accepted architecture direction for planning; it is not a claim that the controls are already implemented or qualified.
+
+### 20.1 ASEL is cross-cutting, not module 11
+
+ASEL (ARCHON Security Enforcement Layer) is owned by ATLAS/Backend and serves all ten modules. It contains deterministic identity/device trust, policy-as-code, a scoped capability/approval broker, secrets broker, active scanner orchestrator, runtime security sensors, security-event pipeline, containment controller and tamper-evident audit. It is not an LLM and it does not create a second queue or database of record.
+
+ARCHON can request an action but cannot authorize itself. AEGIS can analyze findings and propose recovery but cannot disable sensors, change policy, clear STOP or approve its own release. The independent external watchdog remains the trust root for signed artifacts, writer fencing, critical recovery and rollback.
+
+### 20.2 Active scanning
+
+ASEL orchestrates commit/PR SAST, SCA/dependency, secret, license, SBOM/provenance, IaC/container and configuration scans; nightly host/dependency/configuration-drift checks; pre-release authenticated non-destructive staging API/DAST; runtime process/file/network/authentication monitoring; prompt-injection evaluation for retrieved content; and incident-triggered focused scans. Results are deduplicated, severity-ranked, redacted and bound to source SHA, asset identity, scanner version and timestamp.
+
+Active scanning is limited to inventoried owner-controlled repositories, registered Linux/Windows hosts, Cloudflare resources and staging endpoints. It is bounded, rate-limited and non-destructive. No arbitrary third-party scans, credential spraying, exploit execution or production DAST without explicit owner authorization. Quota-blocked CI is deferred, never reported as passed.
+
+### 20.3 Active defences
+
+- Default-deny, short-lived single-use capabilities bound to identity, task, resource, action, scope, expiry and replay nonce.
+- OS-protected per-module secrets, redaction, rotation and immediate revocation.
+- Disposable rootless worker sandbox/VM, AppArmor/seccomp or equivalent, no Docker socket/host secrets, minimal mounts and no network by default.
+- Linux/Windows endpoint posture, firewall, patch, service-exposure and configuration-drift monitoring; Ollama loopback-only.
+- Cloudflare/API authentication, WAF/rate limits, schema validation, origin restrictions and replay protection.
+- Browser profile/session isolation, URL/redirect/download validation, SSRF/CSRF/XSS controls and approval-bound side effects.
+- Runtime anomaly detection, module quarantine, writer fencing, evidence preservation and verified known-good restoration.
+
+### 20.4 Incident lifecycle and release policy
+
+Detect → triage → contain → preserve evidence → notify owner → eradicate through a bounded reviewed repair → recover from signed known-good artifact → re-scan → verify → record lessons. Deterministic STOP, capability revocation and smallest-scope isolation work without an LLM or cloud service.
+
+Critical findings block release. High findings block by default and may only be considered under a time-limited owner-signed exception with compensating controls and retest. Missing/stale scan evidence, scanner failure or unknown policy version fails closed for privileged operations and release promotion. Independent QC reviews the security evidence.
+
+### 20.5 Rebuild task-plan impact
+
+The existing 247 parent task IDs, dependencies and current SQLite runtime ledger are preserved. All 247 parent acceptance criteria receive the ASEL baseline and module-specific security controls. Twenty-two focused security child tasks are attached to existing parent tasks covering CI scans, threat modeling, sandbox isolation, signed supply chain, policy/capability enforcement, secret lifecycle, runtime sensors, connector revocation, scanner orchestration, Cloudflare/API defence, Windows endpoint hardening, AEGIS/watchdog integration, containment, incident response, browser security, prompt-injection evaluations, mobile security, financial privacy and release red-teaming. No new functional module or duplicate task ledger is introduced.
+
+Implementation and qualification remain pending until real host evidence, independent QC and owner release gates pass. See [SECURITY_ARCHITECTURE.md](SECURITY_ARCHITECTURE.md) and the updated task-plan index in docs/tasks/JARVIS_V2_SUBTASK_PLAN.json.

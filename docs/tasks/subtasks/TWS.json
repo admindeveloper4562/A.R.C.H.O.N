@@ -1,11 +1,11 @@
 {
   "schema": "jarvis.v2.subtask-module/1",
   "created": "2026-11-14",
-  "source_parent_plan_blob_sha": "36e674f4e58fc19aa8158da42d802b9599a23763",
+  "source_parent_plan_blob_sha": "98e2b845d30253bcc47193b0cc79095f5fac5a12",
   "module": "TWS",
   "module_name": "M9 — Twelve-Winged quests, Aurelia and mobile",
   "parent_count": 20,
-  "subtask_count": 116,
+  "subtask_count": 117,
   "parents": [
     {
       "parent_id": "TWS-001",
@@ -14,7 +14,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Audit PR 14 Python/iOS/3D code and map M001-M021 to acceptance",
-      "acceptance": "Reuse plan lists existing verified vs unverified milestones, source SHAs and licenses",
+      "acceptance": "Reuse plan lists existing verified vs unverified milestones, source SHAs and licenses; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Quest proofs and personal/device data are consent-scoped; mobile pairing/revocation/TLS and idempotent reward integrity are tested.",
       "parent_dependencies": [
         "BASE-006",
         "SDA-028"
@@ -30,7 +30,9 @@
       "module_guardrails": [
         "XP/rewards are idempotent and recoverable across devices.",
         "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
-        "No duplicate rewards after retries or reconnect."
+        "No duplicate rewards after retries or reconnect.",
+        "TWS boundary: minimize personal data, require explicit consent for sync, protect device pairing and make reward writes idempotent.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -102,7 +104,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Repair TWS CI runner allocation and execute full Python and iOS workflows",
-      "acceptance": "Real steps run and failures fixed; issue 15 closed only with evidence",
+      "acceptance": "Real steps run and failures fixed; issue 15 closed only with evidence; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Quest proofs and personal/device data are consent-scoped; mobile pairing/revocation/TLS and idempotent reward integrity are tested.",
       "parent_dependencies": [
         "BASE-002",
         "TWS-001"
@@ -118,7 +120,9 @@
       "module_guardrails": [
         "XP/rewards are idempotent and recoverable across devices.",
         "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
-        "No duplicate rewards after retries or reconnect."
+        "No duplicate rewards after retries or reconnect.",
+        "TWS boundary: minimize personal data, require explicit consent for sync, protect device pairing and make reward writes idempotent.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -205,7 +209,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Migrate verified quest data model and SQLite schemas to new module",
-      "acceptance": "No lost wings/proofs; versioned migrations tested",
+      "acceptance": "No lost wings/proofs; versioned migrations tested; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Quest proofs and personal/device data are consent-scoped; mobile pairing/revocation/TLS and idempotent reward integrity are tested. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "TWS-001",
         "BACK-002"
@@ -221,7 +225,9 @@
       "module_guardrails": [
         "XP/rewards are idempotent and recoverable across devices.",
         "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
-        "No duplicate rewards after retries or reconnect."
+        "No duplicate rewards after retries or reconnect.",
+        "TWS boundary: minimize personal data, require explicit consent for sync, protect device pairing and make reward writes idempotent.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -323,7 +329,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Migrate quest catalog, daily/weekly/skill and story/trial lifecycle",
-      "acceptance": "Draft/offered/accepted/submitted/verified/rewarded state passes tests",
+      "acceptance": "Draft/offered/accepted/submitted/verified/rewarded state passes tests; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Quest proofs and personal/device data are consent-scoped; mobile pairing/revocation/TLS and idempotent reward integrity are tested.",
       "parent_dependencies": [
         "TWS-003"
       ],
@@ -338,7 +344,9 @@
       "module_guardrails": [
         "XP/rewards are idempotent and recoverable across devices.",
         "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
-        "No duplicate rewards after retries or reconnect."
+        "No duplicate rewards after retries or reconnect.",
+        "TWS boundary: minimize personal data, require explicit consent for sync, protect device pairing and make reward writes idempotent.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -440,7 +448,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement evidence capture and owner/engine proof review",
-      "acceptance": "Unverified evidence never yields XP; privacy scopes enforced",
+      "acceptance": "Unverified evidence never yields XP; privacy scopes enforced; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Quest proofs and personal/device data are consent-scoped; mobile pairing/revocation/TLS and idempotent reward integrity are tested.",
       "parent_dependencies": [
         "TWS-004",
         "BACK-004"
@@ -456,7 +464,9 @@
       "module_guardrails": [
         "XP/rewards are idempotent and recoverable across devices.",
         "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
-        "No duplicate rewards after retries or reconnect."
+        "No duplicate rewards after retries or reconnect.",
+        "TWS boundary: minimize personal data, require explicit consent for sync, protect device pairing and make reward writes idempotent.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -528,7 +538,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement idempotent XP ledger and twelve wing/realm gates",
-      "acceptance": "Duplicate sync submits at most one reward; realm prerequisites enforced",
+      "acceptance": "Duplicate sync submits at most one reward; realm prerequisites enforced; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Quest proofs and personal/device data are consent-scoped; mobile pairing/revocation/TLS and idempotent reward integrity are tested.",
       "parent_dependencies": [
         "TWS-005"
       ],
@@ -543,7 +553,9 @@
       "module_guardrails": [
         "XP/rewards are idempotent and recoverable across devices.",
         "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
-        "No duplicate rewards after retries or reconnect."
+        "No duplicate rewards after retries or reconnect.",
+        "TWS boundary: minimize personal data, require explicit consent for sync, protect device pairing and make reward writes idempotent.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -645,7 +657,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement cultivation, patterns, skill adaptation and fairness controls",
-      "acceptance": "Progression uses verifiable achievement not companion persuasion",
+      "acceptance": "Progression uses verifiable achievement not companion persuasion; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Quest proofs and personal/device data are consent-scoped; mobile pairing/revocation/TLS and idempotent reward integrity are tested.",
       "parent_dependencies": [
         "TWS-004",
         "TWS-006"
@@ -661,7 +673,9 @@
       "module_guardrails": [
         "XP/rewards are idempotent and recoverable across devices.",
         "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
-        "No duplicate rewards after retries or reconnect."
+        "No duplicate rewards after retries or reconnect.",
+        "TWS boundary: minimize personal data, require explicit consent for sync, protect device pairing and make reward writes idempotent.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -763,7 +777,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement original Aurelia dialogue/personality and narrative state",
-      "acceptance": "Dialogue cannot directly mutate XP or finance",
+      "acceptance": "Dialogue cannot directly mutate XP or finance; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Quest proofs and personal/device data are consent-scoped; mobile pairing/revocation/TLS and idempotent reward integrity are tested. Financial paths also require consent and row-scope denial tests, exact ledger reconciliation and proof that no live broker/Mira write route exists.",
       "parent_dependencies": [
         "TWS-003",
         "BACK-007"
@@ -779,7 +793,9 @@
       "module_guardrails": [
         "XP/rewards are idempotent and recoverable across devices.",
         "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
-        "No duplicate rewards after retries or reconnect."
+        "No duplicate rewards after retries or reconnect.",
+        "TWS boundary: minimize personal data, require explicit consent for sync, protect device pairing and make reward writes idempotent.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -881,7 +897,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement Sanctuary, quest views and web dashboard integration",
-      "acceptance": "Displayed wings/state match authoritative ledger",
+      "acceptance": "Displayed wings/state match authoritative ledger; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Quest proofs and personal/device data are consent-scoped; mobile pairing/revocation/TLS and idempotent reward integrity are tested. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "TWS-006",
         "TWS-008",
@@ -898,7 +914,9 @@
       "module_guardrails": [
         "XP/rewards are idempotent and recoverable across devices.",
         "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
-        "No duplicate rewards after retries or reconnect."
+        "No duplicate rewards after retries or reconnect.",
+        "TWS boundary: minimize personal data, require explicit consent for sync, protect device pairing and make reward writes idempotent.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1000,7 +1018,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Preserve Aurelia portable rigged model generator and independent validator",
-      "acceptance": "Binary model and deformation/morph/clip assertions reproducible",
+      "acceptance": "Binary model and deformation/morph/clip assertions reproducible; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Quest proofs and personal/device data are consent-scoped; mobile pairing/revocation/TLS and idempotent reward integrity are tested.",
       "parent_dependencies": [
         "TWS-001"
       ],
@@ -1015,7 +1033,9 @@
       "module_guardrails": [
         "XP/rewards are idempotent and recoverable across devices.",
         "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
-        "No duplicate rewards after retries or reconnect."
+        "No duplicate rewards after retries or reconnect.",
+        "TWS boundary: minimize personal data, require explicit consent for sync, protect device pairing and make reward writes idempotent.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1117,7 +1137,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Run real Blender import/skinning and generate native asset candidate",
-      "acceptance": "Editable .blend and reviewed USDZ/SCN candidate validated on native tools",
+      "acceptance": "Editable .blend and reviewed USDZ/SCN candidate validated on native tools; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Quest proofs and personal/device data are consent-scoped; mobile pairing/revocation/TLS and idempotent reward integrity are tested. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "TWS-010"
       ],
@@ -1132,7 +1152,9 @@
       "module_guardrails": [
         "XP/rewards are idempotent and recoverable across devices.",
         "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
-        "No duplicate rewards after retries or reconnect."
+        "No duplicate rewards after retries or reconnect.",
+        "TWS boundary: minimize personal data, require explicit consent for sync, protect device pairing and make reward writes idempotent.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1249,7 +1271,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Execute full native visual QA for Aurelia expressions and motion",
-      "acceptance": "24-view and time-sampled galleries pass artist review",
+      "acceptance": "24-view and time-sampled galleries pass artist review; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Quest proofs and personal/device data are consent-scoped; mobile pairing/revocation/TLS and idempotent reward integrity are tested.",
       "parent_dependencies": [
         "TWS-011"
       ],
@@ -1264,7 +1286,9 @@
       "module_guardrails": [
         "XP/rewards are idempotent and recoverable across devices.",
         "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
-        "No duplicate rewards after retries or reconnect."
+        "No duplicate rewards after retries or reconnect.",
+        "TWS boundary: minimize personal data, require explicit consent for sync, protect device pairing and make reward writes idempotent.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1366,7 +1390,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Build SwiftUI/SceneKit app and offline 2D fallback on macOS runner",
-      "acceptance": "Native iOS targets compile and fallback works",
+      "acceptance": "Native iOS targets compile and fallback works; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Quest proofs and personal/device data are consent-scoped; mobile pairing/revocation/TLS and idempotent reward integrity are tested.",
       "parent_dependencies": [
         "TWS-002",
         "TWS-012"
@@ -1382,7 +1406,9 @@
       "module_guardrails": [
         "XP/rewards are idempotent and recoverable across devices.",
         "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
-        "No duplicate rewards after retries or reconnect."
+        "No duplicate rewards after retries or reconnect.",
+        "TWS boundary: minimize personal data, require explicit consent for sync, protect device pairing and make reward writes idempotent.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1484,7 +1510,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Test iOS lifecycle, reduce motion, thermal and low memory handling",
-      "acceptance": "Hardware-like lifecycle and accessible manual retry pass",
+      "acceptance": "Hardware-like lifecycle and accessible manual retry pass; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Quest proofs and personal/device data are consent-scoped; mobile pairing/revocation/TLS and idempotent reward integrity are tested.",
       "parent_dependencies": [
         "TWS-013"
       ],
@@ -1499,7 +1525,9 @@
       "module_guardrails": [
         "XP/rewards are idempotent and recoverable across devices.",
         "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
-        "No duplicate rewards after retries or reconnect."
+        "No duplicate rewards after retries or reconnect.",
+        "TWS boundary: minimize personal data, require explicit consent for sync, protect device pairing and make reward writes idempotent.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1586,7 +1614,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Validate secure iOS device pairing, revoke and TLS trust rotation",
-      "acceptance": "Unauthorized phone rejected; revocation/rotation test passes",
+      "acceptance": "Unauthorized phone rejected; revocation/rotation test passes; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Quest proofs and personal/device data are consent-scoped; mobile pairing/revocation/TLS and idempotent reward integrity are tested. Credential/authentication paths also require redaction tests, least-scope tokens, rotation/revocation and replay-denial evidence.",
       "parent_dependencies": [
         "TWS-013",
         "BACK-004"
@@ -1602,7 +1630,9 @@
       "module_guardrails": [
         "XP/rewards are idempotent and recoverable across devices.",
         "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
-        "No duplicate rewards after retries or reconnect."
+        "No duplicate rewards after retries or reconnect.",
+        "TWS boundary: minimize personal data, require explicit consent for sync, protect device pairing and make reward writes idempotent.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1678,6 +1708,21 @@
           ],
           "evidence_required": true,
           "remote_github_actions_allowed": false
+        },
+        {
+          "id": "TWS-015.S06",
+          "sequence": 6,
+          "kind": "mobile_defence",
+          "title": "Harden mobile pairing, session trust and device revocation",
+          "assignee_role": "worker",
+          "instruction": "Require device-bound identity, TLS trust validation/rotation, short-lived session capabilities, secure local storage and lost-device revocation. Test replay, downgrade and unauthorized pairing.",
+          "deliverable": "Mobile threat model, pairing protocol and revoke/rotation evidence.",
+          "done_when": "Unknown or revoked devices cannot sync or submit proofs; no long-lived bearer secret is exposed to logs or model context.",
+          "depends_on": [
+            "TWS-015.S05"
+          ],
+          "evidence_required": true,
+          "remote_github_actions_allowed": false
         }
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
@@ -1689,7 +1734,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement offline iOS synchronization, conflict resolution and proof queue",
-      "acceptance": "Offline replays do not double reward, leak proof or lose saves",
+      "acceptance": "Offline replays do not double reward, leak proof or lose saves; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Quest proofs and personal/device data are consent-scoped; mobile pairing/revocation/TLS and idempotent reward integrity are tested.",
       "parent_dependencies": [
         "TWS-006",
         "TWS-015"
@@ -1705,7 +1750,9 @@
       "module_guardrails": [
         "XP/rewards are idempotent and recoverable across devices.",
         "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
-        "No duplicate rewards after retries or reconnect."
+        "No duplicate rewards after retries or reconnect.",
+        "TWS boundary: minimize personal data, require explicit consent for sync, protect device pairing and make reward writes idempotent.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1807,7 +1854,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement tasks-to-quests import with consent and explicit reward gate",
-      "acceptance": "Cross-module signals only propose quests; no auto XP award",
+      "acceptance": "Cross-module signals only propose quests; no auto XP award; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Quest proofs and personal/device data are consent-scoped; mobile pairing/revocation/TLS and idempotent reward integrity are tested. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "TWS-006",
         "CORE-006"
@@ -1823,7 +1870,9 @@
       "module_guardrails": [
         "XP/rewards are idempotent and recoverable across devices.",
         "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
-        "No duplicate rewards after retries or reconnect."
+        "No duplicate rewards after retries or reconnect.",
+        "TWS boundary: minimize personal data, require explicit consent for sync, protect device pairing and make reward writes idempotent.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -1940,7 +1989,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Implement onboarding, narrative state and accessible preferences",
-      "acceptance": "Immersive mode, reduced motion and fallback chosen independently",
+      "acceptance": "Immersive mode, reduced motion and fallback chosen independently; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Quest proofs and personal/device data are consent-scoped; mobile pairing/revocation/TLS and idempotent reward integrity are tested.",
       "parent_dependencies": [
         "TWS-008",
         "TWS-009"
@@ -1956,7 +2005,9 @@
       "module_guardrails": [
         "XP/rewards are idempotent and recoverable across devices.",
         "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
-        "No duplicate rewards after retries or reconnect."
+        "No duplicate rewards after retries or reconnect.",
+        "TWS boundary: minimize personal data, require explicit consent for sync, protect device pairing and make reward writes idempotent.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2058,7 +2109,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Perform physical iPhone-Ubuntu pairing and app performance testing",
-      "acceptance": "Real device FPS/thermal/pairing receipts and privacy audit",
+      "acceptance": "Real device FPS/thermal/pairing receipts and privacy audit; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Quest proofs and personal/device data are consent-scoped; mobile pairing/revocation/TLS and idempotent reward integrity are tested.",
       "parent_dependencies": [
         "TWS-014",
         "TWS-016",
@@ -2075,7 +2126,9 @@
       "module_guardrails": [
         "XP/rewards are idempotent and recoverable across devices.",
         "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
-        "No duplicate rewards after retries or reconnect."
+        "No duplicate rewards after retries or reconnect.",
+        "TWS boundary: minimize personal data, require explicit consent for sync, protect device pairing and make reward writes idempotent.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2177,7 +2230,7 @@
       "priority": "P2",
       "status": "NOT_STARTED",
       "title": "Complete quest release acceptance, backup/restore and rollback",
-      "acceptance": "M001-M021 accepted with actual evidence; draft artifacts not misreported shipped",
+      "acceptance": "M001-M021 accepted with actual evidence; draft artifacts not misreported shipped; [ASEL-1.0] ASEL gate: deterministic default-deny authorization and task-scoped least privilege apply outside the LLM; retrieved/model-generated content is untrusted data and cannot grant tools; secrets stay out of prompts, logs and artifacts; relevant scan/negative-test evidence is attached; unresolved Critical/High findings block completion; STOP/PAUSE/quota cannot be bypassed. Quest proofs and personal/device data are consent-scoped; mobile pairing/revocation/TLS and idempotent reward integrity are tested. Promotion/import paths also require pinned SHA provenance, verified artifact signature/attestation, protected-branch checks and a tested rollback target.",
       "parent_dependencies": [
         "TWS-017",
         "TWS-019"
@@ -2193,7 +2246,9 @@
       "module_guardrails": [
         "XP/rewards are idempotent and recoverable across devices.",
         "Preserve Aurelia/Twelve-Winged story and graceful 3D/device fallback.",
-        "No duplicate rewards after retries or reconnect."
+        "No duplicate rewards after retries or reconnect.",
+        "TWS boundary: minimize personal data, require explicit consent for sync, protect device pairing and make reward writes idempotent.",
+        "ASEL-1.0 is enforced by deterministic code, not model compliance; scanner exceptions are time-limited and owner-approved; active scanning is non-destructive and limited to inventoried owner-controlled assets."
       ],
       "special_instructions": [],
       "subtasks": [
@@ -2303,5 +2358,8 @@
       ],
       "completion_rule": "Complete all child steps; satisfy owner gate if present; pass independent QC bound to candidate SHA; pass serialized merge. Only then mark parent completed."
     }
-  ]
+  ],
+  "updated": "2026-11-15",
+  "security_architecture": "docs/architecture/SECURITY_ARCHITECTURE.md",
+  "security_policy_id": "ASEL-1.0"
 }
