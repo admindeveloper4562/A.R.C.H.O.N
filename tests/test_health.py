@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from jarvis_v2.backend.storage import StorageManager
+from jarvis_v2.backend.conversation import ConversationStore
 from jarvis_v2.core.queue import TaskQueue
 from jarvis_v2.health import HealthError, collect_health
 
@@ -61,6 +62,10 @@ class HealthTests(unittest.TestCase):
             with StorageManager(state / "runtime.sqlite3") as storage:
                 storage.migrate()
             TaskQueue(state / "atlas.sqlite3").close()
+            conversations = state / "conversations.sqlite3"
+            with ConversationStore(conversations):
+                pass
+            conversations.chmod(0o600)
             subprocess.run(["git", "init", "-q", str(root / "repo")], check=True)
             repo = root / "repo"
             subprocess.run(["git", "-C", str(repo), "config", "user.email", "health@test"], check=True)
@@ -73,6 +78,10 @@ class HealthTests(unittest.TestCase):
             self.assertEqual(result["mode"], "native_runtime")
             self.assertFalse(result["historical_ledger"]["loaded"])
             self.assertEqual(result["queue"]["total"], 0)
+            self.assertEqual(result["sqlite"]["conversations"]["integrity"], "ok")
+            conversations.chmod(0o644)
+            with self.assertRaisesRegex(HealthError, "conversations database permissions"):
+                collect_health(state_dir=state, repository=repo)
 
     def test_health_supports_installed_package_without_git_checkout(self):
         with tempfile.TemporaryDirectory() as temp:

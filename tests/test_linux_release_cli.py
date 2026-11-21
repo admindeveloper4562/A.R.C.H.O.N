@@ -17,6 +17,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from jarvis_v2.automation.queue_api import CoordinatorQueue
+from jarvis_v2.backend.conversation import ConversationStore
 from jarvis_v2 import native_executor
 from jarvis_v2.cli import main
 
@@ -67,6 +68,39 @@ class LinuxReleaseCliTests(unittest.TestCase):
         }
         signed = json.dumps(claims, sort_keys=True, separators=(",", ":")).encode()
         return dict(claims, signature=base64.b64encode(private_key.sign(signed)).decode())
+
+    def test_native_result_command_reads_persisted_answer_without_writing(self):
+        task_id = "result-read"
+        conversation_id = "native-" + hashlib.sha256(task_id.encode()).hexdigest()
+        with tempfile.TemporaryDirectory() as directory:
+            state = Path(directory) / "state"
+            state.mkdir(mode=0o700)
+            database = state / "conversations.sqlite3"
+            with ConversationStore(database) as conversations:
+                conversations.create_conversation(
+                    conversation_id,
+                    metadata={"task_id": task_id},
+                )
+                conversations.append_turn(
+                    conversation_id,
+                    role="assistant",
+                    provider="ollama-local",
+                    model="qwen3-4b",
+                    content="private local answer",
+                    idempotency_key=f"{conversation_id}:a",
+                )
+            database.chmod(0o600)
+            before = hashlib.sha256(database.read_bytes()).hexdigest()
+            code, result = self._run_cli([
+                "result", "--state", str(state), "--task-id", task_id,
+            ])
+            after = hashlib.sha256(database.read_bytes()).hexdigest()
+
+        self.assertEqual(code, 0)
+        self.assertEqual(result["task_id"], task_id)
+        self.assertEqual(result["conversation_id"], conversation_id)
+        self.assertEqual(result["content"], "private local answer")
+        self.assertEqual(before, after)
 
     def test_fresh_init_requires_signed_admission_and_cancels_local_task(self):
         with tempfile.TemporaryDirectory() as directory:

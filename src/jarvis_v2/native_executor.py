@@ -1,11 +1,12 @@
 """Fail-closed native control-plane task execution.
 
-Only deterministic, read-only operations are built in. Domain handlers that
-can affect files, services, providers, devices, finance, or communications
-must be supplied through a separately reviewed executor.
+Built-in operations are read-only observations, optional loopback-only local
+inference, and an explicitly signed workspace write. Other effects require a
+separately reviewed handler.
 """
 from __future__ import annotations
 
+import asyncio
 from base64 import b64decode
 from collections.abc import Mapping
 from hashlib import sha256
@@ -24,7 +25,10 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
 from .automation.queue_api import QueueEnvelope
 from .backend.backup import BackupError, BackupManager
+from .backend.conversation import ConversationStore, ConversationStoreError, MAX_TURN_CONTENT_BYTES
 from .backend.effects import EffectJournal, EffectJournalError
+from .backend.ollama_gateway import LocalOllamaGateway
+from .backend.ollama_profile import OllamaInferenceProfile
 from .backend.task_capability import TaskCapabilityError, TaskCapabilityManifest
 from .backend.module_manifest import (
     ACTIVE_MODULE_KEYS,
@@ -36,6 +40,9 @@ from .backend.module_manifest import (
 )
 from .health import HealthError, collect_health
 from .sda.handoff import HandoffEvidence
+from .runtime.chat import ChatService
+from .runtime.ollama import OllamaOfflineAdapter
+from .runtime.offline import OfflineChatService
 
 
 SUPPORTED_OPERATIONS = (
@@ -58,12 +65,13 @@ REJECTED_OPERATION_REASONS = {
     "provider_call": "configured provider gateway and authorization required",
     "finance_effect": "paper-only or owner-approved domain handler required",
     "communication_send": "explicit owner-approved connector required",
-    "model_inference": "model gateway is not a native executor capability",
+    "model_inference": "an explicitly configured local Ollama gateway is required",
     "rollback_apply": "trusted watchdog and verified rollback gate required",
 }
 
 _DATABASES = {
     "atlas": "atlas.sqlite3",
+    "conversations": "conversations.sqlite3",
     "runtime": "runtime.sqlite3",
     "code_index": "code_index.sqlite3",
 }
@@ -271,10 +279,9 @@ def _write_new_workspace_file(root: Path, target: Path, content: bytes) -> None:
 
 
 class NativeControlPlaneExecutor:
-    """Execute only bounded local observations from the native queue.
+    """Dispatch bounded local operations and optionally call loopback Ollama.
 
-    This class deliberately does not import model clients, subprocess
-    launchers, external connectors, or legacy Astra modules.
+    External connectors, subprocess launchers, and legacy Astra modules remain absent.
     """
 
     def __init__(
@@ -284,6 +291,7 @@ class NativeControlPlaneExecutor:
         state_dir: str | Path,
         workspace_root: str | Path | None = None,
         owner_keys: Mapping[str, bytes] | None = None,
+        model_gateway: LocalOllamaGateway | None = None,
     ) -> None:
         self.repository = Path(repository).expanduser().resolve(strict=True)
         state_path = Path(state_dir).expanduser()
@@ -316,12 +324,18 @@ class NativeControlPlaneExecutor:
             ):
                 raise NativeExecutorError("owner_key_store_invalid")
             self.owner_keys[key_id] = public_key
+        if model_gateway is not None and not isinstance(model_gateway, LocalOllamaGateway):
+            raise NativeExecutorError("local_ollama_gateway_required")
+        self.model_gateway = model_gateway
 
     def capabilities(self) -> tuple[str, ...]:
         """Return operations enabled by the configured native executor."""
+        operations: list[str] = list(SUPPORTED_OPERATIONS)
+        if self.model_gateway is not None and self.owner_keys:
+            operations.append("model_inference")
         if self.workspace_root is not None and self.owner_keys:
-            return (*SUPPORTED_OPERATIONS, "workspace_write")
-        return SUPPORTED_OPERATIONS
+            operations.append("workspace_write")
+        return tuple(operations)
 
     def rejected_capabilities(self) -> Mapping[str, str]:
         """Return side-effect classes unavailable to this executor."""
@@ -330,6 +344,10 @@ class NativeControlPlaneExecutor:
             reasons["filesystem_write"] = "only exact signed workspace_write effects are enabled"
         else:
             reasons["filesystem_write"] = "workspace_write requires a private workspace and owner key store"
+        if self.model_gateway is not None and self.owner_keys:
+            reasons.pop("model_inference", None)
+        elif self.model_gateway is not None:
+            reasons["model_inference"] = "signed task admission requires a trusted owner key store"
         return reasons
 
     def __call__(self, item: QueueEnvelope) -> Mapping[str, Any]:
@@ -352,6 +370,8 @@ class NativeControlPlaneExecutor:
             return self._sda_handoff_status(item)
         if operation == "guardian_readiness":
             return self._guardian_readiness(item)
+        if operation == "model_inference":
+            return self._model_inference(item)
         if operation == "workspace_write":
             return self._workspace_write(item)
         raise NativeExecutorError("unsupported_native_operation")
@@ -609,6 +629,136 @@ class NativeControlPlaneExecutor:
             raise
         except (EffectJournalError, OSError, sqlite3.Error) as exc:
             raise NativeExecutorError("workspace_effect_failed") from exc
+
+    def _model_inference(self, item: QueueEnvelope) -> dict[str, Any]:
+        if item.module != "core":
+            raise NativeExecutorError("model_inference_requires_core")
+        if self.model_gateway is None:
+            raise NativeExecutorError("model_inference_not_configured")
+        if not self.owner_keys:
+            raise NativeExecutorError("model_inference_requires_trusted_owner_keys")
+        if set(item.payload) != {"operation", "prompt"}:
+            raise NativeExecutorError("model_inference_payload_invalid")
+        prompt = item.payload.get("prompt")
+        if not isinstance(prompt, str) or not prompt or "\x00" in prompt:
+            raise NativeExecutorError("model_prompt_invalid")
+        try:
+            if len(prompt.encode("utf-8")) > 16 * 1024:
+                raise NativeExecutorError("model_prompt_too_large")
+        except UnicodeEncodeError as exc:
+            raise NativeExecutorError("model_prompt_invalid") from exc
+
+        task_key = sha256(item.task_id.encode("utf-8")).hexdigest()
+        conversation_id = f"native-{task_key}"
+        idempotency_key = conversation_id
+        database = self.state_dir / "conversations.sqlite3"
+        try:
+            try:
+                descriptor = os.open(
+                    database,
+                    os.O_CREAT | os.O_EXCL | os.O_WRONLY | os.O_NOFOLLOW | os.O_CLOEXEC,
+                    0o600,
+                )
+            except FileExistsError:
+                descriptor = os.open(
+                    database,
+                    os.O_RDWR | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC,
+                )
+            try:
+                details = os.fstat(descriptor)
+                if (
+                    not stat.S_ISREG(details.st_mode)
+                    or details.st_uid != os.geteuid()
+                    or stat.S_IMODE(details.st_mode) & 0o077
+                    or stat.S_IMODE(details.st_mode) & 0o600 != 0o600
+                ):
+                    raise NativeExecutorError("conversation_database_permissions")
+            finally:
+                os.close(descriptor)
+
+            with ConversationStore(database) as conversations:
+                conversations.open_conversation(
+                    conversation_id,
+                    metadata={"task_id": item.task_id},
+                )
+                turns = conversations.list_turns(conversation_id)
+                user_key = f"{idempotency_key}:u"
+                assistant_key = f"{idempotency_key}:a"
+                user_turn = next((turn for turn in turns if turn["idempotency_key"] == user_key), None)
+                assistant_turn = next(
+                    (turn for turn in turns if turn["idempotency_key"] == assistant_key),
+                    None,
+                )
+                adapter = OllamaOfflineAdapter(self.model_gateway)
+                model_alias = adapter.model_alias
+                model = self.model_gateway.profile.model
+                if user_turn is not None and (
+                    user_turn["role"] != "user"
+                    or user_turn["provider"] != "ollama-local"
+                    or user_turn["model"] != model_alias
+                    or user_turn["content"] != prompt
+                ):
+                    raise NativeExecutorError("model_task_replay_conflict")
+                if assistant_turn is not None:
+                    if user_turn is None or (
+                        assistant_turn["role"] != "assistant"
+                        or assistant_turn["provider"] != "ollama-local"
+                        or assistant_turn["model"] != model_alias
+                    ):
+                        raise NativeExecutorError("model_task_replay_conflict")
+                else:
+                    try:
+                        asyncio.get_running_loop()
+                    except RuntimeError:
+                        pass
+                    else:
+                        raise NativeExecutorError("native_model_executor_cannot_run_in_event_loop")
+                    service = OfflineChatService(
+                        ChatService(conversations),
+                        {model_alias},
+                        adapter=adapter,
+                        provider_id="ollama-local",
+                    )
+
+                    async def collect_events() -> list[dict[str, Any]]:
+                        return [
+                            event async for event in service.stream(
+                                conversation_id,
+                                prompt,
+                                model_alias,
+                                idempotency_key=idempotency_key,
+                            )
+                        ]
+
+                    events = asyncio.run(collect_events())
+                    if not any(
+                        event.get("type") == "done" and event.get("status") == "completed"
+                        for event in events
+                    ):
+                        raise NativeExecutorError("model_inference_failed")
+                    assistant_turn = next(
+                        (
+                            turn for turn in conversations.list_turns(conversation_id)
+                            if turn["idempotency_key"] == assistant_key
+                        ),
+                        None,
+                    )
+                    if assistant_turn is None:
+                        raise NativeExecutorError("model_result_not_persisted")
+                content = assistant_turn["content"]
+                return {
+                    "operation": "model_inference",
+                    "provider": "ollama-local",
+                    "model": model,
+                    "conversation_id": conversation_id,
+                    "assistant_turn_id": assistant_turn["turn_id"],
+                    "content_sha256": sha256(content.encode("utf-8")).hexdigest(),
+                    "bytes": len(content.encode("utf-8")),
+                }
+        except NativeExecutorError:
+            raise
+        except (ConversationStoreError, OSError, sqlite3.Error, RuntimeError) as exc:
+            raise NativeExecutorError("model_inference_failed") from exc
 
 
 __all__ = ["NativeControlPlaneExecutor", "NativeExecutorError", "SUPPORTED_OPERATIONS"]

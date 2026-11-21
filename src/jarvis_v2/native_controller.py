@@ -18,6 +18,8 @@ import time
 from typing import Any
 
 from .automation.queue_api import CoordinatorQueue, QueueApiError, QueueEnvelope
+from .backend.ollama_gateway import LocalOllamaGateway
+from .backend.ollama_profile import OllamaInferenceProfile
 from .native_executor import NativeControlPlaneExecutor, NativeExecutorError, _load_configured_owner_keys
 
 
@@ -187,7 +189,12 @@ class NativeController:
                 raise NativeControllerError("executor result must be an object")
             receipt = _receipt(item.task_id, result)
             completed = self.queue.complete(item, ok=True, receipt=receipt)
-            return {"state": "completed", "task_id": item.task_id, "receipt": completed["receipt"]}
+            summary = {"state": "completed", "task_id": item.task_id, "receipt": completed["receipt"]}
+            task_key = sha256(item.task_id.encode("utf-8")).hexdigest()
+            expected_ref = f"native-{task_key}"
+            if result.get("operation") == "model_inference" and result.get("conversation_id") == expected_ref:
+                summary["result_ref"] = expected_ref
+            return summary
         except NativeControllerError as exc:
             reason = type(exc).__name__
         except Exception as exc:  # executor failures are recorded, not leaked
@@ -232,17 +239,32 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--lease-seconds", type=int, default=DEFAULT_LEASE_SECONDS)
     parser.add_argument("--poll-seconds", type=int, default=DEFAULT_POLL_SECONDS)
     parser.add_argument("--workspace", type=Path, default=os.environ.get("ARCHON_WORKSPACE"))
+    parser.add_argument(
+        "--ollama-model",
+        default=os.environ.get("ARCHON_OLLAMA_MODEL") or None,
+        help="enable signed local model_inference tasks through loopback Ollama",
+    )
     parser.add_argument("--once", action="store_true")
     parser.add_argument("--watch", action="store_true")
     args = parser.parse_args(argv)
     if args.once and args.watch:
         parser.error("--once and --watch are mutually exclusive")
     try:
+        owner_keys = _load_configured_owner_keys()
+        if args.ollama_model is not None and not owner_keys:
+            parser.error("--ollama-model requires the configured trusted owner key store")
+        model_gateway = None
+        if args.ollama_model is not None:
+            model_gateway = LocalOllamaGateway(
+                OllamaInferenceProfile(model=args.ollama_model, num_ctx=2_048),
+                timeout_seconds=45,
+            )
         executor = NativeControlPlaneExecutor(
             repository=args.repository,
             state_dir=args.state,
             workspace_root=args.workspace,
-            owner_keys=_load_configured_owner_keys(),
+            owner_keys=owner_keys,
+            model_gateway=model_gateway,
         )
         with NativeController(
             args.state,

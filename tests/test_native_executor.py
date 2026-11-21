@@ -7,6 +7,7 @@ import sqlite3
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 from cryptography.hazmat.primitives import serialization
@@ -14,7 +15,11 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 from jarvis_v2.automation.queue_api import QueueEnvelope
 from jarvis_v2.automation.queue_api import CoordinatorQueue
+from jarvis_v2.backend.conversation import ConversationStore
 from jarvis_v2.backend.effects import EffectJournal
+from jarvis_v2.backend.ollama_gateway import LocalOllamaGateway
+from jarvis_v2.backend.ollama_profile import OllamaInferenceProfile
+from jarvis_v2.backend.protocol_adapters import ProtocolResponse, ProtocolToolCall
 from jarvis_v2 import native_executor
 from jarvis_v2.native_executor import (
     NativeControlPlaneExecutor,
@@ -104,6 +109,101 @@ class NativeExecutorTests(unittest.TestCase):
         self.assertNotIn("workspace_write", result["enabled_operations"])
         self.assertEqual(result["domain_effect_handlers"], "not_configured")
 
+    def test_model_inference_requires_explicit_local_gateway_and_trusted_keys(self):
+        root, executor = self._executor()
+        task = QueueEnvelope("model-disabled", "P2", "core", {
+            "operation": "model_inference", "prompt": "hello",
+        })
+        result = executor(QueueEnvelope(
+            "capabilities-model-disabled", "P3", "core",
+            {"operation": "native_capabilities"},
+        ))
+        self.assertNotIn("model_inference", result["enabled_operations"])
+        self.assertIn("local Ollama", result["rejected_operations"]["model_inference"])
+        with self.assertRaisesRegex(NativeExecutorError, "model_inference_not_configured"):
+            executor(task)
+
+        gateway = LocalOllamaGateway(OllamaInferenceProfile(model="qwen3:4b", num_ctx=2_048))
+        keyed_executor = NativeControlPlaneExecutor(
+            repository=root,
+            state_dir=executor.state_dir,
+            model_gateway=gateway,
+        )
+        with self.assertRaisesRegex(NativeExecutorError, "trusted_owner_keys"):
+            keyed_executor(task)
+        self.assertNotIn("model_inference", keyed_executor.capabilities())
+
+    @patch.object(LocalOllamaGateway, "complete")
+    def test_model_inference_persists_private_turns_and_replays_idempotently(self, complete):
+        root = Path(tempfile.mkdtemp())
+        state = root / "state"
+        state.mkdir(mode=0o700)
+        private_key = Ed25519PrivateKey.generate()
+        public_key = private_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        gateway = LocalOllamaGateway(OllamaInferenceProfile(model="qwen3:4b", num_ctx=2_048))
+        complete.return_value = ProtocolResponse(
+            "ollama-local", "test-response", "qwen3:4b", "local answer", "stop",
+            tool_calls=(ProtocolToolCall("untrusted-call", "shell", {"command": "id"}),),
+        )
+        executor = NativeControlPlaneExecutor(
+            repository=root,
+            state_dir=state,
+            owner_keys={"test-owner": public_key},
+            model_gateway=gateway,
+        )
+        task = QueueEnvelope("model-idempotent", "P2", "core", {
+            "operation": "model_inference", "prompt": "hello local model",
+        })
+        first = executor(task)
+        replay = executor(task)
+        self.assertEqual(first, replay)
+        complete.assert_called_once_with("hello local model", model="qwen3:4b")
+        self.assertIn("model_inference", executor.capabilities())
+        self.assertNotIn("model_inference", executor.rejected_capabilities())
+
+        database = state / "conversations.sqlite3"
+        self.assertEqual(database.stat().st_mode & 0o777, 0o600)
+        with ConversationStore(database) as conversations:
+            turns = conversations.list_turns(first["conversation_id"])
+        self.assertEqual([turn["role"] for turn in turns], ["user", "assistant"])
+        self.assertEqual(turns[-1]["content"], "local answer")
+        self.assertEqual(turns[-1]["provider"], "ollama-local")
+        self.assertEqual(turns[-1]["tool_effects"], [])
+        self.assertEqual(first["content_sha256"], hashlib.sha256(b"local answer").hexdigest())
+
+    @patch.object(LocalOllamaGateway, "complete")
+    def test_model_inference_rejects_wrong_module_payload_and_prompt(self, complete):
+        root, base_executor = self._executor()
+        private_key = Ed25519PrivateKey.generate()
+        public_key = private_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        gateway = LocalOllamaGateway(OllamaInferenceProfile(model="qwen3:4b", num_ctx=2_048))
+        executor = NativeControlPlaneExecutor(
+            repository=root,
+            state_dir=base_executor.state_dir,
+            owner_keys={"test-owner": public_key},
+            model_gateway=gateway,
+        )
+        with self.assertRaisesRegex(NativeExecutorError, "model_inference_requires_core"):
+            executor(QueueEnvelope("wrong-module", "P2", "research", {
+                "operation": "model_inference", "prompt": "hello",
+            }))
+        with self.assertRaisesRegex(NativeExecutorError, "model_inference_payload_invalid"):
+            executor(QueueEnvelope("unapproved-destination", "P2", "core", {
+                "operation": "model_inference",
+                "prompt": "hello",
+                "base_url": "https://example.invalid",
+            }))
+        for prompt, error in (("\x00", "model_prompt_invalid"), ("x" * (16 * 1024 + 1), "model_prompt_too_large")):
+            with self.assertRaisesRegex(NativeExecutorError, error):
+                executor(QueueEnvelope("invalid-prompt", "P2", "core", {
+                    "operation": "model_inference", "prompt": prompt,
+                }))
+        complete.assert_not_called()
+
 
     def test_signed_workspace_write_is_bounded_and_idempotent(self):
         root, state, workspace, private_key, executor = self._workspace_executor()
@@ -191,6 +291,17 @@ class NativeExecutorTests(unittest.TestCase):
             )
         )
         self.assertEqual(result["status"], "ready")
+        self.assertEqual(result["integrity"], "ok")
+        conversations = executor.state_dir / "conversations.sqlite3"
+        with ConversationStore(conversations):
+            pass
+        conversations.chmod(0o600)
+        result = executor(
+            QueueEnvelope(
+                "database-conversations", "P3", "backend",
+                {"operation": "database_inspect", "database": "conversations"},
+            )
+        )
         self.assertEqual(result["integrity"], "ok")
         with self.assertRaisesRegex(NativeExecutorError, "database_name_not_allowed"):
             executor(

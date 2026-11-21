@@ -4,6 +4,7 @@ import argparse
 from hashlib import sha256
 import json
 import os
+import sqlite3
 from pathlib import Path
 import stat
 import sys
@@ -196,6 +197,45 @@ def _cancel_task(
     except QueueApiError as exc:
         raise ValueError("task cancellation failed") from exc
 
+def _native_task_result(path: str | Path, task_id: str) -> dict[str, str]:
+    if not isinstance(task_id, str) or not task_id or len(task_id) > 120 or any(ord(char) < 32 for char in task_id):
+        raise ValueError("task ID is invalid")
+    state = _state_directory(path)
+    database = state / "conversations.sqlite3"
+    if database.is_symlink() or not database.is_file():
+        raise ValueError("native task result is unavailable")
+    details = database.stat()
+    mode = stat.S_IMODE(details.st_mode)
+    if (
+        details.st_uid != os.geteuid()
+        or mode & 0o077
+        or mode & 0o400 == 0
+    ):
+        raise ValueError("native task result permissions are not private")
+
+    conversation_id = f"native-{sha256(task_id.encode('utf-8')).hexdigest()}"
+    try:
+        connection = sqlite3.connect(f"{database.resolve(strict=True).as_uri()}?mode=ro", uri=True)
+        try:
+            row = connection.execute(
+                "SELECT provider, model, content FROM conversation_turns "
+                "WHERE conversation_id=? AND role='assistant' ORDER BY sequence DESC LIMIT 1",
+                (conversation_id,),
+            ).fetchone()
+        finally:
+            connection.close()
+    except (OSError, sqlite3.Error) as exc:
+        raise ValueError("native task result is unavailable") from exc
+    if row is None:
+        raise ValueError("native task result is unavailable")
+    return {
+        "task_id": task_id,
+        "conversation_id": conversation_id,
+        "provider": row[0],
+        "model": row[1],
+        "content": row[2],
+    }
+
 
 def main(argv=None):
     p=argparse.ArgumentParser(prog="jarvis-v2")
@@ -204,6 +244,7 @@ def main(argv=None):
     init=s.add_parser("init");init.add_argument("--state",type=Path,default=Path(os.environ.get("ARCHON_STATE", DEFAULT_STATE)))
     submit=s.add_parser("submit");submit.add_argument("--state",type=Path,default=Path(os.environ.get("ARCHON_STATE", DEFAULT_STATE)));submit.add_argument("--task-file",required=True);submit.add_argument("--approval-file",type=Path,required=True)
     cancel=s.add_parser("cancel");cancel.add_argument("--state",type=Path,default=Path(os.environ.get("ARCHON_STATE", DEFAULT_STATE)));cancel.add_argument("--task-id",required=True);cancel.add_argument("--approval-file",type=Path,required=True)
+    result=s.add_parser("result");result.add_argument("--state",type=Path,default=Path(os.environ.get("ARCHON_STATE", DEFAULT_STATE)));result.add_argument("--task-id",required=True)
     i=s.add_parser("inventory")
     i.add_argument("--root",type=Path,default=Path("/"))
     i.add_argument("--max-entries",type=int,default=10000)
@@ -228,6 +269,10 @@ def main(argv=None):
             print(json.dumps(_cancel_task(args.state,args.task_id,args.approval_file),sort_keys=True))
         except (OSError,ValueError) as exc:
             print(f"jarvis-v2 cancel: {exc}",file=sys.stderr);return 2
+    elif args.command=="result":
+        try: print(json.dumps(_native_task_result(args.state,args.task_id),sort_keys=True))
+        except (OSError,ValueError,sqlite3.Error) as exc:
+            print(f"jarvis-v2 result: {exc}",file=sys.stderr);return 2
     elif args.command in ("modules","identities"):
         file=_config_file("identities.json" if args.command=="identities" else "modules.json")
         if file.exists(): print(file.read_text(encoding="utf-8"))
