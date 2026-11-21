@@ -1,50 +1,46 @@
 {
-  "schema_version": 2,
-  "verifier": "independent read-only QC subagent Zeno",
-  "observed_at": "2026-11-20",
-  "target_head": "1c27e2277a7a9f88d9d0dbd9bdac6c7b8f2f80e5",
-  "implementation_sha": "4149c1d75eee24880bfacd819342f9c21d05d51a",
-  "documentation_overlay": true,
-  "working_tree_at_qc": "clean",
-  "status": "CONDITIONAL",
-  "mutations": false,
-  "checks": {
-    "git_provenance": "pass",
-    "audit_json": "pass",
-    "diff_check": "pass",
-    "native_executor_focused": "8/8 pass",
-    "system_inventory_focused": "6/6 pass",
-    "native_one_shot": "pass",
-    "native_health": "pass",
-    "ledger_envelope": "pass",
-    "systemd_candidate": "pass",
-    "remote_publication": "partial",
-    "astra_boundary": "partial",
-    "native_release_completeness": "partial"
+  "schema_version": 5,
+  "qualified_application_source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85",
+  "source_tree": "7472b26bbc24538851a920ff89ac9a65206050a8",
+  "overall_release_verdict": "CONDITIONAL",
+  "overall_qc_status": "PENDING_FOR_FOLLOWUP_CANDIDATE",
+  "root_exact_source_verifier": {
+    "status": "PASS",
+    "exit_code": 0,
+    "tests": 635,
+    "passed": 635,
+    "failed": 0,
+    "skipped": 0
   },
-  "evidence": {
-    "source_ahead_of_remote": 36,
-    "overlay_ahead_of_remote": 37,
-    "behind_remote": 0,
-    "parent_envelope": "247 = 240 completed + 7 archived",
-    "children": 1359,
-    "receipt_rows": 1281,
-    "astra_timer": "enabled/active",
-    "astra_service": "inactive",
-    "astra_monitor_pid": 20774
+  "recorded_coordination_suite": {
+    "status": "PASS",
+    "tests": 191,
+    "seconds": 62.389,
+    "independent_review": "PASS for source 759; follow-up candidate pending"
   },
-  "skipped": [
-    "full regression rerun",
-    "long inventory scans",
-    "service cutover and watchdog activation",
-    "Astra retirement",
-    "cleanup archive moves or deletion",
-    "remote publication"
-  ],
-  "blockers": [
-    "legacy Astra timer and monitor remain active pending owner-approved cutover",
-    "native domain-effect handlers, unattended SDA/AEGIS ownership, trusted watchdog activation and rollback soak are not proven",
-    "local source and documentation overlay are not published to verified GitHub refs",
-    "high-impact cleanup remains owner-approval gated"
-  ]
+  "unavailable_exact_candidate_evidence": {
+    "python_3_11_install": "not evidenced",
+    "ollama_local_inference_soak": "not evidenced"
+  },
+  "independent_qc_receipt_sha256": null,
+  "final_hash_reconciliation": "PENDING",
+  "qualification_addendum_sha256": "d207ae3841092a77e231fb7cda821c2f564bc27c52dc884a226c9272994736ee",
+  "root_evidence_hashes": {
+    "release_manifest": "6db833ec41179e68326361278281be7275a6ffe98f5400d618515d4fc7e51aad",
+    "full_regression_report": "a7b455151c65b4662be9a1ef96f4c254271e8c43bb6512e109b3d0b360eea777",
+    "local_ci_report": "6f0cc7efe47ae69276b1690efbd949d7b53b4918bff1c64a080eb485cbfbbe15",
+    "security_report": "b73b0d2fb8077735ea5c0de7242d860bbbd04f1d585297dba2b76eedd7c7fe11",
+    "container_smoke_report": "41c5f4ad5e5148d9148401482c6fbff38b607d4833a547e090dda4032ba94445",
+    "coordination_suite_log": "0314683dd9b9640b3fb2861faec6e0c6cf145789ff1464e1f34350d341724772",
+    "archive_reload_report": "c7e26c4510e00dc847e5c9d5a2e9fb5a58ee17c9ce8db657191a974c949a8c55",
+    "sha256sums": "aca126d037c839f83458ee1d0ae00c554ac3f9be09f2b651984c5c4f33405b62"
+  },
+  "publication": "pending",
+  "independent_qc_for_source_759": "PASS",
+  "followup_docs_test_candidate": {
+    "focused_runbook_test": "PASS 1/1",
+    "full_exact_source_verifier": "PENDING",
+    "independent_qc": "PENDING",
+    "candidate_commit_sha": "pending_commit"
+  }
 }

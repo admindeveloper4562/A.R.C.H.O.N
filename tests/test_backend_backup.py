@@ -3,7 +3,9 @@ import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
+from jarvis_v2.backend import backup as backup_module
 from jarvis_v2.backend.backup import BackupError, BackupManager
 
 
@@ -90,6 +92,111 @@ class BackendBackupTests(unittest.TestCase):
             self.assertTrue(restored_receipt.encrypted)
             with sqlite3.connect(restored) as db:
                 self.assertEqual(db.execute("SELECT value FROM records").fetchone()[0], "preserved")
+
+    def test_plaintext_restore_uses_captured_bytes_after_backup_path_changes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source.sqlite"
+            backup = root / "backup.sqlite"
+            destination = root / "restored.sqlite"
+            self.make_database(source)
+            manager = BackupManager()
+            backup_receipt = manager.create(source, backup)
+            bounded_bytes = backup_module._bounded_bytes
+
+            def replace_after_capture(path, limit):
+                captured = bounded_bytes(path, limit)
+                path.write_bytes(b"changed after capture")
+                return captured
+
+            with patch.object(backup_module, "_bounded_bytes", side_effect=replace_after_capture):
+                receipt = manager.restore(backup, destination)
+
+            self.assertEqual(receipt.backup_sha256, backup_receipt.backup_sha256)
+            with sqlite3.connect(destination) as db:
+                self.assertEqual(db.execute("SELECT value FROM records").fetchone()[0], "preserved")
+
+    def test_encrypted_restore_uses_captured_bytes_after_backup_path_changes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source.sqlite"
+            backup = root / "backup.bin"
+            destination = root / "restored.sqlite"
+            self.make_database(source)
+            manager = BackupManager()
+            cipher = TestCipher()
+            backup_receipt = manager.create(source, backup, cipher=cipher)
+            bounded_bytes = backup_module._bounded_bytes
+
+            def replace_after_capture(path, limit):
+                captured = bounded_bytes(path, limit)
+                path.write_bytes(b"changed after capture")
+                return captured
+
+            with patch.object(backup_module, "_bounded_bytes", side_effect=replace_after_capture):
+                receipt = manager.restore(backup, destination, cipher=cipher)
+
+            self.assertEqual(receipt.backup_sha256, backup_receipt.backup_sha256)
+            self.assertTrue(receipt.encrypted)
+            with sqlite3.connect(destination) as db:
+                self.assertEqual(db.execute("SELECT value FROM records").fetchone()[0], "preserved")
+
+    def test_oversized_backup_is_rejected_before_digest_or_destination_creation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            backup = root / "oversized.sqlite"
+            destination = root / "restored.sqlite"
+            backup.write_bytes(b"x" * 17)
+            manager = BackupManager(max_backup_bytes=16)
+
+            with patch.object(backup_module, "_sha256") as digest:
+                with self.assertRaisesRegex(BackupError, "backup exceeds bounded size"):
+                    manager.restore(backup, destination)
+                digest.assert_not_called()
+
+            self.assertFalse(destination.exists())
+
+    def test_restore_staging_cannot_be_replaced_from_writable_destination_parent(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            shared = root / "shared"
+            shared.mkdir()
+            shared.chmod(0o777)
+            source = root / "source.sqlite"
+            backup = root / "backup.sqlite"
+            destination = shared / "restored.sqlite"
+            victim = root / "victim"
+            victim.mkdir()
+            sentinel = victim / "sentinel.txt"
+            sentinel.write_bytes(b"keep this file unchanged")
+            self.make_database(source)
+            manager = BackupManager()
+            manager.create(source, backup)
+            original_inspect = manager.inspect
+            swapped_staging = {}
+
+            def replace_staging_name(database):
+                if not swapped_staging:
+                    stage_fd = int(database.parts[4])
+                    stage_path = Path(os.readlink(f"/proc/self/fd/{stage_fd}"))
+                    moved = stage_path.with_name(stage_path.name + ".moved")
+                    stage_path.rename(moved)
+                    stage_path.symlink_to(victim, target_is_directory=True)
+                    swapped_staging.update(stage_path=stage_path, moved=moved)
+                return original_inspect(database)
+
+            with patch.object(manager, "inspect", side_effect=replace_staging_name):
+                manager.restore(backup, destination)
+
+            self.assertTrue(swapped_staging)
+            self.assertTrue(swapped_staging["stage_path"].is_symlink())
+            self.assertEqual(sentinel.read_bytes(), b"keep this file unchanged")
+            self.assertEqual({path.name for path in victim.iterdir()}, {"sentinel.txt"})
+            with sqlite3.connect(destination) as db:
+                self.assertEqual(db.execute("SELECT value FROM records").fetchone()[0], "preserved")
+            self.assertEqual(list(swapped_staging["moved"].iterdir()), [])
+            swapped_staging["stage_path"].unlink()
+            swapped_staging["moved"].rmdir()
 
     def test_wal_sidecar_mismatch_fails_closed(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -14,6 +14,7 @@ import json
 import os
 from pathlib import Path
 import sqlite3
+import stat
 import tempfile
 from typing import Any, Protocol
 from urllib.parse import quote
@@ -98,11 +99,33 @@ def _bounded_bytes(path: Path, limit: int) -> bytes:
     size = path.stat().st_size
     if size > limit:
         raise BackupError("backup exceeds bounded size")
-    return path.read_bytes()
+    with path.open("rb") as stream:
+        payload = stream.read(limit + 1)
+    if len(payload) > limit:
+        raise BackupError("backup exceeds bounded size")
+    return payload
+
+
+def _open_directory(path: str | Path, *, dir_fd: int | None = None) -> int:
+    """Open a directory without following a last-component symlink or race."""
+    before = os.stat(path, dir_fd=dir_fd, follow_symlinks=False)
+    if not stat.S_ISDIR(before.st_mode):
+        raise BackupError("restore path parent is not a directory")
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC | os.O_NOFOLLOW
+    fd = os.open(path, flags, dir_fd=dir_fd)
+    try:
+        after = os.fstat(fd)
+        if (before.st_dev, before.st_ino) != (after.st_dev, after.st_ino):
+            raise BackupError("restore path parent changed during open")
+    except Exception:
+        os.close(fd)
+        raise
+    return fd
 
 
 def _sqlite_uri(path: Path) -> str:
-    return "file:" + quote(str(path.resolve()), safe="/:\\") + "?mode=ro"
+    value = str(path) if str(path).startswith("/proc/self/fd/") else str(path.resolve())
+    return "file:" + quote(value, safe="/:\\") + "?mode=ro"
 
 
 def _sidecar(path: Path, suffix: str) -> Path:
@@ -299,53 +322,90 @@ class BackupManager:
         if not backup_path.is_file():
             raise BackupError("backup does not exist")
         _validate_cipher(cipher)
-        backup_sha256 = _sha256(backup_path)
+        backup_bytes = _bounded_bytes(backup_path, self.max_backup_bytes)
+        backup_sha256 = hashlib.sha256(backup_bytes).hexdigest()
         if expected_sha256 is not None and backup_sha256 != expected_sha256:
             raise BackupError("backup digest does not match expected value")
+        if cipher is None:
+            raw_bytes = backup_bytes
+            encrypted = False
+        else:
+            raw_bytes = _unseal(cipher, backup_bytes)
+            if len(raw_bytes) > self.max_backup_bytes:
+                raise BackupError("opened backup exceeds bounded size")
+            encrypted = True
+
         destination_path.parent.mkdir(parents=True, exist_ok=True)
-        raw_path: Path | None = None
+        destination_parent = destination_path.parent.resolve(strict=True)
+        destination_dir_fd = _open_directory(destination_parent)
         try:
-            if cipher is None:
-                raw_path = backup_path
-                encrypted = False
-            else:
-                raw_path = Path(tempfile.mkstemp(prefix=".archon-restore-", dir=destination_path.parent)[1])
-                os.chmod(raw_path, 0o600)
-                raw_path.write_bytes(_unseal(cipher, _bounded_bytes(backup_path, self.max_backup_bytes)))
-                if raw_path.stat().st_size > self.max_backup_bytes:
-                    raise BackupError("opened backup exceeds bounded size")
-                encrypted = True
-            inspection = self.inspect(raw_path)
-            if expected_schema_version is not None and inspection["schema_version"] != expected_schema_version:
-                raise BackupError("restored schema version does not match expected value")
-            destination_path.parent.mkdir(parents=True, exist_ok=True)
-            temporary_destination = Path(
-                tempfile.mkstemp(prefix=".archon-restored-", dir=destination_path.parent)[1]
-            )
-            temporary_destination.unlink()
-            try:
-                self._copy_sqlite(raw_path, temporary_destination)
-                restored = self.inspect(temporary_destination)
-                os.link(temporary_destination, destination_path)
-                os.chmod(destination_path, 0o600)
-            except FileExistsError as exc:
-                raise BackupError("destination already exists") from exc
-            finally:
-                temporary_destination.unlink(missing_ok=True)
-            return RestoreReceipt(
-                backup_path=str(backup_path),
-                destination_path=str(destination_path),
-                backup_sha256=backup_sha256,
-                restored_sha256=_sha256(destination_path),
-                size_bytes=destination_path.stat().st_size,
-                schema_version=restored["schema_version"],
-                journal_mode=restored["journal_mode"],
-                integrity=restored["integrity"],
-                encrypted=encrypted,
-            )
+            staging_parent = Path(f"/proc/self/fd/{destination_dir_fd}")
+            with tempfile.TemporaryDirectory(
+                prefix=".archon-restore-", dir=staging_parent, ignore_cleanup_errors=True
+            ) as staging_name:
+                staging_name = Path(staging_name).name
+                staging_dir_fd = _open_directory(staging_name, dir_fd=destination_dir_fd)
+                try:
+                    staging_metadata = os.fstat(staging_dir_fd)
+                    if staging_metadata.st_uid != os.geteuid() or staging_metadata.st_mode & 0o077:
+                        raise BackupError("restore staging directory permissions are unsafe")
+
+                    staging_path = Path(f"/proc/self/fd/{staging_dir_fd}")
+                    raw_name = "backup.sqlite"
+                    raw_fd = os.open(
+                        raw_name,
+                        os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | os.O_CLOEXEC,
+                        0o600,
+                        dir_fd=staging_dir_fd,
+                    )
+                    with os.fdopen(raw_fd, "wb") as stream:
+                        stream.write(raw_bytes)
+                    raw_path = staging_path / raw_name
+                    inspection = self.inspect(raw_path)
+                    if (
+                        expected_schema_version is not None
+                        and inspection["schema_version"] != expected_schema_version
+                    ):
+                        raise BackupError("restored schema version does not match expected value")
+
+                    destination_name = "restored.sqlite"
+                    temporary_destination = staging_path / destination_name
+                    self._copy_sqlite(raw_path, temporary_destination)
+                    restored = self.inspect(temporary_destination)
+                    restored_sha256 = _sha256(temporary_destination)
+                    size_bytes = temporary_destination.stat().st_size
+                    try:
+                        os.link(
+                            destination_name,
+                            destination_path.name,
+                            src_dir_fd=staging_dir_fd,
+                            dst_dir_fd=destination_dir_fd,
+                            follow_symlinks=False,
+                        )
+                    except FileExistsError as exc:
+                        raise BackupError("destination already exists") from exc
+                    return RestoreReceipt(
+                        backup_path=str(backup_path),
+                        destination_path=str(destination_path),
+                        backup_sha256=backup_sha256,
+                        restored_sha256=restored_sha256,
+                        size_bytes=size_bytes,
+                        schema_version=restored["schema_version"],
+                        journal_mode=restored["journal_mode"],
+                        integrity=restored["integrity"],
+                        encrypted=encrypted,
+                    )
+                finally:
+                    try:
+                        for name in os.listdir(staging_dir_fd):
+                            try:
+                                os.unlink(name, dir_fd=staging_dir_fd)
+                            except FileNotFoundError:
+                                pass
+                    finally:
+                        os.close(staging_dir_fd)
         finally:
-            if raw_path is not None and raw_path != backup_path:
-                raw_path.unlink(missing_ok=True)
+            os.close(destination_dir_fd)
 
 
 SQLiteBackup = BackupManager

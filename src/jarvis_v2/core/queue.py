@@ -62,14 +62,24 @@ class TaskQueue:
         self.intents = OwnerIntentRouter(self.db, queue=self)
         self.timeline_view = TaskTimeline(self.db)
 
-    def add(self, *, task_id: str, priority: str, module: str, payload: dict, title: str = '') -> None:
+    def add(
+        self,
+        *,
+        task_id: str,
+        priority: str,
+        module: str,
+        payload: dict,
+        title: str = '',
+        event_detail: str = 'queued',
+    ) -> None:
         if (priority not in PRIORITIES or not task_id or not module or not isinstance(payload, dict)
-                or not isinstance(title, str) or len(title) > 180 or any(ord(c) < 32 for c in title)):
+                or not isinstance(title, str) or len(title) > 180 or any(ord(c) < 32 for c in title)
+                or not isinstance(event_detail, str) or not event_detail or len(event_detail) > 8192):
             raise ValueError("invalid task input")
         with self.db:
             seq = self.db.execute("SELECT COALESCE(MAX(created_id),0)+1 FROM tasks").fetchone()[0]
             self.db.execute("INSERT INTO tasks (id,priority,module,payload,state,created_id,lease,receipt,title) VALUES (?,?,?,?,?,?,?,?,?)", (task_id, PRIORITIES.index(priority), module, json.dumps(payload,sort_keys=True), "pending", seq, None, None, title))
-            self._emit_event(task_id, "pending", "queued")
+            self._emit_event(task_id, "pending", event_detail)
 
     def block(self, task_id: str, *, reason: str, lease: str | None = None) -> None:
         """Fence pending or leased work without allowing a stale owner to block it."""

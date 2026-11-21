@@ -1,0 +1,36 @@
+services:
+  archon:
+    build:
+      context: .
+      args:
+        ARCHON_SOURCE_SHA: ${ARCHON_SOURCE_SHA:-unknown}
+        SOURCE_DATE_EPOCH: ${SOURCE_DATE_EPOCH:-0}
+        PYTHONHASHSEED: ${PYTHONHASHSEED:-0}
+    image: archon-local:0.0.3
+    init: true
+    user: "10001:10001"
+    read_only: true
+    network_mode: none
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,noexec,size=32m
+    environment:
+      ARCHON_STATE: /var/lib/archon
+      ARCHON_WORKSPACE: /workspace
+    volumes:
+      - archon-state:/var/lib/archon
+      - archon-workspace:/workspace
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "jarvis-v2", "health", "--state", "/var/lib/archon", "--repo", "/app"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+volumes:
+  archon-state:
+  archon-workspace:

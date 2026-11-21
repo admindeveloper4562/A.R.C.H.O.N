@@ -3,6 +3,7 @@ import unittest
 from pathlib import Path
 
 from jarvis_v2.automation.queue_api import CoordinatorQueue, QueueApiError, QueueEnvelope
+from tests.queue_admission import enqueue_approved
 
 
 class CoordinatorLeaseTests(unittest.TestCase):
@@ -11,7 +12,7 @@ class CoordinatorLeaseTests(unittest.TestCase):
 
     def test_renewal_extends_a_live_lease_and_completion_is_idempotent(self):
         with CoordinatorQueue.open(Path(tempfile.mkdtemp()) / "queue.sqlite", clock=lambda: self.now[0]) as queue:
-            queue.enqueue(task_id="AUTO-004", priority="P1", module="automation", payload={})
+            enqueue_approved(queue, task_id="AUTO-004", priority="P1", module="automation", payload={})
             item = queue.lease_next(lease_seconds=5)
             renewed = queue.renew(item, lease_seconds=20)
             self.now[0] += 10
@@ -20,7 +21,7 @@ class CoordinatorLeaseTests(unittest.TestCase):
 
     def test_expired_lease_is_requeued_and_old_owner_cannot_complete(self):
         with CoordinatorQueue.open(Path(tempfile.mkdtemp()) / "queue.sqlite", clock=lambda: self.now[0]) as queue:
-            queue.enqueue(task_id="AUTO-004", priority="P1", module="automation", payload={})
+            enqueue_approved(queue, task_id="AUTO-004", priority="P1", module="automation", payload={})
             item = queue.lease_next(lease_seconds=5)
             self.now[0] += 6
             with self.assertRaises(QueueApiError):
@@ -30,7 +31,7 @@ class CoordinatorLeaseTests(unittest.TestCase):
 
     def test_stale_or_invalid_renewals_do_not_change_the_queue(self):
         with CoordinatorQueue.open(Path(tempfile.mkdtemp()) / "queue.sqlite", clock=lambda: self.now[0]) as queue:
-            queue.enqueue(task_id="AUTO-004", priority="P1", module="automation", payload={})
+            enqueue_approved(queue, task_id="AUTO-004", priority="P1", module="automation", payload={})
             item = queue.lease_next(lease_seconds=5)
             with self.assertRaises(QueueApiError):
                 queue.renew(item, lease_seconds=0)

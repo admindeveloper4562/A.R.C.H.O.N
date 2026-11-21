@@ -1,11 +1,15 @@
-# Remaining limitations
+# Remaining Linux release limitations
 
-1. The final canonical feature SHA `2fec1e3` is published and matches its remote feature ref; `main` remains unchanged and remote `develop` remains at `75582db`.
-2. Native ARCHON imports and local contracts pass, but a complete native unattended SDA/AEGIS cutover with one-writer fencing, crash recovery, trusted watchdog activation, and rollback soak is not evidenced.
-3. The legacy Astra timer/service are disabled or absent and no Astra process remains. Historical state/worktrees are retained; native unattended recovery, trusted watchdog activation, and rollback soak remain unproven.
-4. Seven parent tasks remain archived/deferred. They are visible in the historical ledger and are not counted as completed.
-5. pytest, hosted CI, the Codex Security diff-scan artifact, Windows hardware/Ollama, iOS/macOS, Blender execution, live feeds, external model providers, Cloudflare operations, real finance, and real communications were not run or verified.
-6. The filesystem inventory is bounded and does not claim complete root visibility; permission-denied paths, virtual filesystems, mount boundaries, and truncation are recorded.
-7. The exact owner-approved cleanup batch reclaimed 2,838,614,016 bytes. Old clones, unique worktrees, the historical database, final-audit checkpoint, and native reset quarantine remain because they were not individually proven disposable.
-8. The code catalog reports 6,800 unresolved static references and 1,733 suspected unused paths. These are heuristic and require caller-aware review; they are not defects by themselves.
-9. Independent bounded QC covers documentation-only ancestor `1c27e22` and implementation ancestor `4149c1d` with focused native/inventory checks; the exact final checkout passed 590 tests, but no separate independent receipt was generated for the docs-only final SHA and no cutover was approved.
+The verdict for source 759e78dc04c61ed7f01a4b714d35ab8c999d2a85 remains CONDITIONAL. Exact-source regression, local CI, reproducible packaging, security scans, container smoke, and archive reload passed. Material gates remain open.
+
+1. All ten module CLI states are planned. Registration and component tests do not establish operational acceptance.
+2. Full ALFRED/SAGE/HORIZON assistant flow, SMITH autonomous change through QC/PR/merge, and controlled-clock RELAY/ATLAS workflow were not run end to end.
+3. Independent protected AEGIS watchdog operation, unattended recovery, and verified rollback are not qualified.
+4. Production signed owner delegation and native SDA cutover are not qualified.
+5. Exact-candidate Ollama/local-inference soak and multi-hour operation are not evidenced.
+6. Python 3.11 installation acceptance is not in the exact-candidate evidence bundle. Windows, Apple, and hardware-specific validation remain deferred.
+7. Live external feeds/providers, finance, and communications were not tested; finance and communications effects remain disabled.
+8. GitHub Actions was not run because billing was unavailable; local CI does not replace hosted enforcement.
+9. Independent QC passed for root source 759e, but the follow-up runbook/test candidate awaits full exact-source verification and QC. Candidate publication is pending; refresh remote refs and ancestry before any push.
+
+The runbook marker test passed 1/1; root-source report and evidence hashes are in QUALIFICATION_ADDENDUM_759E78D.json (SHA-256 d207ae3841092a77e231fb7cda821c2f564bc27c52dc884a226c9272994736ee).

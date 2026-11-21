@@ -1,0 +1,297 @@
+{
+  "archive_reload": {
+    "archive_sha256": "4a6d21a613c9611c63c94c2a2410b1817c53c574ed49d5e537d86dbc9a258709",
+    "exit_code": "0",
+    "health": "healthy",
+    "module_keys": [
+      "core",
+      "sda",
+      "backend",
+      "runtime",
+      "research",
+      "tws",
+      "wic",
+      "finance",
+      "guardian",
+      "automation"
+    ],
+    "module_states": [
+      "planned",
+      "planned",
+      "planned",
+      "planned",
+      "planned",
+      "planned",
+      "planned",
+      "planned",
+      "planned",
+      "planned"
+    ],
+    "result": "passed",
+    "source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85"
+  },
+  "candidate": {
+    "package_version": "0.0.3",
+    "source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85",
+    "source_tree": "7472b26bbc24538851a920ff89ac9a65206050a8"
+  },
+  "container": {
+    "commands": 47,
+    "exit_code": 0,
+    "fresh_state": true,
+    "image_archive_sha256": "4a6d21a613c9611c63c94c2a2410b1817c53c574ed49d5e537d86dbc9a258709",
+    "network_mode": "none",
+    "result": "passed",
+    "security_profile": "10001:10001|true|[\"ALL\"]|none|[\"no-new-privileges:true\"]",
+    "sqlite_integrity": {
+      "atlas.sqlite3": "ok",
+      "effects.sqlite3": "ok",
+      "runtime.sqlite3": "ok"
+    },
+    "task_receipts": {
+      "approved_workspace_write": {
+        "receipt": "25f4a3dcf0c79c79d6aa58bbbc58b198938d492d05c34ba28088b7dc42880793",
+        "state": "completed"
+      },
+      "cancelled_pending_task": "cancelled",
+      "interrupted_effect_recovery": {
+        "receipt": "e31f61191de25f35046de8fd7284db8960834e053f91e4af9cbcd069642ddf9b",
+        "state": "completed"
+      },
+      "read_only": {
+        "receipt": "5a9f55ee956bd121300f968da663daf19e223d6e9a0ed343d891a7ac5dff5716",
+        "state": "completed"
+      },
+      "unauthorized_admission": "rejected_without_queue_entry",
+      "unauthorized_write": {
+        "receipt": "cd054820571dc766a41154b36005bd9be739c85623169a6977f98ba4d68ec704",
+        "state": "failed"
+      }
+    }
+  },
+  "coordination": {
+    "independent_coordination_archive_qc": "PENDING",
+    "result": "passed",
+    "seconds": 62.389,
+    "tests": 191
+  },
+  "evidence_files": [
+    {
+      "bytes": 1663,
+      "file": "release-manifest.json",
+      "sha256": "6db833ec41179e68326361278281be7275a6ffe98f5400d618515d4fc7e51aad",
+      "source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85"
+    },
+    {
+      "bytes": 162,
+      "file": "full-regression-report.json",
+      "sha256": "a7b455151c65b4662be9a1ef96f4c254271e8c43bb6512e109b3d0b360eea777",
+      "source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85"
+    },
+    {
+      "bytes": 22703,
+      "file": "local-ci-report.json",
+      "sha256": "6f0cc7efe47ae69276b1690efbd949d7b53b4918bff1c64a080eb485cbfbbe15",
+      "source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85"
+    },
+    {
+      "bytes": 815,
+      "file": "security-report.json",
+      "sha256": "b73b0d2fb8077735ea5c0de7242d860bbbd04f1d585297dba2b76eedd7c7fe11",
+      "source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85"
+    },
+    {
+      "bytes": 29190,
+      "file": "container-smoke-report.json",
+      "sha256": "41c5f4ad5e5148d9148401482c6fbff38b607d4833a547e090dda4032ba94445",
+      "source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85"
+    },
+    {
+      "bound_source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85",
+      "bytes": 178,
+      "file": "container-smoke-summary.json",
+      "sha256": "8d591cb2d35b5887a1e3fcbfec6c1de1d1361e2a5a0ec0dbaeac2fa5c616d24a"
+    },
+    {
+      "bound_source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85",
+      "bytes": 31296,
+      "file": "coordination-suite.log",
+      "sha256": "0314683dd9b9640b3fb2861faec6e0c6cf145789ff1464e1f34350d341724772"
+    },
+    {
+      "bytes": 7139,
+      "file": "archive-reload/archive-reload-report.json",
+      "sha256": "c7e26c4510e00dc847e5c9d5a2e9fb5a58ee17c9ce8db657191a974c949a8c55",
+      "source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85"
+    },
+    {
+      "bound_source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85",
+      "bytes": 287,
+      "file": "SHA256SUMS.txt",
+      "sha256": "aca126d037c839f83458ee1d0ae00c554ac3f9be09f2b651984c5c4f33405b62"
+    },
+    {
+      "bound_source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85",
+      "bytes": 24044,
+      "file": "dependency-inventory.json",
+      "sha256": "4b19c7cdc088704e892d5b77b62a2204d9ef5803e2e2a20fbf1a41e19c7c5b73"
+    },
+    {
+      "bound_source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85",
+      "bytes": 101494,
+      "file": "logs/full-regression.log",
+      "sha256": "7650a958c35a458181463968bbdb4880120acd122c52b579d81f2c5093ea92a5"
+    },
+    {
+      "bound_source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85",
+      "bytes": 40019,
+      "file": "logs/rebuild-wheel-and-sdist.log",
+      "sha256": "c7208ea3d8d00c31a05f1caff229c613f8828d9cef945b8c9a4f06cba744cc59"
+    },
+    {
+      "bound_source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85",
+      "bytes": 101,
+      "file": "logs/verify-release-checksums.log",
+      "sha256": "5f4d43685b56b3e89bfd6b30df22b6d2dc36baa4b3afb2b92506305b41911bb3"
+    },
+    {
+      "bound_source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85",
+      "bytes": 343,
+      "file": "logs/pip-audit.log",
+      "sha256": "560fd0b8229f672ac9bf42c7221e23a2128fc8206cfaeb493738f90585eb67a2"
+    },
+    {
+      "bound_source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85",
+      "bytes": 0,
+      "file": "logs/local-dependency_scan.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bound_source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85",
+      "bytes": 0,
+      "file": "logs/local-secret_scan.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bound_source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85",
+      "bytes": 0,
+      "file": "logs/local-security_scan.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bound_source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85",
+      "bytes": 145,
+      "file": "logs/clean-container-acceptance.log",
+      "sha256": "faeead08ccf4b2c7880a8524fc7b1aa472e366ac8e347f88ad78c932a52f9590"
+    },
+    {
+      "bound_source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85",
+      "bytes": 185,
+      "file": "logs/install-wheel.log",
+      "sha256": "8767b8756666fc70c18e9be2b74b370337f1043116360d3e8d4049988ecc3e17"
+    },
+    {
+      "bound_source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85",
+      "bytes": 785,
+      "file": "logs/install-sdist.log",
+      "sha256": "aa6909c51594f7bfcb9d8bf1ac6d7ed3b40f7f070f764543097101d0ff22b0df"
+    },
+    {
+      "bound_source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85",
+      "bytes": 30,
+      "file": "logs/wheel-pip-check.log",
+      "sha256": "9261363b733079a641c2e4cc9bc46ffa1d8336945a87f807b6cf68847dbc9b09"
+    },
+    {
+      "bound_source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85",
+      "bytes": 30,
+      "file": "logs/sdist-pip-check.log",
+      "sha256": "9261363b733079a641c2e4cc9bc46ffa1d8336945a87f807b6cf68847dbc9b09"
+    },
+    {
+      "bound_source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85",
+      "bytes": 961,
+      "file": "archive-reload/health-cli.log",
+      "sha256": "948804840e05aac1f7e8c2fbad9e13a8af147d54fce866ff40dca856dd88255c"
+    },
+    {
+      "bound_source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85",
+      "bytes": 1333,
+      "file": "archive-reload/module-cli.log",
+      "sha256": "9036d0389541e3c5132403f15bf3708b8061c76dce8251b02db972fd85d792e0"
+    },
+    {
+      "bound_source_sha": "759e78dc04c61ed7f01a4b714d35ab8c999d2a85",
+      "bytes": 57,
+      "file": "archive-reload/container-security.log",
+      "sha256": "f43721b92ad617fbccf5635acf96dcc77b77b1f8bf3070277ec839904e8fb242"
+    }
+  ],
+  "independent_qc": {
+    "source_759": "passed per independent review; report hash pending final reconciliation"
+  },
+  "local_ci": {
+    "checks": 42,
+    "expected_negative_checks": [
+      {
+        "name": "wheel-cli-rejects-caller-trust-store",
+        "returncode": 2
+      },
+      {
+        "name": "wheel-pip-uninstalled",
+        "returncode": 1
+      }
+    ],
+    "hosted_actions": "not_run_github_actions_billing_unavailable",
+    "result": "passed",
+    "returncode_counts": {
+      "0": 40,
+      "1": 1,
+      "2": 1
+    }
+  },
+  "overall_verdict": "CONDITIONAL",
+  "package": {
+    "build_python": "3.12.3",
+    "declared_requires_python": ">=3.11",
+    "duplicate_build_reproducibility": "passed",
+    "python_3_11_install": "not evidenced in this exact-candidate bundle",
+    "sdist": {
+      "bytes": 346655,
+      "sha256": "9f585df16ac92b14d088a69fb20fa24a3573029ecefc873a526b8f982af70aeb"
+    },
+    "wheel": {
+      "bytes": 303942,
+      "sha256": "66d6ac2e977c65f7d48321852d7021383ab3c38540f2299612a56d93dd15f879"
+    },
+    "wheel_file_count": 116
+  },
+  "regression": {
+    "failed": 0,
+    "passed": 635,
+    "result": "passed",
+    "skipped": 0,
+    "tests": 635,
+    "unittest_seconds": 47.793,
+    "wall_seconds": 48.243
+  },
+  "schema_version": 1,
+  "security": {
+    "known_vulnerabilities": 0,
+    "local_scans": {
+      "dependency_scan": "passed",
+      "secret_scan": "passed",
+      "security_scan": "passed"
+    },
+    "pip_audit_version": "pip-audit==2.10.1"
+  },
+  "sensitive_test_key_and_approval_payloads_included": false,
+  "unavailable_or_unverified": [
+    "Python 3.11 install evidence for exact candidate",
+    "Ollama/local-inference extended soak for exact candidate",
+    "multi-hour soak",
+    "independent AEGIS watchdog and rollback",
+    "full cross-module workflows",
+    "independent QC report hash reconciliation"
+  ]
+}

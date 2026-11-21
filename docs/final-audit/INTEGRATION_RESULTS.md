@@ -1,23 +1,7 @@
-# Integration results
+# Linux integration results
 
-Source under test: `/home/r34p3r/dev/A.R.C.H.O.N` at final checkout `2fec1e3459252f97fe900a6ade2d15e48894c70b`; production source is unchanged from implementation `4149c1d75eee24880bfacd819342f9c21d05d51a`.
+Application source SHA: 759e78dc04c61ed7f01a4b714d35ab8c999d2a85. Root suite: 635/635. Local CI equivalent: 42 expected checks. Coordination suite: 191/191 in 62.389 seconds.
 
-| Check | Command/evidence | Result |
-| --- | --- | --- |
-| Native import sweep | PYTHONPATH=src; import all 106 jarvis_v2 modules | PASS |
-| Module and identity CLI | python3 -m jarvis_v2.cli modules/identities | PASS |
-| Native monitor | tools/atlas_monitor.py --source atlas against fresh atlas.sqlite3 | PASS; empty queue |
-| Default monitor boundary | tools/atlas_monitor.py --json with both native and historical state present | PASS; selects native ATLAS; Astra requires explicit `--source astra` |
-| Fresh storage | StorageManager migration into runtime.sqlite3 | PASS |
-| Fresh queue | TaskQueue schema into atlas.sqlite3 | PASS |
-| Fresh restore | SQLite backup API plus integrity/foreign-key checks | PASS |
-| FTS5 index | 552 files indexed from 553 cataloged files, including systemd and Windows deployment files; four representative queries returned results | PASS |
-| Astra unavailable native import | PYTHONPATH=src without bootstrap path | PASS for native imports |
-| Native controller | Fresh one-shot, lock fencing, control-marker admission, executor success/failure receipts, eight bounded read-only probes, resumable inventory cursor, terminate/restart, and systemd unit verification | PASS for bounded read-only operations; unit not installed and domain-effect handlers not configured |
-| Native health | `jarvis_v2.cli health` against fresh runtime/ATLAS state; historical ledger explicitly not loaded | PASS |
-| Host capability inventory | Bounded root metadata scan plus Ollama model listing, NVIDIA acceleration probe, and private continuation cursor | PASS; 10,000 entries, 3,459 pending frames, scan truncated by bound |
-| Full regression | 590 unittest cases at 2fec1e3 | PASS; 29.365 seconds, exit 0 |
-| Independent focused QC | Current overlay 1c27e22; native executor 8/8 and inventory 6/6 | PASS; full suite was not rerun independently |
-| Security/dependency checks | local dependency, secret, and security scans | PASS |
+Wheel and sdist duplicate builds matched. Python 3.12.3 package/CLI checks passed. Clean-container smoke and saved-image archive reload passed with fresh state, no network, non-root identity, read-only root filesystem, all capabilities dropped, no-new-privileges, and SQLite integrity. The bounded fixture covered read-only work, one approved workspace write, unauthorized admission/effect rejection, cancellation, interrupted-effect recovery, restart, and persistence.
 
-This is a controlled Linux integration result, not proof of complete release operation. The fresh native state intentionally has no task ledger, credentials, personal records, or external accounts.
+All ten module names registered, but all ten reported states are planned. Exact-candidate Python 3.11 installation and Ollama soak are not evidenced. Full ALFRED/SAGE/HORIZON assistant orchestration, SMITH/QC/PR/merge, controlled-clock RELAY/ATLAS, and independent AEGIS process recovery remain unverified. The backup/restore runbook regression passed 1/1 after executing both snippets and confirming safe_mode with all markers present. Independent QC passed for the source-759 root candidate; the follow-up docs/test candidate awaits full exact-source verification and QC. Verdict remains CONDITIONAL.
