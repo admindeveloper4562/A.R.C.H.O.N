@@ -166,6 +166,13 @@
     "main_sha": "5227b91d2725bf4be4336a5ad26189fdf1034704",
     "published": false
   },
+  "publication_result": {
+    "candidate_commit": "bd66b6411c8de4cd4e6709b1cefbc60d57865c06",
+    "develop_integration_sha": "67e8689da898fb62026fdfbd1875bc9bbf64f783",
+    "main_sha_unchanged": "5227b91d2725bf4be4336a5ad26189fdf1034704",
+    "pull_request": 7,
+    "result": "merged"
+  },
   "independent_qc": {
     "candidate_source_sha": "2e24790c983bf3c8d2d0f99de7a086427355f172",
     "container_archive_comparison": {

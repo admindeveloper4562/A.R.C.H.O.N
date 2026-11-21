@@ -6,7 +6,7 @@ Assessment date: 2026-11-22. Verdict: **CONDITIONAL**.
 
 - Application code candidate: `2e24790c983bf3c8d2d0f99de7a086427355f172`; source tree `5dc151512b5df78ecf5e911a93222ad2a44fb94b`.
 - Package: `0.0.3`, Python `>=3.11`.
-- Exact-candidate evidence index: [QUALIFICATION_ADDENDUM_2E24790.json](QUALIFICATION_ADDENDUM_2E24790.json), SHA-256 `bcae276aa8843c47337a5a8f98404f4e8b1ebd7df2e6c2aaa694ff0d78b88582`. This identifies the code candidate separately from the later audit-document commit.
+- Exact-candidate evidence index: [QUALIFICATION_ADDENDUM_2E24790.json](QUALIFICATION_ADDENDUM_2E24790.json), SHA-256 `c4385f8027dacb724cea2cccd1604ea92d717c78470d88d57156cab0bc9e0497`. This identifies the code candidate separately from the later audit-document commit.
 
 ## Results
 
