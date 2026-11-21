@@ -90,12 +90,14 @@ class Verification:
         for directory in (self.logs, self.dist, self.work):
             directory.mkdir(parents=True, exist_ok=True)
         self.environment = os.environ.copy()
-        for name in ("PYTHONPATH", "PYTHONHOME", "VIRTUAL_ENV"):
+        for name in ("PYTHONPATH", "PYTHONHOME", "VIRTUAL_ENV", "FORCE_COLOR", "CLICOLOR_FORCE"):
             self.environment.pop(name, None)
         self.environment.update({
+            "NO_COLOR": "1",
             "PIP_CONFIG_FILE": os.devnull,
             "PIP_DISABLE_PIP_VERSION_CHECK": "1",
             "PIP_NO_CACHE_DIR": "1",
+            "PIP_NO_COLOR": "1",
             "PYTHONDONTWRITEBYTECODE": "1",
             "PYTHONNOUSERSITE": "1",
         })

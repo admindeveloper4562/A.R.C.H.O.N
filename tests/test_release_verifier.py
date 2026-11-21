@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import os
 import sys
 import tempfile
 import unittest
@@ -28,6 +29,16 @@ class VerificationSubprocessTests(unittest.TestCase):
             with patch.object(verifier, "run", return_value=result):
                 with self.assertRaisesRegex(RuntimeError, "numeric SOURCE_DATE_EPOCH"):
                     verifier.source_date_epoch("b" * 40)
+
+    def test_color_environment_is_sanitized_for_machine_readable_tools(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.dict(os.environ, {"FORCE_COLOR": "1", "CLICOLOR_FORCE": "1"}, clear=False):
+                verifier = Verification(Path(directory))
+
+        self.assertNotIn("FORCE_COLOR", verifier.environment)
+        self.assertNotIn("CLICOLOR_FORCE", verifier.environment)
+        self.assertEqual(verifier.environment["NO_COLOR"], "1")
+        self.assertEqual(verifier.environment["PIP_NO_COLOR"], "1")
 
     def test_records_an_expected_nonzero_exit(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
