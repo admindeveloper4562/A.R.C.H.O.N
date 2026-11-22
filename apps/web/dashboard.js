@@ -7,6 +7,7 @@
     conversationId = crypto.randomUUID();
     sessionStorage.setItem(conversationKey, conversationId);
   }
+  const activeStates = new Set(["active", "online", "ready", "running"]);
 
   async function getJson(path) {
     const response = await fetch(path, { cache: "no-store" });
@@ -14,28 +15,82 @@
     return response.json();
   }
 
+  function stateName(value) {
+    return String(value || "unreported").trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-");
+  }
+
   function renderModules(modules) {
-    const grid = byId("module-grid");
-    grid.replaceChildren();
-    byId("module-count").textContent = `${modules.length} manifest entries`;
-    modules.forEach((module) => {
-      const card = document.createElement("article");
-      card.className = "module-card";
-      const head = document.createElement("div");
-      head.className = "module-head";
-      const key = document.createElement("span");
-      key.className = "module-key";
-      key.textContent = module.key || "unknown";
-      const state = document.createElement("span");
-      state.className = "module-state";
-      state.textContent = module.state || "unreported";
-      head.append(key, state);
-      const name = document.createElement("p");
-      name.className = "module-name";
-      name.textContent = module.name || module.key || "Unnamed module";
-      card.append(head, name);
-      grid.append(card);
+    const nav = byId("module-nav");
+    const nodes = byId("module-nodes");
+    const statusList = byId("module-status-list");
+    nav.replaceChildren();
+    nodes.replaceChildren();
+    statusList.replaceChildren();
+    const active = modules.filter((module) => activeStates.has(stateName(module.state))).length;
+    byId("module-count").textContent = `${modules.length} registered`;
+    byId("module-active-count").textContent = `${active}/${modules.length} active`;
+    byId("metric-modules").textContent = `${active}/${modules.length}`;
+    byId("metric-modules-note").textContent = `${modules.length} module definitions · ${active} reporting active`;
+
+    modules.forEach((module, index) => {
+      const key = String(module.key || `module-${index + 1}`);
+      const name = String(module.name || key);
+      const state = String(module.state || "unreported");
+      const slug = stateName(state);
+      const navLink = document.createElement("a");
+      navLink.className = "nav-link";
+      navLink.href = `#module-${encodeURIComponent(key)}`;
+      const mark = document.createElement("span");
+      mark.className = "nav-icon";
+      mark.textContent = key.slice(0, 3).toUpperCase();
+      const label = document.createElement("span");
+      label.textContent = name;
+      const navState = document.createElement("small");
+      navState.className = "module-nav-state";
+      navState.textContent = state;
+      navLink.append(mark, label, navState);
+      nav.append(navLink);
+
+      const node = document.createElement("a");
+      node.id = `module-${key}`;
+      node.href = "#execution";
+      node.className = `module-node state-${slug}`;
+      node.style.setProperty("--angle", `${index * (360 / Math.max(modules.length, 1))}deg`);
+      node.style.animationDelay = `${Math.min(index * 45, 450)}ms`;
+      const nodeMark = document.createElement("span");
+      nodeMark.className = "module-node-mark";
+      nodeMark.textContent = key.slice(0, 3).toUpperCase();
+      const nodeCopy = document.createElement("span");
+      nodeCopy.className = "module-node-copy";
+      const nodeName = document.createElement("strong");
+      nodeName.textContent = name;
+      const nodeState = document.createElement("small");
+      nodeState.textContent = state;
+      nodeCopy.append(nodeName, nodeState);
+      node.append(nodeMark, nodeCopy);
+      nodes.append(node);
+
+      const row = document.createElement("div");
+      row.className = "module-status-row";
+      const dot = document.createElement("span");
+      dot.className = `telemetry-dot${activeStates.has(slug) ? "" : " pending"}`;
+      dot.setAttribute("aria-hidden", "true");
+      const rowName = document.createElement("span");
+      rowName.className = "module-name";
+      rowName.textContent = name;
+      const rowState = document.createElement("span");
+      rowState.className = `module-state${activeStates.has(slug) ? " online" : ""}`;
+      rowState.textContent = state;
+      row.append(dot, rowName, rowState);
+      statusList.append(row);
     });
+    if (!modules.length) {
+      const empty = document.createElement("p");
+      empty.className = "empty-state";
+      empty.textContent = "No modules are registered.";
+      nodes.append(empty);
+      statusList.append(empty.cloneNode(true));
+    }
   }
 
   function renderTasks(tasks) {
@@ -89,6 +144,9 @@
     };
     data.operations.forEach((operation) => add(operation, "QUEUE-GATED"));
     Object.entries(data.blocked).forEach(([name, reason]) => add(name, "LOCKED", reason));
+    const controller = data.controller || {};
+    byId("telemetry-controller").textContent = controller.process === "running" ? "RUNNING" : String(controller.process || "UNKNOWN").toUpperCase();
+    byId("controller-dot").classList.toggle("offline", controller.process !== "running");
   }
 
   function addTurn(turn) {
@@ -113,6 +171,12 @@
     }
   }
 
+  function setDot(id, state) {
+    const element = byId(id);
+    element.classList.toggle("offline", state === "offline");
+    element.classList.toggle("pending", state === "pending");
+  }
+
   async function refreshTelemetry() {
     const button = byId("refresh-runtime");
     button?.setAttribute("aria-busy", "true");
@@ -124,32 +188,52 @@
       if (healthResult.status === "rejected") throw healthResult.reason;
       const health = healthResult.value;
       const healthy = health.status === "healthy";
+      const controller = health.controller || {};
+      const queue = health.queue || {};
+      const controllerState = String(controller.process || "unknown").toLowerCase();
+      const controlState = String(queue.control?.state || "unknown");
       byId("metric-runtime").textContent = healthy ? "HEALTHY" : String(health.status || "UNKNOWN").toUpperCase();
-      byId("metric-runtime-note").textContent = `SQLite integrity OK · ${String(health.git.checkout_sha).slice(0, 8)}`;
-      byId("header-state").textContent = healthy ? "NODE ONLINE" : "DEGRADED";
+      byId("metric-runtime-note").textContent = `SQLite integrity ${Object.values(health.sqlite || {}).every((item) => item.integrity === "ok") ? "OK" : "CHECK"} · ${String(health.git?.checkout_sha || "").slice(0, 8)}`;
+      byId("header-state").textContent = healthy ? "ARCHON ONLINE" : "DEGRADED";
       byId("header-led").classList.toggle("offline", !healthy);
-      byId("visual-health").textContent = healthy ? "SYSTEM HEALTHY" : "CHECK RUNTIME";
-      byId("metric-controller").textContent = String(health.controller.process || "unknown").toUpperCase();
-      byId("metric-controller-note").textContent = `Writer lease · systemd ${health.controller.service}`;
-      byId("metric-queue").textContent = String(health.queue.total);
-      byId("metric-queue-note").textContent = `Durable records · control ${health.queue.control.state}`;
+      byId("core-state").textContent = healthy ? "LOCAL RUNTIME HEALTHY" : "CHECK RUNTIME";
+      byId("telemetry-runtime").textContent = String(health.status || "UNKNOWN").toUpperCase();
+      setDot("runtime-dot", healthy ? "online" : "offline");
+      byId("telemetry-controller").textContent = controllerState.toUpperCase();
+      setDot("controller-dot", controllerState === "running" ? "online" : "offline");
+      byId("telemetry-queue").textContent = controlState.toUpperCase();
+      setDot("queue-dot", controlState === "running" ? "online" : "pending");
+      byId("metric-queue").textContent = String(queue.total ?? 0);
+      byId("metric-queue-note").textContent = `Durable records · control ${controlState}`;
+
       if (tasksResult.status === "fulfilled") renderTasks(tasksResult.value.tasks || []);
       if (modulesResult.status === "fulfilled") renderModules(modulesResult.value.modules || []);
       if (modelsResult.status === "fulfilled") {
         const models = modelsResult.value;
-        const ready = models.configured_available;
+        const ready = Boolean(models.configured_available);
+        const installed = (models.models || []).length;
         byId("metric-model").textContent = models.configured || "LOCAL MODEL";
-        byId("metric-model-note").textContent = ready ? `${(models.models || []).length} installed · inference ready` : "Configured model is unavailable";
+        byId("metric-model-note").textContent = ready ? `${installed} installed · inference ready` : "Configured model is unavailable";
         byId("chat-model-chip").textContent = ready ? `${models.configured} / LOCAL` : "MODEL OFFLINE";
+        byId("assistant-model-chip").textContent = ready ? `${models.configured} / LOCAL` : "MODEL OFFLINE";
+        byId("telemetry-model").textContent = ready ? "READY" : "OFFLINE";
+        setDot("model-dot", ready ? "online" : "offline");
+      } else {
+        byId("metric-model-note").textContent = "Ollama status unavailable";
+        byId("telemetry-model").textContent = "UNKNOWN";
+        setDot("model-dot", "offline");
       }
       if (capabilitiesResult.status === "fulfilled") renderCapabilities(capabilitiesResult.value);
+      byId("telemetry-updated").textContent = `Updated ${new Date().toLocaleTimeString()}`;
       byId("last-refresh").textContent = `TELEMETRY ${new Date().toLocaleTimeString()}`;
     } catch {
       byId("header-state").textContent = "NODE UNAVAILABLE";
       byId("header-led").classList.add("offline");
       byId("metric-runtime").textContent = "OFFLINE";
       byId("metric-runtime-note").textContent = "Runtime health endpoint unavailable";
-      byId("visual-health").textContent = "NO SIGNAL";
+      byId("core-state").textContent = "NO SIGNAL";
+      setDot("runtime-dot", "offline");
+      byId("telemetry-updated").textContent = "Telemetry unavailable";
     } finally {
       button?.removeAttribute("aria-busy");
     }
@@ -159,9 +243,11 @@
     event.preventDefault();
     const message = byId("chat-message");
     const button = byId("chat-send");
+    const panel = document.querySelector(".assistant-panel");
     const text = message.value.trim();
     if (!text) return;
     button.disabled = true;
+    panel.setAttribute("aria-busy", "true");
     byId("chat-status").textContent = "Local model is thinking…";
     try {
       const response = await fetch("/api/chat", {
@@ -173,10 +259,11 @@
       addTurn({ role: "user", content: text });
       addTurn({ role: "assistant", content: result.response });
       message.value = "";
-      byId("chat-status").textContent = result.saved ? `Answered by ${result.model}; saved to local memory.` : "Response returned; persistence not confirmed.";
+      byId("chat-status").textContent = result.saved ? `Answered by ${result.model}; saved locally.` : "Response returned; persistence not confirmed.";
     } catch {
       byId("chat-status").textContent = "Local chat failed; no completed response was saved.";
     } finally {
+      panel.removeAttribute("aria-busy");
       button.disabled = false;
       message.focus();
       refreshTelemetry();
