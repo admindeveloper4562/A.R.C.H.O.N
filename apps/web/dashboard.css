@@ -136,7 +136,8 @@ h1 { margin-bottom: .35rem; color: #eefafa; font-size: clamp(1.65rem, 2.5vw, 2.4
 .module-node-copy { min-width: 0; }
 .module-node-copy strong { display: block; overflow: hidden; color: #d9f4f3; font-size: .62rem; text-overflow: ellipsis; white-space: nowrap; }
 .module-node-copy small { display: block; margin-top: .18rem; color: var(--amber); font: .44rem ui-monospace, monospace; letter-spacing: .07em; text-transform: uppercase; }
-.module-node.state-active .module-node-copy small, .module-node.state-ready .module-node-copy small, .module-node.state-running .module-node-copy small { color: var(--mint); }
+.module-node.state-active .module-node-copy small, .module-node.state-online .module-node-copy small, .module-node.state-ready .module-node-copy small, .module-node.state-running .module-node-copy small { color: var(--mint); }
+.module-node.state-partial .module-node-copy small { color: var(--blue); }
 
 .side-stack { display: grid; align-content: start; gap: .75rem; }
 .live-tag, .lock-tag, .model-chip { display: inline-flex; align-items: center; gap: .35rem; padding: .35rem .48rem; border: 1px solid rgba(75, 229, 178, .3); border-radius: 99px; color: var(--mint); background: rgba(10, 60, 53, .18); font: 600 .5rem ui-monospace, monospace; letter-spacing: .06em; white-space: nowrap; }
@@ -156,6 +157,38 @@ h1 { margin-bottom: .35rem; color: #eefafa; font-size: clamp(1.65rem, 2.5vw, 2.4
 .module-status-row .module-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .module-status-row .module-state { color: var(--amber); font: .48rem ui-monospace, monospace; text-transform: uppercase; }
 .module-status-row .module-state.online { color: var(--mint); }
+.module-status-row .module-state.partial { color: var(--blue); }
+.view-hidden { display: none !important; }
+.module-dashboard { padding: 1.5rem 0 .4rem; animation: rise-in .35s both; }
+.module-back { display: inline-flex; align-items: center; gap: .45rem; margin-bottom: 1.25rem; color: var(--cyan); font-size: .65rem; text-decoration: none; }
+.module-back:hover, .module-back:focus-visible { color: var(--mint); outline: none; }
+.module-page-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.module-page-heading .heading-copy { max-width: 64rem; }
+.module-status-chip { display: inline-flex; min-width: 6.3rem; justify-content: center; padding: .55rem .7rem; border: 1px solid var(--line); border-radius: 99px; color: var(--muted); background: var(--panel); font: 700 .58rem ui-monospace, monospace; letter-spacing: .1em; }
+.module-status-chip.state-online { border-color: rgba(73, 229, 178, .5); color: var(--mint); box-shadow: 0 0 18px rgba(73, 229, 178, .08); }
+.module-status-chip.state-partial { border-color: rgba(71, 174, 233, .5); color: var(--blue); }
+.module-status-chip.state-standby { border-color: rgba(255, 202, 104, .42); color: var(--amber); }
+.module-status-chip.state-blocked { border-color: rgba(255, 113, 128, .48); color: var(--red); }
+.module-page-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .65rem; margin-bottom: .75rem; }
+.module-page-metric { min-width: 0; min-height: 5.4rem; padding: .75rem .85rem; border: 1px solid var(--line); border-radius: .42rem; background: linear-gradient(145deg, rgba(11, 36, 47, .9), rgba(5, 19, 27, .92)); animation: rise-in .45s both; }
+.module-page-metric span { display: block; color: var(--muted); font: 600 .54rem ui-monospace, monospace; letter-spacing: .09em; text-transform: uppercase; }
+.module-page-metric strong { display: block; margin-top: .55rem; overflow-wrap: anywhere; color: var(--cyan); font: 600 .98rem ui-monospace, monospace; }
+.module-page-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr); gap: .75rem; }
+.module-check-list { display: grid; }
+.module-check-row { display: grid; min-height: 3.05rem; grid-template-columns: .5rem minmax(0, 1fr) auto; align-items: center; gap: .7rem; padding: .45rem .15rem; border-bottom: 1px solid rgba(83, 145, 157, .12); }
+.module-check-row:last-child { border: 0; }
+.module-check-copy { display: grid; min-width: 0; gap: .22rem; }
+.module-check-copy strong { color: #d9e9e9; font-size: .67rem; }
+.module-check-copy small { color: var(--muted); font-size: .59rem; line-height: 1.4; }
+.module-check-state { color: var(--muted); font: 600 .49rem ui-monospace, monospace; text-transform: uppercase; }
+.module-check-state.ready { color: var(--mint); }
+.module-check-state.pending { color: var(--amber); }
+.module-check-state.blocked { color: var(--red); }
+.telemetry-dot.blocked { background: var(--red); box-shadow: 0 0 8px rgba(255, 113, 128, .55); }
+.telemetry-dot.ready { background: var(--mint); }
+.module-next-panel { min-height: 12rem; }
+.module-next-step { margin: .5rem 0 1.2rem; color: #c2d5d8; font-size: .78rem; line-height: 1.7; }
+.module-declared-state { margin: auto 0 0; padding-top: .7rem; border-top: 1px solid var(--line); color: var(--dim); font: .54rem ui-monospace, monospace; line-height: 1.5; }
 
 .execution-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: .75rem; margin-top: .75rem; scroll-margin-top: 4.4rem; }
 .task-list { display: grid; max-height: 19rem; gap: .15rem; overflow: auto; }
@@ -229,6 +262,8 @@ h1 { margin-bottom: .35rem; color: #eefafa; font-size: clamp(1.65rem, 2.5vw, 2.4
   .main-content { padding-inline: 1rem; }
   .overview-grid { grid-template-columns: minmax(0, 1fr); }
   .side-stack { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .module-page-grid { grid-template-columns: minmax(0, 1fr); }
+  .module-page-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .module-constellation { display: grid; min-height: auto; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .4rem; overflow: visible; }
   .module-constellation::before, .orbit, .constellation-core { display: none; }
   .module-nodes { position: static; display: contents; }
@@ -265,6 +300,10 @@ h1 { margin-bottom: .35rem; color: #eefafa; font-size: clamp(1.65rem, 2.5vw, 2.4
   .module-node-copy small { font-size: .42rem; }
   .side-stack { grid-template-columns: minmax(0, 1fr); }
   .execution-grid { grid-template-columns: minmax(0, 1fr); }
+  .module-page-heading { align-items: start; flex-direction: column; }
+  .module-page-metrics { gap: .45rem; }
+  .module-page-metric { min-height: 4.8rem; padding: .6rem; }
+  .module-page-metric strong { font-size: .82rem; }
   .assistant-console { grid-template-columns: 2.7rem minmax(0, 1fr); gap: .55rem; }
   .assistant-orb { width: 2.55rem; height: 2.55rem; }
   .assistant-orb span { font-size: 1.1rem; }

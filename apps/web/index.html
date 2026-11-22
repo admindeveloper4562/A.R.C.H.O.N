@@ -40,7 +40,7 @@
         <div class="topbar-status"><span class="status-led" id="header-led"></span><strong id="header-state">CONNECTING</strong><span class="topbar-separator"></span><span>LOCAL RUNTIME</span></div>
       </header>
 
-      <section class="page-heading" id="overview" aria-labelledby="page-title">
+      <section class="page-heading overview-only" id="overview" aria-labelledby="page-title">
         <div>
           <p class="eyebrow"><span class="eyebrow-mark">01</span> OVERVIEW <span class="eyebrow-separator">/</span> SYSTEM TELEMETRY</p>
           <h1 id="page-title">Mission control</h1>
@@ -49,14 +49,27 @@
         <button class="refresh-button" id="refresh-runtime" type="button"><span aria-hidden="true">⟳</span> Refresh telemetry</button>
       </section>
 
-      <section class="stats-grid" aria-label="Live system summary">
-        <article class="stat-card"><div class="stat-heading"><span>MODULES ACTIVE</span><span>SYS / 01</span></div><strong id="metric-modules">—</strong><p id="metric-modules-note">Reading module registry</p></article>
+      <section class="module-dashboard view-hidden" id="module-dashboard" aria-labelledby="module-page-title">
+        <a class="module-back" href="#overview"><span aria-hidden="true">←</span> Back to mission control</a>
+        <div class="module-page-heading">
+          <div><p class="eyebrow" id="module-page-kicker">MODULE / STATUS</p><h1 id="module-page-title">Module dashboard</h1><p class="heading-copy" id="module-page-summary"></p></div>
+          <span class="module-status-chip" id="module-page-status">LOADING</span>
+        </div>
+        <div class="module-page-metrics" id="module-page-metrics"></div>
+        <div class="module-page-grid">
+          <article class="panel module-check-panel"><div class="panel-heading compact"><div><p class="eyebrow">LIVE INTEGRATION</p><h2>Operational checks</h2></div><span class="panel-count" id="module-check-count">—</span></div><div class="module-check-list" id="module-page-checks"></div></article>
+          <article class="panel module-next-panel"><div class="panel-heading compact"><div><p class="eyebrow">CURRENT BOUNDARY</p><h2>Next activation step</h2></div></div><p class="module-next-step" id="module-page-next-step"></p><p class="module-declared-state" id="module-page-declared-state"></p></article>
+        </div>
+      </section>
+
+      <section class="stats-grid overview-only" aria-label="Live system summary">
+        <article class="stat-card"><div class="stat-heading"><span>MODULES ONLINE</span><span>SYS / 01</span></div><strong id="metric-modules">—</strong><p id="metric-modules-note">Reading module registry</p></article>
         <article class="stat-card"><div class="stat-heading"><span>QUEUED TASKS</span><span>ATLAS / 02</span></div><strong id="metric-queue">—</strong><p id="metric-queue-note">Reading durable queue</p></article>
         <article class="stat-card"><div class="stat-heading"><span>LOCAL MODEL</span><span>IRIS / 03</span></div><strong class="stat-model" id="metric-model">—</strong><p id="metric-model-note">Probing Ollama</p></article>
         <article class="stat-card"><div class="stat-heading"><span>RUNTIME</span><span>CORE / 04</span></div><strong id="metric-runtime">—</strong><p id="metric-runtime-note">Reading persistent state</p></article>
       </section>
 
-      <section class="overview-grid" aria-label="System overview">
+      <section class="overview-grid overview-only" aria-label="System overview">
         <article class="panel constellation-panel" id="modules" aria-labelledby="constellation-title">
           <div class="panel-heading">
             <div><p class="eyebrow"><span class="eyebrow-mark">02</span> ARCHITECTURE MAP</p><h2 id="constellation-title">Module constellation</h2></div>
@@ -89,7 +102,7 @@
         </aside>
       </section>
 
-      <section class="execution-grid" id="execution" aria-label="Task execution and authorization">
+      <section class="execution-grid overview-only" id="execution" aria-label="Task execution and authorization">
         <article class="panel task-panel">
           <div class="panel-heading compact"><div><p class="eyebrow"><span class="eyebrow-mark">05A</span> ATLAS / DURABLE QUEUE</p><h2>Master task queue</h2></div><span class="live-tag"><span class="tiny-led"></span> PERSISTENT</span></div>
           <div id="task-list" class="task-list" aria-live="polite"><p class="empty-state">Reading task ledger…</p></div>
@@ -101,7 +114,7 @@
         </article>
       </section>
 
-      <section class="assistant-panel panel" id="assistant" aria-labelledby="assistant-title">
+      <section class="assistant-panel panel overview-only" id="assistant" aria-labelledby="assistant-title">
         <div class="assistant-heading">
           <div><p class="eyebrow"><span class="eyebrow-mark">06</span> IRIS / LOCAL INFERENCE</p><h2 id="assistant-title">Talk to ARCHON</h2><p class="panel-intro">Direct local-model chat with live health context. Tool execution remains behind signed task admission.</p></div>
           <span class="model-chip" id="chat-model-chip">LOCAL MODEL</span>

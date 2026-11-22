@@ -8,6 +8,7 @@
     sessionStorage.setItem(conversationKey, conversationId);
   }
   const activeStates = new Set(["active", "online", "ready", "running"]);
+  let currentModules = [];
 
   async function getJson(path) {
     const response = await fetch(path, { cache: "no-store" });
@@ -20,26 +21,28 @@
   }
 
   function renderModules(modules) {
+    currentModules = modules;
     const nav = byId("module-nav");
     const nodes = byId("module-nodes");
     const statusList = byId("module-status-list");
     nav.replaceChildren();
     nodes.replaceChildren();
     statusList.replaceChildren();
-    const active = modules.filter((module) => activeStates.has(stateName(module.state))).length;
+    const active = modules.filter((module) => module.runtime_status === "online").length;
+    const partial = modules.filter((module) => module.runtime_status === "partial").length;
     byId("module-count").textContent = `${modules.length} registered`;
-    byId("module-active-count").textContent = `${active}/${modules.length} active`;
+    byId("module-active-count").textContent = `${active}/${modules.length} online`;
     byId("metric-modules").textContent = `${active}/${modules.length}`;
-    byId("metric-modules-note").textContent = `${modules.length} module definitions · ${active} reporting active`;
+    byId("metric-modules-note").textContent = `${partial} partial · ${modules.length - active - partial} waiting`;
 
     modules.forEach((module, index) => {
       const key = String(module.key || `module-${index + 1}`);
       const name = String(module.name || key);
-      const state = String(module.state || "unreported");
+      const state = String(module.runtime_status || module.state || "unreported");
       const slug = stateName(state);
       const navLink = document.createElement("a");
       navLink.className = "nav-link";
-      navLink.href = `#module-${encodeURIComponent(key)}`;
+      navLink.href = `#module/${encodeURIComponent(key)}`;
       const mark = document.createElement("span");
       mark.className = "nav-icon";
       mark.textContent = key.slice(0, 3).toUpperCase();
@@ -52,8 +55,8 @@
       nav.append(navLink);
 
       const node = document.createElement("a");
-      node.id = `module-${key}`;
-      node.href = "#execution";
+      node.id = `module-node-${key}`;
+      node.href = `#module/${encodeURIComponent(key)}`;
       node.className = `module-node state-${slug}`;
       node.style.setProperty("--angle", `${index * (360 / Math.max(modules.length, 1))}deg`);
       node.style.animationDelay = `${Math.min(index * 45, 450)}ms`;
@@ -91,6 +94,77 @@
       nodes.append(empty);
       statusList.append(empty.cloneNode(true));
     }
+    if (location.hash.startsWith("#module/")) updatePage();
+  }
+
+  function renderModuleDashboard(key) {
+    const module = currentModules.find((item) => item.key === key);
+    const title = byId("module-page-title");
+    const statusChip = byId("module-page-status");
+    const metrics = byId("module-page-metrics");
+    const checks = byId("module-page-checks");
+    if (!module) {
+      title.textContent = "Module unavailable";
+      byId("module-page-summary").textContent = "This module is not present in the live registry.";
+      statusChip.className = "module-status-chip state-blocked";
+      statusChip.textContent = "UNKNOWN";
+      metrics.replaceChildren();
+      checks.replaceChildren();
+      return;
+    }
+    const status = String(module.runtime_status || "unknown");
+    byId("module-page-kicker").textContent = `MODULE ${String(module.id).padStart(2, "0")} / ${String(module.key).toUpperCase()}`;
+    title.textContent = module.name || module.key;
+    byId("module-page-summary").textContent = module.summary || "No runtime summary is available.";
+    statusChip.className = `module-status-chip state-${stateName(status)}`;
+    statusChip.textContent = status.toUpperCase();
+    metrics.replaceChildren();
+    (module.metrics || []).forEach((metric, index) => {
+      const card = document.createElement("article");
+      card.className = "module-page-metric";
+      card.style.animationDelay = `${index * 55}ms`;
+      const label = document.createElement("span");
+      label.textContent = metric.label || "STATUS";
+      const value = document.createElement("strong");
+      value.textContent = metric.value || "UNKNOWN";
+      card.append(label, value);
+      metrics.append(card);
+    });
+    checks.replaceChildren();
+    const moduleChecks = module.checks || [];
+    const readyCount = moduleChecks.filter((check) => check.state === "ready").length;
+    byId("module-check-count").textContent = `${readyCount}/${moduleChecks.length} ready`;
+    moduleChecks.forEach((check) => {
+      const row = document.createElement("div");
+      row.className = "module-check-row";
+      const dot = document.createElement("span");
+      dot.className = `telemetry-dot ${stateName(check.state)}`;
+      dot.setAttribute("aria-hidden", "true");
+      const detail = document.createElement("span");
+      detail.className = "module-check-copy";
+      const name = document.createElement("strong");
+      name.textContent = check.label || "Check";
+      const note = document.createElement("small");
+      note.textContent = check.detail || "No details supplied";
+      const state = document.createElement("span");
+      state.className = `module-check-state ${stateName(check.state)}`;
+      state.textContent = String(check.state || "unknown").toUpperCase();
+      detail.append(name, note);
+      row.append(dot, detail, state);
+      checks.append(row);
+    });
+    byId("module-page-next-step").textContent = module.next_step || "No next-step guidance is available.";
+    byId("module-page-declared-state").textContent = `Manifest declaration: ${module.declared_state || module.state || "unreported"}. Runtime state is measured separately.`;
+  }
+
+  function updatePage() {
+    const match = location.hash.match(/^#module\/([a-z0-9_-]+)$/i);
+    const moduleKey = match ? match[1].toLowerCase() : null;
+    document.querySelectorAll(".overview-only").forEach((element) => element.classList.toggle("view-hidden", Boolean(moduleKey)));
+    byId("module-dashboard").classList.toggle("view-hidden", !moduleKey);
+    document.querySelectorAll(".primary-nav .nav-link").forEach((link) => link.classList.toggle("active", !moduleKey && link.getAttribute("href") === "#overview"));
+    document.querySelectorAll(".module-nav .nav-link").forEach((link) => link.classList.toggle("active", Boolean(moduleKey) && link.getAttribute("href") === `#module/${moduleKey}`));
+    if (moduleKey) renderModuleDashboard(moduleKey);
   }
 
   function renderTasks(tasks) {
@@ -274,6 +348,8 @@
   byId("chat-message").addEventListener("keydown", (event) => {
     if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) byId("chat-form").requestSubmit();
   });
+  window.addEventListener("hashchange", updatePage);
+  updatePage();
   loadConversation();
   refreshTelemetry();
   window.setInterval(() => { if (!document.hidden) refreshTelemetry(); }, 15000);

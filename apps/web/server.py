@@ -97,6 +97,147 @@ def _controller_option(arguments: list[str], name: str) -> str | None:
     return None
 
 
+def _private_state_file(name: str) -> bool:
+    try:
+        details = (STATE_ROOT / name).lstat()
+        return (
+            stat.S_ISREG(details.st_mode)
+            and details.st_uid == os.geteuid()
+            and not stat.S_IMODE(details.st_mode) & 0o077
+        )
+    except OSError:
+        return False
+
+
+def _module_dashboard_data() -> dict[str, object]:
+    import shutil
+
+    from jarvis_v2.backend.ollama_gateway import LocalOllamaGateway
+    from jarvis_v2.backend.ollama_profile import OllamaInferenceProfile
+    from jarvis_v2.health import collect_health
+    from jarvis_v2.native_executor import NativeControlPlaneExecutor, _load_configured_owner_keys
+
+    repository = Path(__file__).resolve().parents[2]
+    health = collect_health(state_dir=STATE_ROOT, repository=repository)
+    arguments = _controller_arguments()
+    workspace = _controller_option(arguments, "--workspace")
+    model = _controller_option(arguments, "--ollama-model")
+    owner_keys = _load_configured_owner_keys()
+    gateway = LocalOllamaGateway(OllamaInferenceProfile(model=model, num_ctx=2_048)) if model else None
+    executor = NativeControlPlaneExecutor(
+        repository=repository, state_dir=STATE_ROOT, workspace_root=workspace,
+        owner_keys=owner_keys, model_gateway=gateway,
+    )
+    capabilities = set(executor.capabilities())
+    try:
+        with urlopen("http://127.0.0.1:11434/api/tags", timeout=2) as response:
+            installed_models = [
+                item["name"] for item in json.load(response).get("models", [])
+                if isinstance(item, dict) and isinstance(item.get("name"), str)
+            ]
+    except Exception:
+        installed_models = []
+    model_ready = MODEL in installed_models
+    controller = _controller_process_state()
+    queue = health.get("queue", {})
+    sqlite = health.get("sqlite", {})
+    sqlite_ok = bool(sqlite) and all(item.get("integrity") == "ok" for item in sqlite.values())
+    code_index_ready = _private_state_file("code_index.sqlite3")
+    conversations_ok = sqlite.get("conversations", {}).get("integrity") == "ok"
+    queue_control = queue.get("control", {}).get("state", "unknown")
+    database_count = len(sqlite)
+    blender_ready = shutil.which("blender") is not None
+    online = controller == "running" and health.get("status") == "healthy"
+
+    definitions = json.loads((repository / "config/modules.json").read_text(encoding="utf-8"))["modules"]
+    status: dict[str, dict[str, object]] = {
+        "core": {
+            "runtime_status": "online" if online else "blocked",
+            "summary": "The native controller, durable queue, and local health checks are operating." if online else "The core control plane is not healthy or its controller is stopped.",
+            "metrics": [{"label": "Controller", "value": controller.upper()}, {"label": "Queue", "value": str(queue.get("total", 0))}, {"label": "Control", "value": str(queue_control).upper()}],
+            "checks": [{"label": "Native controller", "state": "ready" if controller == "running" else "blocked", "detail": controller}, {"label": "Runtime health", "state": "ready" if health.get("status") == "healthy" else "blocked", "detail": str(health.get("status", "unknown"))}, {"label": "Durable queue", "state": "ready" if queue_control == "running" else "pending", "detail": f'{queue.get("total", 0)} persisted task records'}],
+            "next_step": "Each queued task still needs authenticated admission and the appropriate signed effect approval.",
+        },
+        "sda": {
+            "runtime_status": "partial" if {"model_inference", "workspace_write"} <= capabilities else "standby",
+            "summary": "Signed local model and workspace handlers are configured; the SDA Master, independent QC, and serialized merge workflow are not running.",
+            "metrics": [{"label": "Native effects", "value": str(len(capabilities & {"model_inference", "workspace_write"})) + "/2"}, {"label": "Worker workflow", "value": "INACTIVE"}, {"label": "Queue", "value": str(queue.get("total", 0))}],
+            "checks": [{"label": "Owner key store", "state": "ready" if owner_keys else "blocked", "detail": "Public verification key loaded" if owner_keys else "No trusted owner key"}, {"label": "Model task handler", "state": "ready" if "model_inference" in capabilities else "blocked", "detail": "Local Ollama handler" if "model_inference" in capabilities else "Not configured"}, {"label": "Workspace write handler", "state": "ready" if "workspace_write" in capabilities else "blocked", "detail": "Private workspace with per-effect signatures" if "workspace_write" in capabilities else "Not configured"}, {"label": "SDA supervisor and QC", "state": "pending", "detail": "No active SDA workflow process"}],
+            "next_step": "Full SDA activation needs its bounded worker, independent QC receipt, serialized merger, and interruption-recovery path.",
+        },
+        "backend": {
+            "runtime_status": "online" if sqlite_ok and code_index_ready else "partial",
+            "summary": "Local SQLite persistence and the private repository code index are available." if sqlite_ok and code_index_ready else "One or more local persistence components need repair or initialization.",
+            "metrics": [{"label": "Healthy databases", "value": f"{sum(item.get('integrity') == 'ok' for item in sqlite.values())}/{database_count}"}, {"label": "Code index", "value": "READY" if code_index_ready else "MISSING"}, {"label": "Windows node", "value": "NOT CONNECTED"}],
+            "checks": [{"label": "SQLite integrity", "state": "ready" if sqlite_ok else "blocked", "detail": f"{database_count} runtime databases reported"}, {"label": "Repository index", "state": "ready" if code_index_ready else "pending", "detail": "Private local index present" if code_index_ready else "Index not initialized"}, {"label": "Remote Ollama node", "state": "pending", "detail": "No Windows peer is connected"}],
+            "next_step": "The Windows Ollama node is optional and remains disconnected; local persistence is active.",
+        },
+        "runtime": {
+            "runtime_status": "online" if model_ready and conversations_ok else "partial",
+            "summary": "Loopback dashboard, local chat, and conversation persistence are available." if model_ready and conversations_ok else "The runtime is partially available; check local model and conversation storage.",
+            "metrics": [{"label": "Local model", "value": MODEL if model_ready else "OFFLINE"}, {"label": "Installed models", "value": str(len(installed_models))}, {"label": "Chat history", "value": "PERSISTENT" if conversations_ok else "CHECK"}],
+            "checks": [{"label": "Ollama inference", "state": "ready" if model_ready else "blocked", "detail": MODEL if model_ready else "Configured model is unavailable"}, {"label": "Conversation store", "state": "ready" if conversations_ok else "blocked", "detail": "SQLite integrity OK" if conversations_ok else "Store unavailable"}, {"label": "External providers", "state": "pending", "detail": "Not enabled; requests stay local"}],
+            "next_step": "Voice, browser, and desktop adapters are not active in this runtime; local text chat is online.",
+        },
+        "research": {
+            "runtime_status": "partial" if code_index_ready else "standby",
+            "summary": "A local code index exists, but source-backed research connectors are not attached to the active task runtime.",
+            "metrics": [{"label": "Local code index", "value": "AVAILABLE" if code_index_ready else "MISSING"}, {"label": "Live research connectors", "value": "0 ACTIVE"}, {"label": "Current research jobs", "value": "0"}],
+            "checks": [{"label": "Research service route", "state": "pending", "detail": "No active task adapter"}, {"label": "External sources", "state": "pending", "detail": "No source connectors configured"}, {"label": "Local code index", "state": "ready" if code_index_ready else "pending", "detail": "Repository index available" if code_index_ready else "Not initialized"}],
+            "next_step": "SAGE needs explicit source configuration and a task adapter before it can claim research jobs.",
+        },
+        "tws": {
+            "runtime_status": "standby",
+            "summary": "The TWS service and quest workflow are not started. Blender is detected as an optional local tool.",
+            "metrics": [{"label": "Blender", "value": "DETECTED" if blender_ready else "MISSING"}, {"label": "Quest workflow", "value": "INACTIVE"}, {"label": "iOS surface", "value": "DEFERRED"}],
+            "checks": [{"label": "Blender executable", "state": "ready" if blender_ready else "pending", "detail": "Optional local tool detected" if blender_ready else "Not installed"}, {"label": "Quest service", "state": "pending", "detail": "No active TWS runtime"}, {"label": "Native Apple client", "state": "pending", "detail": "Not available on this Linux host"}],
+            "next_step": "The quest store and TWS event integration need a runtime adapter; Apple-native validation remains deferred.",
+        },
+        "wic": {
+            "runtime_status": "standby",
+            "summary": "World information ingestion is not active; no source feed is connected to the runtime.",
+            "metrics": [{"label": "Feed sources", "value": "0 ACTIVE"}, {"label": "Ingestion loop", "value": "STOPPED"}, {"label": "Alerts", "value": "NOT CONFIGURED"}],
+            "checks": [{"label": "Feed adapters", "state": "pending", "detail": "No active source configuration"}, {"label": "Ingestion service", "state": "pending", "detail": "No running WIC worker"}, {"label": "Claim and correction ledger", "state": "pending", "detail": "Not connected to the live runtime"}],
+            "next_step": "WIC needs an approved feed list and a running ingestion/validation adapter.",
+        },
+        "finance": {
+            "runtime_status": "standby",
+            "summary": "Finance integrations remain inactive. The application keeps real money movement disabled.",
+            "metrics": [{"label": "Mode", "value": "PAPER ONLY"}, {"label": "Connected accounts", "value": "0"}, {"label": "Live effects", "value": "LOCKED"}],
+            "checks": [{"label": "Paper ledger service", "state": "pending", "detail": "No active finance runtime"}, {"label": "Read-only account source", "state": "pending", "detail": "No account connector configured"}, {"label": "Real transactions", "state": "blocked", "detail": "Disabled by policy"}],
+            "next_step": "Paper-mode reporting can be wired without real accounts; external finance connectors require separate configuration.",
+        },
+        "guardian": {
+            "runtime_status": "blocked",
+            "summary": "Independent Guardian recovery is unavailable because a separately protected trusted watchdog is not configured.",
+            "metrics": [{"label": "Trusted watchdog", "value": "MISSING"}, {"label": "Automatic recovery", "value": "DISABLED"}, {"label": "Rollback", "value": "LOCKED"}],
+            "checks": [{"label": "Separate watchdog process", "state": "blocked", "detail": "Not configured"}, {"label": "Trusted rollback gate", "state": "blocked", "detail": "Not available"}, {"label": "Owner key store", "state": "ready" if owner_keys else "blocked", "detail": "Owner key is not a watchdog" if owner_keys else "Missing"}],
+            "next_step": "Keep unattended recovery disabled until an independent watchdog and verified rollback path pass qualification.",
+        },
+        "automation": {
+            "runtime_status": "standby",
+            "summary": "Automation schedule storage and dispatch are not attached to a running scheduler service.",
+            "metrics": [{"label": "Scheduler worker", "value": "INACTIVE"}, {"label": "Active schedules", "value": "0"}, {"label": "Cloudflare connector", "value": "NOT CONFIGURED"}],
+            "checks": [{"label": "Schedule store", "state": "pending", "detail": "No running schedule service"}, {"label": "Trigger dispatch", "state": "pending", "detail": "No active RELAY worker"}, {"label": "External automation", "state": "pending", "detail": "No connector configured"}],
+            "next_step": "RELAY needs a persistent scheduler loop, restart reconciliation, and an approved destination before triggering effects.",
+        },
+    }
+    modules = []
+    for item in definitions:
+        module_status = status.get(item["key"], {
+            "runtime_status": "standby",
+            "summary": "No runtime status adapter is defined for this module.",
+            "metrics": [],
+            "checks": [],
+            "next_step": "Add an evidence-backed status adapter before activation.",
+        })
+        modules.append({**item, **module_status, "declared_state": item["state"]})
+    return {
+        "schema": json.loads((repository / "config/modules.json").read_text(encoding="utf-8"))["schema"],
+        "modules": modules,
+    }
+
+
 def _chat(message: str, conversation_id: str) -> dict[str, object]:
     from jarvis_v2.backend.conversation import ConversationStore, ConversationStoreError
     from jarvis_v2.backend.ollama_gateway import LocalOllamaGateway
@@ -223,8 +364,7 @@ class DashboardHandler(SimpleHTTPRequestHandler):
                 self._json(200, health)
                 return
             if path == "/api/modules":
-                manifest = Path(__file__).resolve().parents[2] / "config/modules.json"
-                self._json(200, json.loads(manifest.read_text(encoding="utf-8")))
+                self._json(200, _module_dashboard_data())
                 return
             if path == "/api/models":
                 with urlopen("http://127.0.0.1:11434/api/tags", timeout=2) as response:
