@@ -226,6 +226,23 @@ class ReminderScheduler:
             raise ReminderError("unknown reminder")
         return self._snapshot(row)
 
+    def list_reminders(self, *, status: str | None = "active", limit: int = 100) -> list[Reminder]:
+        if status not in {None, "active", "completed", "cancelled"}:
+            raise ReminderError("invalid reminder status")
+        if type(limit) is not int or not 1 <= limit <= 1000:
+            raise ReminderError("invalid reminder limit")
+        if status is None:
+            rows = self.db.execute(
+                "SELECT * FROM backend_reminders ORDER BY next_due_utc,reminder_id LIMIT ?",
+                (limit,),
+            )
+        else:
+            rows = self.db.execute(
+                "SELECT * FROM backend_reminders WHERE status=? ORDER BY next_due_utc,reminder_id LIMIT ?",
+                (status, limit),
+            )
+        return [self._snapshot(row) for row in rows]
+
     def due_reminders(self, now: datetime | None = None, *, limit: int = 100) -> list[Reminder]:
         if type(limit) is not int or not 1 <= limit <= 1000:
             raise ReminderError("invalid reminder limit")

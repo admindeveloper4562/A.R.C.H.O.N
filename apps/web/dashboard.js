@@ -9,6 +9,7 @@
   }
   const activeStates = new Set(["active", "online", "ready", "running"]);
   let currentModules = [];
+  let moduleDataRequest = 0;
   const legacyModuleRoutes = Object.freeze({
     "/calendar": "automation", "/email": "runtime", "/actions": "sda",
     "/files": "backend", "/system": "core", "/projects": "backend",
@@ -117,6 +118,9 @@
       metrics.replaceChildren();
       checks.replaceChildren();
       renderWorldTimeline([], false);
+      byId("module-live-controls").replaceChildren();
+      byId("module-live-metrics").replaceChildren();
+      byId("module-live-sections").replaceChildren();
       return;
     }
     const status = String(module.runtime_status || "unknown");
@@ -164,6 +168,224 @@
     document.title = `ARCHON — ${module.name || module.key}`;
     byId("module-page-next-step").textContent = module.next_step || "No next-step guidance is available.";
     byId("module-page-declared-state").textContent = `Manifest declaration: ${module.declared_state || module.state || "unreported"}. Runtime state is measured separately.`;
+    loadModuleData(key);
+  }
+
+  function prepareModuleControls(key) {
+    const controls = byId("module-live-controls");
+    if (controls.dataset.moduleKey === key) return;
+    controls.dataset.moduleKey = key;
+    controls.replaceChildren();
+    if (key === "research") {
+      const form = document.createElement("form");
+      form.className = "module-research-form";
+      const label = document.createElement("label");
+      label.htmlFor = "module-research-query";
+      label.textContent = "Search tracked local source";
+      const input = document.createElement("input");
+      input.id = "module-research-query";
+      input.type = "search";
+      input.maxLength = 512;
+      input.placeholder = "Try: owner approval, event bus, or scheduler";
+      const button = document.createElement("button");
+      button.type = "submit";
+      button.className = "send-button";
+      button.textContent = "Search local source";
+      form.append(label, input, button);
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        loadModuleData(key, input.value.trim());
+      });
+      controls.append(form);
+      return;
+    }
+    const forms = {
+      tws: [
+        ["add_wing", "Add a local wing", [{ name: "wing_id", label: "Wing ID" }, { name: "name", label: "Name" }]],
+        ["create_quest", "Create a local quest", [{ name: "quest_id", label: "Quest ID" }, { name: "wing_id", label: "Wing ID" }, { name: "title", label: "Title" }, { name: "kind", label: "Kind", value: "skill" }, { name: "cadence", label: "Cadence", value: "once" }]]
+      ],
+      finance: [
+        ["open_paper_account", "Open paper account", [{ name: "account_id", label: "Account ID" }, { name: "scope_id", label: "Scope ID", value: "local-paper" }, { name: "currency", label: "Currency", value: "THB" }, { name: "cash_satang", label: "Initial cash (satang)", type: "number", min: "0" }]],
+        ["place_paper_order", "Place paper order", [{ name: "order_id", label: "Order ID" }, { name: "account_id", label: "Paper account ID" }, { name: "symbol", label: "Symbol" }, { name: "side", label: "Side", type: "select", options: ["buy", "sell"] }, { name: "quantity", label: "Quantity", type: "number", min: "1" }, { name: "price_satang", label: "Limit price (satang)", type: "number", min: "1" }]],
+        ["fill_paper_order", "Simulate paper fill", [{ name: "order_id", label: "Order ID" }]]
+      ],
+      automation: [
+        ["schedule_once", "Schedule local reminder", [{ name: "schedule_id", label: "Schedule ID" }, { name: "message", label: "Reminder", type: "textarea" }, { name: "due_at", label: "Due time (your local time)", type: "datetime-local" }]]
+      ]
+    };
+    (forms[key] || []).forEach(([action, title, fields]) => {
+      controls.append(createModuleActionForm(key, action, title, fields));
+    });
+  }
+
+  function createModuleActionForm(module, action, title, fields) {
+    const form = document.createElement("form");
+    form.className = "module-action-form";
+    const heading = document.createElement("h3");
+    heading.textContent = title;
+    form.append(heading);
+    fields.forEach((field) => {
+      const label = document.createElement("label");
+      const id = `module-${module}-${action}-${field.name}`;
+      label.htmlFor = id;
+      label.textContent = field.label;
+      let input;
+      if (field.type === "textarea") input = document.createElement("textarea");
+      else if (field.type === "select") {
+        input = document.createElement("select");
+        field.options.forEach((option) => {
+          const item = document.createElement("option");
+          item.value = option;
+          item.textContent = option;
+          input.append(item);
+        });
+      } else input = document.createElement("input");
+      input.id = id;
+      input.name = field.name;
+      if (field.type !== "textarea" && field.type !== "select") input.type = field.type || "text";
+      if (field.value) input.value = field.value;
+      if (field.min) input.min = field.min;
+      input.required = true;
+      form.append(label, input);
+    });
+    const button = document.createElement("button");
+    button.type = "submit";
+    button.className = "send-button";
+    button.textContent = title;
+    form.append(button);
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const payload = Object.fromEntries(new FormData(form).entries());
+      try {
+        for (const name of ["cash_satang", "quantity", "price_satang"]) {
+          if (name in payload) {
+            const value = Number(payload[name]);
+            if (!Number.isSafeInteger(value)) throw new Error(`${name} must be a whole number`);
+            payload[name] = value;
+          }
+        }
+        if (action === "schedule_once") {
+          const due = new Date(payload.due_at);
+          if (!Number.isFinite(due.valueOf())) throw new Error("due time is invalid");
+          payload.due_at = due.toISOString();
+          payload.timezone_name = "UTC";
+        }
+        await submitModuleAction(module, action, payload);
+        form.reset();
+      } catch (error) {
+        byId("module-live-status").textContent = String(error.message || "Module action failed.");
+      }
+    });
+    return form;
+  }
+
+  async function submitModuleAction(module, action, payload) {
+    byId("module-live-status").textContent = "Saving local module data…";
+    const response = await fetch("/api/module-action", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ module, action, payload })
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "module_action_failed");
+    byId("module-live-status").textContent = `${action.replaceAll("_", " ")} saved in ${result.mode} state.`;
+    await loadModuleData(module);
+  }
+
+  function renderModuleLiveData(data) {
+    byId("module-live-mode").textContent = String(data.mode || "LOCAL").replaceAll("_", " ").toUpperCase();
+    byId("module-live-summary").textContent = data.summary || "No live module data is available.";
+    const metrics = byId("module-live-metrics");
+    metrics.replaceChildren();
+    (Array.isArray(data.metrics) ? data.metrics : []).slice(0, 8).forEach((metric, index) => {
+      const card = document.createElement("article");
+      card.className = "module-live-metric";
+      card.style.animationDelay = `${index * 45}ms`;
+      const label = document.createElement("span");
+      label.textContent = String(metric.label || "STATUS");
+      const value = document.createElement("strong");
+      value.textContent = String(metric.value ?? "UNKNOWN");
+      card.append(label, value);
+      metrics.append(card);
+    });
+    const sections = byId("module-live-sections");
+    sections.replaceChildren();
+    (Array.isArray(data.sections) ? data.sections : []).slice(0, 12).forEach((section) => {
+      const panel = document.createElement("section");
+      panel.className = "module-live-section";
+      const heading = document.createElement("h3");
+      heading.textContent = String(section.title || "Module data");
+      panel.append(heading);
+      const items = Array.isArray(section.items) ? section.items.slice(0, 40) : [];
+      if (!items.length) {
+        const empty = document.createElement("p");
+        empty.className = "empty-state";
+        empty.textContent = section.empty || "No entries recorded.";
+        panel.append(empty);
+      } else {
+        const list = document.createElement("ul");
+        list.className = "module-live-list";
+        items.forEach((value) => {
+          const item = document.createElement("li");
+          item.className = "module-live-item";
+          const title = document.createElement("strong");
+          title.textContent = String(value.title || "Entry");
+          const details = document.createElement("small");
+          details.textContent = String(value.details || "");
+          item.append(title, details);
+          if (typeof value.url === "string") {
+            try {
+              const url = new URL(value.url);
+              if (url.protocol === "https:" && !url.username && !url.password) {
+                const link = document.createElement("a");
+                link.href = url.href;
+                link.textContent = "Open source";
+                link.rel = "noreferrer";
+                item.append(link);
+              }
+            } catch { /* invalid source links stay plain text */ }
+          }
+          if (data.module === "automation" && typeof value.schedule_id === "string" && value.schedule_id) {
+            const cancel = document.createElement("button");
+            cancel.type = "button";
+            cancel.className = "module-action-button";
+            cancel.textContent = "Cancel reminder";
+            cancel.addEventListener("click", async () => {
+              try {
+                await submitModuleAction("automation", "cancel_schedule", { schedule_id: value.schedule_id });
+              } catch (error) {
+                byId("module-live-status").textContent = String(error.message || "Reminder cancellation failed.");
+              }
+            });
+            item.append(cancel);
+          }
+          list.append(item);
+        });
+        panel.append(list);
+      }
+      sections.append(panel);
+    });
+  }
+
+  async function loadModuleData(key, requestedQuery) {
+    prepareModuleControls(key);
+    const request = ++moduleDataRequest;
+    const queryInput = byId("module-research-query");
+    const query = typeof requestedQuery === "string" ? requestedQuery : (key === "research" ? queryInput?.value.trim() || "" : "");
+    const params = new URLSearchParams({ key });
+    if (query) params.set("q", query);
+    byId("module-live-status").textContent = "Loading live module data…";
+    try {
+      const data = await getJson(`/api/module-data?${params.toString()}`);
+      if (request !== moduleDataRequest) return;
+      renderModuleLiveData(data);
+      byId("module-live-status").textContent = data.snapshot_sha ? `Source snapshot ${String(data.snapshot_sha).slice(0, 12)} · results are local to this checkout.` : "Live data read from ARCHON's local runtime stores.";
+    } catch (error) {
+      if (request !== moduleDataRequest) return;
+      byId("module-live-summary").textContent = "This module's live data endpoint is unavailable.";
+      byId("module-live-metrics").replaceChildren();
+      byId("module-live-sections").replaceChildren();
+      byId("module-live-status").textContent = String(error.message || "module_data_unavailable");
+    }
   }
 
   function renderWorldTimeline(cards, visible) {
