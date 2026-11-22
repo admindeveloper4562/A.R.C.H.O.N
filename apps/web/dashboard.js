@@ -227,7 +227,8 @@
     document.querySelectorAll(".primary-nav .nav-link").forEach((link) => link.classList.toggle("active", settingsPage ? link.getAttribute("href") === "/settings" : (!modulePage && link.getAttribute("href") === "#overview")));
     document.querySelectorAll(".module-nav .nav-link").forEach((link) => link.classList.toggle("active", modulePage && link.getAttribute("href") === `#module/${moduleKey}`));
     if (settingsPage) document.title = "ARCHON — Settings";
-    if (moduleKey) renderModuleDashboard(moduleKey);
+    else if (moduleKey) renderModuleDashboard(moduleKey);
+    else document.title = "ARCHON — Mission Control";
   }
 
   function renderTasks(tasks) {
