@@ -29,6 +29,10 @@ def _restore_python(document: str) -> str:
 
 
 class LinuxReleaseRunbookTests(unittest.TestCase):
+    def test_docker_context_excludes_local_codex_session_transcripts(self) -> None:
+        patterns = (ROOT / ".dockerignore").read_text(encoding="utf-8").splitlines()
+        self.assertIn("codex-session*.md", patterns)
+
     @unittest.skipUnless(sys.platform == "linux", "Linux container paths and controller lock semantics")
     def test_backup_restore_snippets_preserve_controls_and_restore_safe_mode(self) -> None:
         document = RUNBOOK.read_text(encoding="utf-8")
