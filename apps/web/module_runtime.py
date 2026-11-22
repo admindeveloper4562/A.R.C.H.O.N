@@ -257,6 +257,8 @@ class ModuleRuntime:
         sources: list[tuple[str, bytes]] = []
         total = 0
         digest = hashlib.sha1()
+        directory_flags = os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC | os.O_NOFOLLOW
+        file_flags = os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW
         for raw_path in result.stdout.split(b"\0"):
             if not raw_path:
                 continue
@@ -268,19 +270,34 @@ class ModuleRuntime:
             if (
                 path.is_absolute()
                 or ".." in path.parts
+                or not path.parts
                 or path.suffix.lower() not in _INDEX_SUFFIXES
                 or not (name in _INDEX_FILES or name.startswith(_INDEX_ROOTS))
             ):
                 continue
-            source = self.repository.joinpath(*path.parts)
+            source_fds: list[int] = []
+            file_fd = -1
             try:
-                details = source.lstat()
+                source_fds.append(os.open(self.repository, directory_flags))
+                for component in path.parts[:-1]:
+                    source_fds.append(os.open(component, directory_flags, dir_fd=source_fds[-1]))
+                file_fd = os.open(path.parts[-1], file_flags, dir_fd=source_fds[-1])
+                details = os.fstat(file_fd)
                 if not stat.S_ISREG(details.st_mode) or details.st_size > MAX_INDEX_SOURCE_BYTES:
                     continue
-                content = source.read_bytes()
+                with os.fdopen(file_fd, "rb") as stream:
+                    file_fd = -1
+                    content = stream.read(MAX_INDEX_SOURCE_BYTES + 1)
+                if len(content) > MAX_INDEX_SOURCE_BYTES:
+                    continue
                 content.decode("utf-8")
             except (OSError, UnicodeDecodeError):
                 continue
+            finally:
+                if file_fd >= 0:
+                    os.close(file_fd)
+                for directory_fd in reversed(source_fds):
+                    os.close(directory_fd)
             total += len(content)
             if total > MAX_INDEX_BYTES or len(sources) >= MAX_INDEX_FILES:
                 raise ModuleRuntimeError("research_index_limit_exceeded")

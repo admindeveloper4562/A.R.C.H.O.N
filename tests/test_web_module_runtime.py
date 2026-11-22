@@ -42,6 +42,19 @@ class ModuleRuntimeTests(unittest.TestCase):
         alpha_items = self.runtime.snapshot("research", query="alpha")["sections"][0]["items"]
         self.assertEqual({item["title"] for item in alpha_items}, {"docs/architecture/module.md"})
 
+    def test_research_rejects_symlinked_parent_directory_escape(self):
+        architecture = self.repository / "docs" / "architecture"
+        outside = self.root / "outside"
+        outside.mkdir()
+        (outside / "module.md").write_text("outside-marker-only", encoding="utf-8")
+        (architecture / "module.md").unlink()
+        architecture.rmdir()
+        architecture.symlink_to(outside, target_is_directory=True)
+
+        result = self.runtime.snapshot("research", query="outside-marker-only")
+        self.assertEqual(result["sections"][0]["items"], [])
+        self.assertEqual(result["metrics"][0]["value"], "1")
+
     def test_local_module_stores_open_and_remain_private(self):
         for module in ("tws", "wic", "finance", "automation"):
             self.assertTrue(self.runtime.snapshot(module)["sections"])
