@@ -19,12 +19,18 @@ def request(model: str = "qwen3:4b", *, tools=()) -> ProtocolRequest:
     )
 
 
-def response(*, content: str = "local answer", model: str = "qwen3:4b", tool_calls=None) -> bytes:
+def response(
+    *,
+    content: str = "local answer",
+    model: str = "qwen3:4b",
+    tool_calls=None,
+    done_reason: str | None = "stop",
+) -> bytes:
     return json.dumps({
         "model": model,
         "message": {"role": "assistant", "content": content, "tool_calls": tool_calls or []},
         "done": True,
-        "done_reason": "stop",
+        "done_reason": done_reason,
     }).encode()
 
 
@@ -105,14 +111,68 @@ class LocalOllamaGatewayTests(unittest.TestCase):
         with patch("jarvis_v2.backend.ollama_gateway.http.client.HTTPConnection", return_value=connection):
             with self.assertRaises(OllamaGatewayError) as raised:
                 self.gateway.complete("prompt", model="qwen3:4b")
+        self.assertEqual(str(raised.exception), "local_model_http_failure")
         self.assertNotIn("private server detail", str(raised.exception))
         self.assertTrue(connection.closed)
+
+    def test_classifies_extremely_long_content_length(self) -> None:
+        connection = _Connection(_Response(response(), length="9" * 5_000))
+        with patch("jarvis_v2.backend.ollama_gateway.http.client.HTTPConnection", return_value=connection):
+            with self.assertRaisesRegex(OllamaGatewayError, "inference_response_too_large"):
+                self.gateway.complete("prompt", model="qwen3:4b")
+        self.assertTrue(connection.closed)
+
+    def test_transport_timeout_is_distinct_and_retry_uses_a_fresh_connection(self) -> None:
+        timed_out = _Connection(_Response(response()))
+        with patch("jarvis_v2.backend.ollama_gateway.http.client.HTTPConnection", return_value=timed_out):
+            with patch.object(timed_out, "request", side_effect=TimeoutError("offline")) as request_call:
+                with self.assertRaisesRegex(OllamaGatewayError, "local_model_transport_failure"):
+                    self.gateway.complete("prompt", model="qwen3:4b")
+        request_call.assert_called_once()
+        self.assertTrue(timed_out.closed)
+
+        restarted = _Connection(_Response(response(content="after restart")))
+        with patch("jarvis_v2.backend.ollama_gateway.http.client.HTTPConnection", return_value=restarted) as factory:
+            result = self.gateway.complete("prompt", model="qwen3:4b")
+        factory.assert_called_once_with("127.0.0.1", 11434, timeout=30.0)
+        self.assertEqual(result.content, "after restart")
+        self.assertTrue(restarted.closed)
+
+    def test_malformed_json_is_not_reported_as_transport_failure(self) -> None:
+        connection = _Connection(_Response(b"{"))
+        with patch("jarvis_v2.backend.ollama_gateway.http.client.HTTPConnection", return_value=connection):
+            with self.assertRaisesRegex(OllamaGatewayError, "inference_response_invalid"):
+                self.gateway.complete("prompt", model="qwen3:4b")
+        self.assertTrue(connection.closed)
+
+    def test_truncated_output_is_rejected_and_missing_done_reason_is_normalized(self) -> None:
+        truncated = _Connection(_Response(response(content="partial", done_reason="length")))
+        with patch("jarvis_v2.backend.ollama_gateway.http.client.HTTPConnection", return_value=truncated):
+            with self.assertRaisesRegex(OllamaGatewayError, "inference_response_incomplete"):
+                self.gateway.complete("prompt", model="qwen3:4b")
+        self.assertTrue(truncated.closed)
+
+        complete = _Connection(_Response(response(done_reason=None)))
+        with patch("jarvis_v2.backend.ollama_gateway.http.client.HTTPConnection", return_value=complete):
+            result = self.gateway.complete("prompt", model="qwen3:4b")
+        self.assertEqual(result.finish_reason, "stop")
 
     def test_rejects_response_from_a_different_model(self) -> None:
         connection = _Connection(_Response(response(model="qwen3:8b")))
         with patch("jarvis_v2.backend.ollama_gateway.http.client.HTTPConnection", return_value=connection):
             with self.assertRaisesRegex(OllamaGatewayError, "response_model_invalid"):
                 self.gateway.complete("prompt", model="qwen3:4b")
+
+    def test_tool_requests_use_bounded_output_cap_and_reject_truncation(self) -> None:
+        tool = {"type": "function", "function": {"name": "read_status", "parameters": {"type": "object"}}}
+        connection = _Connection(_Response(response(content="", done_reason="length")))
+        with patch("jarvis_v2.backend.ollama_gateway.http.client.HTTPConnection", return_value=connection):
+            with self.assertRaisesRegex(OllamaGatewayError, "inference_response_incomplete"):
+                self.gateway.invoke(request(tools=(tool,)))
+        _, kwargs = connection.request_args
+        body = json.loads(kwargs["body"])
+        self.assertEqual(body["options"]["num_predict"], self.profile.tool_num_predict)
+        self.assertTrue(connection.closed)
 
     def test_preserves_tool_calls_as_data_without_executing_them(self) -> None:
         native_calls = [{"function": {"name": "read_status", "arguments": {"scope": "health"}}}]

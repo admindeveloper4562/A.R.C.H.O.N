@@ -108,6 +108,26 @@ class ProtocolRequest:
         tools = tuple(self.tools)
         if len(tools) > MAX_TOOLS or any(not isinstance(item, Mapping) for item in tools):
             raise AdapterError("tools are invalid")
+        # shortcut: nested schema operators pass through; add recursive checks if providers rely on them.
+        for tool in tools:
+            function = tool.get("function")
+            if tool.get("type") != "function" or not isinstance(function, Mapping):
+                raise AdapterError("tool schema is invalid")
+            _bounded(function.get("name"), _IDENTIFIER, "tool name")
+            parameters = function.get("parameters", {"type": "object"})
+            if not isinstance(parameters, Mapping) or parameters.get("type") != "object":
+                raise AdapterError("tool parameters must be an object schema")
+            properties = parameters.get("properties", {})
+            required = parameters.get("required", [])
+            if (
+                not isinstance(properties, Mapping)
+                or any(not isinstance(name, str) or not isinstance(schema, Mapping)
+                       for name, schema in properties.items())
+                or not isinstance(required, list)
+                or any(not isinstance(name, str) or name not in properties for name in required)
+                or len(required) != len(set(required))
+            ):
+                raise AdapterError("tool properties are invalid")
         _json([dict(item) for item in tools], "tools")
         object.__setattr__(self, "messages", messages)
         object.__setattr__(self, "tools", tools)

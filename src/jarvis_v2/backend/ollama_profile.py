@@ -28,10 +28,12 @@ def _non_negative_int(value: Any, label: str) -> int:
 
 @dataclass(frozen=True)
 class OllamaInferenceProfile:
-    """The bounded options used for one Linux-local Ollama probe."""
+    """Bounded Linux-local Ollama settings for one model request."""
 
     model: str = "qwen3:8b"
     num_ctx: int = 16_384
+    num_predict: int = 128
+    tool_num_predict: int = 512
     kv_cache_type: str = "q8_0"
     flash_attn: bool = True
     platform: str = "linux"
@@ -41,6 +43,10 @@ class OllamaInferenceProfile:
             raise OllamaProfileError("model must be a Qwen3 Ollama model")
         if type(self.num_ctx) is not int or not 1_024 <= self.num_ctx <= 131_072:
             raise OllamaProfileError("num_ctx is outside the bounded range")
+        if type(self.num_predict) is not int or not 1 <= self.num_predict <= 4_096:
+            raise OllamaProfileError("num_predict is outside the bounded range")
+        if type(self.tool_num_predict) is not int or not 1 <= self.tool_num_predict <= 4_096:
+            raise OllamaProfileError("tool_num_predict is outside the bounded range")
         if self.kv_cache_type not in KV_CACHE_TYPES:
             raise OllamaProfileError("kv_cache_type is not supported")
         if type(self.flash_attn) is not bool:
@@ -49,15 +55,16 @@ class OllamaInferenceProfile:
             raise OllamaProfileError("this profile is Linux-only")
 
     def options(self) -> dict[str, object]:
-        """Return the exact Ollama options without provider response data."""
+        """Return the exact bounded Ollama options without response data."""
         return {
             "num_ctx": self.num_ctx,
+            "num_predict": self.num_predict,
             "kv_cache_type": self.kv_cache_type,
             "flash_attn": self.flash_attn,
         }
 
     def as_dict(self) -> dict[str, object]:
-        return {"model": self.model, "platform": self.platform, **self.options()}
+        return {"model": self.model, "platform": self.platform, **self.options(), "tool_num_predict": self.tool_num_predict}
 
 
 @dataclass(frozen=True)
