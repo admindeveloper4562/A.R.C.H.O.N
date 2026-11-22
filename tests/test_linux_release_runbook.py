@@ -32,6 +32,9 @@ class LinuxReleaseRunbookTests(unittest.TestCase):
     @unittest.skipUnless(sys.platform == "linux", "Linux container paths and controller lock semantics")
     def test_backup_restore_snippets_preserve_controls_and_restore_safe_mode(self) -> None:
         document = RUNBOOK.read_text(encoding="utf-8")
+        self.assertIn("Before any marker removal, reconcile its origin and owner intent", document)
+        self.assertIn("record the authorized reconciliation and audit receipt", document)
+        self.assertIn("The controller must enter safe_mode while any marker remains present", document)
         backup_script = _backup_python(document)
         restore_script = _restore_python(document)
 
@@ -94,6 +97,32 @@ class LinuxReleaseRunbookTests(unittest.TestCase):
                 self.assertEqual(result["reason"], "control_marker_active")
                 self.assertEqual(result["controls"], ["STOP", "PAUSE", "PAUSED_QUOTA"])
                 self.assertEqual(controller.active_controls(), ("STOP", "PAUSE", "PAUSED_QUOTA"))
+
+    @unittest.skipUnless(sys.platform == "linux", "Linux container paths and controller lock semantics")
+    def test_backup_rejects_symlink_control_marker(self) -> None:
+        backup_script = _backup_python(RUNBOOK.read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            state = root / "state"
+            controls = state / "controls"
+            workspace = root / "workspace"
+            controls.mkdir(parents=True, mode=0o700)
+            workspace.mkdir(mode=0o700)
+            external_marker = root / "outside-marker"
+            external_marker.write_text("do not follow\n", encoding="utf-8")
+            (controls / "STOP").symlink_to(external_marker)
+            environment = os.environ.copy()
+            environment["ARCHON_STATE"] = str(state)
+            environment["ARCHON_WORKSPACE"] = str(workspace)
+            backup = subprocess.run(
+                [sys.executable, "-c", backup_script],
+                cwd=ROOT,
+                env=environment,
+                capture_output=True,
+                check=False,
+            )
+        self.assertNotEqual(backup.returncode, 0)
+        self.assertIn(b"control marker is a symlink: STOP", backup.stderr)
 
 
 if __name__ == "__main__":

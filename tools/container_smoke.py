@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import tarfile
 import time
 import uuid
 
@@ -18,6 +19,162 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 
 ROOT = Path(__file__).resolve().parents[1]
+OCI_INDEX_MEDIA_TYPE = "application/vnd.oci.image.index.v1+json"
+
+
+def release_image_ref(source_sha: str) -> str:
+    if len(source_sha) != 40 or any(char not in "0123456789abcdef" for char in source_sha):
+        raise ValueError("release image requires a full lowercase Git source SHA")
+    return f"archon-release:{source_sha}"
+
+
+def _archive_member(archive: tarfile.TarFile, name: str, limit: int) -> bytes:
+    try:
+        member = archive.getmember(name)
+    except KeyError as exc:
+        raise RuntimeError(f"OCI archive is missing {name}") from exc
+    if not member.isfile() or member.size > limit:
+        raise RuntimeError(f"OCI archive member is not a bounded regular file: {name}")
+    stream = archive.extractfile(member)
+    if stream is None:
+        raise RuntimeError(f"OCI archive member is unreadable: {name}")
+    with stream:
+        data = stream.read(limit + 1)
+    if len(data) != member.size:
+        raise RuntimeError(f"OCI archive member size mismatch: {name}")
+    return data
+
+
+def _oci_json_blob(archive: tarfile.TarFile, digest: str) -> dict:
+    algorithm, separator, value = digest.partition(":")
+    if not separator or algorithm != "sha256" or len(value) != 64 or any(
+        char not in "0123456789abcdef" for char in value
+    ):
+        raise RuntimeError("OCI archive contains an unsupported blob digest")
+    data = _archive_member(archive, f"blobs/{algorithm}/{value}", 16 * 1024 * 1024)
+    if hashlib.sha256(data).hexdigest() != value:
+        raise RuntimeError("OCI archive blob digest mismatch")
+    try:
+        document = json.loads(data)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise RuntimeError("OCI archive blob is not valid JSON") from exc
+    if not isinstance(document, dict):
+        raise RuntimeError("OCI archive blob must contain a JSON object")
+    return document
+
+
+def inspect_oci_image_archive(
+    path: Path,
+    *,
+    source_sha: str,
+    image_ref: str,
+    image_id: str,
+) -> dict[str, object]:
+    image_tag = image_ref.rsplit(":", 1)[-1]
+    if image_ref != release_image_ref(source_sha) or image_tag != source_sha:
+        raise RuntimeError("OCI archive image reference is not source-SHA-specific")
+    try:
+        with tarfile.open(path, "r:*") as archive:
+            try:
+                index = json.loads(_archive_member(archive, "index.json", 1024 * 1024))
+            except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+                raise RuntimeError("OCI archive index.json is invalid") from exc
+            if not isinstance(index, dict) or index.get("mediaType") != OCI_INDEX_MEDIA_TYPE:
+                raise RuntimeError("Docker save archive does not contain an OCI image index")
+            descriptors = index.get("manifests")
+            if not isinstance(descriptors, list):
+                raise RuntimeError("OCI archive index has no manifest descriptors")
+            tag = image_tag
+            selected = []
+            for descriptor in descriptors:
+                if not isinstance(descriptor, dict):
+                    continue
+                annotations = descriptor.get("annotations")
+                if not isinstance(annotations, dict):
+                    continue
+                ref_name = annotations.get("org.opencontainers.image.ref.name")
+                image_name = annotations.get("io.containerd.image.name", "")
+                if (
+                    ref_name == tag
+                    and isinstance(image_name, str)
+                    and image_name.rsplit("/", 1)[-1] == image_ref
+                ):
+                    selected.append(descriptor)
+            if len(selected) != 1:
+                raise RuntimeError("OCI archive has no unique descriptor for the source-SHA image tag")
+            root_descriptor = selected[0]
+            root_annotations = root_descriptor["annotations"]
+            index_digest = root_descriptor.get("digest")
+            if (
+                root_descriptor.get("mediaType") != OCI_INDEX_MEDIA_TYPE
+                or index_digest != image_id
+            ):
+                raise RuntimeError("OCI index descriptor digest does not match Docker image inspect Id")
+
+            pending = [_oci_json_blob(archive, index_digest)]
+            seen = {index_digest}
+            source_shas: set[str] = set()
+            config_digests: set[str] = set()
+            while pending:
+                document = pending.pop()
+                children = document.get("manifests")
+                if children is not None:
+                    if not isinstance(children, list):
+                        raise RuntimeError("nested OCI index has invalid manifests")
+                    for child in children:
+                        if not isinstance(child, dict) or not isinstance(child.get("digest"), str):
+                            raise RuntimeError("nested OCI index has an invalid descriptor")
+                        child_digest = child["digest"]
+                        if child_digest in seen:
+                            continue
+                        seen.add(child_digest)
+                        if len(seen) > 64:
+                            raise RuntimeError("OCI archive descriptor count exceeds the release bound")
+                        pending.append(_oci_json_blob(archive, child_digest))
+                    continue
+                if "artifactType" in document:
+                    continue
+                config_descriptor = document.get("config")
+                if not isinstance(config_descriptor, dict) or not isinstance(
+                    config_descriptor.get("digest"), str
+                ):
+                    raise RuntimeError("OCI image manifest has no config descriptor")
+                if config_descriptor.get("mediaType") == "application/vnd.oci.empty.v1+json":
+                    continue
+                config_digest = config_descriptor["digest"]
+                config = _oci_json_blob(archive, config_digest)
+                image_config = config.get("config")
+                if not isinstance(image_config, dict):
+                    raise RuntimeError("OCI image config is invalid")
+                environment = image_config.get("Env", [])
+                if environment is None:
+                    environment = []
+                if not isinstance(environment, list):
+                    raise RuntimeError("OCI image config environment is invalid")
+                embedded_shas = [
+                    value.split("=", 1)[1]
+                    for value in environment
+                    if isinstance(value, str) and value.startswith("ARCHON_SOURCE_SHA=")
+                ]
+                if embedded_shas != [source_sha]:
+                    raise RuntimeError("OCI archive image config source SHA does not match the candidate")
+                source_shas.add(embedded_shas[0])
+                config_digests.add(config_digest)
+            if source_shas != {source_sha}:
+                raise RuntimeError("OCI archive image config source SHA does not match the candidate")
+            return {
+                "image_ref": image_ref,
+                "index_ref_name": root_annotations.get("org.opencontainers.image.ref.name"),
+                "index_image_name": root_annotations.get("io.containerd.image.name"),
+                "image_id": image_id,
+                "index_descriptor_digest": index_digest,
+                "config_digests": sorted(config_digests),
+                "source_sha": source_sha,
+            }
+    except RuntimeError:
+        raise
+    except (OSError, EOFError, tarfile.TarError, KeyError, TypeError, ValueError) as exc:
+        raise RuntimeError("Docker save archive is not a valid OCI image archive") from exc
 
 
 class Smoke:
@@ -218,6 +375,7 @@ class Smoke:
 
     def run(self) -> dict:
         source_sha = self.command("source-sha", ["git", "rev-parse", "HEAD"])
+        image_ref = release_image_ref(source_sha)
         source_date_epoch = self.environment.get("SOURCE_DATE_EPOCH", "0")
         if not source_date_epoch.isdecimal():
             raise RuntimeError("SOURCE_DATE_EPOCH must be a numeric Unix timestamp")
@@ -241,6 +399,7 @@ class Smoke:
         self.override.write_text(
             "services:\n"
             "  archon:\n"
+            f"    image: {image_ref}\n"
             "    volumes:\n"
             "      - type: bind\n"
             f"        source: {json.dumps(str(self.key_store))}\n"
@@ -256,12 +415,92 @@ class Smoke:
             "        read_only: true\n",
             encoding="utf-8",
         )
-        build_project = f"archon-release-build-{source_sha[:12]}"
+        self.command(
+            "candidate-tag-preflight",
+            ["docker", "image", "inspect", image_ref],
+            expected=1,
+        )
+        if "No such image" not in (self.logs / "candidate-tag-preflight.log").read_text(encoding="utf-8"):
+            raise RuntimeError("could not prove the unique candidate image tag is unused")
+        build_project = f"archon-release-build-{source_sha}"
         build_compose = [
             "docker", "compose", "-p", build_project,
             "-f", str(ROOT / "compose.yaml"), "-f", str(self.override),
         ]
         self.command("compose-build", [*build_compose, "build"], timeout=900)
+        image_before = json.loads(self.command(
+            "image-inspect-before-archive-reload",
+            ["docker", "image", "inspect", image_ref],
+        ))
+        if not isinstance(image_before, list) or len(image_before) != 1:
+            raise RuntimeError("Docker inspect did not return exactly one candidate image")
+        image_before = image_before[0]
+        image_id = image_before.get("Id")
+        image_config_before = image_before.get("Config")
+        image_environment = image_config_before.get("Env", []) if isinstance(image_config_before, dict) else []
+        image_source_shas = [
+            value.split("=", 1)[1]
+            for value in image_environment
+            if isinstance(value, str) and value.startswith("ARCHON_SOURCE_SHA=")
+        ] if isinstance(image_environment, list) else []
+        rootfs_info_before = image_before.get("RootFS")
+        rootfs_before = rootfs_info_before.get("Layers") if isinstance(rootfs_info_before, dict) else None
+        if not isinstance(image_id, str) or not image_id.startswith("sha256:"):
+            raise RuntimeError("Docker inspect returned an invalid candidate image ID")
+        if image_source_shas != [source_sha]:
+            raise RuntimeError("built candidate image has the wrong source SHA")
+        if not isinstance(rootfs_before, list):
+            raise RuntimeError("Docker inspect returned an invalid candidate RootFS")
+        archive_path = self.output / f"archon-image-{source_sha}-{image_id.split(':', 1)[1]}.tar"
+        if archive_path.exists():
+            raise RuntimeError("release archive already exists; refusing to replace retained evidence")
+        self.command(
+            "save-container-image",
+            ["docker", "image", "save", "--output", str(archive_path), image_ref],
+            timeout=300,
+        )
+        archive_identity = inspect_oci_image_archive(
+            archive_path,
+            source_sha=source_sha,
+            image_ref=image_ref,
+            image_id=image_id,
+        )
+        with archive_path.open("rb") as archive_stream:
+            image_archive_sha256 = hashlib.file_digest(archive_stream, "sha256").hexdigest()
+        self.command(
+            "reload-container-image",
+            ["docker", "image", "load", "--input", str(archive_path)],
+            timeout=300,
+        )
+        archive_image_digest = archive_identity["index_descriptor_digest"]
+        image_after = json.loads(self.command(
+            "image-inspect-after-archive-reload-by-oci-digest",
+            ["docker", "image", "inspect", archive_image_digest],
+        ))
+        if not isinstance(image_after, list) or len(image_after) != 1:
+            raise RuntimeError("Docker inspect did not return the image selected by the OCI digest")
+        image_after = image_after[0]
+        if image_after.get("Id") != image_id:
+            raise RuntimeError("Docker archive reload changed the candidate image ID")
+        image_config_after = image_after.get("Config")
+        reloaded_environment = image_config_after.get("Env", []) if isinstance(image_config_after, dict) else []
+        reloaded_source_shas = [
+            value.split("=", 1)[1]
+            for value in reloaded_environment
+            if isinstance(value, str) and value.startswith("ARCHON_SOURCE_SHA=")
+        ] if isinstance(reloaded_environment, list) else []
+        if reloaded_source_shas != [source_sha]:
+            raise RuntimeError("Docker archive reload selected an image for a different source SHA")
+        rootfs_info_after = image_after.get("RootFS")
+        rootfs_after = rootfs_info_after.get("Layers") if isinstance(rootfs_info_after, dict) else None
+        if rootfs_after != rootfs_before:
+            raise RuntimeError("Docker archive reload changed the candidate RootFS")
+        image_tag_after = json.loads(self.command(
+            "image-tag-inspect-after-archive-reload",
+            ["docker", "image", "inspect", image_ref],
+        ))
+        if not isinstance(image_tag_after, list) or len(image_tag_after) != 1 or image_tag_after[0].get("Id") != image_id:
+            raise RuntimeError("Docker archive candidate tag does not resolve to the reloaded OCI digest")
         rendered = self.command("compose-config", [*self.compose, "config", "--quiet"])
         del rendered
         self.command("compose-up", [*self.compose, "up", "-d", "--no-build"], timeout=120)
@@ -424,9 +663,6 @@ class Smoke:
         )
         if security != "10001:10001|true|[\"ALL\"]|none|[\"no-new-privileges:true\"]":
             raise RuntimeError(f"container security settings differ from policy: {security}")
-        self.command("save-container-image", ["docker", "save", "--output",
-                                               str(self.output / "archon-local-image.tar"),
-                                               "archon-local:0.0.3"], timeout=300)
         self.command("graceful-stop", [*self.compose, "stop", "-t", "10"], timeout=60)
         exit_code = self.command(
             "container-exit-code", ["docker", "inspect", "--format", "{{.State.ExitCode}}", container_id],
@@ -440,7 +676,16 @@ class Smoke:
             "result": "passed",
             "project": self.project,
             "container_id": container_id,
-            "container_image": "archon-local:0.0.3",
+            "container_image": image_ref,
+            "container_image_id": image_id,
+            "image_rootfs_layers": rootfs_before,
+            "image_archive": archive_path.name,
+            "image_archive_sha256": image_archive_sha256,
+            "image_index_descriptor_digest": archive_identity["index_descriptor_digest"],
+            "image_reload_inspection_ref": archive_image_digest,
+            "image_config_digests": archive_identity["config_digests"],
+            "image_archive_source_sha": archive_identity["source_sha"],
+            "image_archive_reload": "passed",
             "fresh_state": True,
             "network_mode": "none",
             "persistent_volumes_retained": [f"{self.project}_archon-state", f"{self.project}_archon-workspace"],
