@@ -2,6 +2,8 @@
 
 ## Verdict: CONDITIONAL
 
+Current develop provenance, exact post-merge test results, privacy-pattern scan, and read-only live-state counts are recorded in [POSTMERGE_CHECKPOINT_5363455.md](POSTMERGE_CHECKPOINT_5363455.md). That checkpoint confirms the monitor fix is integrated while preserving the **CONDITIONAL** verdict.
+
 The Linux package, local verification workflow, bounded signed executor, clean container, persistent volumes, restart recovery, and saved-image reload pass on the tested candidate. A complete autonomous ARCHON system is not established: all ten module states remain `planned`, the full cross-module assistant and autonomous development workflows were not run, independent AEGIS recovery/rollback is not qualified, and multi-hour operation remains unverified.
 
 ## Candidate and Git snapshot
