@@ -244,8 +244,12 @@ class ReminderService:
     def get(self, reminder_id: str) -> Reminder:
         return self._backend(self.scheduler.get, reminder_id)
 
-    def acknowledge(self, reminder_id: str) -> Reminder:
-        return self._backend(self.scheduler.acknowledge, reminder_id)
+    def acknowledge(
+        self, reminder_id: str, *, expected_due_utc: datetime | None = None
+    ) -> Reminder:
+        return self._backend(
+            self.scheduler.acknowledge, reminder_id, expected_due_utc=expected_due_utc
+        )
 
     complete = acknowledge
 

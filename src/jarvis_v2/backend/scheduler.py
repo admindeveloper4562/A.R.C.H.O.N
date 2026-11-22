@@ -239,9 +239,20 @@ class ReminderScheduler:
 
     due = due_reminders
 
-    def acknowledge(self, reminder_id: str) -> Reminder:
+    def acknowledge(
+        self, reminder_id: str, *, expected_due_utc: datetime | None = None
+    ) -> Reminder:
         reminder_id = _identifier(reminder_id)
-        now = _format_utc(_now(self._clock))
+        clock_now = _now(self._clock)
+        now = _format_utc(clock_now)
+        if expected_due_utc is not None:
+            if (
+                not isinstance(expected_due_utc, datetime)
+                or expected_due_utc.tzinfo is None
+                or expected_due_utc.utcoffset() is None
+            ):
+                raise ReminderError("acknowledgement occurrence must be timezone-aware")
+            expected_due_utc = expected_due_utc.astimezone(UTC)
         try:
             self.db.execute("BEGIN IMMEDIATE")
             row = self.db.execute(
@@ -251,24 +262,39 @@ class ReminderScheduler:
                 raise ReminderError("unknown reminder")
             if row["status"] == "cancelled":
                 raise ReminderError("cancelled reminder cannot be acknowledged")
+            if expected_due_utc is None and row["recurrence"] == "daily":
+                raise ReminderError("daily reminder acknowledgement requires due occurrence")
+            current_due = _parse_utc(row["next_due_utc"])
+            if expected_due_utc is not None:
+                if expected_due_utc < current_due:
+                    self.db.commit()
+                    return self._snapshot(row)
+                if expected_due_utc != current_due:
+                    raise ReminderError("acknowledgement occurrence is not current")
+                if expected_due_utc > clock_now:
+                    raise ReminderError("reminder occurrence is not due")
             if row["status"] == "completed":
                 self.db.commit()
                 return self._snapshot(row)
             if row["recurrence"] == "once":
-                self.db.execute(
-                    "UPDATE backend_reminders SET status='completed',updated_at=? WHERE reminder_id=?",
-                    (now, reminder_id),
+                updated = self.db.execute(
+                    "UPDATE backend_reminders SET status='completed',updated_at=? "
+                    "WHERE reminder_id=? AND status='active' AND next_due_utc=?",
+                    (now, reminder_id, row["next_due_utc"]),
                 )
             else:
                 zone = _zone(row["timezone"])
                 scheduled = time.fromisoformat(row["scheduled_local"])
-                current_due = _parse_utc(row["next_due_utc"]).astimezone(zone)
-                next_local = datetime.combine(current_due.date() + timedelta(days=1), scheduled)
+                current_local = current_due.astimezone(zone)
+                next_local = datetime.combine(current_local.date() + timedelta(days=1), scheduled)
                 next_due = _resolve_local(next_local, zone)
-                self.db.execute(
-                    "UPDATE backend_reminders SET next_due_utc=?,updated_at=? WHERE reminder_id=?",
-                    (_format_utc(next_due), now, reminder_id),
+                updated = self.db.execute(
+                    "UPDATE backend_reminders SET next_due_utc=?,updated_at=? "
+                    "WHERE reminder_id=? AND status='active' AND next_due_utc=?",
+                    (_format_utc(next_due), now, reminder_id, row["next_due_utc"]),
                 )
+            if updated.rowcount != 1:
+                raise ReminderError("reminder occurrence is no longer current")
             self.db.commit()
             return self.get(reminder_id)
         except (sqlite3.Error, ReminderError) as exc:

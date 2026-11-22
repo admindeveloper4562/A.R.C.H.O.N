@@ -57,8 +57,8 @@ class AutomationScheduleStore:
     def due(self, now: datetime | None = None, *, limit: int = 100) -> list[Reminder]:
         return self._store.due_reminders(now, limit=limit)
 
-    def acknowledge(self, schedule_id: str) -> Reminder:
-        return self._store.acknowledge(schedule_id)
+    def acknowledge(self, schedule_id: str, expected_due_utc: datetime) -> Reminder:
+        return self._store.acknowledge(schedule_id, expected_due_utc=expected_due_utc)
 
     def cancel(self, schedule_id: str) -> Reminder:
         return self._store.cancel(schedule_id)

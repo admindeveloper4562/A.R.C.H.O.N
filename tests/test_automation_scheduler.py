@@ -37,7 +37,7 @@ class AutomationScheduleTests(unittest.TestCase):
                     start_date=date(2026, 11, 1),
                 )
                 self.assertEqual(first.next_due_utc.hour, 5)
-                next_due = store.acknowledge("dst")
+                next_due = store.acknowledge("dst", expected_due_utc=first.next_due_utc)
                 self.assertEqual(next_due.next_due_utc.hour, 6)
 
     def test_once_schedule_is_idempotent_and_conflicts_fail(self):
