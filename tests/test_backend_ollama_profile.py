@@ -17,6 +17,7 @@ class OllamaProfileTests(unittest.TestCase):
             "model": "qwen3:8b",
             "platform": "linux",
             "num_ctx": 16_384,
+            "num_predict": 128,
             "kv_cache_type": "q8_0",
             "flash_attn": True,
         })
@@ -40,6 +41,8 @@ class OllamaProfileTests(unittest.TestCase):
         for changes in (
             {"model": "qwen2.5:7b"},
             {"num_ctx": 512},
+            {"num_predict": 0},
+            {"num_predict": 4_097},
             {"kv_cache_type": "q8_1"},
             {"flash_attn": 1},
             {"platform": "windows"},

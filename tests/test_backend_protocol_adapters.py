@@ -61,6 +61,54 @@ class BackendProtocolAdapterTests(unittest.TestCase):
         self.assertEqual(response.tool_calls[0].arguments, {"scope": "local"})
         self.assertEqual(response.finish_reason, "tool_calls")
 
+    def test_function_tool_schemas_are_validated_before_transport(self):
+        valid = {
+            "type": "function",
+            "function": {
+                "name": "lookup_status",
+                "parameters": {
+                    "type": "object",
+                    "properties": {"scope": {"type": "string", "enum": ["health"]}},
+                    "required": ["scope"],
+                },
+            },
+        }
+        nested = {
+            "type": "function",
+            "function": {
+                "name": "search",
+                "parameters": {
+                    "type": "object",
+                    "properties": {"filter": {"oneOf": [{"type": "string"}]}},
+                },
+            },
+        }
+        self.assertEqual(request().tools[0]["type"], "function")
+        self.assertEqual(
+            ProtocolRequest("conversation-1", 1, "gpt-5.6-luna", (ProtocolMessage("user", "x"),),
+                            tools=(valid, nested)).tools,
+            (valid, nested),
+        )
+        invalid = (
+            {"type": "other", "function": {"name": "lookup_status"}},
+            {"type": "function", "function": {"name": "invalid name"}},
+            {"type": "function", "function": {"name": "lookup_status",
+             "parameters": {"type": "string"}}},
+            {"type": "function", "function": {"name": "lookup_status",
+             "parameters": {"type": "object", "properties": {"scope": "string"}}}},
+            {"type": "function", "function": {"name": "lookup_status",
+             "parameters": {"type": "object", "properties": {}, "required": ["missing"]}}},
+            {"type": "function", "function": {"name": "lookup_status",
+             "parameters": {"type": "object", "properties": {"scope": {}},
+                            "required": ["scope", "scope"]}}},
+        )
+        for tool in invalid:
+            with self.subTest(tool=tool), self.assertRaises(AdapterError):
+                ProtocolRequest(
+                    "conversation-1", 1, "gpt-5.6-luna",
+                    (ProtocolMessage("user", "x"),), tools=(tool,),
+                )
+
     def test_invalid_wire_responses_are_rejected(self):
         with self.assertRaises(AdapterError):
             ResponsesAdapter("codex").decode({"id": "resp-1", "model": "gpt-5.6-luna", "output": "bad"})

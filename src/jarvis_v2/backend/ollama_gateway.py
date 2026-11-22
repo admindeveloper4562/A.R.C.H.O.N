@@ -88,7 +88,7 @@ class LocalOllamaGateway:
             encoded = json.dumps(body, separators=(",", ":")).encode("utf-8")
             if len(encoded) > MAX_PROTOCOL_BYTES:
                 raise OllamaGatewayError("inference_request_too_large")
-        except (TypeError, ValueError, UnicodeError) as exc:
+        except (TypeError, ValueError, UnicodeError, RecursionError) as exc:
             raise OllamaGatewayError("inference_request_invalid") from exc
 
         connection = http.client.HTTPConnection(
@@ -115,19 +115,27 @@ class LocalOllamaGateway:
             raw = response.read(_MAX_RESPONSE_BYTES + 1)
             if len(raw) > _MAX_RESPONSE_BYTES:
                 raise OllamaGatewayError("inference_response_too_large")
-            return self._as_chat_completion(json.loads(raw.decode("utf-8")))
         except OllamaGatewayError:
             raise
-        except (OSError, TimeoutError, http.client.HTTPException, UnicodeError, ValueError, RecursionError) as exc:
-            raise OllamaGatewayError("local_model_unavailable_or_invalid") from exc
+        except (OSError, TimeoutError, http.client.HTTPException) as exc:
+            raise OllamaGatewayError("local_model_transport_failure") from exc
         finally:
             connection.close()
+
+        try:
+            decoded = json.loads(raw.decode("utf-8"))
+        except (UnicodeError, ValueError, RecursionError) as exc:
+            raise OllamaGatewayError("inference_response_invalid") from exc
+        return self._as_chat_completion(decoded)
 
     def _as_chat_completion(self, payload: Any) -> Mapping[str, Any]:
         if not isinstance(payload, Mapping) or payload.get("model") != self.profile.model:
             raise OllamaGatewayError("inference_response_model_invalid")
-        if payload.get("done") is not True:
+        done_reason = payload.get("done_reason")
+        if payload.get("done") is not True or done_reason == "length":
             raise OllamaGatewayError("inference_response_incomplete")
+        if done_reason not in (None, "", "stop"):
+            raise OllamaGatewayError("inference_response_invalid")
         message = payload.get("message")
         if not isinstance(message, Mapping) or message.get("role") != "assistant":
             raise OllamaGatewayError("inference_response_invalid")
@@ -154,7 +162,7 @@ class LocalOllamaGateway:
                         allow_nan=False,
                         separators=(",", ":"),
                     )
-                except (TypeError, ValueError) as exc:
+                except (TypeError, ValueError, RecursionError) as exc:
                     raise OllamaGatewayError("inference_tool_calls_invalid") from exc
             if not isinstance(arguments, str):
                 raise OllamaGatewayError("inference_tool_calls_invalid")
@@ -168,7 +176,7 @@ class LocalOllamaGateway:
             "model": self.profile.model,
             "choices": [{
                 "message": {"role": "assistant", "content": content, "tool_calls": calls},
-                "finish_reason": payload.get("done_reason", "stop"),
+                "finish_reason": done_reason or "stop",
             }],
         }
 
