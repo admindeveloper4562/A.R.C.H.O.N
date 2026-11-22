@@ -119,9 +119,20 @@ def collect(db: sqlite3.Connection, limit: int = 10) -> dict:
         }
         sub_cols = _cols(db, "subtasks")
         if "status" in sub_cols:
-            filter_sql = "WHERE project_id=?" if "project_id" in sub_cols else ""
-            filters = (PROJECT,) if filter_sql else ()
-            sub_counts = _group(db, "subtasks", "status", filter_sql, filters)
+            if "project_id" in sub_cols:
+                sub_counts = _group(db, "subtasks", "status", "WHERE project_id=?", (PROJECT,))
+            elif {"parent_id"} <= sub_cols and {"id", "project_id"} <= task_cols:
+                rows = db.execute(
+                    "SELECT s.status AS group_key, COUNT(*) AS count "
+                    "FROM subtasks s JOIN tasks t ON t.id=s.parent_id "
+                    "WHERE t.project_id=? GROUP BY s.status",
+                    (PROJECT,),
+                )
+                sub_counts = {
+                    _safe(row["group_key"], 48): int(row["count"]) for row in rows
+                }
+            else:
+                sub_counts = _group(db, "subtasks", "status")
             project["subtasks_recorded"] = sum(sub_counts.values())
             project["subtask_statuses"] = sub_counts
         receipt_cols = _cols(db, "subtask_receipts")

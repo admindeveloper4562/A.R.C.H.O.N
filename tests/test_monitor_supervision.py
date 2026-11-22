@@ -210,6 +210,44 @@ class SupervisorTelemetryTests(unittest.TestCase):
             finally:
                 writer.close()
 
+
+    def test_legacy_subtask_schema_scopes_through_parent_project(self):
+        with tempfile.TemporaryDirectory() as root:
+            db_path = Path(root) / "sda.sqlite3"
+            writer = self._fixture(db_path, extended=True)
+            try:
+                writer.execute(
+                    "INSERT INTO tasks(id,spec,status,architecture_sha,attempt,branch,last_run,created_at,updated_at,project_id) "
+                    "VALUES (?,?,?,?,?,?,?,?,?,?)",
+                    (
+                        "CORE-OTHER", json.dumps({"objective": "other project"}),
+                        "completed", "approved", 1, "", None,
+                        "2026-11-15T00:00:00Z", "2026-11-15T00:00:00Z", "OTHER",
+                    ),
+                )
+                writer.execute("ALTER TABLE subtasks DROP COLUMN project_id")
+                writer.execute("INSERT INTO subtasks VALUES (?,?,?,?)", (
+                    "CORE-OTHER.S01", "CORE-OTHER", "completed", "other project",
+                ))
+                writer.execute("INSERT INTO subtask_receipts VALUES (?,?,?,?,?)", (
+                    "r1", "CORE-001", "CORE-001.S01", "a" * 40, "independent_qc",
+                ))
+                writer.commit()
+
+                snapshot_data = snapshot(db_path, source="astra")
+                panel = snapshot_data["supervision"]["project"]
+                self.assertEqual(panel["subtasks_recorded"], 1)
+                self.assertEqual(panel["subtask_statuses"], {"completed": 1})
+                self.assertEqual(panel["subtasks_with_independent_qc_receipts"], 1)
+                self.assertEqual(panel["subtasks_without_independent_qc_receipts"], 0)
+                self.assertEqual(panel["completed_subtasks_without_independent_qc_receipts"], 0)
+                self.assertIn(
+                    "1 independent-QC receipt rows; 1/1 children covered; 0 missing (0 completed)",
+                    render(snapshot_data),
+                )
+            finally:
+                writer.close()
+
     def test_unknown_event_and_failure_values_are_redacted(self):
         with tempfile.TemporaryDirectory() as root:
             db_path = Path(root) / "sda.sqlite3"
