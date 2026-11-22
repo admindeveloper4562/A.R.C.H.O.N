@@ -115,6 +115,13 @@ class LocalOllamaGatewayTests(unittest.TestCase):
         self.assertNotIn("private server detail", str(raised.exception))
         self.assertTrue(connection.closed)
 
+    def test_classifies_extremely_long_content_length(self) -> None:
+        connection = _Connection(_Response(response(), length="9" * 5_000))
+        with patch("jarvis_v2.backend.ollama_gateway.http.client.HTTPConnection", return_value=connection):
+            with self.assertRaisesRegex(OllamaGatewayError, "inference_response_too_large"):
+                self.gateway.complete("prompt", model="qwen3:4b")
+        self.assertTrue(connection.closed)
+
     def test_transport_timeout_is_distinct_and_retry_uses_a_fresh_connection(self) -> None:
         timed_out = _Connection(_Response(response()))
         with patch("jarvis_v2.backend.ollama_gateway.http.client.HTTPConnection", return_value=timed_out):

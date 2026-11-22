@@ -108,9 +108,13 @@ class LocalOllamaGateway:
                 raise OllamaGatewayError("local_model_http_failure")
             length = response.getheader("Content-Length")
             if length is not None:
-                if not isinstance(length, str) or not length.isdigit():
+                if not isinstance(length, str) or not length.isascii() or not length.isdigit():
                     raise OllamaGatewayError("inference_response_invalid")
-                if int(length) > _MAX_RESPONSE_BYTES:
+                normalized_length = length.lstrip("0") or "0"
+                max_length = str(_MAX_RESPONSE_BYTES)
+                if len(normalized_length) > len(max_length) or (
+                    len(normalized_length) == len(max_length) and normalized_length > max_length
+                ):
                     raise OllamaGatewayError("inference_response_too_large")
             raw = response.read(_MAX_RESPONSE_BYTES + 1)
             if len(raw) > _MAX_RESPONSE_BYTES:
