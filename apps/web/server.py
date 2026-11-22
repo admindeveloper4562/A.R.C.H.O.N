@@ -42,6 +42,32 @@ def _conversation_database() -> Path:
     return database
 
 
+def _controller_process_state() -> str:
+    import fcntl
+
+    lock = STATE_ROOT / "run" / "controller.lock"
+    try:
+        details = lock.lstat()
+        if not stat.S_ISREG(details.st_mode) or details.st_uid != os.geteuid() or stat.S_IMODE(details.st_mode) & 0o077:
+            return "unknown"
+        descriptor = os.open(lock, os.O_RDWR | os.O_NOFOLLOW | os.O_CLOEXEC)
+    except FileNotFoundError:
+        return "stopped"
+    except OSError:
+        return "unknown"
+    try:
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return "running"
+        fcntl.flock(descriptor, fcntl.LOCK_UN)
+        return "stopped"
+    except OSError:
+        return "unknown"
+    finally:
+        os.close(descriptor)
+
+
 def _chat(message: str, conversation_id: str) -> dict[str, object]:
     from jarvis_v2.backend.conversation import ConversationStore, ConversationStoreError
     from jarvis_v2.backend.ollama_gateway import LocalOllamaGateway
@@ -163,7 +189,9 @@ class DashboardHandler(SimpleHTTPRequestHandler):
         try:
             if path == "/api/health":
                 from jarvis_v2.health import collect_health
-                self._json(200, collect_health(state_dir=STATE_ROOT, repository=Path(__file__).resolve().parents[2]))
+                health = collect_health(state_dir=STATE_ROOT, repository=Path(__file__).resolve().parents[2])
+                health["controller"]["process"] = _controller_process_state()
+                self._json(200, health)
                 return
             if path == "/api/modules":
                 manifest = Path(__file__).resolve().parents[2] / "config/modules.json"
@@ -175,6 +203,20 @@ class DashboardHandler(SimpleHTTPRequestHandler):
                 names = [item.get("name") for item in models if isinstance(item, dict) and isinstance(item.get("name"), str)]
                 self._json(200, {"models": names, "configured": MODEL,
                                  "configured_available": MODEL in names})
+                return
+            if path == "/api/capabilities":
+                from jarvis_v2.native_executor import NativeControlPlaneExecutor, _load_configured_owner_keys
+                executor = NativeControlPlaneExecutor(
+                    repository=Path(__file__).resolve().parents[2],
+                    state_dir=STATE_ROOT,
+                    owner_keys=_load_configured_owner_keys(),
+                )
+                self._json(200, {
+                    "operations": list(executor.capabilities()),
+                    "blocked": dict(executor.rejected_capabilities()),
+                    "owner_key_store": "configured" if executor.owner_keys else "missing",
+                    "task_admission": "signed_owner_approval_required",
+                })
                 return
             if path == "/api/tasks":
                 from jarvis_v2.automation.queue_api import CoordinatorQueue
