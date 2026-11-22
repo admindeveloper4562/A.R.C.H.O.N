@@ -83,6 +83,7 @@ class LocalOllamaGateway:
             raise OllamaGatewayError("inference_model_not_allowlisted")
         body = dict(payload)
         body["stream"] = False
+        body["think"] = False
         options = self.profile.options()
         if payload.get("tools"):
             options["num_predict"] = self.profile.tool_num_predict

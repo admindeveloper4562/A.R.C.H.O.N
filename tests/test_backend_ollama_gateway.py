@@ -82,6 +82,7 @@ class LocalOllamaGatewayTests(unittest.TestCase):
         self.assertEqual(kwargs["headers"]["Content-Type"], "application/json")
         body = json.loads(kwargs["body"])
         self.assertEqual(body["model"], "qwen3:4b")
+        self.assertIs(body["think"], False)
         self.assertEqual(body["options"], self.profile.options())
         self.assertIs(body["stream"], False)
         self.assertEqual(result.content, "local answer")
