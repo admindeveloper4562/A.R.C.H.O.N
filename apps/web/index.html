@@ -31,8 +31,19 @@
     <h1 data-page-title>Home</h1>
     <p data-page-summary>Local dashboard navigation is ready.</p>
     <section class="status-card" aria-live="polite">
-      <h2>Read-only shell</h2>
-      <p>Data panels are supplied by authenticated Runtime and Backend services.</p>
+      <h2>Local runtime</h2>
+      <p id="runtime-status">Loading runtime status…</p>
+      <p id="runtime-details" class="muted"></p>
+    </section>
+    <section class="chat-card" aria-labelledby="chat-heading">
+      <h2 id="chat-heading">Chat with ARCHON</h2>
+      <ol id="chat-history" class="chat-history" aria-live="polite"></ol>
+      <form id="chat-form">
+        <label for="chat-message">Message</label>
+        <textarea id="chat-message" name="message" rows="3" maxlength="32000" required></textarea>
+        <button id="chat-send" type="submit">Send</button>
+        <p id="chat-status" role="status" aria-live="polite"></p>
+      </form>
     </section>
     <section class="world-overview" data-world-overview hidden aria-labelledby="world-heading">
       <h2 id="world-heading">World overview</h2>

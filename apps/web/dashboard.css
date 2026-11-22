@@ -28,6 +28,15 @@ body {
 .content { min-height: 55vh; padding-block: clamp(1.5rem, 6vw, 4rem); }
 .eyebrow { color: var(--muted); font-size: .85rem; letter-spacing: .08em; text-transform: uppercase; }
 .status-card { max-width: 42rem; padding: 1rem 1.25rem; border: 1px solid var(--border); border-radius: .6rem; background: var(--panel); }
+.chat-card { max-width: 48rem; margin-top: 1rem; padding: 1rem 1.25rem; border: 1px solid var(--border); border-radius: .6rem; background: var(--panel); }
+.chat-card label { display: block; font-weight: 650; }
+.chat-card textarea { display: block; width: 100%; margin-block: .5rem; padding: .75rem; border: 1px solid var(--border); border-radius: .35rem; font: inherit; }
+.chat-card button { padding: .55rem 1rem; border: 0; border-radius: .35rem; background: var(--link); color: white; font: inherit; }
+.chat-card button:disabled { opacity: .6; }
+.chat-history { display: grid; gap: .5rem; padding-left: 1.5rem; }
+.chat-history li { padding: .6rem .8rem; border-radius: .4rem; background: var(--surface); }
+.chat-history p { margin: .3rem 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.muted { color: var(--muted); font-size: .9rem; }
 .world-overview { margin-top: 1rem; }
 .world-timeline { display: grid; gap: 1rem; margin: 0; padding: 0; list-style: none; }
 .world-card { padding: 1rem 1.25rem; border: 1px solid var(--border); border-radius: .6rem; background: var(--panel); }

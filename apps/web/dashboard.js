@@ -83,4 +83,77 @@
   }
 
   renderWorldTimeline(window.ARCHON_WORLD_CARDS);
+
+  const history = document.querySelector("#chat-history");
+  const chatForm = document.querySelector("#chat-form");
+  const chatStatus = document.querySelector("#chat-status");
+  const conversationKey = "archon.local.conversation";
+  let conversationId = sessionStorage.getItem(conversationKey);
+  if (!conversationId) {
+    conversationId = crypto.randomUUID();
+    sessionStorage.setItem(conversationKey, conversationId);
+  }
+
+  function addTurn(turn) {
+    const item = document.createElement("li");
+    const role = document.createElement("strong");
+    role.textContent = turn.role === "assistant" ? "ARCHON" : "You";
+    const content = document.createElement("p");
+    content.textContent = turn.content;
+    item.append(role, content);
+    history.append(item);
+  }
+
+  async function loadRuntime() {
+    const status = document.querySelector("#runtime-status");
+    const details = document.querySelector("#runtime-details");
+    try {
+      const [healthResponse, taskResponse, moduleResponse, modelResponse] = await Promise.all([
+        fetch("/api/health"), fetch("/api/tasks"), fetch("/api/modules"), fetch("/api/models")
+      ]);
+      if (![healthResponse, taskResponse, moduleResponse, modelResponse].every((response) => response.ok)) throw new Error();
+      const [health, tasks, modules, modelInfo] = await Promise.all([
+        healthResponse.json(), taskResponse.json(), moduleResponse.json(), modelResponse.json()
+      ]);
+      status.textContent = `Runtime ${health.status}; queue control ${health.queue.control.state}; ${health.queue.total} queued tasks.`;
+      const modelStatus = modelInfo.configured_available ? `${modelInfo.configured} ready` : `${modelInfo.configured} unavailable`;
+      details.textContent = `${modules.modules.length} module definitions; ${tasks.tasks.length} persisted task records; local model ${modelStatus}; service unit ${health.controller.service}.`;
+    } catch {
+      status.textContent = "Runtime status is unavailable.";
+    }
+  }
+
+  if (history && chatForm && chatStatus) {
+    fetch(`/api/chat?conversation_id=${encodeURIComponent(conversationId)}`)
+      .then((response) => response.ok ? response.json() : { turns: [] })
+      .then((result) => (result.turns || []).forEach(addTurn))
+      .catch(() => {});
+    chatForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const message = document.querySelector("#chat-message");
+      const button = document.querySelector("#chat-send");
+      const text = message.value.trim();
+      if (!text) return;
+      button.disabled = true;
+      chatStatus.textContent = "Asking the local model…";
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ conversation_id: conversationId, message: text })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "local chat failed");
+        addTurn({ role: "user", content: text });
+        addTurn({ role: "assistant", content: result.response });
+        message.value = "";
+        chatStatus.textContent = `Answered by ${result.model}; conversation saved locally.`;
+      } catch {
+        chatStatus.textContent = "Local chat failed; no response was saved.";
+      } finally {
+        button.disabled = false;
+        message.focus();
+      }
+    });
+  }
+  loadRuntime();
 })();
