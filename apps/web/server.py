@@ -68,6 +68,35 @@ def _controller_process_state() -> str:
         os.close(descriptor)
 
 
+def _controller_arguments() -> list[str]:
+    with os.scandir("/proc") as processes:
+        for entry in processes:
+            if not entry.name.isdecimal():
+                continue
+            try:
+                arguments = [part.decode("utf-8", "replace") for part in Path(entry.path, "cmdline").read_bytes().split(b"\0") if part]
+                state_index = arguments.index("--state")
+                state_path = arguments[state_index + 1]
+                if (
+                    "jarvis_v2.native_controller" in arguments
+                    and Path(state_path).resolve() == STATE_ROOT.resolve()
+                ):
+                    return arguments
+            except (OSError, ValueError, IndexError):
+                continue
+    return []
+
+
+def _controller_option(arguments: list[str], name: str) -> str | None:
+    prefix = f"{name}="
+    for index, argument in enumerate(arguments):
+        if argument.startswith(prefix):
+            return argument[len(prefix):]
+        if argument == name and index + 1 < len(arguments):
+            return arguments[index + 1]
+    return None
+
+
 def _chat(message: str, conversation_id: str) -> dict[str, object]:
     from jarvis_v2.backend.conversation import ConversationStore, ConversationStoreError
     from jarvis_v2.backend.ollama_gateway import LocalOllamaGateway
@@ -205,17 +234,28 @@ class DashboardHandler(SimpleHTTPRequestHandler):
                                  "configured_available": MODEL in names})
                 return
             if path == "/api/capabilities":
+                from jarvis_v2.backend.ollama_gateway import LocalOllamaGateway
+                from jarvis_v2.backend.ollama_profile import OllamaInferenceProfile
                 from jarvis_v2.native_executor import NativeControlPlaneExecutor, _load_configured_owner_keys
+                arguments = _controller_arguments()
+                workspace = _controller_option(arguments, "--workspace")
+                model = _controller_option(arguments, "--ollama-model")
+                gateway = LocalOllamaGateway(OllamaInferenceProfile(model=model, num_ctx=2_048)) if model else None
                 executor = NativeControlPlaneExecutor(
                     repository=Path(__file__).resolve().parents[2],
                     state_dir=STATE_ROOT,
+                    workspace_root=workspace,
                     owner_keys=_load_configured_owner_keys(),
+                    model_gateway=gateway,
                 )
                 self._json(200, {
                     "operations": list(executor.capabilities()),
                     "blocked": dict(executor.rejected_capabilities()),
                     "owner_key_store": "configured" if executor.owner_keys else "missing",
                     "task_admission": "signed_owner_approval_required",
+                    "controller": {"process": _controller_process_state(),
+                                   "workspace_configured": workspace is not None,
+                                   "model_task_configured": model is not None},
                 })
                 return
             if path == "/api/tasks":
