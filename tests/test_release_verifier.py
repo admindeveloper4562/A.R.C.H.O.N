@@ -13,7 +13,7 @@ from subprocess import CompletedProcess
 from unittest.mock import patch
 
 from tools.container_smoke import inspect_oci_image_archive, release_image_ref
-from tools.verify_release import Verification
+from tools.verify_release import Verification, _verified_container_archive
 
 
 def _write_oci_archive(
@@ -171,6 +171,50 @@ class VerificationSubprocessTests(unittest.TestCase):
                     expected_returncodes=(1,),
                 )
         self.assertEqual(verifier.records[0]["exit_classification"], "unexpected")
+
+
+class ContainerArchiveHandoffTests(unittest.TestCase):
+    def test_uses_source_bound_archive_report_and_checksum(self) -> None:
+        source_sha = "a" * 40
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            archive = output / f"archon-image-{source_sha}-image.tar"
+            archive.write_bytes(b"verified image archive")
+            report = {
+                "result": "passed",
+                "source_sha": source_sha,
+                "image_archive": archive.name,
+                "image_archive_sha256": hashlib.sha256(archive.read_bytes()).hexdigest(),
+            }
+            (output / "container-smoke-report.json").write_text(json.dumps(report), encoding="utf-8")
+            self.assertEqual(_verified_container_archive(output, source_sha), archive)
+
+    def test_rejects_wrong_source_path_escape_and_checksum_mismatch(self) -> None:
+        source_sha = "b" * 40
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            archive = output / "image.tar"
+            archive.write_bytes(b"verified image archive")
+            report_path = output / "container-smoke-report.json"
+            report = {
+                "result": "passed",
+                "source_sha": "c" * 40,
+                "image_archive": archive.name,
+                "image_archive_sha256": hashlib.sha256(archive.read_bytes()).hexdigest(),
+            }
+            report_path.write_text(json.dumps(report), encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "does not match the verified source"):
+                _verified_container_archive(output, source_sha)
+            report["source_sha"] = source_sha
+            report["image_archive"] = "../image.tar"
+            report_path.write_text(json.dumps(report), encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "invalid image archive path"):
+                _verified_container_archive(output, source_sha)
+            report["image_archive"] = archive.name
+            report["image_archive_sha256"] = "0" * 64
+            report_path.write_text(json.dumps(report), encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "checksum does not match"):
+                _verified_container_archive(output, source_sha)
 
 
 class OciImageArchiveTests(unittest.TestCase):

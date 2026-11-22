@@ -45,6 +45,19 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _verified_container_archive(output: Path, source_sha: str) -> Path:
+    report = json.loads((output / "container-smoke-report.json").read_text(encoding="utf-8"))
+    if not isinstance(report, dict) or report.get("result") != "passed" or report.get("source_sha") != source_sha:
+        raise RuntimeError("container smoke report does not match the verified source")
+    name = report.get("image_archive")
+    if not isinstance(name, str) or not name or Path(name).name != name:
+        raise RuntimeError("container smoke report has an invalid image archive path")
+    archive = output / name
+    if archive.is_symlink() or not archive.is_file() or report.get("image_archive_sha256") != _sha256(archive):
+        raise RuntimeError("container image archive is missing or its checksum does not match")
+    return archive
+
+
 def _normalize_sdist(path: Path, epoch: int) -> None:
     temporary = path.with_name(f".{path.name}.tmp")
     try:
@@ -435,11 +448,16 @@ Path(sys.argv[3]).chmod(0o644)
         container_report = json.loads(container.stdout)
         container_report["wall_seconds"] = round(time.monotonic() - container_started, 3)
         self.write_json("container-smoke-summary.json", container_report)
+        image_archive = _verified_container_archive(self.output, git["source_sha"])
+        artifact_report["container_image_archive"] = {
+            "name": image_archive.name,
+            "sha256": _sha256(image_archive),
+        }
 
         checksums = [
             (wheel, _sha256(wheel)),
             (sdist, _sha256(sdist)),
-            (self.output / "archon-local-image.tar", _sha256(self.output / "archon-local-image.tar")),
+            (image_archive, _sha256(image_archive)),
         ]
         checksum_file = _write_checksum_manifest(self.output, [path for path, _ in checksums])
         self.run("verify-release-checksums", ["sha256sum", "-c", checksum_file.name], cwd=self.output)
