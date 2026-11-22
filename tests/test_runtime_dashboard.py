@@ -120,6 +120,32 @@ class RuntimeDashboardTests(unittest.TestCase):
             self.assertNotIn(b"Dashboard wing", response.read())
             connection.close()
 
+    def test_local_chat_uses_budget_that_completes_qwen3_response(self):
+        from types import SimpleNamespace
+        from jarvis_v2.backend.ollama_gateway import LocalOllamaGateway
+
+        profile = {}
+
+        def complete(gateway, message, *, model):
+            profile["num_predict"] = gateway.profile.num_predict
+            profile["model"] = model
+            return SimpleNamespace(content="Local model response")
+
+        health = {
+            "status": "healthy", "git": {"checkout_sha": "test"},
+            "queue": {"total": 0}, "controls": {},
+            "sqlite": {"runtime": {"integrity": "ok"}},
+        }
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.object(dashboard_server, "STATE_ROOT", Path(directory)), \
+             patch("jarvis_v2.health.collect_health", return_value=health), \
+             patch.object(LocalOllamaGateway, "complete", complete):
+            result = dashboard_server._chat("Say a short hello.", "dashboard-chat-test")
+
+        self.assertEqual(profile, {"num_predict": 1024, "model": dashboard_server.MODEL})
+        self.assertEqual(result["response"], "Local model response")
+        self.assertTrue(result["saved"])
+
 
 if __name__ == "__main__":
     unittest.main()

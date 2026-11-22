@@ -322,7 +322,7 @@ def _chat(message: str, conversation_id: str) -> dict[str, object]:
     from jarvis_v2.runtime.ollama import OllamaOfflineAdapter
 
     database = _conversation_database()
-    profile = OllamaInferenceProfile(model=MODEL, num_ctx=2048)
+    profile = OllamaInferenceProfile(model=MODEL, num_ctx=2048, num_predict=1024)
     adapter = OllamaOfflineAdapter(LocalOllamaGateway(profile, timeout_seconds=90))
     with ConversationStore(database) as conversations:
         try:
