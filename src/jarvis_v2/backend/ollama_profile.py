@@ -33,6 +33,7 @@ class OllamaInferenceProfile:
     model: str = "qwen3:8b"
     num_ctx: int = 16_384
     num_predict: int = 128
+    tool_num_predict: int = 512
     kv_cache_type: str = "q8_0"
     flash_attn: bool = True
     platform: str = "linux"
@@ -44,6 +45,8 @@ class OllamaInferenceProfile:
             raise OllamaProfileError("num_ctx is outside the bounded range")
         if type(self.num_predict) is not int or not 1 <= self.num_predict <= 4_096:
             raise OllamaProfileError("num_predict is outside the bounded range")
+        if type(self.tool_num_predict) is not int or not 1 <= self.tool_num_predict <= 4_096:
+            raise OllamaProfileError("tool_num_predict is outside the bounded range")
         if self.kv_cache_type not in KV_CACHE_TYPES:
             raise OllamaProfileError("kv_cache_type is not supported")
         if type(self.flash_attn) is not bool:
@@ -61,7 +64,7 @@ class OllamaInferenceProfile:
         }
 
     def as_dict(self) -> dict[str, object]:
-        return {"model": self.model, "platform": self.platform, **self.options()}
+        return {"model": self.model, "platform": self.platform, **self.options(), "tool_num_predict": self.tool_num_predict}
 
 
 @dataclass(frozen=True)

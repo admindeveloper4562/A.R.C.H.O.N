@@ -18,6 +18,7 @@ class OllamaProfileTests(unittest.TestCase):
             "platform": "linux",
             "num_ctx": 16_384,
             "num_predict": 128,
+            "tool_num_predict": 512,
             "kv_cache_type": "q8_0",
             "flash_attn": True,
         })
@@ -43,6 +44,8 @@ class OllamaProfileTests(unittest.TestCase):
             {"num_ctx": 512},
             {"num_predict": 0},
             {"num_predict": 4_097},
+            {"tool_num_predict": 0},
+            {"tool_num_predict": 4_097},
             {"kv_cache_type": "q8_1"},
             {"flash_attn": 1},
             {"platform": "windows"},

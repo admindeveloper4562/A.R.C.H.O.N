@@ -163,6 +163,17 @@ class LocalOllamaGatewayTests(unittest.TestCase):
             with self.assertRaisesRegex(OllamaGatewayError, "response_model_invalid"):
                 self.gateway.complete("prompt", model="qwen3:4b")
 
+    def test_tool_requests_use_bounded_output_cap_and_reject_truncation(self) -> None:
+        tool = {"type": "function", "function": {"name": "read_status", "parameters": {"type": "object"}}}
+        connection = _Connection(_Response(response(content="", done_reason="length")))
+        with patch("jarvis_v2.backend.ollama_gateway.http.client.HTTPConnection", return_value=connection):
+            with self.assertRaisesRegex(OllamaGatewayError, "inference_response_incomplete"):
+                self.gateway.invoke(request(tools=(tool,)))
+        _, kwargs = connection.request_args
+        body = json.loads(kwargs["body"])
+        self.assertEqual(body["options"]["num_predict"], self.profile.tool_num_predict)
+        self.assertTrue(connection.closed)
+
     def test_preserves_tool_calls_as_data_without_executing_them(self) -> None:
         native_calls = [{"function": {"name": "read_status", "arguments": {"scope": "health"}}}]
         connection = _Connection(_Response(response(content="", tool_calls=native_calls)))

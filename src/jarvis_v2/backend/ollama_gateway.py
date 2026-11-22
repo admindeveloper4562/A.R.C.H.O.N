@@ -83,7 +83,10 @@ class LocalOllamaGateway:
             raise OllamaGatewayError("inference_model_not_allowlisted")
         body = dict(payload)
         body["stream"] = False
-        body["options"] = self.profile.options()
+        options = self.profile.options()
+        if payload.get("tools"):
+            options["num_predict"] = self.profile.tool_num_predict
+        body["options"] = options
         try:
             encoded = json.dumps(body, separators=(",", ":")).encode("utf-8")
             if len(encoded) > MAX_PROTOCOL_BYTES:
