@@ -382,6 +382,18 @@ def _chat(message: str, conversation_id: str) -> dict[str, object]:
 class DashboardHandler(SimpleHTTPRequestHandler):
     """Serve only the static shell and its known assets."""
 
+    def _require_local_request(self) -> bool:
+        local_hosts = {
+            f"127.0.0.1:{self.server.server_port}",
+            f"localhost:{self.server.server_port}",
+        }
+        host = self.headers.get("Host", "").lower()
+        origin = self.headers.get("Origin")
+        if host not in local_hosts or (origin and origin.lower() != f"http://{host}"):
+            self._json(403, {"error": "local_host_required"})
+            return False
+        return True
+
     def _rewrite_route(self) -> bool:
         path = urlsplit(self.path).path
         if path in ROUTES:
@@ -393,6 +405,8 @@ class DashboardHandler(SimpleHTTPRequestHandler):
         return False
 
     def do_GET(self) -> None:
+        if not self._require_local_request():
+            return
         path = urlsplit(self.path)
         if path.path.startswith("/api/"):
             self._api_get(path.path, parse_qs(path.query))
@@ -400,6 +414,8 @@ class DashboardHandler(SimpleHTTPRequestHandler):
             super().do_GET()
 
     def do_POST(self) -> None:
+        if not self._require_local_request():
+            return
         path = urlsplit(self.path).path
         if path == "/api/module-action":
             self._module_action_post()
@@ -434,13 +450,7 @@ class DashboardHandler(SimpleHTTPRequestHandler):
             self._json(503, {"error": "local_chat_unavailable"})
 
     def _module_action_post(self) -> None:
-        local_origins = {
-            f"http://127.0.0.1:{self.server.server_port}",
-            f"http://localhost:{self.server.server_port}",
-        }
-        origin = self.headers.get("Origin")
-        host = self.headers.get("Host")
-        if origin not in local_origins or origin != f"http://{host}":
+        if not self.headers.get("Origin"):
             self._json(403, {"error": "same_origin_required"})
             return
         if self.headers.get_content_type() != "application/json":

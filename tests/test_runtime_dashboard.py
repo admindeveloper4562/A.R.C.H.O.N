@@ -113,6 +113,13 @@ class RuntimeDashboardTests(unittest.TestCase):
             self.assertEqual(data["metrics"][0]["value"], "1")
             self.assertEqual(data["sections"][0]["items"][0]["title"], "Dashboard wing")
 
+            connection = HTTPConnection("127.0.0.1", self.port, timeout=2)
+            connection.request("GET", "/api/module-data?key=tws", headers={"Host": "attacker.example"})
+            response = connection.getresponse()
+            self.assertEqual(response.status, 403)
+            self.assertNotIn(b"Dashboard wing", response.read())
+            connection.close()
+
 
 if __name__ == "__main__":
     unittest.main()
