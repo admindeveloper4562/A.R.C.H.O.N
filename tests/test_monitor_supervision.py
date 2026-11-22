@@ -57,6 +57,9 @@ class SupervisorTelemetryTests(unittest.TestCase):
               CREATE TABLE subtasks(
                id TEXT PRIMARY KEY,parent_id TEXT,project_id TEXT,status TEXT,
                evidence TEXT);
+              CREATE TABLE subtask_receipts(
+               receipt_id TEXT PRIMARY KEY,parent_id TEXT,subtask_id TEXT,
+               candidate_sha TEXT,verifier TEXT);
               CREATE TABLE project_queue(id TEXT PRIMARY KEY);
               CREATE TABLE pending_queue(id TEXT PRIMARY KEY);
               CREATE TABLE rebuild_queue(id TEXT PRIMARY KEY);
@@ -115,7 +118,13 @@ class SupervisorTelemetryTests(unittest.TestCase):
                 self.assertIsNone(data["supervision"]["supervisor_cases"])
                 self.assertIsNone(data["supervision"]["supervisor_lanes"])
                 self.assertIsNone(data["supervision"]["queues"]["pending_queue"])
+                self.assertEqual(
+                    data["supervision"]["project"]["completion_evidence"],
+                    "status_only_not_independently_verified",
+                )
+                self.assertIsNone(data["supervision"]["project"]["subtasks_with_independent_qc_receipts"])
                 output = render(data)
+                self.assertIn("coverage unavailable", output)
                 self.assertIn("no active/idle inference", output)
                 self.assertIn("not recorded", output)
             finally:
@@ -146,6 +155,96 @@ class SupervisorTelemetryTests(unittest.TestCase):
                 self.assertIn("SELF-UPGRADE BATCH", render(data))
                 self.assertIn("U1 latest", render(data))
                 self.assertEqual(writer.execute("SELECT COUNT(*) FROM supervisor_cases").fetchone()[0], before)
+            finally:
+                writer.close()
+
+
+    def test_receipt_coverage_is_per_child_and_completion_accurate(self):
+        with tempfile.TemporaryDirectory() as root:
+            db_path = Path(root) / "sda.sqlite3"
+            writer = self._fixture(db_path, extended=True)
+            try:
+                writer.execute("INSERT INTO subtasks VALUES (?,?,?,?,?)", (
+                    "CORE-001.S02", "CORE-001", "ARCHON-JARVIS-V2",
+                    "completed", "private evidence",
+                ))
+                writer.executemany(
+                    "INSERT INTO subtask_receipts VALUES (?,?,?,?,?)",
+                    [
+                        ("r1", "CORE-001", "CORE-001.S01", "a" * 40, "independent_qc"),
+                        ("r2", "CORE-001", "CORE-001.S01", "b" * 40, "independent_qc"),
+                        ("r3", "CORE-001", "CORE-001.S02", "c" * 40, "worker"),
+                        ("r4", "CORE-001", "CORE-001.S02", "", "independent_qc"),
+                    ],
+                )
+                writer.commit()
+
+                snapshot_data = snapshot(db_path, source="astra")
+                panel = snapshot_data["supervision"]["project"]
+                self.assertEqual(panel["verified_subtask_receipts"], 2)
+                self.assertEqual(panel["subtasks_with_independent_qc_receipts"], 1)
+                self.assertEqual(panel["subtasks_without_independent_qc_receipts"], 1)
+                self.assertEqual(panel["completed_subtasks_without_independent_qc_receipts"], 1)
+                self.assertEqual(
+                    panel["completion_evidence"],
+                    "completed_children_missing_independent_qc_receipts",
+                )
+                self.assertIn(
+                    "2 independent-QC receipt rows; 1/2 children covered; 1 missing (1 completed)",
+                    render(snapshot_data),
+                )
+
+                writer.execute("INSERT INTO subtask_receipts VALUES (?,?,?,?,?)", (
+                    "r5", "CORE-001", "CORE-001.S02", "d" * 40, "independent_qc",
+                ))
+                writer.commit()
+                panel = snapshot(db_path, source="astra")["supervision"]["project"]
+                self.assertEqual(panel["verified_subtask_receipts"], 3)
+                self.assertEqual(panel["subtasks_with_independent_qc_receipts"], 2)
+                self.assertEqual(panel["subtasks_without_independent_qc_receipts"], 0)
+                self.assertEqual(panel["completed_subtasks_without_independent_qc_receipts"], 0)
+                self.assertEqual(
+                    panel["completion_evidence"],
+                    "all_recorded_children_have_independent_qc_receipts",
+                )
+            finally:
+                writer.close()
+
+
+    def test_legacy_subtask_schema_scopes_through_parent_project(self):
+        with tempfile.TemporaryDirectory() as root:
+            db_path = Path(root) / "sda.sqlite3"
+            writer = self._fixture(db_path, extended=True)
+            try:
+                writer.execute(
+                    "INSERT INTO tasks(id,spec,status,architecture_sha,attempt,branch,last_run,created_at,updated_at,project_id) "
+                    "VALUES (?,?,?,?,?,?,?,?,?,?)",
+                    (
+                        "CORE-OTHER", json.dumps({"objective": "other project"}),
+                        "completed", "approved", 1, "", None,
+                        "2026-11-15T00:00:00Z", "2026-11-15T00:00:00Z", "OTHER",
+                    ),
+                )
+                writer.execute("ALTER TABLE subtasks DROP COLUMN project_id")
+                writer.execute("INSERT INTO subtasks VALUES (?,?,?,?)", (
+                    "CORE-OTHER.S01", "CORE-OTHER", "completed", "other project",
+                ))
+                writer.execute("INSERT INTO subtask_receipts VALUES (?,?,?,?,?)", (
+                    "r1", "CORE-001", "CORE-001.S01", "a" * 40, "independent_qc",
+                ))
+                writer.commit()
+
+                snapshot_data = snapshot(db_path, source="astra")
+                panel = snapshot_data["supervision"]["project"]
+                self.assertEqual(panel["subtasks_recorded"], 1)
+                self.assertEqual(panel["subtask_statuses"], {"completed": 1})
+                self.assertEqual(panel["subtasks_with_independent_qc_receipts"], 1)
+                self.assertEqual(panel["subtasks_without_independent_qc_receipts"], 0)
+                self.assertEqual(panel["completed_subtasks_without_independent_qc_receipts"], 0)
+                self.assertIn(
+                    "1 independent-QC receipt rows; 1/1 children covered; 0 missing (0 completed)",
+                    render(snapshot_data),
+                )
             finally:
                 writer.close()
 

@@ -113,21 +113,73 @@ def collect(db: sqlite3.Connection, limit: int = 10) -> dict:
             "subtask_statuses": {},
             "completion_evidence": "status_only_not_independently_verified",
             "verified_subtask_receipts": None,
+            "subtasks_with_independent_qc_receipts": None,
+            "subtasks_without_independent_qc_receipts": None,
+            "completed_subtasks_without_independent_qc_receipts": None,
         }
         sub_cols = _cols(db, "subtasks")
         if "status" in sub_cols:
-            filter_sql = "WHERE project_id=?" if "project_id" in sub_cols else ""
-            filters = (PROJECT,) if filter_sql else ()
-            sub_counts = _group(db, "subtasks", "status", filter_sql, filters)
+            if "project_id" in sub_cols:
+                sub_counts = _group(db, "subtasks", "status", "WHERE project_id=?", (PROJECT,))
+            elif {"parent_id"} <= sub_cols and {"id", "project_id"} <= task_cols:
+                rows = db.execute(
+                    "SELECT s.status AS group_key, COUNT(*) AS count "
+                    "FROM subtasks s JOIN tasks t ON t.id=s.parent_id "
+                    "WHERE t.project_id=? GROUP BY s.status",
+                    (PROJECT,),
+                )
+                sub_counts = {
+                    _safe(row["group_key"], 48): int(row["count"]) for row in rows
+                }
+            else:
+                sub_counts = _group(db, "subtasks", "status")
             project["subtasks_recorded"] = sum(sub_counts.values())
             project["subtask_statuses"] = sub_counts
         receipt_cols = _cols(db, "subtask_receipts")
-        if {"parent_id", "candidate_sha", "verifier"} <= receipt_cols:
+        if (
+            {"parent_id", "subtask_id", "candidate_sha", "verifier"} <= receipt_cols
+            and {"id", "parent_id", "status"} <= sub_cols
+            and {"id", "project_id"} <= task_cols
+        ):
+            has_receipt = (
+                "EXISTS (SELECT 1 FROM subtask_receipts r "
+                "WHERE r.subtask_id=s.id AND r.parent_id=s.parent_id "
+                "AND r.verifier=? AND COALESCE(r.candidate_sha, '') <> '')"
+            )
             project["verified_subtask_receipts"] = int(db.execute(
-                "SELECT COUNT(*) FROM subtask_receipts r JOIN tasks t ON t.id=r.parent_id "
-                "WHERE t.project_id=? AND r.verifier='independent_qc'", (PROJECT,)
+                "SELECT COUNT(*) FROM subtask_receipts r "
+                "JOIN subtasks s ON s.id=r.subtask_id AND s.parent_id=r.parent_id "
+                "JOIN tasks t ON t.id=r.parent_id "
+                "WHERE t.project_id=? AND r.verifier=? "
+                "AND COALESCE(r.candidate_sha, '') <> ''",
+                (PROJECT, "independent_qc"),
             ).fetchone()[0])
-            project["completion_evidence"] = "receipt_backed_for_recorded_children"
+            coverage = db.execute(
+                "SELECT COUNT(*) AS recorded, "
+                "SUM(CASE WHEN has_receipt THEN 1 ELSE 0 END) AS covered, "
+                "SUM(CASE WHEN NOT has_receipt THEN 1 ELSE 0 END) AS missing, "
+                "SUM(CASE WHEN status='completed' AND NOT has_receipt THEN 1 ELSE 0 END) "
+                "AS completed_missing FROM ("
+                f"SELECT s.id,s.status,{has_receipt} AS has_receipt "
+                "FROM subtasks s JOIN tasks t ON t.id=s.parent_id "
+                "WHERE t.project_id=?)",
+                ("independent_qc", PROJECT),
+            ).fetchone()
+            recorded = int(coverage["recorded"])
+            covered = int(coverage["covered"] or 0)
+            missing = int(coverage["missing"] or 0)
+            completed_missing = int(coverage["completed_missing"] or 0)
+            project["subtasks_with_independent_qc_receipts"] = covered
+            project["subtasks_without_independent_qc_receipts"] = missing
+            project["completed_subtasks_without_independent_qc_receipts"] = completed_missing
+            if recorded == 0:
+                project["completion_evidence"] = "no_recorded_children"
+            elif completed_missing:
+                project["completion_evidence"] = "completed_children_missing_independent_qc_receipts"
+            elif missing:
+                project["completion_evidence"] = "unreceipted_children_remain"
+            else:
+                project["completion_evidence"] = "all_recorded_children_have_independent_qc_receipts"
         data["project"] = project
 
     for table in QUEUE_TABLES:
@@ -258,10 +310,17 @@ def render_lines(data: dict) -> list[str]:
             f"{k}={v}" for k, v in sorted(project.get("parent_statuses", {}).items())
         ))
         receipts = project.get("verified_subtask_receipts")
-        lines.append(
-            "  Child evidence: " +
-            (f"{receipts} receipt-backed records" if receipts is not None else "not independently verified")
-        )
+        covered = project.get("subtasks_with_independent_qc_receipts")
+        missing = project.get("subtasks_without_independent_qc_receipts")
+        completed_missing = project.get("completed_subtasks_without_independent_qc_receipts")
+        if None in (receipts, covered, missing, completed_missing):
+            evidence = "coverage unavailable on this schema"
+        else:
+            evidence = (
+                f"{receipts} independent-QC receipt rows; {covered}/{children} children covered; "
+                f"{missing} missing ({completed_missing} completed)"
+            )
+        lines.append("  Child evidence: " + evidence)
     else:
         lines.append("  Project child-level telemetry not available on this schema.")
 
