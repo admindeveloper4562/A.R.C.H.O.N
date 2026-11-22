@@ -54,6 +54,9 @@ class AutomationScheduleStore:
     def get(self, schedule_id: str) -> Reminder:
         return self._store.get(schedule_id)
 
+    def list_reminders(self, *, status: str | None = "active", limit: int = 100) -> list[Reminder]:
+        return self._store.list_reminders(status=status, limit=limit)
+
     def due(self, now: datetime | None = None, *, limit: int = 100) -> list[Reminder]:
         return self._store.due_reminders(now, limit=limit)
 

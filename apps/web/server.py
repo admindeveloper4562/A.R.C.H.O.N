@@ -109,9 +109,75 @@ def _private_state_file(name: str) -> bool:
         return False
 
 
+def _module_live_data(module_key: str, query: str = "") -> dict[str, object]:
+    from apps.web.module_runtime import ModuleRuntime
+    from jarvis_v2.health import collect_health
+
+    repository = Path(__file__).resolve().parents[2]
+    try:
+        definitions = json.loads((repository / "config/modules.json").read_text(encoding="utf-8"))["modules"]
+    except (OSError, KeyError, json.JSONDecodeError) as exc:
+        raise RuntimeError("module_registry_unavailable") from exc
+    if module_key not in {item.get("key") for item in definitions if isinstance(item, dict)}:
+        raise KeyError("module_not_found")
+    if module_key in {"research", "tws", "wic", "finance", "automation"}:
+        return ModuleRuntime(STATE_ROOT, repository).snapshot(module_key, query=query)
+    if module_key == "guardian":
+        from jarvis_v2.guardian.health import GuardianHealthEvaluator, ProbeResult
+
+        health = collect_health(state_dir=STATE_ROOT, repository=repository)
+        controller = str(health.get("controller", {}).get("process", "unknown"))
+        databases = health.get("sqlite", {})
+        dependencies = {"runtime_databases": bool(databases) and all(
+            item.get("integrity") == "ok" for item in databases.values()
+        )}
+        evidence = GuardianHealthEvaluator().assess(
+            "archon-controller",
+            liveness=ProbeResult(controller == "running", "controller_" + controller),
+            readiness=ProbeResult(health.get("status") == "healthy", "runtime_" + str(health.get("status", "unknown"))),
+            required_dependencies=tuple(dependencies),
+            dependencies=dependencies,
+            restart_enabled=False,
+        )
+        return {
+            "module": module_key,
+            "mode": "monitor_only",
+            "summary": "Read-only health assessment is available. The independently protected watchdog and recovery controls remain inactive.",
+            "metrics": [
+                {"label": "Assessment", "value": evidence.state.upper()},
+                {"label": "Controller", "value": controller.upper()},
+                {"label": "Trusted watchdog", "value": "MISSING"},
+                {"label": "Restart / rollback", "value": "DISABLED"},
+            ],
+            "sections": [{"title": "Health evidence", "items": [
+                {"title": "Assessment", "details": f"{evidence.state}: {evidence.reason}"},
+                {"title": "Liveness", "details": evidence.liveness.reason},
+                {"title": "Readiness", "details": evidence.readiness.reason},
+                {"title": "Database dependency", "details": "healthy" if dependencies["runtime_databases"] else "failed"},
+            ]}],
+            "recovery_enabled": False,
+        }
+    modules = _module_dashboard_data()["modules"]
+    module = next((item for item in modules if item["key"] == module_key), None)
+    if module is None:
+        raise RuntimeError("module_status_unavailable")
+    return {
+        "module": module_key,
+        "mode": "live_status",
+        "summary": module.get("summary", "Live module status."),
+        "metrics": module.get("metrics", []),
+        "sections": [{"title": "Operational checks", "items": [
+            {"title": check.get("label", "Check"),
+             "details": f'{str(check.get("state", "unknown")).upper()} · {check.get("detail", "")}' }
+            for check in module.get("checks", [])
+        ]}],
+    }
+
+
 def _module_dashboard_data() -> dict[str, object]:
     import shutil
 
+    from apps.web.module_runtime import ModuleRuntime, ModuleRuntimeError
     from jarvis_v2.backend.ollama_gateway import LocalOllamaGateway
     from jarvis_v2.backend.ollama_profile import OllamaInferenceProfile
     from jarvis_v2.health import collect_health
@@ -142,12 +208,20 @@ def _module_dashboard_data() -> dict[str, object]:
     queue = health.get("queue", {})
     sqlite = health.get("sqlite", {})
     sqlite_ok = bool(sqlite) and all(item.get("integrity") == "ok" for item in sqlite.values())
-    code_index_ready = _private_state_file("code_index.sqlite3")
+    code_index_ready = False
     conversations_ok = sqlite.get("conversations", {}).get("integrity") == "ok"
     queue_control = queue.get("control", {}).get("state", "unknown")
     database_count = len(sqlite)
     blender_ready = shutil.which("blender") is not None
     online = controller == "running" and health.get("status") == "healthy"
+    module_runtime = ModuleRuntime(repository=repository, state_dir=STATE_ROOT)
+    local_views: dict[str, dict[str, object]] = {}
+    for key in ("research", "tws", "wic", "finance", "automation"):
+        try:
+            local_views[key] = module_runtime.snapshot(key)
+        except ModuleRuntimeError:
+            continue
+    code_index_ready = "research" in local_views
 
     definitions = json.loads((repository / "config/modules.json").read_text(encoding="utf-8"))["modules"]
     status: dict[str, dict[str, object]] = {
@@ -180,46 +254,46 @@ def _module_dashboard_data() -> dict[str, object]:
             "next_step": "Voice, browser, and desktop adapters are not active in this runtime; local text chat is online.",
         },
         "research": {
-            "runtime_status": "partial" if code_index_ready else "standby",
-            "summary": "A local code index exists, but source-backed research connectors are not attached to the active task runtime.",
-            "metrics": [{"label": "Local code index", "value": "AVAILABLE" if code_index_ready else "MISSING"}, {"label": "Live research connectors", "value": "0 ACTIVE"}, {"label": "Current research jobs", "value": "0"}],
-            "checks": [{"label": "Research service route", "state": "pending", "detail": "No active task adapter"}, {"label": "External sources", "state": "pending", "detail": "No source connectors configured"}, {"label": "Local code index", "state": "ready" if code_index_ready else "pending", "detail": "Repository index available" if code_index_ready else "Not initialized"}],
-            "next_step": "SAGE needs explicit source configuration and a task adapter before it can claim research jobs.",
+            "runtime_status": "online" if "research" in local_views else "standby",
+            "summary": "Local source-backed repository search is connected; external research sources are not configured." if "research" in local_views else "The local repository search index is unavailable.",
+            "metrics": local_views.get("research", {}).get("metrics", [{"label": "Local code index", "value": "MISSING"}]) + [{"label": "External sources", "value": "0 ACTIVE"}],
+            "checks": [{"label": "Local research service", "state": "ready" if "research" in local_views else "blocked", "detail": "Current working-tree source index" if "research" in local_views else "Index unavailable"}, {"label": "External sources", "state": "pending", "detail": "No source connectors configured"}],
+            "next_step": "Use the local repository search; configure approved external source policies before live web research.",
         },
         "tws": {
-            "runtime_status": "standby",
-            "summary": "The TWS service and quest workflow are not started. Blender is detected as an optional local tool.",
-            "metrics": [{"label": "Blender", "value": "DETECTED" if blender_ready else "MISSING"}, {"label": "Quest workflow", "value": "INACTIVE"}, {"label": "iOS surface", "value": "DEFERRED"}],
-            "checks": [{"label": "Blender executable", "state": "ready" if blender_ready else "pending", "detail": "Optional local tool detected" if blender_ready else "Not installed"}, {"label": "Quest service", "state": "pending", "detail": "No active TWS runtime"}, {"label": "Native Apple client", "state": "pending", "detail": "Not available on this Linux host"}],
-            "next_step": "The quest store and TWS event integration need a runtime adapter; Apple-native validation remains deferred.",
+            "runtime_status": "online" if "tws" in local_views else "standby",
+            "summary": "Persistent local quest and wing data is connected. Blender and Apple-native surfaces remain optional.",
+            "metrics": local_views.get("tws", {}).get("metrics", []) + [{"label": "Blender", "value": "DETECTED" if blender_ready else "MISSING"}, {"label": "iOS surface", "value": "DEFERRED"}],
+            "checks": [{"label": "Quest store", "state": "ready" if "tws" in local_views else "blocked", "detail": "Persistent TWS store available" if "tws" in local_views else "Store unavailable"}, {"label": "Blender executable", "state": "ready" if blender_ready else "pending", "detail": "Optional local tool detected" if blender_ready else "Not installed"}, {"label": "Native Apple client", "state": "pending", "detail": "Not available on this Linux host"}],
+            "next_step": "Quest data is available locally; Apple-native validation remains deferred.",
         },
         "wic": {
-            "runtime_status": "standby",
-            "summary": "World information ingestion is not active; no source feed is connected to the runtime.",
-            "metrics": [{"label": "Feed sources", "value": "0 ACTIVE"}, {"label": "Ingestion loop", "value": "STOPPED"}, {"label": "Alerts", "value": "NOT CONFIGURED"}],
-            "checks": [{"label": "Feed adapters", "state": "pending", "detail": "No active source configuration"}, {"label": "Ingestion service", "state": "pending", "detail": "No running WIC worker"}, {"label": "Claim and correction ledger", "state": "pending", "detail": "Not connected to the live runtime"}],
-            "next_step": "WIC needs an approved feed list and a running ingestion/validation adapter.",
+            "runtime_status": "partial" if "wic" in local_views else "standby",
+            "summary": "The local provenance archive is ready; no approved external feed list is configured." if "wic" in local_views else "The local WIC archive is unavailable.",
+            "metrics": local_views.get("wic", {}).get("metrics", [{"label": "Source archive", "value": "MISSING"}]),
+            "checks": [{"label": "Local source archive", "state": "ready" if "wic" in local_views else "blocked", "detail": "Persistent provenance store available" if "wic" in local_views else "Store unavailable"}, {"label": "Approved feed list", "state": "pending", "detail": "No feeds configured; no external fetches are made"}, {"label": "Live ingestion", "state": "pending", "detail": "Inactive until an approved feed is configured"}],
+            "next_step": "Add an approved public source policy before enabling live ingestion.",
         },
         "finance": {
-            "runtime_status": "standby",
-            "summary": "Finance integrations remain inactive. The application keeps real money movement disabled.",
-            "metrics": [{"label": "Mode", "value": "PAPER ONLY"}, {"label": "Connected accounts", "value": "0"}, {"label": "Live effects", "value": "LOCKED"}],
-            "checks": [{"label": "Paper ledger service", "state": "pending", "detail": "No active finance runtime"}, {"label": "Read-only account source", "state": "pending", "detail": "No account connector configured"}, {"label": "Real transactions", "state": "blocked", "detail": "Disabled by policy"}],
-            "next_step": "Paper-mode reporting can be wired without real accounts; external finance connectors require separate configuration.",
+            "runtime_status": "online" if "finance" in local_views else "standby",
+            "summary": "The isolated paper ledger is connected; no account connector or real transaction path is enabled.",
+            "metrics": local_views.get("finance", {}).get("metrics", [{"label": "Paper ledger", "value": "MISSING"}]),
+            "checks": [{"label": "Paper ledger service", "state": "ready" if "finance" in local_views else "blocked", "detail": "Persistent paper-only ledger available" if "finance" in local_views else "Store unavailable"}, {"label": "External account source", "state": "pending", "detail": "No account connector configured"}, {"label": "Real transactions", "state": "blocked", "detail": "Disabled by policy"}],
+            "next_step": "Paper-ledger reporting is available; live financial effects remain disabled.",
         },
         "guardian": {
-            "runtime_status": "blocked",
-            "summary": "Independent Guardian recovery is unavailable because a separately protected trusted watchdog is not configured.",
-            "metrics": [{"label": "Trusted watchdog", "value": "MISSING"}, {"label": "Automatic recovery", "value": "DISABLED"}, {"label": "Rollback", "value": "LOCKED"}],
-            "checks": [{"label": "Separate watchdog process", "state": "blocked", "detail": "Not configured"}, {"label": "Trusted rollback gate", "state": "blocked", "detail": "Not available"}, {"label": "Owner key store", "state": "ready" if owner_keys else "blocked", "detail": "Owner key is not a watchdog" if owner_keys else "Missing"}],
+            "runtime_status": "partial" if online else "blocked",
+            "summary": "Read-only live health assessment is available; independent Guardian recovery is not configured.",
+            "metrics": [{"label": "Health monitor", "value": "READY" if online else "UNAVAILABLE"}, {"label": "Trusted watchdog", "value": "MISSING"}, {"label": "Automatic recovery", "value": "DISABLED"}, {"label": "Rollback", "value": "LOCKED"}],
+            "checks": [{"label": "Read-only health assessment", "state": "ready" if online else "blocked", "detail": "Runtime and database readiness can be assessed" if online else "Runtime health unavailable"}, {"label": "Separate watchdog process", "state": "blocked", "detail": "Not configured"}, {"label": "Trusted rollback gate", "state": "blocked", "detail": "Not available"}, {"label": "Owner key store", "state": "ready" if owner_keys else "blocked", "detail": "Owner key is not a watchdog" if owner_keys else "Missing"}],
             "next_step": "Keep unattended recovery disabled until an independent watchdog and verified rollback path pass qualification.",
         },
         "automation": {
-            "runtime_status": "standby",
-            "summary": "Automation schedule storage and dispatch are not attached to a running scheduler service.",
-            "metrics": [{"label": "Scheduler worker", "value": "INACTIVE"}, {"label": "Active schedules", "value": "0"}, {"label": "Cloudflare connector", "value": "NOT CONFIGURED"}],
-            "checks": [{"label": "Schedule store", "state": "pending", "detail": "No running schedule service"}, {"label": "Trigger dispatch", "state": "pending", "detail": "No active RELAY worker"}, {"label": "External automation", "state": "pending", "detail": "No connector configured"}],
-            "next_step": "RELAY needs a persistent scheduler loop, restart reconciliation, and an approved destination before triggering effects.",
+            "runtime_status": "partial" if "automation" in local_views else "standby",
+            "summary": "Persistent timezone-aware reminders are available; due reminders are displayed locally and no external action is dispatched.",
+            "metrics": local_views.get("automation", {}).get("metrics", [{"label": "Schedule store", "value": "MISSING"}]) + [{"label": "Scheduler worker", "value": "INACTIVE"}],
+            "checks": [{"label": "Schedule store", "state": "ready" if "automation" in local_views else "blocked", "detail": "Persistent local reminders available" if "automation" in local_views else "Store unavailable"}, {"label": "Due reminder view", "state": "ready" if "automation" in local_views else "pending", "detail": "Due entries are visible in the local dashboard"}, {"label": "External dispatch", "state": "blocked", "detail": "No destination is configured"}],
+            "next_step": "Local reminder storage and due reporting are active; dispatch remains disabled until an approved destination exists.",
         },
     }
     modules = []
@@ -326,7 +400,11 @@ class DashboardHandler(SimpleHTTPRequestHandler):
             super().do_GET()
 
     def do_POST(self) -> None:
-        if urlsplit(self.path).path != "/api/chat":
+        path = urlsplit(self.path).path
+        if path == "/api/module-action":
+            self._module_action_post()
+            return
+        if path != "/api/chat":
             self._json(404, {"error": "not_found"})
             return
         origin = self.headers.get("Origin")
@@ -355,8 +433,60 @@ class DashboardHandler(SimpleHTTPRequestHandler):
         except Exception:
             self._json(503, {"error": "local_chat_unavailable"})
 
+    def _module_action_post(self) -> None:
+        local_origins = {
+            f"http://127.0.0.1:{self.server.server_port}",
+            f"http://localhost:{self.server.server_port}",
+        }
+        origin = self.headers.get("Origin")
+        host = self.headers.get("Host")
+        if origin not in local_origins or origin != f"http://{host}":
+            self._json(403, {"error": "same_origin_required"})
+            return
+        if self.headers.get_content_type() != "application/json":
+            self._json(415, {"error": "application_json_required"})
+            return
+        try:
+            length = int(self.headers.get("Content-Length", "-1"))
+            if not 0 <= length <= MAX_REQUEST_BYTES:
+                raise ValueError("request_size_invalid")
+            body = json.loads(self.rfile.read(length))
+            if not isinstance(body, dict) or set(body) != {"module", "action", "payload"}:
+                raise ValueError("request_shape_invalid")
+            module = body["module"]
+            action = body["action"]
+            payload = body["payload"]
+            if not isinstance(module, str) or not isinstance(action, str) or not isinstance(payload, dict):
+                raise ValueError("request_shape_invalid")
+            from apps.web.module_runtime import ModuleRuntime
+
+            result = ModuleRuntime(STATE_ROOT, Path(__file__).resolve().parents[2]).action(
+                module, action, payload
+            )
+            self._json(201, result)
+        except (ValueError, TypeError, KeyError, json.JSONDecodeError):
+            self._json(400, {"error": "module_action_rejected"})
+        except Exception:
+            self._json(503, {"error": "module_action_unavailable"})
+
     def _api_get(self, path: str, query: dict[str, list[str]]) -> None:
         try:
+            if path == "/api/module-data":
+                from apps.web.module_runtime import ModuleRuntimeError
+
+                module_key = query.get("key", [""])[0]
+                module_query = query.get("q", [""])[0]
+                try:
+                    value = _module_live_data(module_key, module_query)
+                except KeyError:
+                    self._json(404, {"error": "module_not_found"})
+                    return
+                except ModuleRuntimeError as exc:
+                    status = 400 if str(exc) == "research_query_invalid" else 503
+                    self._json(status, {"error": str(exc)})
+                    return
+                self._json(200, value)
+                return
             if path == "/api/health":
                 from jarvis_v2.health import collect_health
                 health = collect_health(state_dir=STATE_ROOT, repository=Path(__file__).resolve().parents[2])

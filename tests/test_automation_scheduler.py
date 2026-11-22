@@ -46,6 +46,8 @@ class AutomationScheduleTests(unittest.TestCase):
             with AutomationScheduleStore(Path(directory) / "automation.sqlite") as store:
                 first = store.schedule_once("one", "run", due)
                 self.assertEqual(store.schedule_once("one", "run", due), first)
+                self.assertEqual([item.reminder_id for item in store.list_reminders()], ["one"])
+                self.assertEqual(store.list_reminders(status="completed"), [])
                 with self.assertRaises(ValueError):
                     store.schedule_once("one", "different", due)
 

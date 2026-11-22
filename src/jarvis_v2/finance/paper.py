@@ -318,6 +318,11 @@ class PaperLedger:
             raise PaperLedgerError("paper account does not exist")
         return self._account(row)
 
+    def accounts(self) -> tuple[PaperAccount, ...]:
+        return tuple(self._account(row) for row in self.db.execute(
+            "SELECT * FROM paper_accounts ORDER BY account_id"
+        ))
+
     def orders(self, account_id: str) -> tuple[PaperOrder, ...]:
         _identifier(account_id, "paper account id")
         return tuple(self._order(row) for row in self.db.execute("SELECT * FROM paper_orders WHERE account_id=? ORDER BY order_id", (account_id,)))

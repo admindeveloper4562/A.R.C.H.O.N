@@ -27,6 +27,7 @@ class FinancePaperTests(unittest.TestCase):
                 real.sync("mira", "person-1", accounts=[FinanceAccount("real", "Real", "THB", STAMP)], transactions=[FinanceTransaction("tx", "real", 500, STAMP, STAMP)])
                 with PaperLedger(paper_path) as paper:
                     paper.open_account(PaperAccount("demo", "person-1", "THB", 1_000, STAMP))
+                    self.assertEqual([item.account_id for item in paper.accounts()], ["demo"])
                     paper.place_order(PaperOrder("buy-1", "demo", "ARCH", "buy", 2, 100, "pending", STAMP))
                     filled = paper.fill_order("buy-1", filled_at=STAMP)
                     self.assertEqual(filled.status, "filled")
