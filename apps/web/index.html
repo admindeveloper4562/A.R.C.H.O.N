@@ -3,43 +3,153 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ARCHON Dashboard</title>
+  <meta name="theme-color" content="#061018">
+  <title>ARCHON — Mission Control</title>
   <link rel="stylesheet" href="/dashboard.css">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
-  <header class="site-header">
-    <a class="brand" href="/" aria-label="ARCHON home">ARCHON</a>
-    <nav aria-label="Primary navigation">
-      <ul class="nav-list">
-        <li><a data-route="/" href="/">Home</a></li>
-        <li><a data-route="/calendar" href="/calendar">Calendar</a></li>
-        <li><a data-route="/email" href="/email">Email</a></li>
-        <li><a data-route="/actions" href="/actions">Actions</a></li>
-        <li><a data-route="/files" href="/files">Files</a></li>
-        <li><a data-route="/system" href="/system">System</a></li>
-        <li><a data-route="/projects" href="/projects">Projects</a></li>
-        <li><a data-route="/voice" href="/voice">Voice</a></li>
-        <li><a data-route="/activity" href="/activity">Activity</a></li>
-        <li><a data-route="/settings" href="/settings">Settings</a></li>
-        <li><a data-route="/world" href="/world">World</a></li>
-      </ul>
-    </nav>
-  </header>
-  <main id="main-content" class="content" tabindex="-1">
-    <p class="eyebrow">ARCHON / Runtime</p>
-    <h1 data-page-title>Home</h1>
-    <p data-page-summary>Local dashboard navigation is ready.</p>
-    <section class="status-card" aria-live="polite">
-      <h2>Read-only shell</h2>
-      <p>Data panels are supplied by authenticated Runtime and Backend services.</p>
-    </section>
-    <section class="world-overview" data-world-overview hidden aria-labelledby="world-heading">
-      <h2 id="world-heading">World overview</h2>
-      <p data-world-empty>No verified source-backed stories are available.</p>
-      <ol class="world-timeline" data-world-timeline aria-label="Chronological world timeline" hidden></ol>
-    </section>
-  </main>
+  <div class="ambient ambient-a" aria-hidden="true"></div>
+  <div class="ambient ambient-b" aria-hidden="true"></div>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="ARCHON navigation">
+      <a class="brand" href="#overview" aria-label="ARCHON mission control">
+        <span class="brand-glyph" aria-hidden="true">A</span>
+        <span><strong>ARCHON</strong><small>LOCAL AI ECOSYSTEM</small></span>
+      </a>
+      <p class="nav-label">MISSION CONTROL</p>
+      <nav class="primary-nav" aria-label="Primary">
+        <a class="nav-link active" href="#overview"><span class="nav-icon">◈</span>Overview</a>
+        <a class="nav-link" href="#execution"><span class="nav-icon">▤</span>Task queue</a>
+        <a class="nav-link" href="#assistant"><span class="nav-icon">⌁</span>Assistant</a>
+        <a class="nav-link" href="/settings"><span class="nav-icon">⚙</span>Settings</a>
+      </nav>
+      <p class="nav-label module-nav-label">MODULES</p>
+      <nav class="module-nav" id="module-nav" aria-label="ARCHON modules">
+        <span class="nav-loading">Loading registry…</span>
+      </nav>
+      <div class="sidebar-footer">
+        <span class="tiny-led"></span>
+        <span>LOCAL NODE</span>
+        <small>127.0.0.1 · PRIVATE</small>
+      </div>
+    </aside>
+
+    <main id="main-content" class="main-content" tabindex="-1">
+      <header class="topbar">
+        <div><span class="topbar-kicker">ARCHON</span><span class="topbar-divider">//</span><span>MISSION CONTROL</span></div>
+        <div class="topbar-status"><span class="status-led" id="header-led"></span><strong id="header-state">CONNECTING</strong><span class="topbar-separator"></span><span>LOCAL RUNTIME</span></div>
+      </header>
+
+      <section class="page-heading overview-only" id="overview" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow"><span class="eyebrow-mark">01</span> OVERVIEW <span class="eyebrow-separator">/</span> SYSTEM TELEMETRY</p>
+          <h1 id="page-title" data-page-title>Mission control</h1>
+          <p class="heading-copy">A live view of ARCHON’s local runtime, model gateway, durable queue, and module registry.</p>
+        </div>
+        <button class="refresh-button" id="refresh-runtime" type="button"><span aria-hidden="true">⟳</span> Refresh telemetry</button>
+      </section>
+
+      <section class="module-dashboard view-hidden" id="module-dashboard" aria-labelledby="module-page-title">
+        <a class="module-back" href="#overview"><span aria-hidden="true">←</span> Back to mission control</a>
+        <div class="module-page-heading">
+          <div><p class="eyebrow" id="module-page-kicker">MODULE / STATUS</p><h1 id="module-page-title">Module dashboard</h1><p class="heading-copy" id="module-page-summary"></p></div>
+          <span class="module-status-chip" id="module-page-status">LOADING</span>
+        </div>
+        <div class="module-page-metrics" id="module-page-metrics"></div>
+        <div class="module-page-grid">
+          <article class="panel module-check-panel"><div class="panel-heading compact"><div><p class="eyebrow">LIVE INTEGRATION</p><h2>Operational checks</h2></div><span class="panel-count" id="module-check-count">—</span></div><div class="module-check-list" id="module-page-checks"></div></article>
+          <article class="panel module-next-panel"><div class="panel-heading compact"><div><p class="eyebrow">CURRENT BOUNDARY</p><h2>Next activation step</h2></div></div><p class="module-next-step" id="module-page-next-step"></p><p class="module-declared-state" id="module-page-declared-state"></p></article>
+        </div>
+      </section>
+
+      <section class="module-dashboard view-hidden" id="world-dashboard" aria-label="WIC dashboard">
+        <article class="panel world-overview" id="world-overview" data-world-overview hidden aria-label="World Information Center">
+          <div class="panel-heading compact"><div><p class="eyebrow">WIC / VERIFIED SOURCES</p><h2>World overview</h2></div><span class="panel-count">SOURCE-BACKED</span></div>
+          <p class="panel-intro">Stories appear here only after the local WIC source pipeline records provenance and timestamps.</p>
+          <p class="empty-state" id="world-empty" data-world-empty>No verified source-backed stories are available.</p>
+          <ol class="world-timeline" id="world-timeline" data-world-timeline hidden></ol>
+        </article>
+      </section>
+
+      <section class="module-dashboard view-hidden" id="settings-dashboard" aria-labelledby="settings-page-title">
+        <a class="module-back" href="#overview"><span aria-hidden="true">←</span> Back to mission control</a>
+        <div class="module-page-heading"><div><p class="eyebrow">RUNTIME / SETTINGS</p><h1 id="settings-page-title">Settings</h1><p class="heading-copy">Configuration changes require an authenticated owner session and scoped approval.</p></div><span class="module-status-chip">OWNER CONTROLLED</span></div>
+        <article class="panel"><h2>Local node configuration</h2><p class="panel-intro">This dashboard exposes read-only runtime settings. Sensitive policy and credential changes remain outside this view.</p></article>
+      </section>
+
+      <section class="stats-grid overview-only" aria-label="Live system summary">
+        <article class="stat-card"><div class="stat-heading"><span>MODULES ONLINE</span><span>SYS / 01</span></div><strong id="metric-modules">—</strong><p id="metric-modules-note">Reading module registry</p></article>
+        <article class="stat-card"><div class="stat-heading"><span>QUEUED TASKS</span><span>ATLAS / 02</span></div><strong id="metric-queue">—</strong><p id="metric-queue-note">Reading durable queue</p></article>
+        <article class="stat-card"><div class="stat-heading"><span>LOCAL MODEL</span><span>IRIS / 03</span></div><strong class="stat-model" id="metric-model">—</strong><p id="metric-model-note">Probing Ollama</p></article>
+        <article class="stat-card"><div class="stat-heading"><span>RUNTIME</span><span>CORE / 04</span></div><strong id="metric-runtime">—</strong><p id="metric-runtime-note">Reading persistent state</p></article>
+      </section>
+
+      <section class="overview-grid overview-only" aria-label="System overview">
+        <article class="panel constellation-panel" id="modules" aria-labelledby="constellation-title">
+          <div class="panel-heading">
+            <div><p class="eyebrow"><span class="eyebrow-mark">02</span> ARCHITECTURE MAP</p><h2 id="constellation-title">Module constellation</h2></div>
+            <span class="panel-count" id="module-count">Loading registry…</span>
+          </div>
+          <p class="panel-intro">Live registry state. A listed module is not evidence that its full service is active.</p>
+          <div class="module-constellation" id="module-constellation">
+            <div class="orbit orbit-outer" aria-hidden="true"></div><div class="orbit orbit-inner" aria-hidden="true"></div>
+            <div class="constellation-core" aria-hidden="true"><span class="core-glyph">A</span><strong>ARCHON</strong><small id="core-state">AWAITING TELEMETRY</small></div>
+            <div class="module-nodes" id="module-nodes" aria-live="polite"><span class="nav-loading">Synchronizing registry…</span></div>
+          </div>
+        </article>
+
+        <aside class="side-stack" aria-label="Node status">
+          <article class="panel telemetry-panel">
+            <div class="panel-heading compact"><div><p class="eyebrow"><span class="eyebrow-mark">03</span> SYSTEM TELEMETRY</p><h2>Node status</h2></div><span class="live-tag"><span class="tiny-led"></span> LIVE</span></div>
+            <div class="telemetry-list">
+              <div class="telemetry-row"><span class="telemetry-dot" id="runtime-dot"></span><span>Runtime health</span><strong id="telemetry-runtime">—</strong></div>
+              <div class="telemetry-row"><span class="telemetry-dot" id="controller-dot"></span><span>Native controller</span><strong id="telemetry-controller">—</strong></div>
+              <div class="telemetry-row"><span class="telemetry-dot" id="model-dot"></span><span>Ollama model</span><strong id="telemetry-model">—</strong></div>
+              <div class="telemetry-row"><span class="telemetry-dot" id="queue-dot"></span><span>Queue control</span><strong id="telemetry-queue">—</strong></div>
+            </div>
+            <p class="telemetry-foot" id="telemetry-updated">Waiting for local telemetry</p>
+          </article>
+
+          <article class="panel module-status-panel">
+            <div class="panel-heading compact"><div><p class="eyebrow"><span class="eyebrow-mark">04</span> SERVICE REGISTRY</p><h2>Module status</h2></div><span class="panel-count" id="module-active-count">—</span></div>
+            <div class="module-status-list" id="module-status-list" aria-live="polite"><p class="empty-state">Reading registry…</p></div>
+          </article>
+        </aside>
+      </section>
+
+      <section class="execution-grid overview-only" id="execution" aria-label="Task execution and authorization">
+        <article class="panel task-panel">
+          <div class="panel-heading compact"><div><p class="eyebrow"><span class="eyebrow-mark">05A</span> ATLAS / DURABLE QUEUE</p><h2>Master task queue</h2></div><span class="live-tag"><span class="tiny-led"></span> PERSISTENT</span></div>
+          <div id="task-list" class="task-list" aria-live="polite"><p class="empty-state">Reading task ledger…</p></div>
+        </article>
+        <article class="panel capability-panel">
+          <div class="panel-heading compact"><div><p class="eyebrow"><span class="eyebrow-mark">05B</span> ASEL / NATIVE EXECUTION</p><h2>Capability gates</h2></div><span class="lock-tag" id="auth-state">CHECKING</span></div>
+          <p class="panel-intro">Read-only handlers are queue-gated. Effectful operations require scoped owner signatures.</p>
+          <div id="capability-list" class="capability-list" aria-live="polite"><p class="empty-state">Reading policy…</p></div>
+        </article>
+      </section>
+
+      <section class="assistant-panel panel overview-only" id="assistant" aria-labelledby="assistant-title">
+        <div class="assistant-heading">
+          <div><p class="eyebrow"><span class="eyebrow-mark">06</span> IRIS / LOCAL INFERENCE</p><h2 id="assistant-title">Talk to ARCHON</h2><p class="panel-intro">Direct local-model chat with live health context. Tool execution remains behind signed task admission.</p></div>
+          <span class="model-chip" id="chat-model-chip">LOCAL MODEL</span>
+        </div>
+        <div class="assistant-console">
+          <div class="assistant-orb" aria-hidden="true"><span>A</span></div>
+          <div class="assistant-output"><div class="assistant-output-top"><strong>ARCHON <span>/ LOCAL</span></strong><div class="waveform" id="waveform" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="model-chip small" id="assistant-model-chip">QWEN / LOCAL</span></div><ol id="chat-history" class="chat-history" aria-live="polite"></ol></div>
+        </div>
+        <form id="chat-form" class="chat-form">
+          <label class="visually-hidden" for="chat-message">Message to ARCHON</label>
+          <textarea id="chat-message" name="message" rows="2" maxlength="32000" placeholder="Message ARCHON…" required></textarea>
+          <div class="chat-form-footer"><span class="input-hint">LOCAL INFERENCE · CONVERSATION STORED ON THIS MACHINE</span><button id="chat-send" class="send-button" type="submit">Send <span aria-hidden="true">➤</span></button></div>
+          <p id="chat-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <footer class="page-footer"><span>ARCHON LOCAL MISSION CONTROL</span><span id="last-refresh">NO TELEMETRY YET</span><span>LOOPBACK ONLY · NO EXTERNAL MODEL ROUTING</span></footer>
+    </main>
+  </div>
   <script src="/dashboard.js" defer></script>
 </body>
 </html>
